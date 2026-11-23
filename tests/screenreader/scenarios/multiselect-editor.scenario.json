@@ -42,7 +42,7 @@
       "id": "commit-selection",
       "action": {"press": "Enter"},
       "expect": [["alpha"], ["row 3"]],
-      "note": "Enter commits the selection and moves the selection one row down (enterMoves), to the next row's cell, which holds the chip `Alpha`. Finding: the focus is lost: it lands on the document body, so NVDA and VoiceOver with WebKit read the document (`Cell dropdown arrow fixture, document`) and VoiceOver with Chromium says nothing. The next arrow key brings it back to the grid."
+      "note": "Enter commits the selection and moves the selection one row down (enterMoves), to the next row's cell, which holds the chip `Alpha`. The focus moves with it, and every reader reads the cell."
     },
     {
       "id": "back-to-committed",

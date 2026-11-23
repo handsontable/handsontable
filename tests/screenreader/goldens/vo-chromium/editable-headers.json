@@ -6,14 +6,14 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-18T13:43:16.313Z"
+    "at": "2026-11-23T12:10:39.253Z"
   },
   "steps": {
     "arrow-up-to-header": "price menu pop up column 3 row select whole grid name price stock",
     "f2-open-field": "price contents selected header name edit text",
     "type-name": "ost",
     "enter-save": "cost menu pop up column 3 row select whole grid name cost stock header renamed to cost",
-    "f2-open-again": "cost cost contents selected header name edit text",
+    "f2-open-again": "cost contents selected header name edit text",
     "escape-cancel": "cost menu pop up column 3 row select whole grid name cost stock"
   }
 }

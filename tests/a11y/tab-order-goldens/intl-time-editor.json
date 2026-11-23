@@ -7,12 +7,12 @@
       {
         "region": "grid",
         "role": "InputTime",
-        "name": ""
+        "name": "C, row 1"
       },
       {
         "region": "grid",
         "role": "InputTime",
-        "name": ""
+        "name": "C, row 1"
       }
     ]
   }

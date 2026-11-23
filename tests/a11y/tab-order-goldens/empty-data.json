@@ -81,7 +81,7 @@
       },
       {
         "region": "grid",
-        "role": "generic",
+        "role": "group",
         "name": "No data available There’s nothing to display yet."
       },
       {
@@ -94,7 +94,7 @@
       },
       {
         "region": "grid",
-        "role": "generic",
+        "role": "group",
         "name": "No data available There’s nothing to display yet."
       },
       {

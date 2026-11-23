@@ -1,6 +1,12 @@
 import { BasePlugin } from '../base';
 import type { CellProperties } from '../../settings';
-import { LINK_SCHEMES, normalizeSchemes, type LinkScheme, type LinkTarget } from '../../utils/cellLinks';
+import {
+  LINK_SCHEMES,
+  describeLink,
+  normalizeSchemes,
+  type LinkScheme,
+  type LinkTarget,
+} from '../../utils/cellLinks';
 import { linkifyCell, unlinkifyCell, type LinkifyOptions } from './linkifyCell';
 import { resolveAutoLinkSettingsCached, type ResolvedAutoLinkSettings } from './resolveSettings';
 import { LICENSE } from './feature.generated';
@@ -293,6 +299,8 @@ export class AutoLink extends BasePlugin {
       return;
     }
 
-    linkifyCell(TD, this.#toLinkifyOptions(this.#resolveSettings(cellSetting)));
+    if (linkifyCell(TD, this.#toLinkifyOptions(this.#resolveSettings(cellSetting)))) {
+      describeLink(this.hot, TD);
+    }
   };
 }

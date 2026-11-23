@@ -21,14 +21,15 @@ import {
   MIXED_KEY,
   SUBSCRIPTION_UNTIL,
   TRIAL_UNTIL,
-  SPONSORED_BADGE_KEY,
-  SPONSORED_BADGE_EXTERNAL_KEY,
-  SPONSORED_NO_BADGE_KEY,
-  PERPETUAL_BADGE_KEY,
-  PERPETUAL_BADGE_NO_UI_WARNS_KEY,
-  BADGE_EMPTY_CLAUSE_KEY,
+  SPONSORED_ATTRIBUTION_BAR_KEY,
+  SPONSORED_ATTRIBUTION_BAR_EXTERNAL_KEY,
+  SPONSORED_NO_ATTRIBUTION_BAR_KEY,
+  PERPETUAL_ATTRIBUTION_BAR_KEY,
+  PERPETUAL_ATTRIBUTION_BAR_NO_UI_WARNS_KEY,
+  ATTRIBUTION_BAR_EMPTY_CLAUSE_KEY,
+  SPONSORED_RETIRED_BADGE_FLAG_KEY,
 } from './fixtures';
-import { BADGE_FLAG } from '../index';
+import { ATTRIBUTION_BAR_FLAG } from '../index';
 
 /**
  * A well-formed Handsontable product entry, with the fields a test does not care about filled in.
@@ -133,69 +134,91 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       expect(entitlement.flags).toEqual(['no-console-warns', 'no-ui-warns']);
     });
 
-    it('should read a sponsored key and keep its badge flag', () => {
-      const entitlement = getProductEntitlement(extractEntitlementKeyData(SPONSORED_BADGE_KEY), 'handsontable');
+    it('should read a sponsored key and keep its attribution-bar flag', () => {
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(SPONSORED_ATTRIBUTION_BAR_KEY),
+        'handsontable',
+      );
 
-      expect(BADGE_FLAG).toBe('badge');
+      expect(ATTRIBUTION_BAR_FLAG).toBe('attribution-bar');
       expect(entitlement).toEqual({
         capabilities: ['core'],
         usage_until: '2027-11-04',
         notice: 60,
         grace: 90,
-        flags: [BADGE_FLAG],
+        flags: [ATTRIBUTION_BAR_FLAG],
       });
     });
 
-    it('should keep the badge flag next to both silencing flags', () => {
+    it('should keep the attribution-bar flag next to both silencing flags', () => {
       const entitlement = getProductEntitlement(
-        extractEntitlementKeyData(SPONSORED_BADGE_EXTERNAL_KEY),
+        extractEntitlementKeyData(SPONSORED_ATTRIBUTION_BAR_EXTERNAL_KEY),
         'handsontable',
       );
 
-      expect(entitlement.flags).toEqual(['no-console-warns', 'no-ui-warns', BADGE_FLAG]);
+      expect(entitlement.flags).toEqual(['no-console-warns', 'no-ui-warns', ATTRIBUTION_BAR_FLAG]);
     });
 
-    it('should read a sponsored key without the badge flag as a plain usage entry', () => {
-      const entitlement = getProductEntitlement(extractEntitlementKeyData(SPONSORED_NO_BADGE_KEY), 'handsontable');
+    it('should read the retired `badge` flag as an unknown flag: kept on the entry, and not the attribution-bar flag', () => {
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(SPONSORED_RETIRED_BADGE_FLAG_KEY),
+        'handsontable',
+      );
+
+      expect(entitlement.flags).toEqual(['badge']);
+      expect(entitlement.flags).not.toContain(ATTRIBUTION_BAR_FLAG);
+    });
+
+    it('should read a sponsored key without the attribution-bar flag as a plain usage entry', () => {
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(SPONSORED_NO_ATTRIBUTION_BAR_KEY),
+        'handsontable',
+      );
 
       expect(entitlement.usage_until).toBe('2027-11-04');
       expect(entitlement.flags).toEqual([]);
     });
 
-    it('should keep the badge flag on a `release_until` entry (a perpetual key)', () => {
-      const entitlement = getProductEntitlement(extractEntitlementKeyData(PERPETUAL_BADGE_KEY), 'handsontable');
+    it('should keep the attribution-bar flag on a `release_until` entry (a perpetual key)', () => {
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(PERPETUAL_ATTRIBUTION_BAR_KEY),
+        'handsontable',
+      );
 
       expect(entitlement).toEqual({
         capabilities: ['core'],
         release_until: '2099-12-31',
         notice: 60,
         grace: 90,
-        flags: [BADGE_FLAG],
+        flags: [ATTRIBUTION_BAR_FLAG],
       });
       expect(entitlement.usage_until).toBeUndefined();
     });
 
-    it('should keep the badge flag of a perpetual key next to `no-ui-warns`', () => {
+    it('should keep the attribution-bar flag of a perpetual key next to `no-ui-warns`', () => {
       const entitlement = getProductEntitlement(
-        extractEntitlementKeyData(PERPETUAL_BADGE_NO_UI_WARNS_KEY),
+        extractEntitlementKeyData(PERPETUAL_ATTRIBUTION_BAR_NO_UI_WARNS_KEY),
         'handsontable',
       );
 
       expect(entitlement.release_until).toBe('2099-12-31');
-      expect(entitlement.flags).toEqual([BADGE_FLAG, 'no-ui-warns']);
+      expect(entitlement.flags).toEqual([ATTRIBUTION_BAR_FLAG, 'no-ui-warns']);
     });
 
-    it('should read a badge key whose badge clause is empty, and keep its flag', () => {
-      expect(BADGE_EMPTY_CLAUSE_KEY).not.toContain('Powered by');
+    it('should read an attribution-bar key whose clause is empty, and keep its flag', () => {
+      expect(ATTRIBUTION_BAR_EMPTY_CLAUSE_KEY).not.toContain('Powered by');
 
-      const entitlement = getProductEntitlement(extractEntitlementKeyData(BADGE_EMPTY_CLAUSE_KEY), 'handsontable');
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(ATTRIBUTION_BAR_EMPTY_CLAUSE_KEY),
+        'handsontable',
+      );
 
       expect(entitlement).toEqual({
         capabilities: ['core'],
         usage_until: '2027-11-04',
         notice: 60,
         grace: 90,
-        flags: [BADGE_FLAG],
+        flags: [ATTRIBUTION_BAR_FLAG],
       });
     });
 

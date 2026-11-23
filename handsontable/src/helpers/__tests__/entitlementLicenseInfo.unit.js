@@ -10,12 +10,13 @@ import {
   PERPETUAL_KEY,
   PERPETUAL_NO_UI_WARNS_KEY,
   HF_ONLY_KEY,
-  SPONSORED_BADGE_KEY,
-  SPONSORED_BADGE_EXTERNAL_KEY,
-  SPONSORED_NO_BADGE_KEY,
-  PERPETUAL_BADGE_KEY,
-  PERPETUAL_BADGE_NO_UI_WARNS_KEY,
-  BADGE_EMPTY_CLAUSE_KEY,
+  SPONSORED_ATTRIBUTION_BAR_KEY,
+  SPONSORED_ATTRIBUTION_BAR_EXTERNAL_KEY,
+  SPONSORED_NO_ATTRIBUTION_BAR_KEY,
+  PERPETUAL_ATTRIBUTION_BAR_KEY,
+  PERPETUAL_ATTRIBUTION_BAR_NO_UI_WARNS_KEY,
+  ATTRIBUTION_BAR_EMPTY_CLAUSE_KEY,
+  SPONSORED_RETIRED_BADGE_FLAG_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { blockOf } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
@@ -355,7 +356,7 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
   });
 });
 
-describe('the `badge` facet of the license state (DEV-3413)', () => {
+describe('the `attributionBar` facet of the license state (DEV-3413)', () => {
   let _getLicenseState;
 
   beforeEach(() => {
@@ -364,41 +365,42 @@ describe('the `badge` facet of the license state (DEV-3413)', () => {
     _getLicenseState = require('../mixed')._getLicenseState;
   });
 
-  it('should read `badge` from a key whose Handsontable entry carries the flag', () => {
-    expect(_getLicenseState(SPONSORED_BADGE_KEY).badge).toBe(true);
+  it('should read `attributionBar` from a key whose Handsontable entry carries the flag', () => {
+    expect(_getLicenseState(SPONSORED_ATTRIBUTION_BAR_KEY).attributionBar).toBe(true);
   });
 
-  it('should read `badge` from a perpetual key, whose entry is a `release_until` one', () => {
-    expect(_getLicenseState(PERPETUAL_BADGE_KEY).badge).toBe(true);
+  it('should read `attributionBar` from a perpetual key, whose entry is a `release_until` one', () => {
+    expect(_getLicenseState(PERPETUAL_ATTRIBUTION_BAR_KEY).attributionBar).toBe(true);
   });
 
-  it('should keep `badge` on a perpetual key that also carries `no-ui-warns`', () => {
-    const { badge, channels } = _getLicenseState(PERPETUAL_BADGE_NO_UI_WARNS_KEY);
+  it('should keep `attributionBar` on a perpetual key that also carries `no-ui-warns`', () => {
+    const { attributionBar, channels } = _getLicenseState(PERPETUAL_ATTRIBUTION_BAR_NO_UI_WARNS_KEY);
 
     expect(channels.ui).toBe(false);
-    expect(badge).toBe(true);
+    expect(attributionBar).toBe(true);
   });
 
-  it('should read `badge` from a key whose badge clause is empty', () => {
-    expect(_getLicenseState(BADGE_EMPTY_CLAUSE_KEY).badge).toBe(true);
+  it('should read `attributionBar` from a key whose attribution bar clause is empty', () => {
+    expect(_getLicenseState(ATTRIBUTION_BAR_EMPTY_CLAUSE_KEY).attributionBar).toBe(true);
   });
 
-  it('should keep `badge` on a key whose silencing flags close both channels', () => {
-    const { badge, channels } = _getLicenseState(SPONSORED_BADGE_EXTERNAL_KEY);
+  it('should keep `attributionBar` on a key whose silencing flags close both channels', () => {
+    const { attributionBar, channels } = _getLicenseState(SPONSORED_ATTRIBUTION_BAR_EXTERNAL_KEY);
 
     expect(channels).toEqual({ console: false, ui: false });
-    expect(badge).toBe(true);
+    expect(attributionBar).toBe(true);
   });
 
   it.each([
-    ['a sponsored key without the flag', SPONSORED_NO_BADGE_KEY],
+    ['a sponsored key without the flag', SPONSORED_NO_ATTRIBUTION_BAR_KEY],
+    ['a sponsored key with the retired `badge` flag (DEV-4153), an unknown flag now', SPONSORED_RETIRED_BADGE_FLAG_KEY],
     ['a subscription key', SUBSCRIPTION_KEY],
-    ['a trial key (the bar of a trial comes from its `trial` flag, not from `badge`)', TRIAL_KEY],
+    ['a trial key (the bar of a trial comes from its `trial` flag, not from `attribution-bar`)', TRIAL_KEY],
     ['a key that grants no Handsontable license', HF_ONLY_KEY],
     ['the non-commercial key', 'non-commercial-and-evaluation'],
     ['a malformed legacy key', '00000-00000-00000-00000-00000'],
     ['no key', undefined],
-  ])('should read no `badge` from %s', (_label, key) => {
-    expect(_getLicenseState(key).badge).toBe(false);
+  ])('should read no `attributionBar` from %s', (_label, key) => {
+    expect(_getLicenseState(key).attributionBar).toBe(false);
   });
 });

@@ -4,6 +4,7 @@
 let announcerElement: HTMLElement | null = null;
 let politeAnnouncerElement: HTMLElement | null = null;
 const installedPortals: HTMLElement[] = [];
+let announcementCount = 0;
 /**
  * The pending write of each live region. A later announcement cancels it, so the region never
  * shows an earlier message after a newer one was announced.
@@ -117,6 +118,8 @@ export function announce(message: string, politeness: AnnouncementPoliteness = '
     return;
   }
 
+  announcementCount += 1;
+
   // The value needs to be cleared first to ensure that screen readers announce the new message.
   liveRegion.textContent = '';
 
@@ -129,4 +132,14 @@ export function announce(message: string, politeness: AnnouncementPoliteness = '
       liveRegion.textContent = message;
     }
   }, 100));
+}
+
+/**
+ * Returns how many announcements were made since the page loaded. A feature that announces late (after a
+ * debounce) compares two readings to learn whether another feature already announced for the same user action.
+ *
+ * @returns {number}
+ */
+export function getAnnouncementCount(): number {
+  return announcementCount;
 }

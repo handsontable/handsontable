@@ -5,16 +5,16 @@ name: A11y nightly
 # checks beyond axe"). The schedule is the weekly audit: while the accessibility debt is being fixed,
 # the findings ledger needs an audit a week to show what each fix cleared, and when; a run every night
 # would spend seven times the compute (tests/AGENTS.md, "A11y: the audit and the proof runs"). The
-# weekly schedule ends when the debt epic closes, and the tiers then decide the cadence: axe on a pull
-# request (test.yml today), a semi-lite set on a nightly, the full set on a release candidate and a
-# stable release. The name stays: the ledger, the Slack text and the docs know this workflow as the
-# A11y nightly.
-# This is the only run of the checks beyond axe: the pull-request Tests pipeline runs the axe scan
-# alone, because the checks are report-only and the accessibility program is still building its
-# picture, so a pull request learned nothing from them it could act on. The evidence is kept 30 days,
-# which is what the Accessibility Conformance Report cites per criterion. The schedule and a plain
-# dispatch run every check (the audit, on develop); a dispatch may ask for the short suite
-# (`suite: pull-request`), the one a developer runs locally, or name the checks to run
+# weekly schedule ends when the debt epic closes, and the tiers then decide the cadence: axe and the
+# short suite on a pull request (test.yml today), a semi-lite set on a nightly, the full set on a release
+# candidate and a stable release. The name stays: the ledger, the Slack text and the docs know this
+# workflow as the A11y nightly.
+# This is the only run of every check beyond axe, and the only one the findings ledger records. A pull
+# request runs the axe scan and the short suite (test.yml), report-only, and reads this audit's ledger to
+# tell its new findings from the known ones; the two weekly-only checks (forced-colors-motion,
+# axe-discovery) run here alone. The evidence is kept 30 days, which is what the Accessibility
+# Conformance Report cites per criterion. The schedule and a plain dispatch run every check (the audit,
+# on develop); a dispatch may ask for the short suite (`suite: pull-request`), or name the checks to run
 # (`checks: keyboard-walker`), the proof run of a change to one check from its branch.
 # Each check's verdict is its `A11y / <check> report` check run and the job summary, by the severity rule
 # (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a critical or serious finding, neutral with
