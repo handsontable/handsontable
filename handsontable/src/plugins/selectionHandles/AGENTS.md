@@ -30,6 +30,10 @@ continue the resize without a new pointer event).
 (`selection.setHandlesHoveredLayer(null)`). Clearing fields by hand instead leaves the host cursor stuck or
 a handle painted as hovered.
 
+## A click on a handle arms a pick: "click, then click" (WCAG 2.5.7)
+
+A press and release on a handle that move less than `DRAG_THRESHOLD` (3px) are a click. `#onHandleMouseUp` (the document `mouseup` of a session, which replaces `#endDrag` there) arms `armPick()` (`../../utils/armedPick.ts`) with the session as it was when the handle was pressed, and the next click on the grid runs `#resizeSelection()` with that session and the click's position, so a pick moves the edge exactly as the drag's last `mousemove` would, `clampEdge()` included. `#resizeSelection()` takes the session as an argument for that reason: `#drag` is already `null` when the pick runs. The pick does nothing when the layer's range is no longer the one the handle was clicked on (a key moved it). A second click on the same handle ends the pick (`#pressedWhileArmed`); another handle starts its own. The armed handle gets the root class `ht__picking-selection--<edge>` and the held style. The pick is cancelled in `disablePlugin()` and `destroy()`. A handle is thin (4px), so a release that lands beside it is possible: `armPick()` picks only with a click whose press it saw, which keeps that click from picking at once.
+
 ## `clampEdge()` — an edge may not cross its opposite
 
 `helpers.ts` clamps by which edge is being dragged: `top`/`start` take `Math.min(bounded, oppositeIndex)`,

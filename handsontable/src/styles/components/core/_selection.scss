@@ -111,7 +111,12 @@
     &.ht__resizing-selection--top .wtSelectionHandle--top,
     &.ht__resizing-selection--bottom .wtSelectionHandle--bottom,
     &.ht__resizing-selection--start .wtSelectionHandle--start,
-    &.ht__resizing-selection--end .wtSelectionHandle--end {
+    &.ht__resizing-selection--end .wtSelectionHandle--end,
+    // the handle that waits for the click that picks where the edge goes is styled as a held one
+    &.ht__picking-selection--top .wtSelectionHandle--top,
+    &.ht__picking-selection--bottom .wtSelectionHandle--bottom,
+    &.ht__picking-selection--start .wtSelectionHandle--start,
+    &.ht__picking-selection--end .wtSelectionHandle--end {
       background: color-mix(
         in srgb,
         var(--ht-cell-selection-handle-border-color) 30%,

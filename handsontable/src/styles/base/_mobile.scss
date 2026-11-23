@@ -28,6 +28,13 @@
       z-index: 9999;
     }
 
+    // The handle that waits for the tap that picks where the corner goes is ringed, as the selection border is.
+    &.ht__picking-selection--top .topSelectionHandle,
+    &.ht__picking-selection--bottom .bottomSelectionHandle {
+      outline: var(--ht-sizing-size-0-5, 2px) solid var(--ht-accent-color);
+      outline-offset: 2px;
+    }
+
     // There is no css animations - classes to verify
     &.hide-tween {
       -webkit-animation: opacity-hide 0.2s;

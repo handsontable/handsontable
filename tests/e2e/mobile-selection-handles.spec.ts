@@ -369,5 +369,74 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
       await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_master']);
     });
   }
+  test.describe('tap, then tap', () => {
+    test('a tap on a handle arms it and announces what to do, and changes nothing', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+
+      await expect(mobileGrid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
+      await expect(mobileGrid.politeAnnouncer()).toHaveText('Click the target to finish. Press Escape to cancel.');
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+    });
+
+    test('the next tap on a cell moves the bottom corner there', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await mobileGrid.tapCell(4, 3);
+
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 4, 3]);
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+    });
+
+    test('the next tap on a cell moves the top corner there', async () => {
+      await mobileGrid.tapCell(3, 3);
+      await mobileGrid.selectRange(3, 3, 4, 4);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.topHitArea().tap();
+      await mobileGrid.tapCell(1, 2);
+
+      expect(await mobileGrid.selectedLast()).toEqual([1, 2, 4, 4]);
+    });
+
+    test('Escape cancels it, announces that, and the next tap selects as usual', async ({ page }) => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await page.keyboard.press('Escape');
+
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      await expect(mobileGrid.politeAnnouncer()).toHaveText('Canceled.');
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+
+      await mobileGrid.tapCell(4, 3);
+
+      expect(await mobileGrid.selectedLast()).toEqual([4, 3, 4, 3]);
+    });
+
+    test('a second tap on the same handle disarms it without picking', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await mobileGrid.bottomHitArea().tap();
+
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+    });
+
+    test('a drag of a handle arms nothing', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.dragBottomHandleToCell(4, 2);
+
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+    });
+  });
 });
 

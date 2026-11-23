@@ -23,6 +23,7 @@ export type Step =
   | { dblclick: Point }
   | { drag: { from: Point; to?: Point; by?: [number, number] } }
   | { touchDrag: { from: Point; to: Point } }
+  | { touchTap: Point }
   | { press: string | string[] }
   | { pressUntilFocused: { key: string; selector: string } }
   | { pressUntilHighlighted: { key: string; text: string } }
@@ -161,6 +162,10 @@ export async function runSteps(page: Page, root: string, steps: Step[]): Promise
 
       await page.mouse.move(to.x, to.y, { steps: STEPS_PER_DRAG });
       await page.mouse.up();
+    } else if ('touchTap' in step) {
+      const at = await resolvePoint(page, root, step.touchTap);
+
+      await page.touchscreen.tap(at.x, at.y);
     } else if ('touchDrag' in step) {
       const from = await resolvePoint(page, root, step.touchDrag.from);
       const to = await resolvePoint(page, root, step.touchDrag.to);

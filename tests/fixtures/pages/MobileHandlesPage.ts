@@ -132,6 +132,27 @@ export class MobileHandlesPage {
   }
 
   /**
+   * The hit area of the top-left mobile selection handle, scoped to the master overlay.
+   */
+  topHitArea(): Locator {
+    return this.page.locator('.ht_master .htBorders .topSelectionHandle-HitArea:visible').first();
+  }
+
+  /**
+   * The root while a tap on a handle waits for the tap that picks where the corner goes.
+   */
+  pickingRoot(): Locator {
+    return this.page.locator('[class*="ht__picking-selection--"]');
+  }
+
+  /**
+   * The polite live region the announcements go to.
+   */
+  politeAnnouncer(): Locator {
+    return this.page.locator('[role="status"][aria-live="polite"]');
+  }
+
+  /**
    * Assert both mobile selection handles are attached and visible with a
    * non-zero rendered size.
    */

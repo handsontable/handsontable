@@ -403,7 +403,7 @@ These keyboard shortcuts work when the [`FreezeBar`](@/api/freezeBar.md) plugin 
 | <kbd>**End**</kbd>                                       | <kbd>**End**</kbd>                                     | Freeze as many columns or rows as fit in the grid, and leave room to scroll.                                     | &cross; | &cross; |
 | <kbd>**Escape**</kbd>                                    | <kbd>**Escape**</kbd>                                  | Move the focus back to the selected cell.                                                                        | &cross; | &cross; |
 
-In a right-to-left layout, the horizontal arrows swap. <kbd>**Escape**</kbd> also cancels a drag of a freeze bar.
+In a right-to-left layout, the horizontal arrows swap. <kbd>**Escape**</kbd> also cancels a drag of a freeze bar, and a click on a freeze bar or a selection handle that waits for the click that finishes it.
 
 
 ## API reference

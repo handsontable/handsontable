@@ -24,7 +24,7 @@
  *
  * Steps: `{ select: [row, col, row2?, col2?] }`, `{ api: 'colWidth' | 'rowHeight', index, size }` and
  * `{ api: 'empty', range: [row, col, row2, col2] }` go through the API; `hover`, `click` (with `button`,
- * `modifiers`), `dblclick`, `drag` (`from`, then `to`, `by: [dx, dy]` or both) and `touchDrag` drive a
+ * `modifiers`), `dblclick`, `drag` (`from`, then `to`, `by: [dx, dy]` or both), `touchTap` and `touchDrag` drive a
  * real pointer; `press` a key or a list of keys, `pressUntilFocused` a key until the selector has the
  * focus, `pressUntilHighlighted` a key until the open menu highlights the text; `focus` focuses a
  * selector; `visible` waits for one. A point is `{ cell: [row, col] }`, `{ colHeader }`, `{ rowHeader }`
@@ -96,6 +96,8 @@ export const DRAG_OPERATIONS = [
     alternatives: [
       { input: 'keyboard', covers: 'full', how: 'F6 moves the focus to the bar\'s separator, and an arrow key freezes one column more',
         steps: [{ select: [1, 1] }, { pressUntilFocused: { key: 'F6', selector: '[data-ht-freeze-separator="start"]' } }, { press: 'ArrowRight' }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the bar, then a click on the last column to freeze, sets the count',
+        steps: [{ click: { selector: '.ht-freeze-bar--start:not(.ht-freeze-bar--segment)' } }, { click: { cell: [3, 3] } }] },
       { input: 'single-pointer', covers: 'partial', how: 'The context menu\'s Freeze column moves one selected column to the frozen ones, never sets the count',
         steps: [{ click: { colHeader: 3 } }, { click: { colHeader: 3 }, button: 'right' }, { click: { text: 'Freeze column', within: '.htContextMenu' } }] },
     ],
@@ -107,6 +109,8 @@ export const DRAG_OPERATIONS = [
     alternatives: [
       { input: 'keyboard', covers: 'full', how: 'F6 moves the focus to the bar\'s separator, and an arrow key freezes one row more',
         steps: [{ select: [1, 1] }, { pressUntilFocused: { key: 'F6', selector: '[data-ht-freeze-separator="top"]' } }, { press: 'ArrowDown' }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the bar, then a click on the last row to freeze, sets the count',
+        steps: [{ click: { selector: '.ht-freeze-bar--top:not(.ht-freeze-bar--segment)' } }, { click: { cell: [3, 3] } }] },
     ],
   },
   {
@@ -156,6 +160,8 @@ export const DRAG_OPERATIONS = [
         steps: [{ press: ['Shift+ArrowDown', 'Shift+ArrowDown'] }] },
       { input: 'pointer-modifier', covers: 'full', how: 'A Shift+click extends the selection to the clicked cell',
         steps: [{ click: { cell: [5, 3] }, modifiers: ['Shift'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the handle, then a click on the target cell, moves the edge there',
+        steps: [{ click: { selector: '.ht_master .wtSelectionHandle--bottom' } }, { click: { cell: [5, 2] } }] },
     ],
   },
   {
@@ -165,6 +171,8 @@ export const DRAG_OPERATIONS = [
     alternatives: [
       { input: 'keyboard', covers: 'full', how: 'Shift+arrows on a keyboard attached to the phone extend the selection',
         steps: [{ press: ['Shift+ArrowDown', 'Shift+ArrowDown'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A tap on the handle, then a tap on the target cell, moves the corner there',
+        steps: [{ touchTap: { selector: '.ht_master .htBorders .bottomSelectionHandle-HitArea' } }, { touchTap: { cell: [4, 1] } }] },
     ],
   },
   {
