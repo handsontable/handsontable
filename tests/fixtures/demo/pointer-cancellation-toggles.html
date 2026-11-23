@@ -10,22 +10,24 @@
     // value THROWS rather than falling back, so a typo in the project config is one red leg, never a silently
     // mislabeled green one.
     const htParams = new URLSearchParams(location.search);
+    // Own keys only: a bare index would let `?theme=constructor` resolve to an inherited function.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
 
-    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
-    if (!window.htTheme) {
-      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
-    }
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick({ main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
 
-    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
-    if (!window.htBundle) {
-      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
-    }
-
-    window.htVariant = ({ ltr: 'ltr', rtl: 'rtl', frozen: 'frozen', shadow: 'shadow' })[htParams.get('variant') ?? 'ltr'];
-    if (!window.htVariant) {
-      throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
-    }
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+    window.htVariant = htPick(
+      { ltr: 'ltr', rtl: 'rtl', frozen: 'frozen', shadow: 'shadow' }, htParams.get('variant'), 'ltr', 'variant');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>

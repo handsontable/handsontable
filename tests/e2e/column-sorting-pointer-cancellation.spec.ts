@@ -174,14 +174,54 @@ test.describe('nested headers sorting pointer cancellation', { tag: THEMES_TAG }
 
 /**
  * The same cancellation has to hold where the header is not the plain left-to-right one in the
- * light DOM: mirrored by the layout direction, drawn by an overlay clone of the frozen columns, or
- * rendered inside a shadow root, where `event.target` is retargeted to the host.
+ * light DOM: mirrored by the layout direction, drawn by the overlay clone of the frozen columns, next
+ * to those columns while the grid is scrolled sideways, or rendered inside a shadow root, where
+ * `event.target` is retargeted to the host. Each case proves first that the grid really has that layout.
  */
 const SURFACES = [
-  { name: 'an RTL grid', options: { dir: 'rtl' as const }, pressed: 'A', other: 'B', body: [2, 0] },
-  { name: 'a frozen header', options: { frozen: true }, pressed: 'A', other: 'B', body: [2, 0] },
-  { name: 'a scrolled header next to frozen columns', options: { frozen: true }, pressed: 'C', other: 'D', body: [2, 3] },
-  { name: 'a grid inside a shadow root', options: { shadow: true }, pressed: 'B', other: 'C', body: [2, 1] },
+  {
+    name: 'an RTL grid',
+    options: { dir: 'rtl' as const },
+    pressed: 'A',
+    other: 'B',
+    body: [2, 0],
+    async precondition(grid: ColumnSortingPointerCancellationPage) {
+      expect(await grid.isRtl()).toBe(true);
+    },
+  },
+  {
+    name: 'frozen columns',
+    options: { frozen: true },
+    pressed: 'A',
+    other: 'B',
+    body: [2, 0],
+    async precondition(grid: ColumnSortingPointerCancellationPage) {
+      expect(await grid.isInOverlay(grid.header('A'), 'ht_clone_top_inline_start_corner')).toBe(true);
+      expect(await grid.isInOverlay(grid.cell(2, 0), 'ht_clone_inline_start')).toBe(true);
+    },
+  },
+  {
+    name: 'a scrolled grid next to frozen columns',
+    options: { frozen: true, scrolled: true },
+    pressed: 'C',
+    other: 'D',
+    body: [2, 3],
+    async precondition(grid: ColumnSortingPointerCancellationPage) {
+      expect(await grid.horizontalScroll()).toBeGreaterThan(0);
+      expect(await grid.isInOverlay(grid.header('A'), 'ht_clone_top_inline_start_corner')).toBe(true);
+      expect(await grid.isInOverlay(grid.header('C'), 'ht_clone_top')).toBe(true);
+    },
+  },
+  {
+    name: 'a grid inside a shadow root',
+    options: { shadow: true },
+    pressed: 'B',
+    other: 'C',
+    body: [2, 1],
+    async precondition(grid: ColumnSortingPointerCancellationPage) {
+      expect(await grid.isInShadowRoot()).toBe(true);
+    },
+  },
 ];
 
 for (const surface of SURFACES) {
@@ -191,6 +231,7 @@ for (const surface of SURFACES) {
     test.beforeEach(async({ page, theme, bundle }) => {
       grid = new ColumnSortingPointerCancellationPage(page, theme, bundle);
       await grid.goto('column', surface.options);
+      await surface.precondition(grid);
     });
 
     test('a release over the pressed header sorts', async() => {
@@ -222,20 +263,3 @@ for (const surface of SURFACES) {
     });
   });
 }
-
-test.describe('column sorting pointer cancellation with frozen columns', { tag: THEMES_TAG }, () => {
-  test('the frozen headers stay in view while the grid is scrolled sideways', async({ page, theme, bundle }) => {
-    const grid = new ColumnSortingPointerCancellationPage(page, theme, bundle);
-
-    await grid.goto('column', { frozen: true });
-
-    const frozen = (await grid.header('A').boundingBox())!;
-    const scrolled = (await grid.header('D').boundingBox())!;
-    const gridBox = (await page.getByTestId('grid').boundingBox())!;
-
-    // The frozen header sits at the start of the grid, the last column at its end: pressing them tests
-    // the header the overlay clone keeps in place, not one at its unscrolled position.
-    expect(frozen.x).toBeLessThan(gridBox.x + (gridBox.width / 2));
-    expect(scrolled.x).toBeGreaterThan(frozen.x);
-  });
-});

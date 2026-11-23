@@ -5,9 +5,15 @@ type Variant = 'column' | 'multi' | 'nested';
 
 interface GotoOptions {
   dir?: 'ltr' | 'rtl';
+  /** Freezes the first two columns, which an overlay clone then draws. */
   frozen?: boolean;
+  /** With `frozen`: scrolls the grid sideways until the last column is in view. */
+  scrolled?: boolean;
   shadow?: boolean;
 }
+
+/** How many columns the fixture freezes with `frozen`. */
+const FROZEN_COLUMNS = 2;
 
 /**
  * Page Object for the column-sorting-pointer-cancellation fixture.
@@ -20,12 +26,19 @@ export class ColumnSortingPointerCancellationPage {
   readonly theme: string;
   readonly bundle: string;
   readonly headerOverlay: Locator;
+  /** Draws the headers of the frozen columns. */
+  readonly frozenHeaderOverlay: Locator;
+  /** Draws the body cells of the frozen columns. */
+  readonly frozenBodyOverlay: Locator;
+  private frozen = false;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.headerOverlay = page.locator('.ht_clone_top');
+    this.frozenHeaderOverlay = page.locator('.ht_clone_top_inline_start_corner');
+    this.frozenBodyOverlay = page.locator('.ht_clone_inline_start');
   }
 
   /**
@@ -41,27 +54,63 @@ export class ColumnSortingPointerCancellationPage {
       `/tests/fixtures/demo/column-sorting-pointer-cancellation.html?theme=${this.theme}&bundle=${this.bundle}` +
       `&variant=${variant}&dir=${dir}&frozen=${frozen}&shadow=${shadow}`);
     await awaitBundle(this.page);
+
+    this.frozen = options.frozen === true;
     await expect(this.cell(0, 0)).toBeVisible();
 
-    if (options.frozen) {
-      // Scrolled to the last column, the first two headers stay in view only as frozen ones, which the
-      // top overlay clone keeps in place.
+    if (options.scrolled) {
       await this.page.evaluate(() => {
         (window as unknown as { hot: any }).hot.scrollViewportTo({ row: 0, col: 3 });
       });
-      await expect(this.header('D')).toBeVisible();
-      await expect(this.header('A')).toBeVisible();
+      await expect.poll(() => this.horizontalScroll()).toBeGreaterThan(0);
     }
   }
 
-  /** A single data cell, by visual row/column. */
+  /**
+   * A single data cell, by visual row/column. A cell of a frozen column is drawn by its overlay clone,
+   * and the master holds a hidden copy of it, so it is looked up there.
+   */
   cell(row: number, col: number): Locator {
-    return this.page.getByTestId(`cell-${row}-${col}`);
+    const scope = this.frozen && col < FROZEN_COLUMNS ? this.frozenBodyOverlay : this.page;
+
+    return scope.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** A header by its text, scoped to the top overlay so the match is unambiguous. */
+  /**
+   * A header by its text, scoped to the overlay that draws it so the match is unambiguous: the clone of
+   * the frozen columns for `A` and `B` of a frozen grid, the top overlay for every other header.
+   */
   header(name: string): Locator {
-    return this.headerOverlay.getByTestId(`header-${name.replace(/\s+/g, '-')}`);
+    const frozenHeader = this.frozen && ['A', 'B'].includes(name);
+    const overlay = frozenHeader ? this.frozenHeaderOverlay : this.headerOverlay;
+
+    return overlay.getByTestId(`header-${name.replace(/\s+/g, '-')}`);
+  }
+
+  /** How far the grid is scrolled sideways. */
+  async horizontalScroll(): Promise<number> {
+    return this.page.evaluate(
+      () => Math.abs((window as unknown as { hot: any }).hot.view._wt.wtTable.holder.scrollLeft));
+  }
+
+  /** Whether the grid reads as right to left: the instance, and the element it sits in. */
+  async isRtl(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: any }).hot;
+
+      return hot.isRtl() === true && getComputedStyle(hot.rootElement).direction === 'rtl';
+    });
+  }
+
+  /** Whether the grid's root lives inside a shadow root. */
+  async isInShadowRoot(): Promise<boolean> {
+    return this.page.evaluate(
+      () => (window as unknown as { hot: any }).hot.rootElement.getRootNode() instanceof ShadowRoot);
+  }
+
+  /** Whether the element sits inside the overlay clone with the class, not in the master table. */
+  async isInOverlay(locator: Locator, overlayClass: string): Promise<boolean> {
+    return locator.evaluate((element, className) => element.closest(`.${className}`) !== null, overlayClass);
   }
 
   /** The clickable sorting label inside a header. */

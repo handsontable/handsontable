@@ -77,6 +77,11 @@
         });
     }
 
+    // A right to left grid sits in a right to left page, as a real RTL page does.
+    if (window.htDirection === 'rtl') {
+      document.documentElement.dir = 'rtl';
+    }
+
     const container = document.createElement('div');
 
     container.setAttribute('data-testid', 'grid');
@@ -102,6 +107,12 @@
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
+      layoutDirection: window.htDirection,
+      fixedColumnsStart: window.htFrozen ? 2 : 0,
+      // A frozen grid is narrower than its columns, so it scrolls sideways and the frozen columns have
+      // to be drawn by their overlay clones to stay in view.
+      width: window.htFrozen ? 520 : undefined,
+      height: window.htFrozen ? 240 : undefined,
       columnSorting: window.htVariant !== 'multi',
       multiColumnSorting: window.htVariant === 'multi',
       nestedHeaders: window.htVariant === 'nested' ? [
