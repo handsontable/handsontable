@@ -260,6 +260,40 @@ export class DialogStatesPage {
   }
 
   /**
+   * Hides the dialog the fixture shows on load and puts a page button before the grid. `select-cell` selects
+   * cell (2, 2) from its click handler, as a toolbar button that hands the keyboard to the grid does.
+   * `keep-focus` prevents the default of its `mousedown`, so a press leaves the focus where it was, and does
+   * nothing on click.
+   *
+   * @param {'select-cell' | 'keep-focus'} kind What the button does.
+   * @returns {Promise<Locator>} The button.
+   */
+  async addPageButton(kind: 'select-cell' | 'keep-focus'): Promise<Locator> {
+    await this.page.evaluate((buttonKind) => {
+      const hot = (window as unknown as { hot: {
+        selectCell(row: number, column: number): void;
+        getPlugin(name: string): { hide(): void };
+      } }).hot;
+      const button = document.createElement('button');
+
+      hot.getPlugin('dialog').hide();
+      button.textContent = buttonKind;
+      button.setAttribute('data-testid', 'page-button');
+
+      if (buttonKind === 'select-cell') {
+        button.addEventListener('click', () => hot.selectCell(2, 2));
+      } else {
+        button.addEventListener('mousedown', event => event.preventDefault());
+      }
+
+      document.querySelector('[data-testid="input-before"]')!.after(button);
+    }, kind);
+    await expect(this.dialog).toBeHidden();
+
+    return this.page.getByTestId('page-button');
+  }
+
+  /**
    * Whether the grid listens to the keyboard, as `isListening()` reports it.
    *
    * @returns {Promise<boolean>}

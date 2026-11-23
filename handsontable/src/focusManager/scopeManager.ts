@@ -510,27 +510,53 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
   }
 
   /**
-   * Returns the element a click is judged by. Normally the click's own target. When the target lies outside
-   * every enabled scope while the focus sits inside one, the click's own handler moved the focus there (a
-   * page button whose handler calls `selectCell()`, or opens a dialog that focuses its first button): the
-   * click listener runs on the document element, after that handler. Judged by its target, such a click
-   * deactivated the scope the focus had just entered and unlistened the grid, so its keys stopped working
-   * while the focus stayed inside.
+   * Where the focus was, and whether the grid listened, when the current click started its dispatch (read in
+   * the capture phase on the window, before the clicked element's own handlers), or `null` outside a click.
+   */
+  let clickStartState: { focused: Element | null; listening: boolean } | null = null;
+
+  /**
+   * Records the focus and the listening state at the start of a click's dispatch.
+   */
+  function recordClickStart(): void {
+    clickStartState = {
+      focused: getDeepActiveElement(hotInstance.rootDocument),
+      listening: hotInstance.isListening(),
+    };
+  }
+
+  /**
+   * Returns the element a click is judged by: its own target, except when the click's own handler moved the
+   * focus into a scope. The scope manager's click listener sits on the document element, so it runs after
+   * the clicked element's handler. A page button whose handler calls `selectCell()`, or opens a dialog that
+   * focuses its first button, has its target outside every scope while the focus is already inside one, and
+   * judged by the target that click deactivated the scope and unlistened the grid. The handler counts as
+   * having moved the focus when the focused element changed since the click started, or the grid started
+   * listening during it (a handler that selects the cell that already had the focus). A focus that was inside
+   * a scope before the click and stayed there (a toolbar whose `mousedown` prevents default, a click on
+   * another grid's non-cell area, a click in the parent page of a grid in an iframe, a synthetic click) keeps
+   * the click judged by its target.
    *
    * @param {HTMLElement} target The click's target.
    * @returns {HTMLElement}
    */
   function resolveClickTarget(target: HTMLElement): HTMLElement {
+    const startState = clickStartState;
+
+    clickStartState = null;
+
     const enabledScopes = (SCOPES.getValues() as ReturnType<typeof createFocusScope>[]).filter(
       (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf());
 
-    if (enabledScopes.some(scope => scopeContains(scope, target))) {
+    if (startState === null || enabledScopes.some(scope => scopeContains(scope, target))) {
       return target;
     }
 
     const focused = getDeepActiveElement(hotInstance.rootDocument);
+    const handlerMovedFocus = focused !== startState.focused ||
+      (!startState.listening && hotInstance.isListening());
 
-    if (isHTMLElement(focused) && enabledScopes.some(scope => scopeContains(scope, focused))) {
+    if (handlerMovedFocus && isHTMLElement(focused) && enabledScopes.some(scope => scopeContains(scope, focused))) {
       return focused;
     }
 
@@ -585,6 +611,9 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
 
         processScopes(target, target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
+      onClickCapture: () => {
+        recordClickStart();
+      },
       onClick: (event) => {
         processScopes(resolveClickTarget(getComposedEventTargetEl(event)!), FOCUS_SOURCES.CLICK);
       },
@@ -606,6 +635,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     deactivateScope: scopeId => deactivateScopeById(scopeId),
     destroy: () => {
       catcherRefreshers.delete(hotInstance);
+      clickStartState = null;
       eventListener.unmount();
     },
   };

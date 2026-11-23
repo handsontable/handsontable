@@ -7,12 +7,15 @@ import { getParentWindow } from '../helpers/dom/element';
  * @param {object} hooks A callback functions.
  * @param {function(Event)} hooks.onFocus A callback function for focusin events.
  * @param {function(Event)} hooks.onClick A callback function for click events.
+ * @param {function(Event)} hooks.onClickCapture A callback function for click events, run in the capture phase
+ * on the window, before the clicked element's own handlers.
  * @param {function(Event)} hooks.onTabKeyDown A callback function for tab key down events.
  * @returns {{mount: function(), unmount: function()}}
  */
 export function useEventListener(ownerWindow: Window, hooks: {
   onFocus?: (event: Event) => void;
   onClick?: (event: Event) => void;
+  onClickCapture?: (event: Event) => void;
   onTabKeyDown?: (event: Event) => void;
 } = {}) {
   let mouseDown = false;
@@ -35,6 +38,15 @@ export function useEventListener(ownerWindow: Window, hooks: {
    */
   function handleClick(event: Event) {
     hooks.onClick?.(event);
+  }
+
+  /**
+   * A callback function for click events in the capture phase on the window.
+   *
+   * @param {Event} event The event object.
+   */
+  function handleClickCapture(event: Event) {
+    hooks.onClickCapture?.(event);
   }
 
   /**
@@ -76,6 +88,7 @@ export function useEventListener(ownerWindow: Window, hooks: {
       documentElement.addEventListener('keydown', handleKeyDown);
       documentElement.addEventListener('mousedown', handleMouseDown);
       documentElement.addEventListener('mouseup', handleMouseUp);
+      frameWindow.addEventListener('click', handleClickCapture, true);
       frameWindow = getParentWindow(frameWindow);
     }
   };
@@ -94,6 +107,7 @@ export function useEventListener(ownerWindow: Window, hooks: {
       documentElement.removeEventListener('keydown', handleKeyDown);
       documentElement.removeEventListener('mousedown', handleMouseDown);
       documentElement.removeEventListener('mouseup', handleMouseUp);
+      frameWindow.removeEventListener('click', handleClickCapture, true);
       frameWindow = getParentWindow(frameWindow);
     }
   };

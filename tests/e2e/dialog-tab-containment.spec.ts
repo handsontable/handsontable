@@ -254,6 +254,47 @@ test.describe('dialog Tab containment', { tag: CROSS_BROWSER_TAG }, () => {
 });
 
 /**
+ * A click is judged by where its own handler moved the focus (DEV-4009): a page button whose handler hands the
+ * keyboard to the grid keeps it there, and a click that moved no focus leaves the grid as before.
+ */
+test.describe('page buttons and the grid keyboard', { tag: CROSS_BROWSER_TAG }, () => {
+  test('a page button whose handler selects a cell leaves the grid listening, so the arrow keys move', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+
+    await dialogPage.goto();
+
+    const button = await dialogPage.addPageButton('select-cell');
+
+    await dialogPage.cell(1, 1).click();
+    await button.click();
+    await expect.poll(() => dialogPage.selected()).toEqual([[2, 2, 2, 2]]);
+    await expect.poll(() => dialogPage.isListening()).toBe(true);
+
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(() => dialogPage.selected()).toEqual([[3, 2, 3, 2]]);
+  });
+
+  test('a page button that keeps the focus where it was and does nothing unlistens the grid', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+
+    await dialogPage.goto();
+
+    const button = await dialogPage.addPageButton('keep-focus');
+
+    await dialogPage.cell(1, 1).click();
+    await expect.poll(() => dialogPage.isListening()).toBe(true);
+    await button.click();
+
+    // The click moved no focus, so it is judged by its target, outside the grid, as before DEV-4009.
+    await expect.poll(() => dialogPage.isListening()).toBe(false);
+  });
+});
+
+/**
  * Cases that rely on a native move only some engines make: the move from Cancel to OK, which does not exist
  * where Tab skips buttons (DEV-1118), and the move between radios of one group, which visits the checked one
  * only. They run on the Chromium legs; the wraps alone run on every engine above.

@@ -34,8 +34,16 @@ function makeManager() {
         activeContextName = name;
       },
     }),
-    listen: jest.fn(),
-    unlisten: jest.fn(),
+    listening: false,
+    listen: jest.fn(function(this: { listening: boolean }) {
+      this.listening = true;
+    }),
+    unlisten: jest.fn(function(this: { listening: boolean }) {
+      this.listening = false;
+    }),
+    isListening() {
+      return this.listening;
+    },
   } as unknown as HotInstance;
 
   return {
@@ -258,28 +266,69 @@ describe('FocusScopeManager click outside every scope', () => {
     document.body.replaceChildren();
   });
 
-  it('should keep the scope and listen when the click\'s own handler moved the focus into the scope', () => {
-    // A toolbar button whose handler selects a cell (or opens a dialog that focuses its button).
-    pageButton.addEventListener('click', () => insideButton.focus());
-    (hot.unlisten as jest.Mock).mockClear();
-    (hot.listen as jest.Mock).mockClear();
-
-    pageButton.click();
-
-    expect(manager.getActiveScopeId()).toBe('grid');
-    expect(hot.unlisten).not.toHaveBeenCalled();
-    expect(hot.listen).toHaveBeenCalled();
-  });
-
-  it('should deactivate the scope and unlisten when the focus is outside after the click (control)', () => {
-    pageButton.focus();
+  it('should deactivate the scope and unlisten when the focus was inside before the click and stayed', () => {
+    // A toolbar whose mousedown prevents default, or a synthetic click: the focus never moved.
+    insideButton.focus();
     manager.activateScope('grid');
-    expect(manager.getActiveScopeId()).toBe('grid');
+    hot.listen();
     (hot.unlisten as jest.Mock).mockClear();
 
     pageButton.click();
 
     expect(manager.getActiveScopeId()).toBeNull();
     expect(hot.unlisten).toHaveBeenCalled();
+    expect(hot.isListening()).toBe(false);
+  });
+
+  it('should keep the scope and listen when the click\'s own handler moved the focus into the scope', () => {
+    // A toolbar button whose handler selects a cell (or opens a dialog that focuses its button).
+    pageButton.focus();
+    manager.activateScope('grid');
+    pageButton.addEventListener('click', () => insideButton.focus());
+    (hot.unlisten as jest.Mock).mockClear();
+
+    pageButton.click();
+
+    expect(manager.getActiveScopeId()).toBe('grid');
+    expect(hot.unlisten).not.toHaveBeenCalled();
+    expect(hot.isListening()).toBe(true);
+  });
+
+  it('should keep the scope when the handler made the grid listen with the focus already inside', () => {
+    // `selectCell()` on the cell that already holds the focus: the focus did not move, but the grid listens.
+    insideButton.focus();
+    manager.activateScope('grid');
+    hot.unlisten();
+    pageButton.addEventListener('click', () => hot.listen());
+
+    pageButton.click();
+
+    expect(manager.getActiveScopeId()).toBe('grid');
+    expect(hot.isListening()).toBe(true);
+  });
+
+  it('should hand the keyboard to the grid the click landed in when the focus stays in another grid', () => {
+    const other = makeManager();
+    const otherHot = other.hot;
+    const otherArea = document.createElement('div');
+
+    other.container.appendChild(otherArea);
+    other.manager.registerScope('grid', other.container);
+
+    insideButton.focus();
+    manager.activateScope('grid');
+    hot.listen();
+    (hot.unlisten as jest.Mock).mockClear();
+
+    // A press on grid B's non-cell area: B's mousedown prevents default, so the focus stays in grid A.
+    otherArea.click();
+
+    expect(manager.getActiveScopeId()).toBeNull();
+    expect(hot.unlisten).toHaveBeenCalled();
+    expect(hot.isListening()).toBe(false);
+    expect(other.manager.getActiveScopeId()).toBe('grid');
+    expect(otherHot.isListening()).toBe(true);
+
+    other.manager.destroy();
   });
 });
