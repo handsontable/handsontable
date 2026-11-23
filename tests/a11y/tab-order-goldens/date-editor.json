@@ -7,12 +7,12 @@
       {
         "region": "grid",
         "role": "Date",
-        "name": ""
+        "name": "Start, row 1"
       },
       {
         "region": "grid",
         "role": "Date",
-        "name": ""
+        "name": "Required, row 1"
       }
     ]
   }

@@ -7,7 +7,7 @@
       {
         "region": "portal",
         "role": "textbox",
-        "name": ""
+        "name": "Comment for B, row 2"
       },
       {
         "region": "grid",
