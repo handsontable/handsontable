@@ -59,6 +59,8 @@ interface FixtureHot {
 
 interface FixtureWindow extends Window {
   hot: FixtureHot;
+  Handsontable: { hooks: { add(key: string, callback: () => void): void } };
+  renderCount: number;
   constructorColumns: number[];
   buildGrid(settings: Record<string, unknown>, budget?: number): void;
 }
@@ -395,6 +397,55 @@ export class AutoColumnSizeSyncBudgetPage {
       const { hot } = window as unknown as FixtureWindow;
 
       return (hot.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement).scrollWidth;
+    });
+  }
+
+  /**
+   * Counts the draws of every grid the fixture builds from now on, in `renderCount`. A case that counts
+   * resets the count right before it builds the grid under test.
+   */
+  async countRenders(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as FixtureWindow;
+
+      win.renderCount = 0;
+      win.Handsontable.hooks.add('afterRender', () => {
+        win.renderCount += 1;
+      });
+    });
+  }
+
+  /**
+   * Sets the draw count back to 0.
+   */
+  async resetRenderCount(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as FixtureWindow).renderCount = 0;
+    });
+  }
+
+  /**
+   * The draws counted since `countRenders()` or the last `resetRenderCount()`.
+   */
+  async renderCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).renderCount);
+  }
+
+  /**
+   * Asks the grid to scroll a column into view once. Nothing renders before it, and it returns at once.
+   */
+  async scrollViewportToColumn(column: number): Promise<void> {
+    await this.page.evaluate((col) => {
+      (window as unknown as FixtureWindow).hot.scrollViewportTo({ col });
+    }, column);
+  }
+
+  /**
+   * The last column the master table renders.
+   */
+  async lastRenderedColumn(): Promise<number> {
+    return this.page.evaluate(() => {
+      return (window as unknown as FixtureWindow).hot.view.getLastRenderedVisibleColumn();
     });
   }
 }

@@ -226,13 +226,13 @@ hold it together:
   and one chunk before it returns (about 102 columns by default) and leaves the rest to idle tasks, so the rows
   are measured against the default width of those columns. AutoRowSize owes the rows a second measure when the
   sweep ends (`#rowsOwedToColumnSweep` in its `AGENTS.md`), and pays it in `beforeRender`, so the idle chunk that
-  ends any sweep on a grid with AutoRowSize enabled renders, with the same fill-only visible pass as the budget
-  path (`loop()`, the `syncViewport` branch). Without that render the owed measure waits for an unrelated full
-  render, which a grid the user only scrolls never gets, so a row below the fold kept the height of its text
-  wrapped at 50 px (149 px against 49 px in the probe) (`tests/e2e/auto-row-size-column-sweep.spec.ts`). The
-  render measures the band on screen as any render does, and AutoRowSize measures the other rows from idle tasks
-  only, so it blocks no longer than an ordinary render. `enabled` is read when the sweep ends, so a disable made
-  meanwhile costs no render. A grid without AutoRowSize gets no render there.
+  ends any sweep renders, with the same fill-only visible pass as the budget path (`loop()`, the last branch).
+  Without that render the owed measure waits for an unrelated full render, which a grid the user only scrolls
+  never gets, so a row below the fold kept the height of its text wrapped at 50 px (149 px against 49 px in the
+  probe) (`tests/e2e/auto-row-size-column-sweep.spec.ts`). The render measures the band on screen as any render
+  does, and AutoRowSize measures the other rows from idle tasks only, so it blocks no longer than an ordinary
+  render. The render is not tied to AutoRowSize any more: a grid without it needs the same draw for its scroll
+  range (the next bullet), so the sweep draws whether or not the plugin is enabled.
 - **The columns a merge on screen spans are measured with it** (`measureMergeSpans()` in `#sweepColumns()`). A
   multi-column merge needs from its first column the text's width less the other spanned columns, so with
   those at the fallback width the first column was drawn too wide (1076 px against 417 px in the probe) and
@@ -257,10 +257,16 @@ hold it together:
 - **No chunk runs in the caller.** The default sweep runs one `CALCULATION_CELLS_BUDGET` chunk synchronously
   after the exact part; on a grid this tall that is one more off-screen column over every row, so a
   `syncViewport` sweep goes straight to an idle task.
-- **The last idle chunk renders, in full, with a visible pass that only fills in (`#fillOnlyRender`).** The
-  width map's observer only drops the engine's cache, so without a render the scroll range kept the fallback
-  widths of the deferred columns (`auto-column-size-sync-budget.spec.ts`, "widens the scroll range…", went
-  from 7697 px to 1880 px with it removed). A fast draw (`hot.view.render()`) is not enough: it rewrites no
+- **The last idle chunk of every sweep renders, in full, with a visible pass that only fills in
+  (`#fillOnlyRender`).** That covers the default sweep of a grid wider than its synchronous part (about 102
+  columns) with no budget and no AutoRowSize: it used to end without a draw (scroll width 8050 px against
+  33950 px of measured columns on 160 columns, and `scrollViewportTo({ col })` landing about 30 columns short
+  until an unrelated render), and the gate on AutoRowSize or `syncViewport` is gone
+  (`auto-column-size-sync-budget.spec.ts`, "idle sweep on a grid wider than its synchronous part"). A sweep
+  the caller finishes (no idle task) draws nothing, as before, so a grid that fits the synchronous part gets no
+  extra render. The width map's observer only drops the engine's cache, so without a render the scroll range
+  kept the fallback widths of the deferred columns (`auto-column-size-sync-budget.spec.ts`, "widens the scroll
+  range…", went from 7697 px to 1880 px with it removed). A fast draw (`hot.view.render()`) is not enough: it rewrites no
   `<col>`, so the rendered columns past the viewport's edge kept the fallback width the first paint gave
   them. A plain forced render is too much: it overwrites every on-screen width, and the synchronous part's
   samples were dropped (`recalculateAllColumnsWidth()`), so it re-walked every on-screen column over every row

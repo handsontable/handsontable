@@ -1169,13 +1169,14 @@ export class AutoColumnSize extends BasePlugin {
         this.#sweepDrawPending = true;
         this.hot.render();
 
-      } else if ((syncViewport || this.hot.getPlugin('autoRowSize')?.enabled) && fromIdleTask && isDone) {
+      } else if (fromIdleTask && isDone) {
         // A full render redraws the rendered columns past the viewport's edge, which the first paint drew at
-        // the fallback width, and a merge whose width changed with the sweep. Its visible pass only fills in
-        // missing widths: overwriting them would sample every column on screen again over the whole row
-        // range, because the synchronous part's samples are dropped (see `recalculateAllColumnsWidth()`).
+        // the fallback width, and a merge whose width changed with the sweep, and it gives the engine the
+        // widths the sweep measured, which size the scroll range. Its visible pass only fills in missing
+        // widths: overwriting them would sample every column on screen again over the whole row range,
+        // because the synchronous part's samples are dropped (see `recalculateAllColumnsWidth()`).
         // AutoRowSize measured the rows against the widths the columns had before this sweep reached them,
-        // and measures them again in the render's `beforeRender`, so a grid with it enabled renders here too.
+        // and measures them again in the render's `beforeRender`.
         this.#fillOnlyRender = true;
         this.hot.render();
       }
