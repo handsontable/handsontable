@@ -58,3 +58,107 @@ export const A11Y_BUSY = (): [string, string] => ['aria-busy', 'true'];
  * `aria-describedby` to the column header and write the description again on every paint.
  */
 export const CELL_DESCRIPTION_ID_PREFIX = 'ht-description-';
+
+/**
+ * Makes the browser build a new accessibility object for an element: its `role` is removed and written back in
+ * the same task. A screen reader that has the focus on the element reads it again, with its column and row,
+ * which it does not for an attribute that keeps its value. Every paint of a cell did this before the renderers
+ * wrote only the attributes that differ, so the grid asks for it on purpose now, for the one cell that needs it.
+ *
+ * An element without a `role` (`ariaTags: false`) is left alone.
+ *
+ * @param {HTMLElement} element The element.
+ */
+export function rebuildAccessibilityObject(element: HTMLElement): void {
+  const role = element.getAttribute('role');
+
+  if (role === null) {
+    return;
+  }
+
+  element.removeAttribute('role');
+  element.setAttribute('role', role);
+}
+
+/**
+ * The attribute a selection writes on a cell. It follows the selection, not what the cell shows, so a change
+ * of it is not a change of the cell.
+ */
+const SELECTION_ATTRIBUTE = 'aria-selected';
+
+/**
+ * Form controls a cell may hold. Their state is a property, so it is not part of the cell's markup.
+ */
+const CONTROLS_SELECTOR = 'input, textarea, select';
+
+/**
+ * Reads what a screen reader would say about a cell: what it shows, the state of the controls inside it, and
+ * its ARIA attributes, which include its column (`aria-colindex`, and the reference to its column header).
+ * Two reads that return the same string describe a cell the reader has nothing new to say about.
+ *
+ * The cell's row is not in it: a row is the parent's attribute, and a draw has already written the new one by
+ * the time its cells are painted. A cell that moves to another row while showing the same thing is not read
+ * again, which is the rare case.
+ *
+ * @param {HTMLElement} cell The cell.
+ * @returns {string}
+ */
+export function readCellAnnouncementSignature(cell: HTMLElement): string {
+  const ariaState = cell.getAttributeNames()
+    .filter(name => name.startsWith('aria-') && name !== SELECTION_ATTRIBUTE)
+    .sort()
+    .map(name => `${name}=${cell.getAttribute(name)}`)
+    .join(';');
+  const controls = cell.querySelectorAll<HTMLInputElement>(CONTROLS_SELECTOR);
+  const controlState: string[] = [];
+
+  for (let i = 0; i < controls.length; i++) {
+    controlState.push(`${controls[i].checked ? 1 : 0}:${controls[i].value}`);
+  }
+
+  return [cell.innerHTML, controlState.join(','), ariaState].join('|');
+}
+
+/**
+ * The cell that holds the focus and what a screen reader last had to say about it. The focus is on one
+ * element, so one slot is enough, and a cell that takes the focus overwrites it.
+ */
+let announcedCell: { cell: HTMLElement; signature: string; colIndex: string | null } | null = null;
+
+/**
+ * Records what a cell shows now as what the screen reader knows about it. Called when the cell takes the focus.
+ *
+ * @param {HTMLElement} cell The cell.
+ * @param {boolean} [keepExisting=false] When `true`, a record of this same cell stays as it is. The browser
+ * focuses a cell that is pressed before the grid selects it, and the record may be older than that.
+ */
+export function rememberAnnouncedCell(cell: HTMLElement, keepExisting = false): void {
+  if (keepExisting && announcedCell?.cell === cell) {
+    return;
+  }
+
+  announcedCell = {
+    cell,
+    signature: readCellAnnouncementSignature(cell),
+    colIndex: cell.getAttribute('aria-colindex'),
+  };
+}
+
+/**
+ * Tells whether the focused cell shows something else than the screen reader knows about it, and records what
+ * it shows now. A cell the slot does not hold, and an element recycled for another column since, only start
+ * a new record: the first was never announced to compare with, the second is another cell, which the focus
+ * move that follows announces on its own.
+ *
+ * @param {HTMLElement} cell The focused cell, painted.
+ * @returns {boolean}
+ */
+export function hasCellChangedSinceAnnounced(cell: HTMLElement): boolean {
+  const previous = announcedCell?.cell === cell ? announcedCell : null;
+  const colIndex = cell.getAttribute('aria-colindex');
+  const signature = readCellAnnouncementSignature(cell);
+
+  announcedCell = { cell, signature, colIndex };
+
+  return previous !== null && previous.colIndex === colIndex && previous.signature !== signature;
+}

@@ -2135,11 +2135,43 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
 - Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
   renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
 
-Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
+**The strip had a side effect a screen reader depended on, and it is now asked for on purpose (DEV-4151).**
+Removing and re-adding a cell's `role` makes the browser build a new accessibility object for it. That is what
+made VoiceOver with WebKit and NVDA with Firefox read a focused cell again when it changed in place, or read a
+cell the focus jumped to as a move, with its column and row. An attribute that keeps its value does neither: the
+reader keeps the object of the cell the recycled element showed before and says nothing (checkbox toggles, async
+values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
+`rebuildAccessibilityObject()` (`helpers/a11y.ts`), asked for in three places, each for the cells that need it:
+
+- **A focus move onto a data cell** (`FocusGridManager#announceCellFocus`, `focusManager/grid.ts`): the cell's
+  `role` is rebuilt right before `focus()`, unless the cell holds the focus already, and the cell's state is
+  recorded (`rememberAnnouncedCell()`). This is the case the old strip covered for the cell about to take the focus.
+- **The focused cell changes in place** (`render/cells.ts`): after the paint, `hasCellChangedSinceAnnounced()`
+  compares the one focused element with that record. `readCellAnnouncementSignature()` reads its markup, form
+  control state (`checked` and `value` are properties, not markup) and `aria-*` attributes, and a difference
+  rebuilds it. The record is what the cell showed when it took the focus, not what it showed before this paint,
+  because the browser can change the state before the draw (a checkbox flipped by Space or a click). Only the
+  one focused element is read, so a draw pays one read. Three limits. An element the grid recycles for another
+  column is not the cell the user is on and is not rebuilt (the `aria-colindex` in the record). A cell that moves
+  to another row while showing the same thing is not detected: the row is the parent's attribute, written before
+  the cells paint. A renderer whose markup changes on every paint (a generated id, an animated bar) makes the
+  focused cell read as changed on every draw, so such a cell is read again each time.
+- **The offsets that position the cells change** (`#hasPositionOffsetChanged`): when the number of row headers
+  or column headers changes, every painted cell is rebuilt once, so a reader that learned the old positions
+  counts again (NVDA with Firefox read the first rows of a grid that got column headers one row too low). A grid
+  with `renderMode: 'onChange'` is covered by the same test.
+
+Do not make any of these unconditional: the cost of the strip was the reason it went. The rebuild does not reach
+NVDA or VoiceOver with Chromium, which were silent on these steps before DEV-4105 too (DEV-4004 and DEV-4011).
+The readers' speech is not testable in Chromium: the specs pin the mechanism (a `MutationObserver` on `role`), and
+the `Screen reader nightly` lanes (`vo-webkit`, `nvda-firefox`) show whether the reader says it.
+
+Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `helpers/__tests__/a11y.unit.ts`,
+`focusManager/__tests__/grid.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
-from the same attributes on a new and a recycled element, and a redraw plus a vertical scroll write no
+from the same attributes on a new and a recycled element, a redraw plus a vertical scroll write no
 accessibility attribute on an element that already holds it (a `MutationObserver`, with a horizontal scroll
-as the positive control).
+as the positive control), and the three rebuilds above happen once, for the cell that needs them.
 
 ## A data cell names its column header through `aria-describedby`, and the owner is per column
 

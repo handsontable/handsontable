@@ -136,6 +136,7 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
     rendered: false,
     destroyed: false,
     requested: [] as Array<[number, number]>,
+    replacement: null as HTMLElement | null,
   };
 
   root.className = 'handsontable';
@@ -165,7 +166,9 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
 
       return state.rendered ? td : null;
     },
-    runHooks: (key: string, row: number, col: number, element: HTMLElement | null) => element,
+    runHooks: (key: string, row: number, col: number, element: HTMLElement | null) => (
+      key === 'modifyFocusedElement' && state.replacement ? state.replacement : element
+    ),
     addHook: (key: string, callback: HookCallback) => hooks.add(key, callback, hot as never),
     addHookOnce: (key: string, callback: HookCallback) => hooks.once(key, callback, hot as never),
     removeHook: (key: string, callback: HookCallback) => {
@@ -339,5 +342,113 @@ describe('FocusGridManager deferred focus', () => {
     grid.run('afterScroll');
 
     expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+});
+
+describe('FocusGridManager focus on a cell that a reader reads', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+  });
+
+  /**
+   * Records what happens to the cell's `role` and when the cell takes the focus.
+   *
+   * @param {HTMLElement} td The cell.
+   * @returns {string[]} The log, filled as the test runs.
+   */
+  function logRoleAndFocus(td: HTMLElement): string[] {
+    const log: string[] = [];
+
+    jest.spyOn(td, 'focus').mockImplementation((options) => {
+      log.push('focus');
+      HTMLElement.prototype.focus.call(td, options);
+    });
+    jest.spyOn(td, 'removeAttribute').mockImplementation((name) => {
+      log.push(`remove ${name}`);
+      Element.prototype.removeAttribute.call(td, name);
+    });
+    jest.spyOn(td, 'setAttribute').mockImplementation((name, value) => {
+      log.push(`set ${name}=${value}`);
+      Element.prototype.setAttribute.call(td, name, value);
+    });
+
+    return log;
+  }
+
+  it('builds a new accessibility object for the cell, then focuses it', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.td.setAttribute('role', 'gridcell');
+    grid.td.tabIndex = -1;
+    grid.state.rendered = true;
+
+    const log = logRoleAndFocus(grid.td);
+
+    grid.manager.focusOnHighlightedCell();
+
+    expect(log).toEqual(['remove role', 'set role=gridcell', 'focus']);
+  });
+
+  it('leaves a cell that holds the focus already alone', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.td.setAttribute('role', 'gridcell');
+    grid.td.tabIndex = -1;
+    grid.td.focus();
+    grid.state.rendered = true;
+
+    const log = logRoleAndFocus(grid.td);
+
+    grid.manager.focusOnHighlightedCell();
+
+    expect(log).toEqual(['focus']);
+  });
+
+  it('writes no role for a grid that has none (ariaTags: false)', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.td.tabIndex = -1;
+    grid.state.rendered = true;
+
+    const log = logRoleAndFocus(grid.td);
+
+    grid.manager.focusOnHighlightedCell();
+
+    expect(log).toEqual(['focus']);
+  });
+
+  it('leaves an element that is not a data cell alone', () => {
+    const grid = makeDeferredFocusGrid();
+    const th = document.createElement('th');
+
+    th.setAttribute('role', 'columnheader');
+    th.tabIndex = -1;
+    document.body.append(th);
+    grid.state.rendered = true;
+
+    const log = logRoleAndFocus(th);
+
+    grid.manager.focusOnHighlightedCell(th as HTMLTableCellElement);
+
+    expect(log).toEqual(['focus']);
+  });
+
+  it('leaves the cell alone when the modifyFocusedElement hook hands the focus to another element', () => {
+    const grid = makeDeferredFocusGrid();
+    const replacement = document.createElement('div');
+
+    replacement.tabIndex = -1;
+    document.body.append(replacement);
+    grid.td.setAttribute('role', 'gridcell');
+    grid.state.rendered = true;
+    grid.state.replacement = replacement;
+
+    const log = logRoleAndFocus(grid.td);
+
+    grid.manager.focusOnHighlightedCell();
+
+    expect(log).toEqual([]);
+    expect(document.activeElement).toBe(replacement);
   });
 });

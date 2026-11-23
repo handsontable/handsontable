@@ -1,5 +1,6 @@
 import type { HotInstance } from '../core/types';
 import EventManager from '../eventManager';
+import { rebuildAccessibilityObject, rememberAnnouncedCell } from '../helpers/a11y';
 import { warn } from '../helpers/console';
 import {
   getDeepActiveElement,
@@ -387,6 +388,33 @@ export class FocusGridManager {
   }
 
   /**
+   * Makes a screen reader read a data cell that is about to take the focus as a move onto that cell, with its
+   * column and row. The cell is drawn into an element the grid recycles, and the draw leaves the element's
+   * attributes as they were when they hold the same values, so the browser would keep the accessibility object
+   * of the cell the element showed before, and a reader hears a name change or nothing. A cell that has the
+   * focus already is left alone: nothing moved.
+   *
+   * @param {HTMLElement} elementToBeFocused The element that is about to take the focus.
+   * @param {HTMLElement | null} cell The highlighted cell, which the `modifyFocusedElement` hook may have replaced.
+   */
+  #announceCellFocus(elementToBeFocused: HTMLElement, cell: HTMLElement | null): void {
+    if (elementToBeFocused !== cell || elementToBeFocused.nodeName !== 'TD') {
+      return;
+    }
+
+    if (getDeepActiveElement(this.#hot.rootDocument) === elementToBeFocused) {
+      // The browser focused a cell that was pressed before the grid selected it. Nothing moved, but the draw that
+      // follows needs a record of what the cell showed, to tell a change from a repeated paint.
+      rememberAnnouncedCell(elementToBeFocused, true);
+
+      return;
+    }
+
+    rebuildAccessibilityObject(elementToBeFocused);
+    rememberAnnouncedCell(elementToBeFocused);
+  }
+
+  /**
    * Set the browser's focus to the highlighted cell of the last selection.
    *
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
@@ -411,6 +439,7 @@ export class FocusGridManager {
         elementToBeFocused &&
         !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
       ) {
+        this.#announceCellFocus(elementToBeFocused as HTMLElement, element);
         this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
       }
     };
