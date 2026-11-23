@@ -129,7 +129,8 @@
   transition: opacity 0.15s, border-color 0.15s;
 }
 
-.expressive-code figure:hover .copy button {
+.expressive-code figure:hover .copy button,
+.expressive-code .copy button:focus-visible {
   opacity: 1;
 }
 

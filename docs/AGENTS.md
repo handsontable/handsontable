@@ -1249,3 +1249,9 @@ unchecked.
 `src/lib/` and `src/components/` are tooling, not content, so the docs sync does not port this to `prod-docs/*`: it reaches the live site at the next prod-docs cut or through a hand cherry-pick.
 
 Unit tests: `src/lib/__tests__/headway-bell.test.mjs` (`npm run docs:test:plugins`), against a fake that defers callbacks the way the widget does. The real widget: `tests/headwayBell.spec.ts` (the `functional` project, run by the `functional` job in `.github/workflows/docs.yml` on a hosted runner against the PR preview). It skips when Headway is unreachable, which the job summary's skipped count shows, and the job runs only after the earlier gates are green.
+
+## 2.23 A scroll box under the fixed header needs its own `scroll-padding-top`
+
+Starlight sets `scroll-padding-top` on `<html>` (the header height plus 1.5rem), so the page itself scrolls a focused element clear of the fixed header. A box that scrolls on its own does not inherit it. `.right-sidebar` (the "On this page" panel) is fixed from `top: 0` and pushes its content down with `padding-top: var(--sl-nav-height)`, so its top edge sits behind the header. Without its own `scroll-padding-top` (`src/styles/layout/page.css`), a link the panel has scrolled up behind the header counts as visible to the browser, and Shift+Tab focuses it there without scrolling, hidden (WCAG 2.4.11). The left `.sidebar-pane` starts at `top: var(--sl-nav-height)` and does not need it.
+
+A new fixed or sticky panel that scrolls and starts under the header gets the same rule. `tests/keyboardFocusVisibility.spec.ts` pins the table of contents case and the code block copy button, which shows on `:focus-visible` as well as on hover (WCAG 2.4.7).

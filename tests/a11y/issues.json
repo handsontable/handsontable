@@ -659,7 +659,7 @@
     {
       "id": "docs-copy-button-hidden-focus",
       "title": "A code block's copy button stays invisible when it has the keyboard focus",
-      "tracker": "DEV-4018",
+      "tracker": "DEV-4174",
       "match": [
         { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^div\\.copy button$"] }
       ]
@@ -715,7 +715,7 @@
     {
       "id": "docs-sticky-header-hides-focus",
       "title": "The sticky header hides a focused link when Shift+Tab scrolls it to the top of the window",
-      "tracker": "DEV-4018",
+      "tracker": "DEV-4174",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-obscured"] }
       ]
