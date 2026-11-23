@@ -548,7 +548,9 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await expect(license.bar).toHaveCount(0);
     });
 
-    for (const key of ['sponsored-badge', 'sponsored-badge-external'] as const) {
+    for (const key of [
+      'sponsored-badge', 'sponsored-badge-external', 'perpetual-badge', 'perpetual-badge-no-ui-warns',
+    ] as const) {
       test(`shows for a "${key}" key, with no corner badge and no warning bar`, async () => {
         await license.goto(INSTANT.duringTrial, { key });
 
