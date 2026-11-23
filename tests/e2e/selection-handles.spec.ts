@@ -1061,6 +1061,34 @@ test.describe('selectionHandles hover', { tag: THEMES_TAG }, () => {
       expect(await grid.selectedBounds()).toEqual({ top: 4, start: 5, bottom: 4, end: 5 });
     });
 
+    test('the armed handle stays while the pointer moves to a cell outside the selection', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.hoverCell(5, 5);
+
+      await expect(grid.handle('bottom')).toBeVisible();
+      await expect(grid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
+
+      await grid.clickCell(5, 2);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 5, end: 3 });
+    });
+
+    test('a key that changes the selection ends the pick, so the next click is not lost', async ({ page }) => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await page.evaluate(() => window.hot.listen());
+      await page.keyboard.press('ArrowRight');
+
+      await expect(grid.pickingRoot()).toHaveCount(0);
+
+      await grid.clickCell(5, 5);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 5, start: 5, bottom: 5, end: 5 });
+    });
+
     test('a click outside the grid ends the pick and goes to the page', async ({ page }) => {
       await page.evaluate(() => {
         const button = document.createElement('button');

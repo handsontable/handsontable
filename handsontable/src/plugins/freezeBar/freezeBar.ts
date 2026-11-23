@@ -1279,7 +1279,12 @@ export class FreezeBar extends BasePlugin {
       return null;
     }
 
-    return growsFromStart(edge) ? index + 1 : (columns ? this.hot.countCols() : this.hot.countRows()) - index;
+    const count = growsFromStart(edge) ? index + 1 : (columns ? this.hot.countCols() : this.hot.countRows()) - index;
+
+    // A track past what fits can not end the band, and a drag can not reach it either: it scrolls to the edge first, so
+    // the tracks it can name are the first (or last) ones. The pick names nothing, and the count stays as the user left
+    // it, instead of becoming a smaller count than the one that was clicked.
+    return count > Math.max(this.#getMaxCount(edge), this.#getDrawnCount(edge)) ? null : count;
   }
 
   /**

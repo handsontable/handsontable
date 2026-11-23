@@ -832,6 +832,19 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       expect(await grid.count('start')).toBe(2);
     });
 
+    test('a click on a column that can not end the band names nothing, and the count stays', async() => {
+      await grid.goto();
+      await grid.scrollTo({ col: 14 });
+      await grid.clickBar('start');
+
+      // far past what fits in the 500px grid next to the two frozen columns
+      await grid.pressCell(3, 13);
+
+      expect(await grid.count('start')).toBe(2);
+      expect(await grid.log()).toEqual([]);
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+    });
+
     test('arming does not scroll the grid', async() => {
       await grid.goto();
       await grid.scrollTo({ row: 40 });

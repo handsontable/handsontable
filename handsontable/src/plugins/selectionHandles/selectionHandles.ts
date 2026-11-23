@@ -102,6 +102,11 @@ export class SelectionHandles extends BasePlugin {
   #lastCoords: CellCoords | null = null;
 
   /**
+   * Whether the pointer is over the grid, kept through a pick, whose hover is frozen.
+   */
+  #pointerInside = false;
+
+  /**
    * Saves the host cursor while a resize is active.
    */
   #bodyCursor = '';
@@ -143,6 +148,7 @@ export class SelectionHandles extends BasePlugin {
     this.addHook('afterOnSelectionHandleMouseDown', this.#onHandleMouseDown);
     this.addHook('beforeOnCellMouseOver', this.#onCellMouseOver);
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('afterSelection', this.#onAfterSelection);
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseleave', this.#onRootMouseLeave);
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#onDocumentMouseUp);
     super.enablePlugin();
@@ -181,8 +187,11 @@ export class SelectionHandles extends BasePlugin {
    */
   #onCellMouseOver = (_event: MouseEvent, coords: CellCoords): void => {
     this.#lastCoords = coords;
+    this.#pointerInside = true;
 
-    if (!this.#drag) {
+    // while a pick waits the armed handle stays: the cell it is waiting for lies outside the selection, so a hover
+    // that followed the pointer would take the handle away just when the user moves to that cell
+    if (!this.#drag && !this.#pick) {
       this.hot.selection.setHandlesHoveredLayer(this.hot.selection.getLayerContaining(coords));
     }
   };
@@ -283,6 +292,7 @@ export class SelectionHandles extends BasePlugin {
         this.#pick = null;
         this.#pickEdge = null;
         removeClass(root, `ht__picking-selection--${session.edge}`);
+        this.#syncHoveredLayer();
 
         if (reason === 'escape') {
           announce(String(this.hot.getTranslatedPhrase(C.ARMED_PICK_CANCELED) ?? ''), 'polite');
@@ -382,7 +392,9 @@ export class SelectionHandles extends BasePlugin {
    * Clears hover state after the pointer leaves the grid.
    */
   #onRootMouseLeave = (): void => {
-    if (!this.#drag) {
+    this.#pointerInside = false;
+
+    if (!this.#drag && !this.#pick) {
       this.hot.selection.setHandlesHoveredLayer(null);
     }
   };
@@ -391,10 +403,31 @@ export class SelectionHandles extends BasePlugin {
    * Restores handle hover after ordinary selection drags.
    */
   #onDocumentMouseUp = (): void => {
-    if (!this.#drag && this.#lastCoords) {
+    if (!this.#drag && !this.#pick && this.#lastCoords) {
       this.hot.selection.setHandlesHoveredLayer(this.hot.selection.getLayerContaining(this.#lastCoords));
     }
   };
+
+  /**
+   * Ends a waiting pick when the selection changes (a key moved it, or the pick itself resized it): the handle it was
+   * armed on no longer sits on the range, and the click it waits for would be lost.
+   */
+  #onAfterSelection = (): void => {
+    this.#pick?.cancel();
+  };
+
+  /**
+   * Gives the hover back to the pointer once a pick ends: the layer under it, or none when it is outside the grid.
+   */
+  #syncHoveredLayer(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.hot.selection.setHandlesHoveredLayer(
+      this.#pointerInside && this.#lastCoords ? this.hot.selection.getLayerContaining(this.#lastCoords) : null
+    );
+  }
 
   /**
    * Ends the active resize session.

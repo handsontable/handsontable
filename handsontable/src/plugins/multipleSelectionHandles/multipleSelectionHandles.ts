@@ -102,6 +102,7 @@ export class MultipleSelectionHandles extends BasePlugin {
     }
 
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('afterSelection', this.#onAfterSelection);
     this.registerListeners();
     super.enablePlugin();
   }
@@ -650,6 +651,14 @@ export class MultipleSelectionHandles extends BasePlugin {
 
     return null;
   }
+
+  /**
+   * Ends a waiting pick when the selection changes (a key moved it, or the pick itself resized it): the handle it was
+   * armed on no longer sits on the range, and the tap it waits for would be lost.
+   */
+  #onAfterSelection = (): void => {
+    this.#pick?.cancel();
+  };
 
   /**
    * Carries the drag on after DragToScroll moves the viewport.

@@ -274,12 +274,13 @@ export class FreezeBarPage {
   }
 
   /**
-   * Clicks the middle of a cell with the real mouse, and waits until the grid selected it.
+   * Clicks the middle of a cell with the real mouse, without waiting for a selection: the click that picks a freeze line
+   * selects nothing.
    *
    * @param row The visual row.
    * @param col The visual column.
    */
-  async clickCell(row: number, col: number): Promise<void> {
+  async pressCell(row: number, col: number): Promise<void> {
     const box = await this.page.evaluate(([r, c]) => {
       const rect = window.hot.getCell(r, c, true)!.getBoundingClientRect();
 
@@ -287,6 +288,16 @@ export class FreezeBarPage {
     }, [row, col]);
 
     await this.page.mouse.click(box.x, box.y);
+  }
+
+  /**
+   * Clicks the middle of a cell with the real mouse, and waits until the grid selected it.
+   *
+   * @param row The visual row.
+   * @param col The visual column.
+   */
+  async clickCell(row: number, col: number): Promise<void> {
+    await this.pressCell(row, col);
     await expect.poll(() => this.selection()).toEqual([[row, col, row, col]]);
   }
 
