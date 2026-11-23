@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the Dialog plugin so Tab and Shift+Tab keep the focus inside an open dialog that has a focusable element or closes with Escape, instead of moving it to the page. A page button that opens a dialog or calls `selectCell()` now leaves the grid listening.",
+  "type": "changed",
+  "issueOrPR": 14427,
+  "breaking": true,
+  "framework": "none"
+}
