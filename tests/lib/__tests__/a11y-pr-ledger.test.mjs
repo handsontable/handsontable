@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, buildEvidenceCheckRun, ledgerSectionOf } from '../a11y-evidence.mjs';
-import { ledgerClass, ledgerIndex, ledgerKey, pagesTouched, prLedgerOf } from '../a11y-pr-ledger.mjs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { ledgerClass, ledgerIndex, ledgerKey, pagesTouched, prLedgerOf, sharedSourceFolders } from '../a11y-pr-ledger.mjs';
 
 // tests/AGENTS.md, "A11y: the checks beyond axe": a pull request runs the short suite, and the findings ledger tells its
 // new findings from the known ones. Known findings do not count, so the pages' standing debt never turns a pull
@@ -51,16 +53,51 @@ const COVERAGE = {
   editors: { textEditor: { pages: ['grid'] } },
 };
 
-test('pagesTouched maps a pull request\'s files to the catalog pages they reach, and shared code or the checks to all', () => {
+test('pagesTouched maps a pull request\'s files to the catalog pages they reach', () => {
   assert.deepEqual([...pagesTouched(['handsontable/src/plugins/dialog/dialog.ts', 'docs/content/x.md'], COVERAGE)], ['dialog']);
-  assert.deepEqual([...pagesTouched(['handsontable/src/plugins/autoRowSize/autoRowSize.ts'], COVERAGE)], [], 'a plugin that draws nothing touches no page');
-  assert.deepEqual([...pagesTouched(['handsontable/src/editors/textEditor/textEditor.ts'], COVERAGE)], ['grid']);
+  assert.deepEqual([...pagesTouched(['handsontable/src/editors/textEditor/textEditor.ts'], COVERAGE)], ['grid'], 'an editor no other editor extends');
   assert.deepEqual([...pagesTouched(['tests/fixtures/demo/grid.html'], COVERAGE)].sort(), ['comments', 'grid'], 'every page of the fixture');
-  assert.equal(pagesTouched(['handsontable/src/core.ts'], COVERAGE), 'all');
-  assert.equal(pagesTouched(['handsontable/src/themes/static/main.scss'], COVERAGE), 'all');
-  assert.equal(pagesTouched(['tests/a11y/checks/reflow.spec.ts'], COVERAGE), 'all');
-  assert.equal(pagesTouched(['tests/lib/contrast.mjs'], COVERAGE), 'all');
+  assert.deepEqual([...pagesTouched(['tests/fixtures/demo/unlisted.html'], COVERAGE)], [], 'a fixture no catalog page loads');
   assert.deepEqual([...pagesTouched(['.github/workflows/a11y.yml', 'wrappers/react-wrapper/src/x.tsx'], COVERAGE)], []);
+});
+
+test('pagesTouched fails toward counting: shared code, the checks\' own code and shared fixture files touch every page', () => {
+  const shared = { plugins: new Set(['dialog']), editors: new Set(['textEditor']) };
+  const all = [
+    'handsontable/src/core.ts',
+    'handsontable/src/themes/static/main.scss',
+    'handsontable/src/plugins/autoRowSize/autoRowSize.ts', // `none`: no pages, but it sizes every grid
+    'handsontable/src/plugins/base/base.ts', // no entry: every plugin extends it
+    'handsontable/src/editors/baseEditor/baseEditor.ts',
+    'handsontable/src/editors/utils/index.ts',
+    'tests/a11y/checks/reflow.spec.ts',
+    'tests/lib/contrast.mjs',
+    'tests/reporters/a11y-checks.ts',
+    'tests/support/static-server.mjs',
+    'tests/playwright.a11y-checks.config.ts',
+    'tests/package.json',
+    'tests/fixtures/demo/test-license-key.js',
+    'tests/fixtures/licenseTiers.ts',
+  ];
+
+  for (const file of all) {
+    assert.equal(pagesTouched([file], COVERAGE), 'all', file);
+  }
+  assert.equal(pagesTouched(['handsontable/src/plugins/dialog/dialog.ts'], { ...COVERAGE, shared }), 'all', 'a plugin another plugin imports');
+  assert.equal(pagesTouched(['handsontable/src/editors/textEditor/textEditor.ts'], { ...COVERAGE, shared }), 'all', 'an editor other editors extend');
+  assert.deepEqual([...pagesTouched(['handsontable/src/plugins/comments/comments.ts'], { ...COVERAGE, shared })], ['comments']);
+});
+
+test('sharedSourceFolders reads from the source tree which plugin and editor folders others of their kind import', () => {
+  const shared = sharedSourceFolders(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../handsontable/src'));
+
+  for (const editor of ['baseEditor', 'textEditor', 'handsontableEditor', 'autocompleteEditor', 'utils']) {
+    assert.ok(shared.editors.has(editor), `${editor} is extended by another editor`);
+  }
+  for (const plugin of ['base', 'dropdownMenu', 'filters']) {
+    assert.ok(shared.plugins.has(plugin), `${plugin} is imported by another plugin`);
+  }
+  assert.ok(!shared.editors.has('passwordEditor') && !shared.plugins.has('dialog'), 'a leaf folder is not shared');
 });
 
 /**
@@ -84,7 +121,7 @@ function walkerDoc(findings) {
 
 const runOf = (findings, touched = 'all', extra = {}) => buildEvidenceCheckRun({
   doc: walkerDoc(findings), pages: new Map([['grid', 3], ['dialog', 9], ['pagination', 12]]), scope: 'change',
-  prLedger: prLedgerOf({ index: ledgerIndex(LEDGER), touched }), ...extra,
+  prLedger: prLedgerOf({ index: ledgerIndex(LEDGER), touched, catalog: new Set(['grid', 'dialog', 'pagination', 'shared-demo']) }), ...extra,
 });
 
 test('on a pull request a known finding does not count: the pages\' standing debt leaves the check run green', () => {
@@ -121,6 +158,15 @@ test('a new finding on a page the pull request did not change is a warning at mo
   const changed = runOf([finding({ page: 'pagination' })], new Set(['pagination']));
 
   assert.equal(changed.conclusion, 'failure', 'on a page the pull request changed, a new finding counts at its severity');
+
+  const regression = runOf([finding({ page: 'dialog' })], new Set(['pagination']));
+
+  assert.equal(regression.conclusion, 'failure', 'a regression on a page the pull request did not change still counts at its severity');
+  assert.doesNotMatch(regression.annotations[0].message, /did not change/);
+
+  const outside = runOf([finding({ page: 'column-resize' })], new Set(['pagination']));
+
+  assert.equal(outside.conclusion, 'failure', 'a page outside the catalog has no known sources, so it is never marked');
 
   const unread = runOf([finding({ page: 'pagination' })], null);
 
