@@ -112,7 +112,7 @@ export class SheetsBarUiPage {
   }
 
   /**
-   * The grid's root element, which the bar names after the active sheet.
+   * The element that carries the grid role, which the bar names after the active sheet.
    *
    * @returns {Locator} The grid.
    */
@@ -121,18 +121,32 @@ export class SheetsBarUiPage {
   }
 
   /**
-   * Starts recording every write of `aria-labelledby` on the grid's root, by the value the
-   * attribute held before it: a removal records the `id`, and setting it back records `null`.
+   * Starts recording every write of `aria-labelledby` on the element that carries the grid role, by the
+   * value the attribute held before it: a removal records the `id`, and setting it back records `null`.
    */
   async recordGridNameWrites(): Promise<void> {
     await this.page.evaluate(() => {
-      const root = (window as any).hot.rootElement as HTMLElement;
+      const rootElement = (window as any).hot.rootElement as HTMLElement;
+      const root = rootElement.querySelector(':scope > [role="treegrid"]') ?? rootElement;
       const writes: (string | null)[] = [];
 
       (window as any).htGridNameWrites = writes;
       new MutationObserver((records) => {
         records.forEach(record => writes.push(record.oldValue));
       }).observe(root, { attributes: true, attributeFilter: ['aria-labelledby'], attributeOldValue: true });
+    });
+  }
+
+  /**
+   * The `aria-labelledby` of the element that carries the grid role, or `null` when it has none.
+   *
+   * @returns {Promise<string | null>} The attribute.
+   */
+  async gridLabelledBy(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const rootElement = (window as any).hot.rootElement as HTMLElement;
+
+      return (rootElement.querySelector(':scope > [role="treegrid"]') ?? rootElement).getAttribute('aria-labelledby');
     });
   }
 

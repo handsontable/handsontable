@@ -104,12 +104,13 @@ export class AriaColcountPage {
   }
 
   /**
-   * Waits until the grid root carries the expected `aria-colcount`.
+   * Waits until the element that carries the grid role, inside the grid root, has the expected
+   * `aria-colcount`.
    *
    * @param {number} expected The expected column count, row-header columns included.
    */
   async expectColcount(expected: number): Promise<void> {
-    await expect(this.root).toHaveAttribute('aria-colcount', String(expected));
+    await expect(this.root.locator(':scope > [role="treegrid"]')).toHaveAttribute('aria-colcount', String(expected));
   }
 
   /**

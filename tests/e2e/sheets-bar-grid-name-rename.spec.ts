@@ -83,6 +83,6 @@ test.describe('the grid name after a sheet rename', { tag: CROSS_BROWSER_TAG }, 
     await page.keyboard.press('Enter');
 
     await expect(fixture.tab(0).locator('.ht-sheets-bar__tab-label')).toHaveText('Budget');
-    expect(await page.evaluate(() => (window as any).hot.rootElement.hasAttribute('aria-labelledby'))).toBe(false);
+    expect(await fixture.gridLabelledBy()).toBeNull();
   });
 });

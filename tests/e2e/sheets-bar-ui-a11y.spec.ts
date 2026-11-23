@@ -165,7 +165,7 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
 
   test('turning the bar off takes its name off the grid', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
-    const labelledBy = () => page.evaluate(() => (window as any).hot.rootElement.getAttribute('aria-labelledby'));
+    const labelledBy = () => fixture.gridLabelledBy();
 
     await fixture.goto();
     await expect.poll(labelledBy).not.toBeNull();
@@ -180,7 +180,7 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
 
     await fixture.goto({ ariaTags: false });
 
-    expect(await page.evaluate(() => (window as any).hot.rootElement.hasAttribute('aria-labelledby'))).toBe(false);
+    expect(await fixture.gridLabelledBy()).toBeNull();
 
     await fixture.allButton.click();
     await expect(fixture.openMenu).toBeVisible();

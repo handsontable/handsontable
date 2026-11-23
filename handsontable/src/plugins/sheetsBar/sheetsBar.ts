@@ -1885,6 +1885,16 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Names the grid once its view exists. The bar is built and first rendered while the plugin is enabled,
+   * before the grid has the element that carries the grid role, so the first `#syncGridName()` finds none.
+   *
+   * @private
+   */
+  onGridReady() {
+    this.#syncGridName();
+  }
+
+  /**
    * Disables the plugin functionality for this Handsontable instance.
    *
    * A genuine teardown discards the workbook: it drops the model first and releases every

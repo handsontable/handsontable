@@ -127,7 +127,7 @@ export class FrozenEdgesPage {
   }
 
   /**
-   * The row groups the grid's root lists in `aria-owns`, in the listed order, each as `table section`
+   * The row groups the element with the grid role lists in `aria-owns`, in the listed order, each as `table section`
    * (`top head`, `master body`) with the section's role and row count. An id that names no element reads
    * as `missing`.
    *
@@ -136,7 +136,8 @@ export class FrozenEdgesPage {
   async ownedRowGroups(): Promise<Array<{ name: string, role: string | null, rows: number }>> {
     return this.page.evaluate(() => {
       const root = (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement;
-      const ids = (root.getAttribute('aria-owns') ?? '').split(' ').filter(Boolean);
+      const gridElement = root.querySelector(':scope > [role="treegrid"]') ?? root;
+      const ids = (gridElement.getAttribute('aria-owns') ?? '').split(' ').filter(Boolean);
 
       return ids.map((id) => {
         const section = root.ownerDocument.getElementById(id);
@@ -153,13 +154,17 @@ export class FrozenEdgesPage {
   }
 
   /**
-   * The `aria-owns` attribute of the grid's root element (the element that carries the grid role).
+   * The `aria-owns` attribute of the element that carries the grid role.
    *
-   * @returns The attribute, or `null` when the root has none.
+   * @returns The attribute, or `null` when the element has none.
    */
   async rootOwns(): Promise<string | null> {
     return this.page.evaluate(
-      () => (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement.getAttribute('aria-owns')
+      () => {
+        const root = (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement;
+
+        return (root.querySelector(':scope > [role="treegrid"]') ?? root).getAttribute('aria-owns');
+      }
     );
   }
 
