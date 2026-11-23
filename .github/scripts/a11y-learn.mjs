@@ -35,7 +35,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -44,6 +44,7 @@ import {
   LEARN_MAX_AGE_HOURS,
   LEARN_RULES_FILE,
   auditPairs,
+  docsGuideFolders,
   guardProblems,
   learnPacket,
   parseGitLog,
@@ -143,13 +144,35 @@ async function readMaps() {
     load('tests/lib/screenreader-matrix.mjs'), load('tests/lib/a11y-evidence.mjs'), load('tests/lib/a11y-site-checks.mjs'),
     load('tests/a11y/docs/pages.mjs'),
   ]);
-  // Every framework's id of a guide, with the guide's place in the docs content: the scan names a page once, by the
-  // first framework that lists it, and the accessibility pages by each.
-  const docsGuides = docs.DOCS_FRAMEWORKS.flatMap(framework => framework.paths.map(({ path: listPath }) => {
+  // Every framework's id of a guide, with the slug it is served at: the scan names a page once, by the first framework
+  // that lists it, and the accessibility pages by each.
+  const listed = docs.DOCS_FRAMEWORKS.flatMap(framework => framework.paths.map(({ path: listPath }) => {
     const slug = listPath.split('/').pop() === 'introduction' ? 'introduction' : docs.servedSlug(listPath);
 
-    return { id: `${framework.prefix}-${docs.idPart(slug)}`, listPath };
+    return { id: `${framework.prefix}-${docs.idPart(slug)}`, listPath, slug };
   }));
+  // The guide files, and the slug each is served at (its `permalink`, read by the docs scan's own `servedSlug()`): the
+  // list names some guides by that slug, in a folder that does not exist.
+  const guidesDir = 'docs/content/guides';
+  const files = readdirSync(path.join(root, guidesDir), { recursive: true }).map(file => `${guidesDir}/${file.split(path.sep).join('/')}`)
+    .filter(file => /\.mdx?$/.test(file));
+  const permalinks = {};
+
+  for (const file of files) {
+    const slug = docs.servedSlug(file.slice('docs/content/'.length).replace(/\.mdx?$/, ''));
+
+    if (!Object.hasOwn(permalinks, slug)) {
+      permalinks[slug] = file;
+    }
+  }
+
+  const { guides: docsGuides, missing } = docsGuideFolders(listed, { files, permalinks });
+
+  if (missing.length > 0) {
+    // Not an error: a finding on such a page is tied by the code every docs page shares, or reads as not on changed code.
+    process.stderr.write(`warning: ${missing.length} docs ${missing.length === 1 ? 'page has' : 'pages have'} no guide folder to tie a finding to: `
+      + `${missing.join(', ')}\n`);
+  }
 
   return surfaceMaps({
     plugins: coverage.PLUGIN_COVERAGE,
@@ -461,7 +484,7 @@ if (options.guard) {
   const lines = [`result: ${packet.result}${options['dry-run'] ? ' (dry run)' : ''}`, ...packet.refusals.map(reason => `refused: ${reason}`)];
 
   if (!refusedForReal) {
-    lines.push(`new findings: ${packet.counts.new}; attributable: ${outcomes.attributable} in ${packet.counts.attributableGroups} groups; `
+    lines.push(`new findings: ${packet.counts.new}; came back: ${packet.counts.returned}; attributable: ${outcomes.attributable} in ${packet.counts.attributableGroups} groups; `
       + `inherited: ${outcomes.inherited}; newly measured: ${outcomes['newly-measured']}; not on changed code: ${outcomes['not-on-changed-code']}; `
       + `not a defect: ${outcomes['not-a-defect']}; needs triage: ${outcomes['needs-triage']}; not sorted: ${outcomes.unsorted}`,
     `packet: ${path.join(outDir, PACKET_MD)}`);

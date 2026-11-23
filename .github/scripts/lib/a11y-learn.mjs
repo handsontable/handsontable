@@ -78,6 +78,20 @@ const HOUR_MS = 60 * 60 * 1000;
 // A ClickUp custom id (`DEV-458`), as `tests/lib/a11y-issues.mjs` reads one in a title, and also where an underscore
 // follows it, as in a branch name (`feature/DEV-458_Short-Description`).
 const TASK_ID = /(?<![A-Za-z0-9])[A-Z][A-Z0-9]*-\d+(?![A-Za-z0-9])/g;
+// What is shaped like a task id and is none: a character set, a standard, a hash, a time zone offset. A list of what
+// to let through, never of the prefixes to catch: a prefix this file does not know is attached to the pull request
+// for good, and a name it wrongly catches only costs a rewording.
+const NOT_TASK_PREFIXES = new Set(['UTF', 'UCS', 'ISO', 'IEC', 'RFC', 'CVE', 'CWE', 'SHA', 'MD', 'UTC', 'GMT']);
+
+/**
+ * Whether a token shaped like a task id is one.
+ *
+ * @param {string} token The token (`DEV-458`, `UTF-8`).
+ * @returns {boolean} The verdict.
+ */
+function isTaskId(token) {
+  return !NOT_TASK_PREFIXES.has(token.slice(0, token.lastIndexOf('-')));
+}
 const PULL_REQUEST = /\(#(\d+)\)\s*$/;
 const SEVERITY_ORDER = ['critical', 'serious', 'moderate', 'minor', 'advisory'];
 const READER_SOURCE = 'reader';
@@ -143,8 +157,8 @@ const SURFACES = Object.freeze({
  * `tests/screenreader/coverage.mjs`, keyed by the same plugin and editor names.
  * @param {string[]} [tables.readerProjects] `SCREENREADER_PROJECTS` of `tests/lib/screenreader-matrix.mjs`.
  * @param {Record<string, {spec?: string}>} [tables.checks] `EVIDENCE_CHECKS` and `SITE_CHECKS` of `tests/lib`, by id.
- * @param {Array<{id: string, listPath: string}>} [tables.docsGuides] A docs page id and its guide's path in the docs
- * visual list (`guides/<section>/<folder>/<file>`).
+ * @param {Array<{id: string, folder: string}>} [tables.docsGuides] A docs page id and the folder its guide lives in
+ * (`docsGuideFolders()`).
  * @returns {SurfaceMaps} The maps `surfaceOf()` reads.
  */
 export function surfaceMaps({ plugins = {}, editors = {}, pages = [], readerFeatures = {}, readerProjects = [], checks = {}, docsGuides = [] }) {
@@ -202,11 +216,45 @@ export function surfaceMaps({ plugins = {}, editors = {}, pages = [], readerFeat
   add(maps.checkMeasurement, 'axe', 'tests/a11y/axe-scan.ts');
   add(maps.checkMeasurement, 'docs-axe', 'tests/a11y/docs/');
 
-  for (const { id, listPath } of docsGuides) {
-    add(maps.docsFolders, id, `docs/content/${listPath.split('/').slice(0, -1).join('/')}/`);
+  for (const { id, folder } of docsGuides) {
+    add(maps.docsFolders, id, folder);
   }
 
   return maps;
+}
+
+/**
+ * The folder each docs guide page lives in. The docs visual list names a guide by a path, and for most guides that is
+ * where the file is. For the rest the list's last segment is the slug the page is served at, and the file sits in a
+ * folder of another name (`basic-clipboard` is served by `cell-features/clipboard/clipboard.md`): the guide that
+ * declares that slug as its `permalink` is the one, as it is for the scan that opens the page.
+ *
+ * @param {Array<{id: string, listPath: string, slug: string}>} guides A docs page id, its guide's path in the visual
+ * list (`guides/<section>/<folder>/<file>`) and the slug the page is served at.
+ * @param {object} content What the docs content holds.
+ * @param {Iterable<string>} content.files The guide files, as paths from the repository root.
+ * @param {Record<string, string>} content.permalinks A slug to the guide file whose `permalink` it is.
+ * @returns {{guides: Array<{id: string, folder: string}>, missing: string[]}} The pages with their folder, and the
+ * ids of the pages no guide was found for.
+ */
+export function docsGuideFolders(guides, { files, permalinks }) {
+  const known = new Set(files);
+  const folderOf = file => `${file.split('/').slice(0, -1).join('/')}/`;
+  const resolved = [];
+  const missing = [];
+
+  for (const { id, listPath, slug } of guides) {
+    const listed = ['.md', '.mdx'].map(extension => `docs/content/${listPath}${extension}`).find(file => known.has(file));
+    const file = listed ?? (Object.hasOwn(permalinks, slug) ? permalinks[slug] : null);
+
+    if (file) {
+      resolved.push({ id, folder: folderOf(file) });
+    } else {
+      missing.push(id);
+    }
+  }
+
+  return { guides: resolved, missing };
 }
 
 /**
@@ -216,7 +264,9 @@ export function surfaceMaps({ plugins = {}, editors = {}, pages = [], readerFeat
  * @returns {string} The text, with every task id gone.
  */
 export function scrubTaskIds(text) {
-  return String(text).replace(/^\s*[A-Z][A-Z0-9]*-\d+\s*[:-]?\s*/, '').replace(TASK_ID, '(task)').replace(/\s+/g, ' ').trim();
+  // A subject opens with its task (`DEV-458: Fix …`): the id goes with its separator. One elsewhere leaves a mark.
+  return String(text).replace(/^\s*([A-Z][A-Z0-9]*-\d+)\s*[:-]?\s*/, (lead, id) => (isTaskId(id) ? '' : lead))
+    .replace(TASK_ID, id => (isTaskId(id) ? '(task)' : id)).replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -226,7 +276,7 @@ export function scrubTaskIds(text) {
  * @returns {string[]} The ids, each once, in order of appearance.
  */
 export function taskIdsIn(text) {
-  return [...new Set(String(text).match(TASK_ID) ?? [])];
+  return [...new Set((String(text).match(TASK_ID) ?? []).filter(isTaskId))];
 }
 
 /**
@@ -632,7 +682,7 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
     const range = commits[source] ?? null;
     const previousWithCoverage = previous !== null && coverage[source]?.coverage && String(coverage[source].runId) === String(previous.runId)
       ? { ...previous, coverage: coverage[source].coverage } : null;
-    const audit = { source, workflow, latest: nightOf(latest), previous: nightOf(previous), newFindings: 0,
+    const audit = { source, workflow, latest: nightOf(latest), previous: nightOf(previous), newFindings: 0, returnedFindings: 0,
       coverage: 'none', range: null };
 
     audits.push(audit);
@@ -643,26 +693,35 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
 
     const ofSource = rows.filter(row => nightSourceOf(row) === source);
     const fresh = ofSource.filter(row => String(row.firstRun) === String(latest.runId));
+    // A finding that was resolved and is seen again keeps the night it was first seen on: the ledger marks its return
+    // with `backAt`, and a row written before that field existed says so with its gap count, as the ledger's own
+    // history reads it. A pull request that brings a fixed defect back is what the routine is for.
+    const cameBack = row => String(row.firstRun) !== String(latest.runId) && String(row.lastRun) === String(latest.runId)
+      && (typeof row.backAt === 'string' ? row.backAt === latest.seenAt : (Number(row.gaps) > 0 && row.seenSinceGap === 1));
+    const back = new Set(ofSource.filter(cameBack).map(row => row.key));
+    const toSort = [...fresh, ...ofSource.filter(row => back.has(row.key))];
 
     audit.newFindings = fresh.length;
+    audit.returnedFindings = back.size;
 
     if (previous !== null) {
       audit.coverage = previousWithCoverage ? 'known' : 'unknown';
       audit.range = { from: previous.headSha ?? null, to: latest.headSha ?? null, commits: range?.length ?? null,
         pullRequests: range ? new Set(range.map(commit => commit.pullRequest).filter(Boolean)).size : null };
 
-      if (!previousWithCoverage && fresh.length > 0) {
+      if (!previousWithCoverage && toSort.length > 0) {
         refusals.push(`${workflow} (${source}): what run ${previous.runId} measured is not known, so a new finding cannot be told from a newly measured one `
           + '(the ledger state published before the latest audit is not readable)');
       }
-      if (range === null && fresh.length > 0 && Object.hasOwn(SURFACES, source)) {
+      if (range === null && toSort.length > 0 && Object.hasOwn(SURFACES, source)) {
         refusals.push(`${workflow} (${source}): the commits between ${previous.headSha} and ${latest.headSha} cannot be read`
           + `${Object.hasOwn(rangeErrors, source) ? ` (${rangeErrors[source]})` : ''}`);
       }
     }
 
     const latestAt = Date.parse(latest.seenAt);
-    const openBefore = row => String(row.firstRun) !== String(latest.runId) && Date.parse(row.firstSeen) < latestAt
+    // A row that came back in this audit was resolved before it, so it was not open then.
+    const openBefore = row => String(row.firstRun) !== String(latest.runId) && Date.parse(row.firstSeen) < latestAt && !back.has(row.key)
       && (row.resolvedAt === null || row.resolvedAt === undefined || Date.parse(row.resolvedAt) >= latestAt);
     // The pages each defect was open on before this audit, to tell an old defect on a new page.
     const pagesOfDefect = new Map();
@@ -692,9 +751,9 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
 
     const pagesThen = pagesMeasured(previousWithCoverage);
 
-    for (const row of [...fresh].sort((a, b) => a.key.localeCompare(b.key))) {
+    for (const row of toSort.sort((a, b) => a.key.localeCompare(b.key))) {
       const cluster = clusters.get(row.cluster) ?? null;
-      const entry = { row, source, outcome: 'unsorted', reason: null, elsewhere: elsewhere(row), surface: null, hits: null };
+      const entry = { row, source, returned: back.has(row.key), outcome: 'unsorted', reason: null, elsewhere: elsewhere(row), surface: null, hits: null };
 
       sorted.push(entry);
 
@@ -768,7 +827,21 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
     const cluster = clusters.get(first.row.cluster) ?? null;
     const classId = cluster?.defectClass ?? null;
     const groupRows = entries.map(entry => entry.row);
-    const { page, shared, measurement } = first.hits;
+    // A group's rows share their page, so the code behind them is one. What measures them is not: a group can hold
+    // rows of several checks, each with a spec of its own, so the changes to what is measured are every row's.
+    const { page, shared } = first.hits;
+    const measured = new Map();
+
+    for (const { hits } of entries) {
+      for (const hit of hits.measurement) {
+        const files = measured.get(hit.commit.sha)?.files ?? [];
+
+        measured.set(hit.commit.sha, { commit: hit.commit, files: [...new Set([...files, ...hit.files])].sort() });
+      }
+    }
+
+    const measurement = [...measured.values()];
+    const returned = entries.filter(entry => entry.returned);
     const tier = page.length > 0 ? 'page' : 'shared';
     const listed = (tier === 'page' ? page : shared).map(hit => candidateOf(hit, tier));
     const elements = distinct(groupRows, row => row.where);
@@ -785,6 +858,10 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
       class: classId !== null && Object.hasOwn(classes, classId) ? classes[classId] : null,
       knownNotPreventable: notPreventable.get(first.row.cluster) ?? null,
       findings: groupRows.length,
+      // How many of them were resolved before and came back in this audit, and how often the most restless of those
+      // had come back already: a regression comes back once, a reading that flaps keeps doing it.
+      returned: returned.length,
+      returnedBefore: Math.max(0, ...returned.map(entry => Number(entry.row.gaps ?? 1) - 1)),
       severity: worstSeverity(groupRows.map(row => row.severity)),
       criteria: distinct(groupRows, row => row.criteria ?? []),
       checks: distinct(groupRows, row => row.check),
@@ -816,6 +893,7 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
       page: first.row.page,
       cluster: first.row.cluster,
       findings: entries.length,
+      returned: entries.filter(entry => entry.returned).length,
       reasons: countBy(entries, entry => entry.reason ?? 'none'),
       // A first reading whose own source changed in the range: dropped all the same, and named so a reviewer sees it.
       sourceChangedBy: [...new Set(hits.map(hit => hit.commit.pullRequest ?? hit.commit.sha.slice(0, 10)))],
@@ -852,7 +930,8 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
     refusals,
     audits,
     counts: {
-      new: sorted.length,
+      new: sorted.filter(entry => !entry.returned).length,
+      returned: sorted.filter(entry => entry.returned).length,
       outcomes,
       bySource: Object.fromEntries(NIGHT_SOURCES.map(source => [source, countBy(sorted.filter(entry => entry.source === source), entry => entry.outcome)])),
       newlyMeasuredBy: Object.fromEntries(NEWLY_MEASURED_REASONS.map(reason => [reason, newlyMeasured.filter(entry => entry.reason === reason).length])),
@@ -935,8 +1014,9 @@ function droppedLines(groups) {
   const lines = shown.map((group) => {
     const reasons = Object.entries(group.reasons).filter(([reason]) => reason !== 'none').map(([reason, count]) => `${escaped(reason)} ${count}`).join(', ');
     const changed = group.sourceChangedBy.length > 0 ? `; its source changed in the range: ${group.sourceChangedBy.map(reference).join(', ')}` : '';
+    const back = group.returned > 0 ? `; ${group.returned} came back` : '';
 
-    return `- ${group.findings} · ${code(group.page)} (${group.source}) · ${escaped(group.cluster)}${reasons ? ` · ${reasons}` : ''}${changed}`;
+    return `- ${group.findings} · ${code(group.page)} (${group.source}) · ${escaped(group.cluster)}${reasons ? ` · ${reasons}` : ''}${back}${changed}`;
   });
 
   if (rest.length > 0) {
@@ -970,13 +1050,15 @@ export function renderPacket(packet) {
     lines.push('', '## Why it is refused', '', ...packet.refusals.map(reason => `- ${escaped(reason)}`));
   }
 
-  lines.push('', '## The audits compared', '', '| Source | Latest audit | Previous audit | Range | Pull requests | New findings |', '|---|---|---|---|---|---|');
+  lines.push('', '## The audits compared', '', '| Source | Latest audit | Previous audit | Range | Pull requests | New findings | Came back |',
+    '|---|---|---|---|---|---|---|');
 
   for (const audit of packet.audits) {
     const night = value => (value ? `${escaped(String(value.seenAt).slice(0, 10))}, run ${escaped(value.runId)}` : 'none');
     const range = audit.range?.from && audit.range?.to ? code(`${audit.range.from.slice(0, 10)}..${audit.range.to.slice(0, 10)}`) : 'none';
 
-    lines.push(`| ${audit.source} | ${night(audit.latest)} | ${night(audit.previous)} | ${range} | ${audit.range?.pullRequests ?? 'not read'} | ${audit.newFindings} |`);
+    lines.push(`| ${audit.source} | ${night(audit.latest)} | ${night(audit.previous)} | ${range} | ${audit.range?.pullRequests ?? 'not read'} | ${audit.newFindings} `
+      + `| ${audit.returnedFindings} |`);
   }
 
   const by = counts.newlyMeasuredBy;
@@ -984,6 +1066,7 @@ export function renderPacket(packet) {
 
   lines.push('', '## Where the new findings went', '',
     `- New findings: ${counts.new}`,
+    `- Findings that came back after they were resolved: ${counts.returned}`,
     `- Dropped, inherited (an old defect read in a new place): ${counts.outcomes.inherited}`,
     `- Dropped, newly measured: ${counts.outcomes['newly-measured']}`,
     `- Both drops by what was new: ${measured || 'none'}`,
@@ -1011,6 +1094,11 @@ export function renderPacket(packet) {
       `- Checks: ${group.checks.map(escaped).join(', ')}; rules or kinds: ${group.rules.map(escaped).join(', ')}; themes: ${group.themes.map(escaped).join(', ') || 'none'}`,
       `- Elements: ${group.elements.map(code).join(', ')}${group.moreElements > 0 ? `, and ${group.moreElements} more` : ''}`,
       ...(group.reasons.length > 0 ? [`- Says: ${group.reasons.map(escaped).join(' / ')}`] : []));
+
+    if (group.returned > 0) {
+      lines.push(`- Came back after it was resolved: ${group.returned} of ${group.findings}, ${group.returnedBefore === 0 ? 'for the first time'
+        : `and it had come back ${plural(group.returnedBefore, 'time', 'times')} before`}`);
+    }
 
     if (rule) {
       const checks = rule.enforcedBy.map(item => `${escaped(item.check)} (${escaped(item.runs)})`).join(', ');

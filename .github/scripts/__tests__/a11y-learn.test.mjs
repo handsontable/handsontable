@@ -14,6 +14,7 @@ import {
   candidatesOf,
   catalogProblems,
   defectIdentity,
+  docsGuideFolders,
   guardProblems,
   learnPacket,
   parseGitLog,
@@ -51,7 +52,7 @@ const MAPS = surfaceMaps({
   readerFeatures: { dateEditor: { scenarios: ['date-editor'] }, columnSummary: { scenarios: ['column-summary'] } },
   readerProjects: ['nvda-chromium', 'vo-webkit'],
   checks: { 'axe-discovery': { spec: 'axe-discovery.spec.ts' }, 'docs-reflow': { spec: 'reflow.spec.ts', site: 'docs' } },
-  docsGuides: [{ id: 'js-layout-slots', listPath: 'guides/accessories-and-menus/layout-slots/layout-slots' }],
+  docsGuides: [{ id: 'js-layout-slots', folder: 'docs/content/guides/accessories-and-menus/layout-slots/' }],
 });
 // The defect class each cluster of the fixtures names, as the catalog will carry it.
 const CLASS_OF = { 'contrast-and-focus-visibility': 'C08', 'docs-link-color-only': 'C13', 'target-size': 'C08' };
@@ -164,15 +165,92 @@ test('selection: only the rows first seen in the latest audit of their source ar
   const fresh = cut.after.rows.filter(row => latest.has(row.firstRun));
   const sorted = Object.values(packet.counts.outcomes).reduce((sum, count) => sum + count, 0);
 
+  // One more row is sorted: a screen reader row that was resolved and came back in this audit.
+  const back = cut.after.rows.filter(row => row.gaps > 0 && row.seenSinceGap === 1 && latest.has(row.lastRun) && !latest.has(row.firstRun));
+
   assert.equal(fresh.length, 98);
-  assert.equal(cut.after.rows.length - fresh.length, 16, 'the cut also holds persisting, flapping and resolved rows');
-  assert.equal(packet.counts.new, 98);
-  assert.equal(sorted, 98, 'every new row has exactly one outcome');
-  assert.deepEqual(packet.audits.map(audit => [audit.source, audit.newFindings]), [['a11y', 70], ['reader', 20], ['docs', 2], ['website', 6]]);
+  assert.deepEqual(back.map(row => [row.source, row.page, row.where, row.status]), [['reader', 'grid-core', 'open-context-menu', 'flapping']]);
+  assert.equal(cut.after.rows.length - fresh.length - back.length, 15, 'the cut also holds persisting and resolved rows');
+  assert.deepEqual([packet.counts.new, packet.counts.returned], [98, 1]);
+  assert.equal(sorted, 99, 'every new row and every row that came back has exactly one outcome');
+  assert.deepEqual(packet.audits.map(audit => [audit.source, audit.newFindings, audit.returnedFindings]),
+    [['a11y', 70, 0], ['reader', 20, 1], ['docs', 2, 0], ['website', 6, 0]]);
 
   const attributed = new Set(packet.attributable.flatMap(group => group.keys));
 
   assert.ok([...attributed].every(key => latest.has(cut.after.rows.find(row => row.key === key).firstRun)), 'no older row is ever attributed');
+});
+
+test('selection: a finding that comes back after it was resolved is sorted like a new one, and the packet says it came back', () => {
+  // Audit 1 finds a lost focus on page b. Audit 2 measures page b and finds nothing: resolved. Audit 3 finds it again.
+  const lost = walker('focus-lost', 'b');
+  const { doc: fixed } = record(null, [[101, '2026-11-09T02:00:00Z', a11yNight([lost])], [102, '2026-11-16T02:00:00Z', a11yNight([])]]);
+  const { doc: after } = record(fixed, [[202, '2026-11-23T02:00:00Z', a11yNight([lost])]]);
+  const [row] = after.rows;
+  const input = { ledger: after, coverage: { a11y: fixed.nights.find(night => night.runId === '102') }, catalog: CATALOG, rules: RULES, now: NOW };
+
+  // The ledger keeps the row's first night: only its return says it is back.
+  assert.deepEqual([after.rows.length, row.firstRun, row.lastRun, row.status, row.backAt], [1, '101', '202', 'flapping', '2026-11-23T02:00:00Z']);
+
+  const regression = learnPacket({ ...input, commits: { a11y: [commit(11, ['handsontable/src/core.ts'])] } });
+  const [group] = regression.attributable;
+
+  assert.deepEqual([regression.counts.new, regression.counts.returned, regression.counts.outcomes.attributable], [0, 1, 1]);
+  assert.deepEqual([group.page, group.cluster, group.findings, group.returned, group.returnedBefore, group.tier], ['b', 'focus-lost', 1, 1, 0, 'shared']);
+  assert.deepEqual(group.candidates.map(candidate => candidate.pullRequest), [11]);
+  assert.deepEqual(regression.audits.find(audit => audit.source === 'a11y').returnedFindings, 1);
+
+  const text = renderPacket(regression);
+
+  assert.match(text, /\| a11y \| 2026-11-23, run 202 \| 2026-11-16, run 102 \| .+ \| 1 \| 0 \| 1 \|/);
+  assert.match(text, /- New findings: 0\n- Findings that came back after they were resolved: 1\n/);
+  assert.match(text, /- Came back after it was resolved: 1 of 1, for the first time\n/);
+
+  // With no change to the page's code it is a finding on code nobody changed, counted and named as one that came back.
+  const quiet = learnPacket({ ...input, commits: { a11y: [] } });
+
+  assert.deepEqual(quiet.dropped.notOnChangedCode.map(item => [item.page, item.findings, item.returned]), [['b', 1, 1]]);
+  assert.match(renderPacket(quiet), /- 1 · <code>b<\/code> \(a11y\) · focus-lost · surface-unchanged 1; 1 came back\n/);
+
+  // A row that came back in an earlier audit and is still there is neither new nor back.
+  const { doc: later } = record(after, [[302, '2026-11-30T02:00:00Z', a11yNight([lost])]]);
+  const next = learnPacket({ ...input, ledger: later, coverage: { a11y: after.nights.find(night => night.runId === '202') },
+    commits: { a11y: [commit(11, ['handsontable/src/core.ts'])] }, now: '2026-11-30T08:30:00Z' });
+
+  assert.deepEqual([next.counts.new, next.counts.returned, next.attributable.length], [0, 0, 0]);
+
+  // The same two ledgers as a file written before the return time existed: the gap count says the same, the audit the
+  // row came back in and not the one after.
+  const older = doc => ({ ...doc, rows: doc.rows.map(({ backAt, lastResolvedAt, ...rest }) => rest) });
+  const changed = { a11y: [commit(11, ['handsontable/src/core.ts'])] };
+
+  assert.deepEqual([row.gaps, row.seenSinceGap, later.rows[0].gaps, later.rows[0].seenSinceGap], [1, 1, 1, 2]);
+  assert.equal(learnPacket({ ...input, ledger: older(after), commits: changed }).counts.returned, 1);
+  assert.equal(learnPacket({ ...input, ledger: older(later), coverage: { a11y: after.nights.find(night => night.runId === '202') }, commits: changed,
+    now: '2026-11-30T08:30:00Z' }).counts.returned, 0);
+});
+
+test('selection: a row of the older ledger shape, with no return time, is read as back from its gap count', () => {
+  const cut = fixture('audit-2026-11-17.json');
+  const packet = packetOfCut(cut);
+  const drift = packet.dropped.notADefect.find(group => group.page === 'grid-core');
+
+  // The published file of 2026-11-17 has no `backAt`: the row went missing twice and was seen again this audit. It is a
+  // golden difference, which the catalog calls no defect, so it is set aside and named as one that came back.
+  assert.ok(cut.after.rows.every(row => row.backAt === undefined));
+  assert.deepEqual([drift.cluster, drift.findings, drift.returned, drift.reasons], ['reader-golden-drift', 1, 1, { 'reader-behavior': 1 }]);
+  assert.deepEqual(packet.dropped.needsTriage.map(group => group.returned), [0]);
+});
+
+test('a finding that came back is not an open twin of itself: it was not open before this audit', () => {
+  // The lost focus on page a was resolved and comes back in the audit that first measures page d, where it shows too.
+  const { doc: fixed } = record(null, [[101, '2026-11-09T02:00:00Z', a11yNight([walker('focus-lost', 'a')])], [102, '2026-11-16T02:00:00Z', a11yNight([])]]);
+  const { doc: after } = record(fixed, [[202, '2026-11-23T02:00:00Z', a11yNight([walker('focus-lost', 'a'), walker('focus-lost', 'd')], ['a', 'b', 'c', 'd'])]]);
+  const packet = learnPacket({ ledger: after, coverage: { a11y: fixed.nights.find(night => night.runId === '102') }, commits: { a11y: [] }, catalog: CATALOG,
+    rules: RULES, now: NOW });
+
+  assert.deepEqual(packet.dropped.newlyMeasured.map(group => [group.page, group.reasons]), [['d', { page: 1 }]], 'no defect was open on another page before');
+  assert.deepEqual(packet.dropped.inherited, []);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -199,8 +277,12 @@ test('attribution: the new contrast rows on the three older formula builder page
     assert.ok(!group.candidates.some(candidate => candidate.pullRequest === 14284),
       'a pull request that touched only the generated feature manifest and the plugin notes changed nothing the page draws');
     assert.ok(group.sharedPullRequests.includes(14296) && !group.sharedPullRequests.includes(14270), 'shared code is named apart, by number');
-    assert.deepEqual(group.measurementChanges.map(change => [change.pullRequest, change.files]), [[14270, ['tests/fixtures/demo/formula-builder.html']]],
-      'the fixture changed in the range too, which the group says rather than dropping the rows');
+    // The group holds rows of the axe scan and of the axe discovery run: the fixture both read changed in the range, and
+    // so did the discovery run's own spec, which only its rows name.
+    assert.deepEqual(group.checks, ['axe', 'axe-discovery']);
+    assert.deepEqual(group.measurementChanges.map(change => [change.pullRequest, change.files]),
+      [[14270, ['tests/fixtures/demo/formula-builder.html']], [14284, ['tests/a11y/checks/axe-discovery.spec.ts']]],
+      'what is measured changed in the range too, which the group says for every check it holds, rather than dropping the rows');
     assert.equal(group.openOnOtherPages, 0);
     assert.equal(group.tracked, true);
   }
@@ -294,7 +376,7 @@ test('drop, newly measured: a finding on a page the previous audit did not know 
   assert.deepEqual([tokens.findings, tokens.reasons], [13, { page: 13 }]);
   assert.deepEqual(tokens.sourceChangedBy, [14270, 14280, 14206, 14268], 'dropped, and the packet still says its own source changed in the range');
   assert.equal(packet.counts.bySource.a11y['newly-measured'], 22);
-  assert.equal(packet.counts.bySource.reader['newly-measured'], 2, 'a scenario the previous audit did not read');
+  assert.equal(packet.counts.bySource.reader['newly-measured'], 3, 'scenarios the previous audit did not read');
   assert.ok(!packet.attributable.some(group => group.page === 'formula-builder-tokens' || group.page === 'side-layout-slots'));
 });
 
@@ -316,7 +398,7 @@ test('drop, inherited: a newly measured finding whose defect was already open on
   assert.deepEqual([roles.findings, roles.reasons], [3, { page: 3 }]);
   // A screen reader row names a step, not an element: its defect is its cluster, open in older scenarios.
   assert.deepEqual([reader.page, reader.findings, reader.reasons], ['context-menu-submenu', 4, { page: 4 }]);
-  assert.deepEqual([packet.counts.outcomes.inherited, packet.counts.bySource.a11y.inherited, packet.counts.bySource.reader.inherited], [29, 24, 5]);
+  assert.deepEqual([packet.counts.outcomes.inherited, packet.counts.bySource.a11y.inherited, packet.counts.bySource.reader.inherited], [28, 24, 4]);
 
   const treegrid = cut.after.rows.find(row => row.page === 'formula-builder-tokens' && row.rule === 'aria-required-children' && row.source === 'axe');
   const elsewhere = cut.after.rows.filter(row => row.firstRun !== treegrid.firstRun && defectIdentity({ ...row, cluster: 'grid-roles' })
@@ -328,7 +410,9 @@ test('drop, inherited: a newly measured finding whose defect was already open on
 test('both drops together are what the audit of 2026-11-17 mostly was: new pages, a new source and new scenarios', () => {
   const packet = packetOfCut(fixture('audit-2026-11-17.json'));
 
-  assert.deepEqual(packet.counts.outcomes, { attributable: 26, inherited: 29, 'newly-measured': 30, 'not-on-changed-code': 0, 'not-a-defect': 5,
+  // 98 new rows and one that came back. The golden difference of a new scenario is newly measured, not inherited: the
+  // only other row of its cluster in the cut is the one that came back, which was resolved before this audit.
+  assert.deepEqual(packet.counts.outcomes, { attributable: 26, inherited: 28, 'newly-measured': 31, 'not-on-changed-code': 0, 'not-a-defect': 6,
     'needs-triage': 8, unsorted: 0 });
   assert.deepEqual(packet.counts.newlyMeasuredBy, { 'first-audit': 6, page: 53, check: 0, target: 0, step: 0, selector: 0 });
 });
@@ -393,6 +477,7 @@ test('what the catalog calls no defect, and what no cluster matches yet, is set 
   assert.deepEqual(packet.dropped.notADefect.map(group => [group.page, group.cluster, group.findings, group.reasons]), [
     ['date-editor', 'reader-golden-drift', 3, { 'reader-behavior': 3 }],
     ['column-summary', 'reader-golden-drift', 2, { 'reader-behavior': 2 }],
+    ['grid-core', 'reader-golden-drift', 1, { 'reader-behavior': 1 }],
   ]);
   assert.deepEqual(packet.dropped.needsTriage.map(group => [group.page, group.cluster, group.findings]), [['grid-core', 'needs-triage', 8]]);
 });
@@ -504,7 +589,9 @@ test('the packet reads as one page: the result, the audits, where the rows went,
   assert.match(text, /^# Accessibility learning packet\n\nResult: \*\*refused\*\*\. Refused\. Nothing here may become a pull request\.\n\nA dry run: /);
   assert.match(text, /\| a11y \| 2026-11-17, run 44077688383 \| 2026-11-10, run 42763025203 \| <code>8b36d60903\.\.6db6aee014<\/code> \| 85 \| 70 \|/);
   assert.match(text, /\| website \| 2026-11-17, run 44077699783 \| none \| none \| not read \| 6 \|/);
-  assert.match(text, /- Dropped, inherited \(an old defect read in a new place\): 29\n- Dropped, newly measured: 30\n- Both drops by what was new: first-audit 6, page 53\n/);
+  assert.match(text, /- New findings: 98\n- Findings that came back after they were resolved: 1\n/);
+  assert.match(text, /- Dropped, inherited \(an old defect read in a new place\): 28\n- Dropped, newly measured: 31\n- Both drops by what was new: first-audit 6, page 53\n/);
+  assert.match(text, /- 1 · <code>grid-core<\/code> \(reader\) · reader-golden-drift · reader-behavior 1; 1 came back\n/);
   assert.match(text, /- \*\*Attributable, to sort: 26 in 4 groups\*\*/);
   assert.match(text, /### contrast-and-focus-visibility on <code>formula-builder-suggestions<\/code> \(a11y\)/);
   assert.match(text, /- Class C08, Theme tokens: contrast and target size \(rule lives in: skill\)\n- Rule: Every color pair clears 4\.5:1/);
@@ -601,6 +688,12 @@ test('a git log is read into commits: the pull request from the subject, the tit
   assert.deepEqual(taskIdsIn('DEV-1 then DEV-22, DEV-1 again, and #14270'), ['DEV-1', 'DEV-22']);
   assert.deepEqual(taskIdsIn('feature/DEV-3679_A11y-learning-routine'), ['DEV-3679'], 'an underscore ends an id, as a branch name writes it');
   assert.deepEqual(taskIdsIn('WCAG 2.2, 4.5:1, aria-1, x-DEV-1y'), []);
+  // A character set, a standard and a hash are no tasks, though they are shaped like one.
+  assert.deepEqual(taskIdsIn('Export as UTF-8 and ISO-8859, hash with SHA-256, per RFC-4180 and CVE-2026, at UTC-5'), []);
+  assert.deepEqual(taskIdsIn('UTF-8 for DEV-12, and IT-555 too'), ['DEV-12', 'IT-555'], 'a prefix nobody listed still counts: a missed id is attached for good');
+  assert.equal(scrubTaskIds('Fix UTF-8 export of ISO-8859 files'), 'Fix UTF-8 export of ISO-8859 files');
+  assert.equal(scrubTaskIds('UTF-8: keep the byte order mark'), 'UTF-8: keep the byte order mark');
+  assert.equal(scrubTaskIds('DEV-9: Read UTF-8, after SU-7'), 'Read UTF-8, after (task)');
 });
 
 test('the surface maps come from the repository\'s tables: a feature\'s folder and its style partial, per page and per scenario', () => {
@@ -620,6 +713,34 @@ test('the surface maps come from the repository\'s tables: a feature\'s folder a
   assert.deepEqual(surface.measurement, ['tests/fixtures/demo/formula-builder.html', 'tests/a11y/checks/axe-discovery.spec.ts']);
   assert.deepEqual(surfaceOf({ source: 'axe', check: 'axe', page: 'constructor' }, MAPS).page, [], 'a page id is never read through the prototype');
   assert.deepEqual(candidatesOf(null, [commit(1, ['handsontable/src/core.ts'])]), { page: [], shared: [], measurement: [] });
+});
+
+test('a docs page gets the folder its guide really lives in: where the list says, or where the slug it is served at is declared', () => {
+  // Three guides of the docs visual list, as they are at this head: one where the list says, and two the list names
+  // by the slug they are served at, in a folder that does not exist.
+  const files = ['docs/content/guides/accessories-and-menus/layout-slots/layout-slots.md', 'docs/content/guides/cell-features/clipboard/clipboard.md',
+    'docs/content/guides/getting-started/react-redux/react-redux.mdx'];
+  const permalinks = { 'layout-slots': files[0], 'basic-clipboard': files[1], redux: files[2] };
+  const guides = [
+    { id: 'js-layout-slots', listPath: 'guides/accessories-and-menus/layout-slots/layout-slots', slug: 'layout-slots' },
+    { id: 'js-basic-clipboard', listPath: 'guides/cell-features/basic-clipboard/basic-clipboard', slug: 'basic-clipboard' },
+    { id: 'react-redux', listPath: 'guides/getting-started/redux/redux', slug: 'redux' },
+    { id: 'js-gone', listPath: 'guides/gone/gone', slug: 'gone' },
+  ];
+  const resolved = docsGuideFolders(guides, { files, permalinks });
+
+  assert.deepEqual(resolved.guides, [
+    { id: 'js-layout-slots', folder: 'docs/content/guides/accessories-and-menus/layout-slots/' },
+    { id: 'js-basic-clipboard', folder: 'docs/content/guides/cell-features/clipboard/' },
+    { id: 'react-redux', folder: 'docs/content/guides/getting-started/react-redux/' },
+  ]);
+  assert.deepEqual(resolved.missing, ['js-gone'], 'a page with no guide to find is reported, never given a folder that is not there');
+
+  const maps = surfaceMaps({ docsGuides: resolved.guides });
+  const moved = candidatesOf(surfaceOf({ source: 'docs', check: 'docs-axe', page: 'js-basic-clipboard' }, maps),
+    [commit(31, ['docs/content/guides/cell-features/clipboard/clipboard.md'])]);
+
+  assert.deepEqual(moved.page.map(hit => hit.commit.pullRequest), [31], 'a change to the guide ties to the page that serves it');
 });
 
 test('a second strike is two distinct pull requests or two audits among a class\'s strikes', () => {
@@ -778,6 +899,7 @@ test('the text of the routine\'s pull request names no task but the branch\'s ow
   const fine = [{ name: 'a commit message', text: 'DEV-100: Record the audit of 2026-11-23\n\nStrike on C08 from #14270.' }];
 
   assert.deepEqual(textProblems({ branch, texts: fine }), []);
+  assert.deepEqual(textProblems({ branch, texts: [{ name: 'the pull request body', text: 'The rule covers UTF-8 names and ISO-8601 dates.' }] }), []);
   assert.deepEqual(textProblems({ branch, texts: [{ name: 'the pull request body', text: 'Tracked by DEV-2964 and DEV-3652, see #14270.' }] }),
     ['the pull request body names DEV-2964, DEV-3652: the ClickUp integration attaches every task id it finds in a pull request, for good; '
       + 'name another task in words or a pull request by its number']);
@@ -872,7 +994,7 @@ test('the script writes the packet as JSON and Markdown on a dry run, and says t
 
     assert.equal(first, 'result: refused (dry run)');
     assert.ok(rest.some(line => line.startsWith('refused: A11y nightly (a11y) run 44077688383 recorded 2 tooling problems')));
-    assert.ok(rest.some(line => line.startsWith('new findings: 98; attributable: ')));
+    assert.ok(rest.some(line => line.startsWith('new findings: 98; came back: 1; attributable: ')));
     assert.equal(rest.at(-1), `packet: ${path.join(out, 'learn-packet.md')}`);
 
     const packet = JSON.parse(readFileSync(path.join(out, 'learn-packet.json'), 'utf8'));

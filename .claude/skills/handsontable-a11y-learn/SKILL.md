@@ -64,6 +64,8 @@ Two findings are no lesson. Leave them **not sorted**, with the reason, and chan
 - **An old defect in a new place.** The group says the same finding was already open on other pages, and the diff only adds one more instance of a pattern that is wrong everywhere (a link in the docs prose, in the site's link color). It is a strike only when the diff adds the cause itself: the attribute, the color, the handler.
 - **The measurement changed.** The group lists a fixture, a spec, a scenario or a golden that changed in the range, and that change explains the row.
 
+A group can hold findings that **came back**: resolved in an earlier audit and seen again in this one. When a candidate's diff brings the defect back, sort the group like any other: a fix undone is a rule broken. When the group says the finding had come back before and no diff explains it, it is a reading that comes and goes: **not sorted**, with that reason.
+
 A group the packet marks as already recorded as not preventable needs nothing.
 
 Change or add at most five rules in one pull request. With more, keep the five groups with the most findings and list the rest as left for a person.

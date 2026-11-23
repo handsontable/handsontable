@@ -2690,7 +2690,10 @@ runs `node .github/scripts/a11y-learn.mjs` after the weekly audit, then follows
   two audited commits cannot be read: it never guesses. `--dry-run` reports all the same, and a dry-run
   packet never becomes a pull request.
 - **The script sorts every new finding; the agent sorts only what is left.** New means first seen in the
-  latest night of its source. Dropped and counted: **newly measured** (the source's first audit, or a page,
+  latest night of its source, or seen again there after it was resolved. A finding that comes back keeps
+  its first night in the ledger, so the script reads its return (`backAt`, or the gap count of a row
+  written before that field), sorts it like a new one, and the packet counts it apart: a pull request that
+  brings a fixed defect back is what the routine is for. Dropped and counted: **newly measured** (the source's first audit, or a page,
   check, target, scenario or step the previous audit had not measured, or a re-keyed selector) and
   **inherited** (newly measured, and the same defect was already open on another page). Set aside and
   counted: what the catalog calls no defect, what awaits triage, and findings on code no pull request
@@ -2705,13 +2708,19 @@ runs `node .github/scripts/a11y-learn.mjs` after the weekly audit, then follows
   told by its rule, cause and element; for a screen reader row, which names a step, by its cluster.
 - **A candidate is a pull request that touched the page's surface, not a verdict.** The surface is the
   folders and style partials of the plugins and editors that list the page in `tests/a11y/coverage.mjs`
-  (`tests/screenreader/coverage.mjs` for a scenario, the guide's folder for a docs page): the `page` tie.
+  (`tests/screenreader/coverage.mjs` for a scenario; for a docs page the folder its guide's file is in,
+  found by the slug the page is served at where the docs list names a folder that does not exist): the
+  `page` tie.
   With none of those changed, it is the code every page shares: the `shared` tie, with every candidate
   listed. Another plugin's folder, a test, a type declaration and a generated manifest are no part of a
   surface. The website's code is in another repository, so its findings are never tied to a commit here.
+  A group also names what changed in the range of what measures it (the page's fixture, the spec of every
+  check its rows come from, a scenario and its goldens): a flag for the agent to read, never a drop.
 - **No task id is in the packet.** A cluster is tracked or not, and a pull request title loses the ids it
   carries, because the routine's pull request text comes from the packet and the ClickUp integration
-  attaches every id it finds.
+  attaches every id it finds. Anything shaped like an id counts, whatever its prefix, except a short list
+  of names that are none (`UTF-8`, `ISO-8601`, `SHA-256`): a prefix nobody listed would be attached for
+  good, and a name wrongly caught only costs a rewording.
 - **The packet's page escapes every value it writes,** like every report here ("Every value a report
   writes is escaped for where it lands", above): a selector, a reason, a title and a path go through
   `escapeMarkdownText()`, and code font is a `<code>` element, never a backtick span. The values come from
