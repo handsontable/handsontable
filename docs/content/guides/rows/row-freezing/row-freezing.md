@@ -94,6 +94,8 @@ const hot = new Handsontable(container, {
   ],
   // freeze the last two rows as a footer
   fixedRowsBottom: 2,
+  // the grid must be shorter than its data for anything to scroll
+  height: 100,
   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
