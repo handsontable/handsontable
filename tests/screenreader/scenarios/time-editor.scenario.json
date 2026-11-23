@@ -42,7 +42,7 @@
       "id": "cancel-edit",
       "action": {"press": "Escape"},
       "expect": [["11:45"]],
-      "note": "Escape closes the editor without a change. Finding: no reader says anything, on any browser, and the focus stays on the closed input, as the commit leaves it."
+      "note": "Escape closes the editor without a change, the focus returns to the cell, and every reader reads it. VoiceOver with WebKit reads `12:30 AM`, the time its input took (the typing step), so the step misses there on the typing, not on the reading."
     }
   ]
 }

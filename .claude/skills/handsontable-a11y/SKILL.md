@@ -101,6 +101,8 @@ Each rule ends with its defect classes (`references/classes.md`: criteria, check
    entry; lower `nodes` where only some elements were fixed.
 3. A finding the PR caused is fixed in the PR, never baselined to quiet the check. Only a finding that
    already existed and a new page exposes gets an entry, under an issue (`tests/AGENTS.md`).
+   Exception: the issue names its fix task in `tracker`, and the accessibility lead adds the
+   `a11y-exception-approved` label by hand, never an agent. Any other own entry turns the check red.
 
 **From the checks beyond axe** (an `A11y / <check> report`, a test-health row; a PR fixes what it caused):
 1. Find its cluster in `tests/a11y/issues.json`, and its `defectClass` in `references/classes.md`: the

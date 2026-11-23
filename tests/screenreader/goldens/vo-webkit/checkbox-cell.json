@@ -3,15 +3,15 @@
   "scenario": "checkbox-cell",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-04T15:03:07.765Z"
+    "at": "2026-11-23T11:14:27.157Z"
   },
   "steps": {
     "arrow-up-unchecked": "",
-    "space-check": "done checked",
-    "space-uncheck": "done unchecked",
+    "space-check": "",
+    "space-uncheck": "",
     "arrow-down-checked": "done checked",
     "arrow-down-read-only": "done unchecked",
     "space-on-read-only": "",
