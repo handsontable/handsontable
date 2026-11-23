@@ -18,13 +18,14 @@ name: A11y nightly
 # (`checks: keyboard-walker`), the proof run of a change to one check from its branch.
 # Each check's verdict is its `A11y / <check> report` check run and the job summary, by the severity rule
 # (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a critical or serious finding, neutral with
-# a warning on a moderate or minor one, green on none. The run is an audit, so every open finding counts,
-# tracked or not. No finding fails a scan or stops one: the checks job carries `continue-on-error`, and
-# every scan runs to the end. Then the `verdict` job reads the check runs this run posted and fails the
-# run when any is red, so the run's own conclusion says what its checks found; on a subset dispatch it
-# expects the named checks only. Only `CI Gate` is required, and it is not in this run, so a red nightly
-# blocks no merge. A run that ends red on its `verdict` job alone is the audit's answer, never a broken
-# build: it stays red while a critical or serious finding is open, on the schedule as on a dispatch.
+# a warning on a moderate or minor one, green on none. The run is an audit: every open finding is listed,
+# tracked or not, and one the findings ledger, as the audit before left it, does not hold as open counts (a
+# new finding, a regression); known debt is a warning at most. No finding fails a scan or stops one: the
+# checks job carries `continue-on-error`, and every scan runs to the end. Then the `verdict` job reads the
+# check runs this run posted and fails the run when any is red, so the run's own conclusion says what its
+# checks found; on a subset dispatch it expects the named checks only. Only `CI Gate` is required, and it
+# is not in this run, so a red nightly blocks no merge. A run that ends red on its `verdict` job alone
+# found something new since the audit before, or could not measure, on the schedule as on a dispatch.
 #
 # Triage. A finding is about the product: record it, never fix it in the check's change. A target
 # that was not measured, or one flagged flaky, is a finding against the check: fix the measurement.
@@ -160,8 +161,8 @@ jobs:
   # Optional Slack ping, develop only, when the run never reached the checks (the UMD build failed or
   # the called workflow could not start). The checks job carries `continue-on-error`, so a red check is
   # never reported here, and neither is the `verdict` job's red, on the schedule as on a dispatch: their
-  # verdict is the check runs, and an audit with an open critical or serious finding is red by design,
-  # not a broken build. The same webhook as the other nightlies.
+  # verdict is the check runs, and an audit that found something new since the audit before is red on
+  # them, not a broken build. The same webhook as the other nightlies.
   notify:
     name: Notify Slack
     needs: [ a11y ]

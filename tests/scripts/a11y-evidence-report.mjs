@@ -31,6 +31,11 @@
  * changed files from the API (`A11Y_PR_NUMBER` with `GITHUB_TOKEN`) or `A11Y_CHANGED_FILES` (a file of paths, one per
  * line), so a new finding on a page the pull request did not change is marked so. A ledger that does not load leaves
  * every finding counted, with a note; unknown files mark nothing.
+ *
+ * On an audit (`GITHUB_EVENT_NAME` is `schedule` or `workflow_dispatch`) every check, the product's and a site's, reads
+ * the same ledger as the audit before left it (`auditLedgerInput()` of `lib/a11y-verdict-inputs.mjs`, from the same two
+ * variables): every finding stays listed, known debt and a finding on a target the audit before did not measure are a
+ * warning at most, and a regression or a new finding counts, so the run turns red on what changed since that audit.
  */
 import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
@@ -38,12 +43,12 @@ import { fileURLToPath } from 'node:url';
 import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
 import { pageLinesOf } from '../lib/a11y-check-run.mjs';
 import {
-  EVIDENCE_CHECKS, PAGES_FILE, buildEvidenceCheckRun, checksForRun, ledgerSectionOf, renderEvidenceSummary, validateEvidence,
+  EVIDENCE_CHECKS, PAGES_FILE, auditLedgerSectionOf, buildEvidenceCheckRun, checksForRun, ledgerSectionOf, renderEvidenceSummary, validateEvidence,
 } from '../lib/a11y-evidence.mjs';
 import { LEDGER_URL, ledgerIndex, pagesTouched, prLedgerOf, sharedSourceFolders } from '../lib/a11y-pr-ledger.mjs';
 import { siteChecks, siteOf, siteOutputDir } from '../lib/a11y-site-checks.mjs';
 import { VERDICT_RULE } from '../lib/a11y-verdict.mjs';
-import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
+import { auditLedgerInput, verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -99,12 +104,21 @@ for (const check of expected.filter(name => !reports.some(report => report.check
 }
 
 const { scope, tracked, externalId, notes } = verdictInputs({ env, testsRoot: TESTS_ROOT });
-// The product checks on a pull request, or a local run given a saved ledger: the ledger tells new from known.
-const prLedger = !site && (env.GITHUB_EVENT_NAME === 'pull_request' || env.A11Y_LEDGER_FILE) ? await readPrLedger() : undefined;
+// The product checks on a pull request, or a local change run given a saved ledger: the ledger tells new from known.
+const prLedger = scope !== 'audit' && !site && (env.GITHUB_EVENT_NAME === 'pull_request' || env.A11Y_LEDGER_FILE) ? await readPrLedger() : undefined;
+// Every check on an audit: the ledger as the audit before left it tells what changed since from the debt that stands.
+const auditLedger = await auditLedgerInput({ env, scope, source: SOURCE });
 const payloads = reports.map(report => buildEvidenceCheckRun({
-  ...report, pages, runUrl, artifactUrl, scope, tracked, pagesFile: PAGE_LIST, source: SOURCE, prLedger,
+  ...report, pages, runUrl, artifactUrl, scope, tracked, pagesFile: PAGE_LIST, source: SOURCE, prLedger, auditLedger,
 }));
 const ROW = { success: '✔ green', neutral: '⚠ warning', failure: '✖ red' };
+const COUNTING_OF_SCOPE = {
+  audit: auditLedger?.classify
+    ? 'an audit run: every finding is listed, and one the findings ledger does not hold as open counts (a new one, or a regression); known debt, '
+      + 'and a finding on a target the audit before did not measure, is a warning at most'
+    : 'an audit run: every open finding counts',
+  change: 'a change run: a tracked finding is a warning at most',
+};
 // A subset run names what ran, so nobody reads the missing checks as clean: the ledger resolves a row only
 // where its check measured, the run verdict expects the named checks only, and the summary says the same.
 const subsetLine = env.A11Y_CHECKS
@@ -114,9 +128,10 @@ const summary = [
   site ? `## A11y: the ${site} site checks beyond axe` : '## A11y: the checks beyond axe',
   '',
   ...subsetLine,
-  `Each check's verdict follows the severity rule ${VERDICT_RULE}, on ${scope === 'audit' ? 'an audit run: every open finding counts' : 'a change run: a tracked finding is a warning at most'}. `
+  `Each check's verdict follows the severity rule ${VERDICT_RULE}, on ${COUNTING_OF_SCOPE[scope]}. `
     + 'Its check run carries the verdict; this job never fails on a finding.',
   '',
+  ...(auditLedger?.problem ? [`> Known and new findings were not told apart, so every open finding counts: ${escapeMarkdownText(auditLedger.problem)}.`, ''] : []),
   ...(prLedger?.classify
     ? ['On a pull request the findings ledger is the baseline: a finding it holds as open is known and does not count; a regression or a new finding does.', '']
     : []),
@@ -127,7 +142,8 @@ const summary = [
   ...payloads.map(payload => `| ${ROW[payload.conclusion]} | ${escapeMarkdownText(payload.name)} | ${escapeMarkdownText(payload.title)} |`),
   '',
   ...reports.map((report, index) => (report.doc && report.problems.length === 0
-    ? [renderEvidenceSummary(report.doc, { runUrl, artifactUrl }), ledgerSectionOf(report.doc, prLedger)].filter(Boolean).join('\n')
+    ? [renderEvidenceSummary(report.doc, { runUrl, artifactUrl }), ledgerSectionOf(report.doc, prLedger), auditLedgerSectionOf(report.doc, auditLedger)]
+      .filter(Boolean).join('\n')
     : `### ${payloads[index].name}\n\n${payloads[index].summary}\n`)),
 ].join('\n');
 

@@ -10,7 +10,8 @@
  * scenario, keyed by the group's first synonym). A reading traversal that read an item twice, never or out
  * of order is a serious finding. Red on a critical or serious finding, neutral with a warning on a moderate
  * or minor one, green on none; on a change run a finding whose cluster in `tests/a11y/issues.json` has a
- * tracker is a warning at most. A golden that differs or is not recorded yet is advisory and never raises
+ * tracker is a warning at most, and on an audit one the findings ledger holds as open (known debt), or on a scenario
+ * the audit before did not read whole, is a warning at most. A golden that differs or is not recorded yet is advisory and never raises
  * the verdict. A tooling failure (no transcript for a scenario, none at all, a scenario that stopped at a
  * step) is red and titled as one; in gate mode any missing token group is red. A step the lane does not
  * drive (`unsupported`) is a declared gap: listed per scenario and per primitive, never a finding. Its
@@ -19,7 +20,10 @@
  */
 import { escapeMarkdownText, isSafeLink } from './a11y-baseline.mjs';
 import { READER_TOKEN_MISSING, READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE } from './a11y-issues.mjs';
-import { annotationLevel, capAnnotations, renderVerdict, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import {
+  AUDIT_LEDGER_COUNTING, AUDIT_WARNING_CLASSES, LEDGER_LABELS, annotationLevel, capAnnotations, ledgerCounts, ledgerLine, renderAuditLedger, renderVerdict,
+  verdictOf, verdictTitle,
+} from './a11y-verdict.mjs';
 import { DEFAULT_TOKEN_SEVERITY, SCREENREADER_MODE, TOKEN_SEVERITIES, describeAction, transcriptCounts } from './screenreader-transcript.mjs';
 
 export const CHECK_RUN_PREFIX = 'Screen reader / ';
@@ -78,11 +82,16 @@ export function stepLines(source) {
  * @param {'audit'|'change'} [input.scope] What the run counts (`countingScope()` of `lib/a11y-verdict.mjs`).
  * @param {(source: string, check: string, item: object) => boolean} [input.tracked] Whether a finding's cluster has
  * a tracker (`trackedBy()` of `lib/a11y-issues.mjs`), asked with `{scenario, step, kind}`; read on a change run only.
+ * @param {object} [input.auditLedger] On an audit, the findings ledger as the audit before left it (`auditLedgerOf()` of
+ * `lib/a11y-pr-ledger.mjs`, built by the script): `{classify, auditAt, auditRun}`, asked with the project and
+ * `{scenario, step, kind}`, and then a known step or traversal, or one of a scenario the audit before did not read whole,
+ * is a warning at most, and a regression or a new one counts; or `{problem}` when the ledger did not load, and then every
+ * step missing a token group counts, with a note. Read on an audit only.
  * @returns {{name: string, conclusion: string, title: string, headline: string, summary: string, annotations: object[], counts: object}} The report.
  */
 export function buildReport({
   transcripts, expectedScenarios = [], project, group, mode = SCREENREADER_MODE, problems = [], reportUrl, runUrl, lines = new Map(), files = new Map(),
-  scope = 'change', tracked = () => false,
+  scope = 'change', tracked = () => false, auditLedger,
 }) {
   const sorted = [...transcripts].sort((a, b) => a.scenario.localeCompare(b.scenario));
   const name = checkRunName(project ?? sorted[0]?.project ?? 'unknown', group);
@@ -96,8 +105,12 @@ export function buildReport({
     ...(sorted.length === 0 && missing.length === 0 ? ['the run left no transcript'] : []),
   ];
   const counts = countAll(sorted);
-  const failed = failedSteps(sorted, scope, tracked);
-  const traversals = failedTraversals(sorted, scope, tracked);
+  // On an audit every step stays listed; the ledger decides only which count (`AUDIT_WARNING_CLASSES`).
+  const audit = scope === 'audit' && auditLedger?.classify ? auditLedger : null;
+  const failed = failedSteps(sorted, scope, tracked, audit);
+  const traversals = failedTraversals(sorted, scope, tracked, audit);
+  const classified = audit ? [...failed, ...traversals] : null;
+  const ledgerProblem = scope === 'audit' ? auditLedger?.problem : undefined;
   const verdict = verdictOf({
     findings: [
       ...[...failed, ...traversals].map(({ severity, warningOnly }) => ({ severity, warningOnly })),
@@ -113,10 +126,20 @@ export function buildReport({
   const lead = [
     gating
       ? '**Verdict: red, gate mode.** A missing token group fails this check and the test, whatever its severity.'
-      : renderVerdict(verdict, { scope, counting: 'every step missing a token group counts', listTooling: false }),
+      : renderVerdict(verdict, {
+        scope, counting: 'every step missing a token group counts', listTooling: false, ...(audit ? { auditCounting: AUDIT_LEDGER_COUNTING } : {}),
+      }),
     mode === 'gate'
       ? '**Gate mode:** a missing token group fails this check and the test; a golden difference stays advisory.'
       : '**Report mode:** the test and the job never fail on an announcement; this check run\'s verdict says what the lane found.',
+    ledgerProblem ? `> Known and new findings were not told apart, so every step missing a token group counts: ${escapeMarkdownText(ledgerProblem)}.` : '',
+    classified ? renderAuditLedger({
+      auditLedger: audit,
+      classified,
+      columns: ['Severity', 'Scenario', 'Step', 'Kind'],
+      cellsOf: ({ transcript, step, severity }) => [escapeMarkdownText(severity), escapeMarkdownText(transcript.scenario),
+        escapeMarkdownText(step?.id ?? READER_TRAVERSAL_WHERE), step ? READER_TOKEN_MISSING : READER_TRAVERSAL_OFF],
+    }) : '',
     runUrl && isSafeLink(runUrl) ? `[The workflow run](${runUrl})` : '',
     omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more steps are in the tables below.` : '',
     reportUrl && isSafeLink(reportUrl) ? `📊 [Open the Playwright report](${reportUrl})` : '',
@@ -131,7 +154,7 @@ export function buildReport({
   return {
     name,
     conclusion,
-    title: gating ? `✖ Gate: ${headline}`.slice(0, 250) : verdictTitle(verdict, headline),
+    title: gating ? `✖ Gate: ${headline}`.slice(0, 250) : verdictTitle(verdict, classified ? `${ledgerLine(ledgerCounts(classified))} · ${headline}` : headline),
     headline,
     summary,
     annotations,
@@ -142,22 +165,43 @@ export function buildReport({
 /**
  * Every step missing a token group, at the severity of the worst group it missed: the one its scenario
  * declares for the group, or serious. A transcript written before groups carried a severity reads as serious.
- * On a change run a step whose cluster has a tracker is a warning at most.
+ * On a change run a step whose cluster has a tracker is a warning at most; on an audit with the findings ledger, a
+ * known step or one of a scenario the audit before did not read whole.
  *
  * @param {object[]} transcripts The transcripts.
  * @param {'audit'|'change'} scope The scope.
  * @param {Function} tracked The tracker predicate.
- * @returns {Array<{transcript: object, step: object, severity: string, warningOnly: boolean}>} The failed steps.
+ * @param {{classify: Function}|null} audit The audit's ledger input, or `null`.
+ * @returns {Array<{transcript: object, step: object, severity: string, warningOnly: boolean, ledger?: string}>} The failed steps.
  */
-function failedSteps(transcripts, scope, tracked) {
+function failedSteps(transcripts, scope, tracked, audit) {
   return transcripts.flatMap(transcript => transcript.steps.filter(step => !step.tokens.passed).map((step) => {
     const severity = step.tokens.groups.filter(group => group.matched === null)
       .map(group => (TOKEN_SEVERITIES.includes(group.severity) ? group.severity : DEFAULT_TOKEN_SEVERITY))
       .reduce((worst, next) => (TOKEN_SEVERITIES.indexOf(next) < TOKEN_SEVERITIES.indexOf(worst) ? next : worst), TOKEN_SEVERITIES.at(-1));
     const item = { scenario: transcript.scenario, step: step.id, kind: READER_TOKEN_MISSING };
 
-    return { transcript, step, severity, warningOnly: scope === 'change' && Boolean(tracked('reader', transcript.project, item)) };
+    return { transcript, step, severity, ...readerWeight(transcript, item, scope, tracked, audit) };
   }));
+}
+
+/**
+ * Whether a reader finding is a warning at most, and its ledger class on an audit with the findings ledger.
+ *
+ * @param {object} transcript The transcript.
+ * @param {{scenario: string, step: string, kind: string}} item The finding as the catalog and the ledger read it.
+ * @param {'audit'|'change'} scope The scope.
+ * @param {Function} tracked The tracker predicate.
+ * @param {{classify: Function}|null} audit The audit's ledger input, or `null`.
+ * @returns {{warningOnly: boolean, ledger?: string}} The weight.
+ */
+function readerWeight(transcript, item, scope, tracked, audit) {
+  const ledger = audit ? audit.classify(transcript.project, item).ledger : undefined;
+
+  return {
+    ledger,
+    warningOnly: (scope === 'change' && Boolean(tracked('reader', transcript.project, item))) || AUDIT_WARNING_CLASSES.includes(ledger),
+  };
 }
 
 /**
@@ -167,13 +211,14 @@ function failedSteps(transcripts, scope, tracked) {
  * @param {object[]} transcripts The transcripts.
  * @param {'audit'|'change'} scope The scope.
  * @param {Function} tracked The tracker predicate.
- * @returns {Array<{transcript: object, severity: string, warningOnly: boolean}>} The failed traversals.
+ * @param {{classify: Function}|null} audit The audit's ledger input, or `null`.
+ * @returns {Array<{transcript: object, severity: string, warningOnly: boolean, ledger?: string}>} The failed traversals.
  */
-function failedTraversals(transcripts, scope, tracked) {
+function failedTraversals(transcripts, scope, tracked, audit) {
   return transcripts.filter(transcript => transcript.traversal && !transcript.traversal.passed).map((transcript) => {
     const item = { scenario: transcript.scenario, step: READER_TRAVERSAL_WHERE, kind: READER_TRAVERSAL_OFF };
 
-    return { transcript, severity: DEFAULT_TOKEN_SEVERITY, warningOnly: scope === 'change' && Boolean(tracked('reader', transcript.project, item)) };
+    return { transcript, severity: DEFAULT_TOKEN_SEVERITY, ...readerWeight(transcript, item, scope, tracked, audit) };
   });
 }
 
@@ -406,7 +451,7 @@ function renderTiming(transcripts) {
  * @returns {object[]} The annotations.
  */
 function annotationsOf(failed, lines, files, mode) {
-  return failed.map(({ transcript, step, severity, warningOnly }) => {
+  return failed.map(({ transcript, step, severity, warningOnly, ledger }) => {
     const line = lines.get(transcript.scenario)?.get(step.id) ?? 1;
     const missing = step.tokens.groups.filter(group => group.matched === null).map(group => `[${group.synonyms.join(' | ')}]`).join(', ');
 
@@ -415,7 +460,7 @@ function annotationsOf(failed, lines, files, mode) {
       start_line: line,
       end_line: line,
       annotation_level: mode === 'gate' ? 'failure' : annotationLevel({ severity, warningOnly }),
-      title: `Announcement missing a token group (${severity}): ${transcript.scenario} / ${step.id}`,
+      title: `${ledger ? `${LEDGER_LABELS[ledger]}: ` : ''}Announcement missing a token group (${severity}): ${transcript.scenario} / ${step.id}`,
       message: `${transcript.project} spoke ${JSON.stringify(step.spoken)} for ${describeAction(step.action)}; missing ${missing}.`,
     };
   });

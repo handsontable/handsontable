@@ -229,7 +229,7 @@ test('a scheduled run counts as an audit, and the ledger records it from each of
   const run = { id: 1, run_attempt: 1, html_url: 'https://github.com/o/r/actions/runs/1', head_branch: 'develop', head_sha: 'a'.repeat(40),
     event: 'schedule', updated_at: '2026-11-23T03:30:00Z', conclusion: 'failure' };
 
-  assert.ok(AUDIT_EVENTS.includes('schedule'), 'the check runs of a scheduled run count every open finding');
+  assert.ok(AUDIT_EVENTS.includes('schedule'), 'the check runs of a scheduled run are an audit\'s: every open finding listed, the ones the ledger does not hold as open counted');
   assert.equal(countingScope('schedule'), 'audit');
   assert.equal(countingScope('workflow_dispatch'), 'audit');
   assert.ok(A11Y_EVENTS.includes('schedule'));
@@ -249,7 +249,7 @@ test('a red verdict of a scheduled audit reaches no notification: Slack hears on
     assert.match(notify, /^ {4}if: \$\{\{ failure\(\) && github\.event_name != 'pull_request' && github\.ref_name == 'develop' \}\}$/m,
       `${file}: the Slack ping fires on develop on a failure before the checks, on the schedule as on a dispatch. ${DOC}`);
     assert.doesNotMatch(notify, /^ {4}needs: .*verdict/m,
-      `${file}: an audit with an open critical or serious finding ends red on its verdict job by design; that is the audit's answer, never a broken build, and Slack must not hear of it. ${DOC}`);
+      `${file}: an audit that found something new since the audit before ends red on its verdict job; that is the audit's answer, never a broken build, and Slack must not hear of it. ${DOC}`);
     for (const id of jobIds(workflow)) {
       assert.doesNotMatch(job(workflow, id), /^ {4}needs: .*verdict/m, `${file}: nothing follows the verdict job (${id}).`);
     }

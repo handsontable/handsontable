@@ -30,7 +30,7 @@ import { parseArgs } from 'node:util';
 import { CHECK_RUN_NAME } from '../lib/a11y-check-run.mjs';
 import { dispatchSubset } from '../lib/a11y-dispatch.mjs';
 import { checkRunName } from '../lib/a11y-evidence.mjs';
-import { renderRunVerdict, runVerdict } from '../lib/a11y-verdict.mjs';
+import { countingScope, renderRunVerdict, runVerdict } from '../lib/a11y-verdict.mjs';
 import { listCheckRuns } from '../lib/github-check-run.mjs';
 
 const env = process.env;
@@ -100,7 +100,7 @@ if (values['dry-run']) {
 }
 
 const result = runVerdict({ checkRuns, runId: env.GITHUB_RUN_ID ?? '', prefixes: values.prefix, expected });
-const summary = renderRunVerdict(result);
+const summary = renderRunVerdict(result, { scope: countingScope(env.GITHUB_EVENT_NAME) });
 
 if (env.GITHUB_STEP_SUMMARY) {
   appendFileSync(env.GITHUB_STEP_SUMMARY, `${summary}\n`);
