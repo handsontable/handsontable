@@ -10,31 +10,31 @@
       - columnheader "B"
       - columnheader "C"
   - rowgroup
-    - row "1 1 2 3"
+    - row "1 1 2 3  Formula: =A1+B1"
       - rowheader "1"
       - gridcell "1"
       - gridcell "2"
-      - gridcell "3" [selected]
-    - row "2 3 4 7"
+      - gridcell "3  Formula: =A1+B1" [selected]
+    - row "2 3 4 7  Formula: =A2+B2"
       - rowheader "2"
       - gridcell "3"
       - gridcell "4"
-      - gridcell "7"
-    - row "3 5 6 10"
+      - gridcell "7  Formula: =A2+B2"
+    - row "3 5 6 10  Formula: =SUM(C1:C2)"
       - rowheader "3"
       - gridcell "5"
       - gridcell "6"
-      - gridcell "10"
+      - gridcell "10  Formula: =SUM(C1:C2)"
     - row "4"
       - rowheader "4"
       - gridcell
       - gridcell
       - gridcell
-    - row "5 yes"
+    - row "5 yes  Formula: =IF( A1>0, \"yes\", \"no\" )"
       - rowheader "5"
       - gridcell
       - gridcell
-      - gridcell "yes"
+      - gridcell "yes  Formula: =IF( A1>0, \"yes\", \"no\" )"
 # portal
 - status
 - status

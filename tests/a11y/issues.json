@@ -582,7 +582,7 @@
       "title": "Links in the docs prose are told apart from the surrounding text by color alone",
       "tracker": "DEV-4017",
       "match": [
-        { "source": "docs", "axeIssues": ["prose-link-color-only"] }
+        { "source": "docs", "rules": ["link-in-text-block"], "where": ["^a$"] }
       ]
     },
     {

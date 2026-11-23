@@ -6,7 +6,9 @@ import { fileURLToPath } from 'node:url';
 import {
   diffTabOrder,
   effectsBetween,
+  escapeExpectedCell,
   escapeFindings,
+  escapeVerdict,
   goldenStops,
   inventoryLines,
   normalizeKeys,
@@ -280,13 +282,63 @@ test('a Tab that leaves the focus where it was is an advisory finding, with whet
     'a Tab that committed the edit and moved to the next cell is what the guide documents');
 });
 
-test('Escape must close a popup and give the focus back to its opener', () => {
+test('Escape must close a popup and give the focus back to the expected cell', () => {
   assert.deepEqual(escapeFindings({ state: 'context-menu', closedAfter: 1, focusReturned: true }), []);
   assert.deepEqual(escapeFindings({ state: 'context-menu-submenu', closedAfter: 2, focusReturned: true }), []);
   assert.deepEqual(escapeFindings({ state: 'editor', closedAfter: null, presses: 3, focusReturned: false }).map(item => [item.kind, item.criteria, item.severity]),
     [['escape-does-not-close', ['2.1.2'], 'serious']], 'a popup Escape cannot close is a trap; where the focus went is moot');
   assert.deepEqual(escapeFindings({ state: 'comment', closedAfter: 1, focusReturned: false, focus: 'body' }).map(item => [item.kind, item.criteria, item.severity, item.measured.focus]),
     [['focus-not-returned', ['2.4.3'], 'serious', 'body']]);
+  const moved = escapeFindings({ state: 'dropdown-menu', closedAfter: 1, focusReturned: false, focus: 'grid cell|1,1', opener: [1, 1], expected: [0, 1] });
+
+  assert.deepEqual(moved.map(item => item.measured), [{ focus: 'grid cell|1,1', presses: 1, expected: 'cell|0,1' }],
+    'a row says which cell the walker expected the focus on');
+  assert.match(moved[0].reason, /column menu/, 'a row whose expected cell is not the opener says why');
+  assert.deepEqual(escapeFindings({ state: 'comment', closedAfter: 1, focusReturned: false, focus: 'body', opener: [1, 1], expected: [1, 1] })
+    .map(item => [item.measured, item.reason]),
+  [[{ focus: 'body', presses: 1, expected: 'cell|1,1' }, 'After Escape closed the popup, the focus did not come back to the cell it was opened from']],
+  'a popup that kept the selection does not mention the column menu');
+  assert.deepEqual(escapeFindings({ state: 'comment', closedAfter: 1, focusReturned: false, focus: 'body' }).map(item => item.measured),
+    [{ focus: 'body', presses: 1 }], 'no expected cell given, none recorded');
+});
+
+test('Escape expects the opener, or the cell or header of its column the column menu selected on opening', () => {
+  assert.deepEqual(escapeExpectedCell({ state: 'dropdown-menu', opener: [1, 1], openHighlight: [0, 1] }), [0, 1],
+    'the column menu selects its column on opening, so the highlight moves to the first cell and the focus belongs there');
+  assert.deepEqual(escapeExpectedCell({ state: 'dropdown-menu', opener: [1, 1], openHighlight: [-1, 1] }), [-1, 1],
+    'with navigableHeaders the selection keeps the highlight on the header, and the grid focuses it');
+  assert.deepEqual(escapeExpectedCell({ state: 'dropdown-menu', opener: [1, 1], openHighlight: [1, 1] }), [1, 1]);
+  assert.deepEqual(escapeExpectedCell({ state: 'dropdown-menu', opener: [1, 2], openHighlight: null }), [1, 2],
+    'with no selection to read, the opener is expected');
+  assert.deepEqual(escapeExpectedCell({ state: 'dropdown-menu', opener: [3, 1], openHighlight: [5, 1] }), [3, 1],
+    'a column menu that highlighted a row other than the first is caught, not followed');
+  assert.deepEqual(escapeExpectedCell({ state: 'dropdown-menu', opener: [1, 1], openHighlight: [-2, 1] }), [1, 1],
+    'a header row away from the data is not where the column selection highlights');
+  assert.deepEqual(escapeExpectedCell({ state: 'dropdown-menu', opener: [1, 1], openHighlight: [0, 3] }), [1, 1],
+    'a column menu that selected another column is caught, not followed');
+  assert.deepEqual(escapeExpectedCell({ state: 'context-menu', opener: [1, 1], openHighlight: [0, 1] }), [1, 1],
+    'any other popup that moves the selection on opening is caught, not followed');
+  assert.deepEqual(escapeExpectedCell({ state: 'editor', opener: [2, 2], openHighlight: [0, 0] }), [2, 2]);
+});
+
+test('the Escape verdict: back means the expected cell is highlighted and holds the focus', () => {
+  const closedOn = (focusedCell, extra = {}) => ({ region: 'grid', highlight: focusedCell, focusedCell, onRefocusElement: false, ...extra });
+
+  assert.deepEqual(escapeVerdict({ state: 'dropdown-menu', opener: [1, 1], openHighlight: [0, 1], closed: closedOn([0, 1]) }),
+    { expected: [0, 1], focusReturned: true }, 'the column menu pages: the focus on the column\'s first cell is back');
+  assert.deepEqual(escapeVerdict({ state: 'dropdown-menu', opener: [1, 1], openHighlight: [0, 1], closed: closedOn([1, 1]) }),
+    { expected: [0, 1], focusReturned: false }, 'the opener is not back once the column menu moved the selection');
+  assert.deepEqual(escapeVerdict({ state: 'context-menu', opener: [1, 1], openHighlight: [0, 1], closed: closedOn([0, 1]) }),
+    { expected: [1, 1], focusReturned: false }, 'a context menu that moved the selection is caught');
+  assert.equal(escapeVerdict({ state: 'editor', opener: [1, 1], openHighlight: [1, 1], closed: closedOn([1, 1]) }).focusReturned, true);
+  assert.equal(escapeVerdict({ state: 'editor', opener: [1, 1], openHighlight: [1, 1], closed: closedOn([1, 1], { region: 'body' }) }).focusReturned, false,
+    'a focus outside the grid is not back');
+  assert.equal(escapeVerdict({ state: 'editor', opener: [1, 1], openHighlight: [1, 1], closed: closedOn([1, 1], { highlight: [2, 1] }) }).focusReturned, false,
+    'an Escape that moved the selection is not back');
+  assert.equal(escapeVerdict({ state: 'editor', opener: [1, 1], openHighlight: [1, 1], closed: closedOn(null, { highlight: [1, 1], onRefocusElement: true }) })
+    .focusReturned, true, 'mixed focus mode parks the focus on its editor input by design');
+  assert.equal(escapeVerdict({ state: 'editor', opener: [1, 1], openHighlight: [1, 1], closed: closedOn(null, { highlight: [1, 1] }) }).focusReturned, false,
+    'another element of the grid (a button, the hidden input in cell focus mode) is not back');
 });
 
 test('goldens keep what a reader can review: region, role, name and cell; the diff names the first difference', () => {

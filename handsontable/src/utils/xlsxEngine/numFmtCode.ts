@@ -781,3 +781,28 @@ export function classifyTemporalFormat(numFmt: string): TemporalFormatKind | nul
 export function isTemporalFormatCode(numFmt: string | null): boolean {
   return numFmt !== null && classifyTemporalFormat(numFmt) !== null;
 }
+
+/**
+ * Whether a number shows no fraction digit once it is rounded to `maximumFractionDigits`, the way
+ * `Intl.NumberFormat` and Excel both round it for display. A percent is judged on the value times
+ * 100, the number both show.
+ *
+ * The export writes such a value under the format with no decimal part, because Excel keeps the
+ * decimal point of a format with only optional digits (`#,##0.###` shows 1234 as `1,234.`). The
+ * import uses the same test to read that format back as the column's own.
+ *
+ * @param {number} value The cell value.
+ * @param {number} maximumFractionDigits The fraction digits the format rounds to.
+ * @param {boolean} isPercent Whether the format is a percent.
+ * @returns {boolean}
+ */
+export function showsAsWholeNumber(value: number, maximumFractionDigits: number, isPercent: boolean): boolean {
+  if (!Number.isFinite(value)) {
+    return false;
+  }
+
+  const shown = isPercent ? value * 100 : value;
+
+  // `toFixed` accepts 0 to 100 digits, the range `Intl` accepts for `maximumFractionDigits`.
+  return Number.isInteger(Number(shown.toFixed(Math.min(Math.max(maximumFractionDigits, 0), 100))));
+}

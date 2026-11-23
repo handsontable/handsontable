@@ -11,6 +11,7 @@ import { closedReferenceArea, rebaseImportedFormula } from '../../utils/xlsxEngi
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
 import { isWholeArrayFunctionCall, unwrapArrayFormula } from '../../utils/xlsxEngine/dynamicArrays';
 import { isReferenceWord } from '../../utils/xlsxEngine/definedNames';
+import { showsAsWholeNumber } from '../../utils/xlsxEngine/numFmtCode';
 import {
   MAX_DEFINED_NAME_CELLS, MAX_DEFINED_NAME_CHARS, MAX_DEFINED_NAME_LENGTH, MAX_DEFINED_NAME_TOTAL_CELLS,
   MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded
@@ -2208,6 +2209,111 @@ function dominantMeta(runs: MetaRun[]): { meta: ImportColumn; outliers: MetaRun[
 }
 
 /**
+ * The numeric meta of a run, read as the fraction digits its format shows, or `null` for a run that
+ * is not a formatted number.
+ */
+function numericFractionDigits(meta: ImportColumn): { format: Record<string, unknown>; maximum: number } | null {
+  const format = meta.type === 'numeric' ? meta.numericFormat as Record<string, unknown> | undefined : undefined;
+
+  if (!format || format.minimumFractionDigits !== 0 || typeof format.maximumFractionDigits !== 'number') {
+    return null;
+  }
+
+  return { format, maximum: format.maximumFractionDigits };
+}
+
+/**
+ * Whether every cell of a run holds no value or a number that shows no fraction digit at `maximum`
+ * fraction digits.
+ */
+function isWholeNumberRun(
+  run: MetaRun, column: number, data: unknown[][], maximum: number, isPercent: boolean
+): boolean {
+  for (let row = run.start; row <= run.end; row++) {
+    const value = data[row]?.[column];
+
+    if (value !== null && value !== undefined && value !== ''
+        && !(typeof value === 'number' && showsAsWholeNumber(value, maximum, isPercent))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Reads the whole numbers of a column back under the column's own format.
+ *
+ * The export writes a number that shows no fraction digit under the format with no decimal part
+ * (`#,##0`) when every fraction digit of the column's format is optional (`#,##0.###`), because
+ * Excel keeps the decimal point of the second one. Read cell by cell, such a column came back as two
+ * formats: one for the column and a `cellsMeta` entry for every cell of the other.
+ *
+ * A run with no fraction digits takes the meta of the one format in the column that differs from it
+ * only by optional fraction digits, when every cell of the run shows the same text under both. A
+ * run that holds a fraction keeps its own format (it rounds in Excel), and so does a run with two
+ * such formats to choose from.
+ */
+function foldWholeNumberRuns(runs: MetaRun[], column: number, data: unknown[][]): MetaRun[] {
+  const optionalByKey = new Map<string, ImportColumn | null>();
+  const keyOf = (format: Record<string, unknown>) => JSON.stringify({ ...format, maximumFractionDigits: 0 });
+  // The cells of one format share one meta object per kind of value, so an empty cell or a text
+  // under the format carries an equal object that is not the number's. Serialized once per object.
+  const serialized = new Map<ImportColumn, string>();
+  const serialize = (meta: ImportColumn) => {
+    let text = serialized.get(meta);
+
+    if (text === undefined) {
+      text = JSON.stringify(meta);
+      serialized.set(meta, text);
+    }
+
+    return text;
+  };
+  const isSameMeta = (first: ImportColumn, second: ImportColumn) => first === second
+    || serialize(first) === serialize(second);
+  let hasWhole = false;
+
+  runs.forEach(({ meta }) => {
+    const digits = numericFractionDigits(meta);
+
+    if (digits === null) {
+      return;
+    }
+
+    if (digits.maximum === 0) {
+      hasWhole = true;
+
+      return;
+    }
+
+    const key = keyOf(digits.format);
+    const seen = optionalByKey.get(key);
+
+    // `null` marks two formats that differ only by how many optional digits they show.
+    if (seen === undefined) {
+      optionalByKey.set(key, meta);
+    } else if (seen !== null && !isSameMeta(seen, meta)) {
+      optionalByKey.set(key, null);
+    }
+  });
+
+  if (!hasWhole || optionalByKey.size === 0) {
+    return runs;
+  }
+
+  return runs.map((run) => {
+    const digits = numericFractionDigits(run.meta);
+    const target = digits?.maximum === 0 ? optionalByKey.get(keyOf(digits.format)) : undefined;
+    const targetDigits = target ? numericFractionDigits(target) : null;
+
+    return target && targetDigits
+      && isWholeNumberRun(run, column, data, targetDigits.maximum, targetDigits.format.style === 'percent')
+      ? { ...run, meta: target } : run;
+  });
+}
+
+/**
  * Lifts per-cell facts to `columns` where a whole column agrees, and leaves the rest as `cellsMeta`.
  *
  * For each column the dominant inferred meta becomes the column's, and only the cells that differ
@@ -2226,7 +2332,7 @@ function placeMeta(
 
   if (includeTypes) {
     for (let c = 0; c < colCount; c++) {
-      const runs = pass.metaRuns.get(c) ?? [];
+      const runs = foldWholeNumberRuns(pass.metaRuns.get(c) ?? [], c, pass.data);
 
       if (runs.length === 0) {
         continue;

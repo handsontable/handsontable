@@ -198,7 +198,7 @@ describe('Xlsx formula cell number format', () => {
       840.1
     );
 
-    expect(cells.get('1:1').numFmt).toBe('#,##0.00');
+    expect(cells.get('1:1').numFmt).toBe('#,##0.00#');
   });
 
   it('should cache the pre-calculated value as the formula result for non-Excel readers', async() => {
@@ -219,6 +219,22 @@ describe('Xlsx formula cell number format', () => {
     );
 
     expect(cells.get('1:1').numFmt).toBe('mm-dd-yyyy');
+  });
+
+  it('should write a whole number with no decimal part when every fraction digit is optional', async() => {
+    // Excel keeps the decimal point of `#,##0.###`, so 1234 showed as `1,234.`.
+    const meta = { type: 'numeric', numericFormat: {}, locale: 'en-US' };
+
+    expect((await exportSingleCell(meta, 1234, 1234)).get('1:1').numFmt).toBe('#,##0');
+    expect((await exportSingleCell(meta, 1234.5, 1234.5)).get('1:1').numFmt).toBe('#,##0.###');
+    expect((await exportSingleCell(meta, '1234', '1234')).get('1:1').numFmt).toBe('#,##0');
+  });
+
+  it('should keep the decimal part of a formula cell whose result is a whole number', async() => {
+    // The result can change when the file is recalculated, so the cell keeps the column's format.
+    const cells = await exportSingleCell({ type: 'numeric', numericFormat: {}, locale: 'en-US' }, '=B1*2', 1234);
+
+    expect(cells.get('1:1').numFmt).toBe('#,##0.###');
   });
 
   it('should leave a formula cell in an unformatted column with no number format', async() => {

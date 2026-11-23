@@ -9,29 +9,29 @@
       - columnheader "B"
       - columnheader "C"
   - rowgroup
-    - row "1 1 2 3"
+    - row "1 1 2 3  Formula: =A1+B1"
       - rowheader "1"
       - gridcell "1"
       - gridcell "2"
-      - gridcell "3"
-    - row "2 3 #DIV/0! 5"
+      - gridcell "3  Formula: =A1+B1"
+    - row "2 3 #DIV/0!  Formula: =A2/0 5  Formula: =A2+B1"
       - rowheader "2"
       - gridcell "3"
-      - gridcell "#DIV/0!" [selected] [invalid]
-      - gridcell "5" [selected]
-    - row "3 5 6 #NAME?"
+      - gridcell "#DIV/0!  Formula: =A2/0" [selected] [invalid]
+      - gridcell "5  Formula: =A2+B1" [selected]
+    - row "3 5 6 #NAME?  Formula: =NOPE(A3)+N(\"check\")"
       - rowheader "3"
       - gridcell "5"
       - gridcell "6" [selected]
-      - gridcell "#NAME?" [selected] [invalid]
+      - gridcell "#NAME?  Formula: =NOPE(A3)+N(\"check\")" [selected] [invalid]
     - row "4"
       - rowheader "4"
       - gridcell
       - gridcell
       - gridcell
-    - row "5 #NAME?"
+    - row "5 #NAME?  Formula: =UNKNOWN()"
       - rowheader "5"
-      - gridcell "#NAME?" [invalid]
+      - gridcell "#NAME?  Formula: =UNKNOWN()" [invalid]
       - gridcell
       - gridcell
 # portal

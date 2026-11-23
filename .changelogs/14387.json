@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an accessibility issue where a screen reader read a formula cell as its result alone, without the formula it came from.",
+  "type": "fixed",
+  "issueOrPR": 14387,
+  "breaking": false,
+  "framework": "none"
+}
