@@ -194,21 +194,37 @@ describe('HandsontableEditor list option press', () => {
     expect(editor.innerSelectionOrigin).toBe('user');
   });
 
-  it('gives the keys back to the editor after the click that follows a release outside the grid', () => {
+  it('gives the keys back at once, and again after the click that follows a release outside the grid', () => {
     editor._opened = true;
     editor.TEXTAREA.focus = jest.fn();
 
     press(1);
     release(outside);
 
-    // The click on the page that ends the gesture makes the focus scopes stop the grid listening, so
-    // the keys come back from a deferred callback.
-    expect(editor.hot.listen).not.toHaveBeenCalled();
+    expect(editor.hot.listen).toHaveBeenCalledTimes(1);
+    expect(editor.TEXTAREA.focus).toHaveBeenCalledTimes(1);
 
+    // The click on the page that ends the gesture makes the focus scopes stop the grid listening. The
+    // editor takes the keys back from the click itself, not from a later timer.
+    document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(editor.hot.listen).toHaveBeenCalledTimes(2);
+
+    document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(editor.hot.listen).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives the keys back from a timer when the gesture ends with no click', () => {
+    editor._opened = true;
+    editor.TEXTAREA.focus = jest.fn();
+
+    press(1);
+    release(outside);
+    editor.hot.listen.mockClear();
     flushTimeouts();
 
-    expect(editor.hot.listen).toHaveBeenCalled();
-    expect(editor.TEXTAREA.focus).toHaveBeenCalled();
+    expect(editor.hot.listen).toHaveBeenCalledTimes(1);
   });
 
   it('does not let a later Enter commit the option of a cancelled press', () => {

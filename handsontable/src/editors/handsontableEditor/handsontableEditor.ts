@@ -139,6 +139,11 @@ export class HandsontableEditor extends TextEditor {
   #pendingPress: PendingOptionPress | null = null;
 
   /**
+   * Removes the `click` listener that hands the keys back to the editor after an abandoned press.
+   */
+  #keysReturnRemover: (() => void) | null = null;
+
+  /**
    * The selection of the list and its origin as the last press found them, read before the press moved it.
    */
   #selectionBeforePress: PendingOptionPress['before'] = { selected: null, origin: null };
@@ -1007,20 +1012,34 @@ export class HandsontableEditor extends TextEditor {
    * Gives the list back the way it was before a press that picks nothing: the selection returns, and the
    * keys return to the editor's text field.
    *
+   * The keys return at once, and again after the `click` that ends a release outside the grid: that
+   * click makes the focus scopes stop the grid listening, and the next key would be lost. Waiting for
+   * a timer to undo it would leave a gap in which a key press is lost, so the return follows the click
+   * itself. A timer covers a gesture that ends with no click.
+   *
    * @param {PendingOptionPress} press The press that was abandoned.
    */
   #abandonOptionPress(press: PendingOptionPress): void {
     this.#restoreSelectionBeforePress(press);
+    this.#returnKeysToEditor();
 
-    // The press moved the keyboard to the list. A pick that did not happen leaves the editor open, so
-    // the keys go back to its text field. Deferred, because a release outside the grid is followed by a
-    // `click` on the page that makes the focus scopes stop the grid listening.
-    this.hot._registerTimeout(() => {
-      if (this._opened) {
-        this.hot.listen();
-        this.TEXTAREA.focus();
-      }
-    }, 0);
+    this.#keysReturnRemover?.();
+    this.#keysReturnRemover = this.eventManager.addEventListener(this.hot.rootDocument, 'click', () => {
+      this.#keysReturnRemover?.();
+      this.#keysReturnRemover = null;
+      this.#returnKeysToEditor();
+    });
+    this.hot._registerTimeout(() => this.#returnKeysToEditor(), 0);
+  }
+
+  /**
+   * Hands the keyboard back to the text field of the editor, which stays open when a press picks nothing.
+   */
+  #returnKeysToEditor(): void {
+    if (this._opened) {
+      this.hot.listen();
+      this.TEXTAREA.focus();
+    }
   }
 
   /**
@@ -1054,6 +1073,8 @@ export class HandsontableEditor extends TextEditor {
   #disposePendingPress(): void {
     this.#pendingPress?.dispose();
     this.#pendingPress = null;
+    this.#keysReturnRemover?.();
+    this.#keysReturnRemover = null;
   }
 
   /**
