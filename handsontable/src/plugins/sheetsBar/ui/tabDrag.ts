@@ -149,6 +149,10 @@ export class TabDrag {
    */
   #pointerId = -1;
   /**
+   * The pointer whose release the watch after an Escape waits for.
+   */
+  #releaseWatchPointerId = -1;
+  /**
    * Pointer coordinate the gesture started at, used for the threshold and the offset.
    */
   #originX = 0;
@@ -687,6 +691,11 @@ export class TabDrag {
    * @param {PointerEvent} event The pointerup or pointercancel event.
    */
   #onReleaseAfterCancel = (event: PointerEvent): void => {
+    // Another pointer (a second finger, a pen) is not the drag's pointer, and must not end the watch.
+    if (event.pointerId !== this.#releaseWatchPointerId) {
+      return;
+    }
+
     this.#stopWatchingReleaseAfterCancel();
 
     if (event.type === 'pointerup' && this.#isOutsideHost(event)) {
@@ -699,6 +708,9 @@ export class TabDrag {
    */
   #watchReleaseAfterCancel(): void {
     const ownerDocument = this.#host.ownerDocument;
+
+    // Read before the cancel clears it: the watch outlives the gesture's own pointer id.
+    this.#releaseWatchPointerId = this.#pointerId;
 
     this.#eventManager.addEventListener(ownerDocument, 'pointerup', this.#onReleaseAfterCancel);
     this.#eventManager.addEventListener(ownerDocument, 'pointercancel', this.#onReleaseAfterCancel);

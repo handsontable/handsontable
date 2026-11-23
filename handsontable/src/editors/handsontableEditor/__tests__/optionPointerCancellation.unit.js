@@ -240,4 +240,21 @@ describe('HandsontableEditor list option press', () => {
     expect(userHook).toHaveBeenCalledTimes(1);
     expect(editor.setValue).toHaveBeenCalledWith('Beta');
   });
+
+  it('hands the user hooks every argument the hook system passes, the cell element included', () => {
+    const beforeHook = jest.fn();
+    const afterHook = jest.fn();
+    const event = new MouseEvent('mouseup');
+    const coords = { row: 1, col: 0 };
+
+    editor.cellProperties = { handsontable: { beforeOnCellMouseDown: beforeHook, afterOnCellMouseUp: afterHook } };
+    editor.prepare(0, 0, 0, document.createElement('td'), '', editor.cellProperties);
+    options = editor.htOptions;
+
+    options.beforeOnCellMouseDown.call(nested, event, coords, optionCells[1]);
+    options.afterOnCellMouseUp.call(nested, event, coords, optionCells[1]);
+
+    expect(beforeHook).toHaveBeenCalledWith(event, coords, optionCells[1]);
+    expect(afterHook).toHaveBeenCalledWith(event, coords, optionCells[1]);
+  });
 });

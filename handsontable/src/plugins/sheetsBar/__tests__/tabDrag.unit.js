@@ -541,6 +541,22 @@ describe('TabDrag', () => {
       drag.destroy();
     });
 
+    it('keeps waiting for the drag pointer when another pointer is released after Escape', () => {
+      const { drag, tab } = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, tab));
+      host.ownerDocument.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 2, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(false);
+
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 1, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(true);
+
+      drag.destroy();
+    });
+
     it('is not suppressed by a later release once the Escape wait ended', () => {
       const { drag, tab } = press();
 

@@ -40,7 +40,7 @@ interface PendingOptionPress {
 /**
  * A mouse hook of the nested grid.
  */
-type NestedMouseHook = (this: HotInstance, event: Event, coords: Record<string, number>) => void;
+type NestedMouseHook = (this: HotInstance, event: Event, coords: Record<string, number>, ...rest: unknown[]) => void;
 
 /**
  * Chains the hooks the user passed in the `handsontable` option (one function or an array of them)
@@ -53,9 +53,9 @@ type NestedMouseHook = (this: HotInstance, event: Event, coords: Record<string, 
 function chainNestedHook(userHook: unknown, ownHook: NestedMouseHook): NestedMouseHook {
   const userHooks = ([] as unknown[]).concat(userHook).filter(hook => typeof hook === 'function') as NestedMouseHook[];
 
-  return function(this: HotInstance, event, coords) {
-    userHooks.forEach(hook => hook.call(this, event, coords));
-    ownHook.call(this, event, coords);
+  return function(this: HotInstance, ...args: Parameters<NestedMouseHook>) {
+    userHooks.forEach(hook => hook.apply(this, args));
+    ownHook.apply(this, args);
   };
 }
 
