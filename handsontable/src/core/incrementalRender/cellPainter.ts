@@ -3,6 +3,13 @@ import { formatCellValue, renderCell } from '../../renderers/renderCell';
 import { colToPropOrIndex } from '../../helpers/columnProp';
 import type { CellProperties } from '../../settings';
 import type { HotInstance } from '../types';
+import { CELL_DESCRIPTION_READ_ONLY } from '../../i18n/constants';
+import {
+  CELL_DESCRIPTION_RANK,
+  addCellDescriptionPart,
+  applyCellDescription,
+  beginCellDescription,
+} from '../../utils/cellDescription/cellDescription';
 import {
   deleteCellPaintStamp,
   isSameCellPaint,
@@ -144,11 +151,16 @@ export class CellPainter {
     const { visualRow, visualColumn, cellProperties, prop, value, renderer, formattedValue } =
       pending?.resolved ?? this.#resolve(renderedRow, renderedColumn);
 
+    beginCellDescription(TD);
     this.#hot.runHooks('beforeRenderer', TD, visualRow, visualColumn, prop, value, cellProperties);
 
     renderCell(renderer, [this.#hot, TD, visualRow, visualColumn, prop, formattedValue, cellProperties]);
 
     this.#hot.runHooks('afterRenderer', TD, visualRow, visualColumn, prop, value, cellProperties);
+
+    // After every `afterRenderer` listener, which is where a plugin adds its part. The one write of the
+    // cell's description, so the parts of several plugins end up in one text.
+    this.#describeCell(TD, cellProperties);
 
     if (pending?.stamp) {
       writeCellPaintStamp(TD, pending.stamp);
@@ -159,6 +171,26 @@ export class CellPainter {
       // stale stamp would match and the element would keep showing the other cell.
       deleteCellPaintStamp(TD);
     }
+  }
+
+  /**
+   * Adds the part the grid itself knows (a read-only cell) and writes the cell's description.
+   *
+   * @param {HTMLTableCellElement} TD The cell element that was painted.
+   * @param {CellProperties} cellProperties The resolved cell meta.
+   */
+  #describeCell(TD: HTMLTableCellElement, cellProperties: CellProperties): void {
+    const enabled = !!cellProperties.ariaTags;
+
+    if (enabled && cellProperties.readOnly) {
+      addCellDescriptionPart(
+        TD,
+        CELL_DESCRIPTION_RANK.READ_ONLY,
+        this.#hot.getTranslatedPhrase(CELL_DESCRIPTION_READ_ONLY),
+      );
+    }
+
+    applyCellDescription(this.#hot, TD, enabled);
   }
 
   /**

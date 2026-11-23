@@ -86,12 +86,6 @@
       "reportRef": null
     },
     {
-      "id": "range-selection-not-announced",
-      "text": "A range selection is not announced; only the focused cell is.",
-      "criteria": ["4.1.2", "4.1.3"],
-      "reportRef": "#2343"
-    },
-    {
       "id": "nested-headers-announcement",
       "text": "Nested column headers are not announced reliably.",
       "criteria": ["4.1.2"],
@@ -119,12 +113,6 @@
       "id": "date-picker-not-announced",
       "text": "The audited version's date picker (Pikaday) was not announced properly. Since 18.0.0 the built-in date cell type uses the browser's native date input, which the audit did not cover; a custom Pikaday editor keeps the gap.",
       "criteria": ["4.1.2"],
-      "reportRef": null
-    },
-    {
-      "id": "loading-icon-not-hidden",
-      "text": "The loading icon (an SVG) is not hidden from screen readers.",
-      "criteria": ["1.1.1"],
       "reportRef": null
     },
     {
@@ -171,7 +159,7 @@
     },
     {
       "id": "cell-states-not-announced",
-      "text": "Some screen readers do not announce a checkbox's state, a read-only cell, a link in a cell, a comment, or the span of a merged cell.",
+      "text": "Some screen readers do not announce a checkbox's state or a comment on a cell.",
       "criteria": ["1.3.1", "4.1.2"],
       "reportRef": null
     },
@@ -183,7 +171,7 @@
     },
     {
       "id": "pointer-cancellation",
-      "text": "Some controls, such as sortable column headers, sheet tabs, and the buttons that collapse groups, act when the pointer is pressed or after it leaves the control.",
+      "text": "The formula suggestion list inserts an item when the pointer is pressed. The arrows of autocomplete, dropdown, and multiselect cells open their list on the press.",
       "criteria": ["2.5.2"],
       "reportRef": null
     },

@@ -1101,12 +1101,18 @@ export class TabStrip {
 
   /**
    * Whether a tab holds the strip's one Tab stop: the tab the arrow keys last moved the focus
-   * to, while the focus is in the strip, and the active tab otherwise.
+   * to, while the focus is in the strip, and the active tab otherwise. A tab being renamed holds none.
    *
    * @param {object} sheet The sheet the tab represents.
    * @returns {boolean} `true` for the tab that takes the focus on Tab.
    */
   #holdsTabStop(sheet: SheetDescriptor): boolean {
+    // A tab under rename has no role (its name field is the control), so it has no stop either: the
+    // field is the one stop there, and a stop on the tab around it would be a focus stop with no role.
+    if (sheet.id === this.#renamingId) {
+      return false;
+    }
+
     if (this.#rovingId !== null && this.#sheets.has(this.#rovingId)) {
       return sheet.id === this.#rovingId;
     }
@@ -1666,6 +1672,7 @@ export class TabStrip {
     // to assistive technology, which would take the input out of the accessibility tree.
     addClass(tab, 'ht-sheets-bar__tab--renaming');
     removeAttribute(tab, ['role', 'aria-haspopup', 'aria-expanded']);
+    tab.tabIndex = -1;
     label.replaceWith(input);
     tab.appendChild(mirror);
     tab.appendChild(savedName);
@@ -1893,6 +1900,12 @@ export class TabStrip {
    * @param {Event} event The `click` event.
    */
   #onTabClick = (event: MouseEvent) => {
+    // The click of a drag released outside the strip: the pointer capture sent it here.
+    // A keyboard activation has no pointer behind it (`detail` is 0), so it is never that click.
+    if (this.#drag.consumeSuppressedClick(event.detail === 0)) {
+      return;
+    }
+
     const target = this.#tabOfEvent(event);
 
     if (target === null || this.#isWithinRenameInput(event)) {

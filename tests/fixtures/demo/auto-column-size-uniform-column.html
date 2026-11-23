@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AutoColumnSize uniform column e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects, mapped
+    // through fixed allowlists to LITERALS so a crafted param can never be reflected into the document. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    AutoColumnSize reads a column whose cells share their meta (no meta listener, no `cells` function) with
+    one meta object and one bulk value read, and every other cell one at a time. `buildGrid(name, perCell)`
+    builds one of the cases below; `perCell` adds a no-op `afterGetCellMeta` listener, which sends every
+    cell down the per-cell path, so the two builds of a case must measure the same widths.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const ROWS = 300;
+    const DEEP_ROW = 250;
+    const LONG_SUFFIX = ' with a suffix long enough to widen the column';
+
+    /**
+     * Three text columns whose longest value differs per column.
+     */
+    function textData() {
+      return Array.from({ length: ROWS }, (_, row) => [
+        'a'.repeat(1 + (row % 7)),
+        'b'.repeat(1 + (row % 11)),
+        'c'.repeat(1 + (row % 5)),
+      ]);
+    }
+
+    const CASES = {
+      plain: () => ({ data: textData() }),
+      storedValueFormatter: () => ({
+        data: textData(),
+        setup(hot) {
+          hot.setCellMeta(DEEP_ROW, 0, 'valueFormatter', value => `${value}${LONG_SUFFIX}`);
+        },
+      }),
+      cellOption: () => ({
+        data: textData(),
+        cell: [{ row: DEEP_ROW, col: 1, valueFormatter: value => `${value}${LONG_SUFFIX}` }],
+      }),
+      modifyData: () => ({
+        data: textData(),
+        modifyData(row, column, valueHolder, ioMode) {
+          if (ioMode === 'get' && row === DEEP_ROW && column === 2) {
+            valueHolder.value = `${valueHolder.value}${LONG_SUFFIX}`;
+          }
+        },
+      }),
+      // A hiding map of its own: the HiddenRows plugin adds an `afterGetCellMeta` listener, which would
+      // send both builds down the per-cell read.
+      hidingMap: () => {
+        const data = textData();
+
+        data[DEEP_ROW][0] = `hidden${LONG_SUFFIX}`;
+
+        return {
+          data,
+          setup(hot) {
+            hot.rowIndexMapper.createAndRegisterIndexMap('uniformColumnHiding', 'hiding', false)
+              .setValueAtIndex(DEEP_ROW, true);
+          },
+        };
+      },
+      sorted: () => {
+        const data = textData();
+
+        data[DEEP_ROW][1] = `sorted${LONG_SUFFIX}`;
+
+        return { data, columnSorting: { initialConfig: { column: 1, sortOrder: 'desc' } } };
+      },
+      seedListener: () => ({
+        data: textData(),
+        modifyAutoColumnSizeSeed(seed) {
+          return seed;
+        },
+      }),
+      pagination: () => {
+        const data = textData();
+
+        data[DEEP_ROW][0] = `other page${LONG_SUFFIX}`;
+
+        return { data, pagination: { pageSize: 50 } };
+      },
+      numeric: () => ({
+        data: Array.from({ length: ROWS }, (_, row) => [row * 1234.5, row, `t${row}`]),
+        columns: [
+          { type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
+          { type: 'numeric' },
+          {},
+        ],
+      }),
+      keyValueDropdown: () => ({
+        data: Array.from({ length: ROWS }, (_, row) => [
+          { key: row % 3, value: ['One', 'Two', 'Three hundred and three'][row % 3] },
+          `t${row}`,
+        ]),
+        columns: [
+          {
+            type: 'dropdown',
+            source: [
+              { key: 0, value: 'One' },
+              { key: 1, value: 'Two' },
+              { key: 2, value: 'Three hundred and three' },
+            ],
+          },
+          {},
+        ],
+      }),
+      dotNotation: () => ({
+        data: Array.from({ length: ROWS }, (_, row) => ({
+          person: { name: 'n'.repeat(1 + (row % 9)) },
+          city: row === DEEP_ROW ? `city${LONG_SUFFIX}` : 'city',
+        })),
+        columns: [{ data: 'person.name' }, { data: 'city' }],
+      }),
+      cellsFunction: () => ({
+        data: textData(),
+        cells(row, column) {
+          return row === DEEP_ROW && column === 0 ? { valueFormatter: value => `${value}${LONG_SUFFIX}` } : {};
+        },
+      }),
+      checkboxLabel: () => ({
+        data: Array.from({ length: ROWS }, (_, row) => ({
+          done: row % 2 === 0,
+          name: row === DEEP_ROW ? `name${LONG_SUFFIX}` : `n${row % 10}`,
+        })),
+        columns: [
+          { data: 'done', type: 'checkbox', label: { position: 'after', property: 'name' } },
+          { data: 'name' },
+        ],
+      }),
+    };
+
+    /**
+     * Builds one case and returns every column's width.
+     *
+     * @param {string} name The case name.
+     * @param {boolean} perCell Whether to force the per-cell read of every cell.
+     * @returns {number[]}
+     */
+    window.buildGrid = function(name, perCell) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      // A case's `setup` runs on the built grid, and every width is then measured again.
+      const { setup, ...settings } = CASES[name]();
+
+      if (perCell) {
+        settings.afterGetCellMeta = () => {};
+      }
+
+      window.hot = new Handsontable(container, {
+        colHeaders: true,
+        rowHeaders: true,
+        width: 900,
+        height: 300,
+        autoColumnSize: { syncLimit: '100%' },
+        licenseKey: window.htTestLicenseKey,
+        ...settings,
+      });
+
+      if (setup) {
+        setup(window.hot);
+        window.hot.getPlugin('autoColumnSize').recalculateAllColumnsWidth();
+      }
+
+      return Array.from({ length: window.hot.countCols() }, (_, column) => window.hot.getColWidth(column));
+    };
+
+    try {
+      window.buildGrid('plain', false);
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

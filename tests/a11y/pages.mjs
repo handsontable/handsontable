@@ -74,8 +74,8 @@ export const A11Y_PAGES = [
   { id: 'license-missing-features', fixture: 'license-capabilities.html', query: 'plugins=filters',
     licensePreset: 'tier-base', state: 'none',
     surface: 'the license bar naming the features a license key leaves out, and its sales link' },
-  { id: 'license-powered-by', fixture: 'license-branding.html', query: 'key=sponsored-badge', state: 'none',
-    surface: 'the "Powered by Handsontable DataGrid" bar of a key with the badge flag, its link and text contrast' },
+  { id: 'license-powered-by', fixture: 'license-branding.html', query: 'key=sponsored-attribution-bar', state: 'none',
+    surface: 'the "Powered by Handsontable DataGrid" bar of a key with the attribution-bar flag, its link and text contrast' },
   { id: 'side-layout-slots', fixture: 'side-layout-slots.html', query: 'panels=both', state: 'none',
     surface: 'panels docked in the start and end layout slots and a button in the top slot: the slot borders, corner radii and the frame around them' },
   // Menus, opened from the keyboard.

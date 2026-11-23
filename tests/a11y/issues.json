@@ -120,19 +120,28 @@
     },
     {
       "id": "unnamed-controls",
-      "title": "Controls without an accessible name or role: the filter condition select and the filter listbox, the autocomplete list, the focus catchers, the editor inputs on the website until it ships the release that names them, and the comment editor's reader announcement",
+      "title": "Controls without an accessible name or role: the filter condition select and the filter listbox, the autocomplete list, the focus catchers a menu leaves armed, the editor inputs on the website until it ships the release that names them, and the comment editor's reader announcement",
       "tracker": ["DEV-3492", "DEV-2970", "DEV-3491", "DEV-4001", "DEV-2953"],
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-unnamed"] },
         { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["unnamed-control"] },
-        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["focusable-without-role"], "where": ["htFocusCatcher"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["focusable-without-role"], "pages": ["(?!data-provider-sheets-bar$).+"], "where": ["htFocusCatcher"] },
         { "source": "axe", "axeIssues": ["filters-listbox"] },
         { "source": "website", "axeIssues": ["grid-editor-label"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["label", "aria-input-field-name", "select-name"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"listbox\"\\]"] },
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["htFocusCatcher"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "pages": ["(?!data-provider-sheets-bar$).+"], "where": ["htFocusCatcher"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["label-content-name-mismatch"], "where": ["htFiltersMenuCondition"] },
         { "source": "reader", "kinds": ["token-missing"], "pages": ["comment-editor", "filters-by-condition", "filters-by-value"], "where": ["^(open-comment-editor|tab-to-condition|shift-tab-to-select)$"] }
+      ]
+    },
+    {
+      "id": "focus-catchers-armed-at-rest",
+      "title": "The two hidden focus catchers stay armed while the focus is on body (the sheets bar page, where the element that held it went away), because a Tab from the browser UI sends no keydown and only an armed catcher lets it re-enter the grid; they carry no role on purpose, so a screen reader is not sent to a hidden stop",
+      "notDefect": "intended-tab-entry",
+      "match": [
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["focusable-without-role"], "pages": ["^data-provider-sheets-bar$"], "where": ["htFocusCatcher"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "pages": ["^data-provider-sheets-bar$"], "where": ["htFocusCatcher"] }
       ]
     },
     {
@@ -140,16 +149,7 @@
       "title": "The empty data state's message, for no data and for loading, takes the focus as a div with no role, so NVDA with Firefox reads `section` without its text and VoiceOver with WebKit reads its title alone",
       "tracker": "DEV-4001",
       "match": [
-        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-without-role"], "where": ["ht-empty-data-state"] },
         { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["empty-data", "data-provider-sheets-bar"], "where": ["^(tab-empty-message|shift-tab-empty-message|tab-loading-overlay)$"] }
-      ]
-    },
-    {
-      "id": "sheet-tab-rename-tab-stop",
-      "title": "A sheet tab being renamed keeps its tab stop after it drops its button role, so the focus order holds a div with no role beside the name field",
-      "tracker": "DEV-4001",
-      "match": [
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["ht-sheets-bar__tab--renaming"] }
       ]
     },
     {
@@ -582,7 +582,7 @@
       "title": "Links in the docs prose are told apart from the surrounding text by color alone",
       "tracker": "DEV-4017",
       "match": [
-        { "source": "docs", "axeIssues": ["prose-link-color-only"] }
+        { "source": "docs", "rules": ["link-in-text-block"], "where": ["^a$"] }
       ]
     },
     {

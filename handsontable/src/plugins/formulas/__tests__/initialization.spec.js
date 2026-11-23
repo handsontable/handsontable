@@ -229,6 +229,7 @@ describe('Formulas general', () => {
       });
 
       const hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: getDataSimpleExampleFormulas(),
         formulas: {
           engine: HyperFormula
@@ -286,6 +287,7 @@ describe('Formulas general', () => {
       });
 
       const hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: getDataSimpleExampleFormulas(),
         formulas: {
           engine: hfInstance2
@@ -343,6 +345,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: getDataSimpleExampleFormulas(),
           formulas: {
             engine: HyperFormula
@@ -384,6 +387,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: getDataSimpleExampleFormulas(),
           formulas: {
             engine: hfInstance2
@@ -431,6 +435,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: getDataSimpleExampleFormulas(),
           formulas: {
             engine: HyperFormula
@@ -461,6 +466,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: getDataSimpleExampleFormulas(),
           formulas: {
             engine: hfInstance2
@@ -496,6 +502,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: [
             ['Ford', 'Tesla'],
             ['Opel', '=Sheet1!B1'],
@@ -508,6 +515,7 @@ describe('Formulas general', () => {
         }).data('handsontable');
 
         const hot3 = spec().$container3.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: [
             ['=Sheet1!A2', 'Tesla'],
             ['=Sheet2!A1', '=Sheet2!B2'],
@@ -590,6 +598,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: getDataSimpleExampleFormulas(),
           formulas: {
             engine: hot1.getPlugin('formulas').engine
@@ -627,6 +636,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: getDataSimpleExampleFormulas(),
           formulas: {
             engine: hot1.getPlugin('formulas').engine
@@ -658,6 +668,7 @@ describe('Formulas general', () => {
         });
 
         const hot2 = spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: getDataSimpleExampleFormulas(),
           formulas: {
             engine: hot1.getPlugin('formulas').engine
@@ -1034,6 +1045,7 @@ describe('Formulas general', () => {
 
       // The sharing style the formulas guide recommends.
       const hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: [['a'], ['b'], ['c'], ['d'], ['e']],
         formulas: {
           engine: hot1.getPlugin('formulas').engine,
@@ -1062,6 +1074,7 @@ describe('Formulas general', () => {
       });
 
       spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: [['a'], ['b'], ['c'], ['d'], ['e']],
         formulas: {
           engine,
@@ -1196,6 +1209,7 @@ describe('Formulas general', () => {
       });
 
       const hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: [['=Sheet1!A1'], ['hello from sheet 2']],
         formulas: {
           engine: getPlugin('formulas').engine,
@@ -1217,6 +1231,7 @@ describe('Formulas general', () => {
       });
 
       const hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: [['=Sheet1!A1'], ['hello from sheet 2']],
         formulas: {
           engine: getPlugin('formulas').engine,

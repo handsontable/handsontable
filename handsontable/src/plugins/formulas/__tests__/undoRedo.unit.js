@@ -478,7 +478,9 @@ describe('Formulas – undo', () => {
       hot.alter('insert_row_above', 0);
 
       expect(getSheetFormulas.mock.calls.every(([sheet]) => sheet === ownSheet)).toBe(true);
-      expect(getCellFormula).not.toHaveBeenCalled();
+      // The grid reads the formulas of its own cells when it paints them; the scan reads no other sheet.
+      expect(getCellFormula).toHaveBeenCalled();
+      expect(getCellFormula.mock.calls.every(([address]) => address.sheet === ownSheet)).toBe(true);
     });
   });
 });

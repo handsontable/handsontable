@@ -13,6 +13,7 @@ import { isEmpty, stringify } from '../../helpers/mixed';
 import { matchCheckboxTemplate } from '../../utils/checkboxColumn';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { Hooks } from '../../core/hooks';
+import { markReadOnlyMetaListener } from '../../utils/readOnlyMetaListeners';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
@@ -46,7 +47,22 @@ const SHORTCUTS_GROUP = 'checkboxRenderer';
 
 export const RENDERER_TYPE: 'checkbox' = 'checkbox';
 
-Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
+/**
+ * The AutoColumnSize sample bucket of a checkbox cell whose label is read from a row property
+ * (`label: { property }`): the length of that property's text, or of the cell value when the property
+ * holds `null`. The Filters "Filter by value" list picks its samples with it too, so both size a label
+ * the same way.
+ *
+ * @param {*} labelData The value of the label property.
+ * @param {*} cellValue The cell value.
+ * @returns {string}
+ */
+export function getCheckboxLabelPropertySeed(labelData: unknown, cellValue: unknown): string {
+  return `${stringify(labelData !== null ? labelData : cellValue).length}`;
+}
+
+// The listener only reads the meta, so AutoColumnSize may hand it one meta object it reuses for a column.
+Hooks.getSingleton().add('modifyAutoColumnSizeSeed', markReadOnlyMetaListener(
   function(this: HotInstance, _bundleSeed: unknown, cellMeta: unknown, cellValue: unknown) {
     const { label, type, row, column, prop } = cellMeta as Record<string, unknown>;
 
@@ -56,20 +72,20 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
 
     const labelObj = label as Record<string, unknown>;
     const { value: labelValue, property: labelProperty } = labelObj;
+
+    if (!labelValue && labelProperty) {
+      return getCheckboxLabelPropertySeed(this.getDataAtRowProp(row as number, String(labelProperty)), cellValue);
+    }
+
     let labelText = cellValue;
 
     if (labelValue) {
       labelText = typeof labelValue === 'function' ?
         labelValue(row, column, prop, cellValue) : labelValue;
-
-    } else if (labelProperty) {
-      const labelData = this.getDataAtRowProp(row as number, String(labelProperty));
-
-      labelText = labelData !== null ? labelData : cellValue;
     }
 
     return `${stringify(labelText).length}`;
-  });
+  }));
 /**
  * Checkbox renderer.
  *

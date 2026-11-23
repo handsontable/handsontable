@@ -13,8 +13,9 @@
   - rowgroup:
     - row "Select whole grid":
       - gridcell "Select whole grid"
-- heading "No data available" [level=2]
-- paragraph: There’s nothing to display yet.
+- group "No data available There’s nothing to display yet.":
+  - heading "No data available" [level=2]
+  - paragraph: There’s nothing to display yet.
 # portal
 - status
 - status

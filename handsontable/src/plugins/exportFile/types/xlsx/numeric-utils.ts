@@ -1,4 +1,4 @@
-import { captureCurrency, sharedSymbolLcid } from '../../../../utils/xlsxEngine/numFmtCode';
+import { captureCurrency, sharedSymbolLcid, showsAsWholeNumber } from '../../../../utils/xlsxEngine/numFmtCode';
 
 /**
  * The most integer digits `Intl.NumberFormat` accepts in `minimumIntegerDigits`.
@@ -27,6 +27,63 @@ function integerPart(minimumIntegerDigits: number, useGrouping: boolean): string
   }
 
   return grouped;
+}
+
+/**
+ * The `numericFormat` options the export reads.
+ */
+type NumericFormatOptions = {
+  style?: string; currency?: string; minimumIntegerDigits?: number;
+  minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean;
+};
+
+/**
+ * Resolves how many fraction digits the grid shows for a `numericFormat`: the minimum it always
+ * shows and the maximum it rounds to. The numeric renderer formats with
+ * `new Intl.NumberFormat(locale, numericFormat)`, so the counts come from that formatter's resolved
+ * options and follow the `Intl` defaults for the style and the currency (0 to 3 for a plain number,
+ * 2 for the US dollar, 0 for the yen and for a percent). Reading the raw options wrote `#,##0` for a
+ * format that names no digits, and Excel rounded 1234.567 to 1,235 (GitHub issue #14372).
+ *
+ * Falls back to the digits the options name when `Intl` rejects the options or the locale, or
+ * resolves no fraction digits (rounding to significant digits).
+ *
+ * @param {object} numericFormat The `numericFormat` cell meta value.
+ * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
+ * @returns {{ minimum: number, maximum: number }}
+ */
+function resolveFractionDigits(
+  numericFormat: NumericFormatOptions, locale: string | undefined
+): { minimum: number; maximum: number } {
+  try {
+    const { minimumFractionDigits, maximumFractionDigits } = new Intl.NumberFormat(
+      locale, numericFormat as Intl.NumberFormatOptions
+    ).resolvedOptions();
+
+    if (Number.isInteger(minimumFractionDigits) && Number.isInteger(maximumFractionDigits)) {
+      return { minimum: minimumFractionDigits as number, maximum: maximumFractionDigits as number };
+    }
+  } catch {
+    // The named digits below are the best reading left.
+  }
+
+  const { minimumFractionDigits = 0, maximumFractionDigits } = numericFormat;
+  const digits = maximumFractionDigits ?? minimumFractionDigits;
+
+  return { minimum: digits, maximum: digits };
+}
+
+/**
+ * Builds the decimal part of a number format: a `0` for every digit the grid always shows and a `#`
+ * for every digit it shows only when the value has it (`.00`, `.0##`, `.###`), or an empty string
+ * for a format with no fraction digits.
+ *
+ * @param {number} minimum The fraction digits the format always shows.
+ * @param {number} maximum The fraction digits the format rounds to.
+ * @returns {string}
+ */
+function decimalPartOf(minimum: number, maximum: number): string {
+  return maximum > 0 ? `.${'0'.repeat(minimum)}${'#'.repeat(Math.max(0, maximum - minimum))}` : '';
 }
 
 /**
@@ -62,37 +119,71 @@ function getCurrencyInfo(currency: string, locale: string | undefined): { symbol
 }
 
 /**
- * Converts a `numericFormat` cell meta option to an Excel `numFmt` string.
- *
- * Handles the `Intl.NumberFormat` options form introduced in Handsontable 17.
- *
- * @private
- * @param {object|null|undefined} numericFormat The `numericFormat` cell meta value.
- * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
- * @returns {string|null}
+ * The Excel formats one `numericFormat` and locale resolve to.
  */
-export function intlNumFormatToExcelNumFmt(
-  numericFormat: {
-    style?: string; currency?: string; minimumIntegerDigits?: number;
-    minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean;
-  } | null | undefined,
-  locale?: string | undefined
-): string | null {
-  if (!numericFormat) {
-    return null;
-  }
+interface ResolvedNumFmt {
+  /**
+   * The format with the decimal part the grid shows.
+   */
+  numFmt: string;
+  /**
+   * The same format with no decimal part, for a value that shows no fraction digit. `null` when the
+   * format always shows a fraction digit or never shows one.
+   */
+  wholeNumFmt: string | null;
+  /**
+   * The fraction digits the format rounds to.
+   */
+  maximum: number;
+  /**
+   * Whether the format is a percent.
+   */
+  isPercent: boolean;
+}
 
+/**
+ * The formats resolved so far, keyed by locale and serialized `numericFormat`, the key the numeric
+ * renderer caches its formatters under (`formatterCache` in `renderers/numericRenderer/utils.ts`).
+ * The export resolves a format per numeric cell, and building an `Intl.NumberFormat` to read its
+ * resolved options cost about 40 microseconds a cell: 4 seconds per 100,000 cells.
+ */
+const resolvedNumFmtCache = new Map<string, ResolvedNumFmt>();
+
+/**
+ * Resolves the Excel formats of a `numericFormat`: the one with the decimal part the grid shows,
+ * and the one with no decimal part when every fraction digit is optional.
+ *
+ * @param {object} numericFormat The `numericFormat` cell meta value.
+ * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
+ * @returns {{ numFmt: string, wholeNumFmt: string|null, maximum: number, isPercent: boolean }}
+ */
+function resolveNumFmt(numericFormat: NumericFormatOptions, locale: string | undefined): ResolvedNumFmt {
+  const { minimum, maximum } = resolveFractionDigits(numericFormat, locale);
+
+  return {
+    numFmt: buildNumFmt(numericFormat, locale, decimalPartOf(minimum, maximum)),
+    wholeNumFmt: minimum === 0 && maximum > 0 ? buildNumFmt(numericFormat, locale, '') : null,
+    maximum,
+    isPercent: numericFormat.style === 'percent',
+  };
+}
+
+/**
+ * Builds the Excel format of a `numericFormat` around a given decimal part.
+ *
+ * @param {object} numericFormat The `numericFormat` cell meta value.
+ * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
+ * @param {string} decimalPart The decimal part of the format, such as `.00`, or an empty string.
+ * @returns {string}
+ */
+function buildNumFmt(numericFormat: NumericFormatOptions, locale: string | undefined, decimalPart: string): string {
   const {
     style,
     currency,
     minimumIntegerDigits,
-    minimumFractionDigits = 0,
-    maximumFractionDigits,
     useGrouping = true,
   } = numericFormat;
 
-  const fractionDigits = maximumFractionDigits ?? minimumFractionDigits;
-  const decimalPart = fractionDigits > 0 ? `.${('0').repeat(fractionDigits)}` : '';
   // `Intl` throws for a `minimumIntegerDigits` outside 1-21 or not a whole number, so such a value
   // never reached the grid and is not written either.
   const integerDigits = Number.isInteger(minimumIntegerDigits)
@@ -143,4 +234,43 @@ export function intlNumFormatToExcelNumFmt(
   }
 
   return `${intPart}${decimalPart}`;
+}
+
+/**
+ * Converts a `numericFormat` cell meta option to an Excel `numFmt` string.
+ *
+ * Handles the `Intl.NumberFormat` options form introduced in Handsontable 17.
+ *
+ * A format whose fraction digits are all optional (`#,##0.###`) is written with no decimal part for
+ * a `value` that shows no fraction digit: Excel keeps the decimal point of such a format, so 1234
+ * showed as `1,234.` where the grid shows `1,234`. Pass no `value` for a cell whose number can
+ * change in the file, such as a formula cell, to get the format with the decimal part.
+ *
+ * @private
+ * @param {object|null|undefined} numericFormat The `numericFormat` cell meta value.
+ * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
+ * @param {*} [value] The number the cell holds.
+ * @returns {string|null}
+ */
+export function intlNumFormatToExcelNumFmt(
+  numericFormat: NumericFormatOptions | null | undefined,
+  locale?: string | undefined,
+  value?: unknown
+): string | null {
+  if (!numericFormat) {
+    return null;
+  }
+
+  const cacheKey = `${locale ?? ''}:${JSON.stringify(numericFormat)}`;
+  let resolved = resolvedNumFmtCache.get(cacheKey);
+
+  if (resolved === undefined) {
+    resolved = resolveNumFmt(numericFormat, locale);
+    resolvedNumFmtCache.set(cacheKey, resolved);
+  }
+
+  const { numFmt, wholeNumFmt, maximum, isPercent } = resolved;
+
+  return wholeNumFmt !== null && typeof value === 'number' && showsAsWholeNumber(value, maximum, isPercent)
+    ? wholeNumFmt : numFmt;
 }

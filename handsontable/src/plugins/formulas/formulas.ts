@@ -40,6 +40,7 @@ import {
   LINK_SCHEMES,
   LINK_SCHEME_CLASS_NAME,
   createLinkElement,
+  describeLink,
   normalizeSchemesWithFallback,
   resolveLinkUrl,
   unwrapLinks,
@@ -48,6 +49,14 @@ import {
   type LinkTarget,
 } from '../../utils/cellLinks';
 import { fastInnerText, getCellContentRoot } from '../../helpers/dom/element';
+import { FORMULAS_CELL_DESCRIPTION } from '../../i18n/constants';
+import { CELL_DESCRIPTION_RANK, removeCellDescriptionPart } from '../../utils/cellDescription/cellDescription';
+import {
+  describeFormulaCell,
+  limitFormulaText,
+  undescribeFormulaCell,
+  undescribeFormulaCells,
+} from './formulaCellDescription';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import {
   beginHeldEngineWrite,
@@ -1388,6 +1397,7 @@ export class Formulas extends BasePlugin {
 
     this.#invalidateHyperlinkCells();
     this.#markCellsThatBecameHyperlinks(changes);
+    this.#markFormulaCellsOfUpdate(changes);
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
     this.#paintGridFromEngineChange(changes);
   };
@@ -1509,6 +1519,39 @@ export class Formulas extends BasePlugin {
       const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(address.col);
 
       if (visualRow >= 0 && visualColumn >= 0 && this.#getHyperlinkHref(visualRow, visualColumn) !== null) {
+        this.hot.markCellChanged(visualRow, visualColumn);
+      }
+    });
+  }
+
+  /**
+   * Marks the updated cells that hold a formula, so a `renderMode: 'onChange'` paint redraws them. The engine
+   * reports a cell whose content was set even when its value did not change, and a formula rewritten to
+   * another text with the same value changes nothing that paint compares, while the hidden text that names
+   * the formula (`#onDescribeFormulaCell`) has to follow the text. Only a grid that paints by change and
+   * writes that text needs it. A formula the engine rewrote without setting the cell (a reference moved by an
+   * insert, a renamed sheet) is not reported, so its description follows on the cell's next paint.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #markFormulaCellsOfUpdate(changes: unknown[]) {
+    const { renderMode, ariaTags } = this.hot.getSettings();
+
+    if (renderMode !== 'onChange' || !ariaTags || !this.rowAxisSyncer || !this.columnAxisSyncer) {
+      return;
+    }
+
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (!address || address.sheet !== this.sheetId) {
+        return;
+      }
+
+      const visualRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(address.row);
+      const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(address.col);
+
+      if (visualRow >= 0 && visualColumn >= 0 && this.isFormulaCellType(visualRow, visualColumn)) {
         this.hot.markCellChanged(visualRow, visualColumn);
       }
     });
@@ -1945,6 +1988,8 @@ export class Formulas extends BasePlugin {
     // Positive `orderIndex`: must run after every default-order `afterRenderer` listener (this
     // plugin's own above, and AutoLink's) - see `#onPaintFormulaText`'s own doc for why.
     this.addHook('afterRenderer', this.#onPaintFormulaText, 1);
+    // Order 2, after `#onPaintFormulaText` (1), which rewrites the cell while formulas are shown.
+    this.addHook('afterRenderer', this.#onDescribeFormulaCell, 2);
     this.addHook('beforeCopy', this.#onBeforeCopyOrCut);
     this.addHook('beforeCut', this.#onBeforeCopyOrCut);
 
@@ -1998,6 +2043,7 @@ export class Formulas extends BasePlugin {
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
     this.#unwrapRenderedErrorValues();
+    this.#removeRenderedFormulaDescriptions();
     this.#hyperlinkCells.clear();
 
     // The recorded layout belongs to the engine session being torn down. Nothing reads it before
@@ -4014,6 +4060,16 @@ export class Formulas extends BasePlugin {
   #unwrapRenderedErrorValues() {
     if (this.hot.rootElement) {
       unwrapLinks(this.hot.rootElement, `span.${ERROR_VALUE_CLASS_NAME}`);
+    }
+  }
+
+  /**
+   * Takes the hidden formula description off every cell currently in the grid, including the overlay
+   * clones. Disabling the plugin removes the `afterRenderer` hook that would take them out.
+   */
+  #removeRenderedFormulaDescriptions() {
+    if (this.hot.rootElement) {
+      undescribeFormulaCells(this.hot.rootElement);
     }
   }
 
@@ -6641,6 +6697,7 @@ export class Formulas extends BasePlugin {
     // that wrapper on every render pass. The nodes are moved, never re-serialized, so a label
     // containing markup stays text.
     wrapCellContent(TD, link);
+    describeLink(this.hot, TD);
   };
 
   /**
@@ -6762,7 +6819,78 @@ export class Formulas extends BasePlugin {
 
     this.#flushEvaluation();
     fastInnerText(TD, String(this.#readableFormula(this.engine!.getCellSerialized(address))));
+    // The text replaced the cell's content, an anchor AutoLink made from the value included.
+    removeCellDescriptionPart(TD, CELL_DESCRIPTION_RANK.LINK);
   };
+
+  /**
+   * `afterRenderer` hook callback. Sets the `data-ht-formula` attribute on the cell of a formula, which
+   * `_formulas.scss` draws as generated content, so that a screen reader that reads the calculated value
+   * goes on to read the formula it came from. The cell's own text is not touched, so its `textContent` and
+   * `innerText` stay the value. A screen reader drops `title` from a cell that has `aria-describedby`, and
+   * an `aria-label` would replace the value instead of adding to it.
+   *
+   * The attribute is removed while the grid writes no ARIA attributes (`ariaTags: false`), while formulas are
+   * shown as text, where the cell already reads as the formula, and when the cell holds no formula of its
+   * own: a value, a spilled cell of an array formula, a language with no phrase for it. While an internal
+   * write runs, or the sheet is missing, the listener leaves the cell as it is, and the next paint of the cell
+   * settles it, so a recycled element can carry the previous cell's text for that long.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta.
+   */
+  #onDescribeFormulaCell = (
+    TD: HTMLTableCellElement,
+    row: number,
+    column: number,
+    prop: string | number,
+    value: unknown,
+    cellProperties: { ariaTags?: boolean },
+  ) => {
+    // An internal write or a missing sheet says nothing about this cell, so what the cell holds stays.
+    if (this.#internalOperationPending || !this.#hasOwnSheet()) {
+      return;
+    }
+
+    const formula = cellProperties.ariaTags && !this.#showFormulasFlag ?
+      this.#readFormulaTextForDescription(row, column) : undefined;
+    // A language registered without this phrase answers `null`, which must not reach the cell as text.
+    const description: string | null = formula === undefined ? null :
+      this.hot.getTranslatedPhrase(FORMULAS_CELL_DESCRIPTION, { formula });
+
+    if (typeof description === 'string' && description !== '') {
+      describeFormulaCell(TD, description);
+
+    } else {
+      undescribeFormulaCell(TD);
+    }
+  };
+
+  /**
+   * Returns the formula text of a cell for its description, cut at `MAX_FORMULA_TEXT_LENGTH`, or `undefined` when
+   * the cell holds no formula of its own. The text needs no recalculation, so it is read without ending a held one.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {string|undefined}
+   */
+  #readFormulaTextForDescription(row: number, column: number): string | undefined {
+    const engineCell = this.#toEngineAddress(row, column);
+
+    if (engineCell === null) {
+      return undefined;
+    }
+
+    // The text is read aloud, never parsed again, so a sheet name the engine writes without quotes needs none
+    // here, and the quoting scan of `#readableFormula()` is not paid on every paint.
+    const formula = this.engine!.getCellFormula(engineCell.address);
+
+    return formula === undefined ? undefined : limitFormulaText(formula);
+  }
 
   /**
    * `beforeCopy`/`beforeCut` hook callback. While formulas are shown, rewrites each copied/cut

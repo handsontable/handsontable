@@ -133,6 +133,110 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).toEqual([]);
   });
 
+  describe('whole numbers under a format with optional fraction digits', () => {
+    const optional = { minimumFractionDigits: 0, maximumFractionDigits: 3, useGrouping: true };
+    const whole = { minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: true };
+
+    function mapColumn(...cells) {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = cells.map(entry => [entry]);
+
+      return map(workbook(sheet)).result;
+    }
+
+    it('should read the whole numbers the export wrote with no decimal part back as the column format', () => {
+      // The export writes 1234 under `#,##0` in a `#,##0.###` column, because Excel keeps the decimal
+      // point of the second format. Read cell by cell, the column came back with two formats.
+      const result = mapColumn(
+        cell({ value: 1, numFmt: '#,##0' }),
+        cell({ value: 2, numFmt: '#,##0' }),
+        cell({ value: 3, numFmt: '#,##0' }),
+        cell({ value: 1.5, numFmt: '#,##0.###' })
+      );
+
+      expect(result.columns).toEqual([{ type: 'numeric', numericFormat: optional }]);
+      expect(result.cellsMeta).toBeUndefined();
+      expect(result.data).toEqual([[1], [2], [3], [1.5]]);
+    });
+
+    it('should fold a percent on the value times 100', () => {
+      const result = mapColumn(
+        cell({ value: 0.12, numFmt: '0%' }),
+        cell({ value: 0.07, numFmt: '0%' }),
+        cell({ value: 0.125, numFmt: '0.#%' })
+      );
+
+      expect(result.columns).toEqual([{
+        type: 'numeric',
+        numericFormat: { style: 'percent', minimumFractionDigits: 0, maximumFractionDigits: 1, useGrouping: false },
+      }]);
+      expect(result.cellsMeta).toBeUndefined();
+    });
+
+    it('should keep the format of a cell that holds a fraction under the format with no decimal part', () => {
+      // Excel shows 2.5 as `3` under `#,##0`: the cell is not one the export wrote that way.
+      const result = mapColumn(
+        cell({ value: 1.5, numFmt: '#,##0.###' }),
+        cell({ value: 2.25, numFmt: '#,##0.###' }),
+        cell({ value: 2.5, numFmt: '#,##0' })
+      );
+
+      expect(result.columns).toEqual([{ type: 'numeric', numericFormat: optional }]);
+      expect(result.cellsMeta).toEqual([{ row: 2, col: 0, meta: { type: 'numeric', numericFormat: whole } }]);
+    });
+
+    it('should keep a column of whole numbers only at no fraction digits', () => {
+      const result = mapColumn(cell({ value: 1, numFmt: '#,##0' }), cell({ value: 2, numFmt: '#,##0' }));
+
+      expect(result.columns).toEqual([{ type: 'numeric', numericFormat: whole }]);
+      expect(result.cellsMeta).toBeUndefined();
+    });
+
+    it('should not fold into a format that differs by more than its fraction digits', () => {
+      const result = mapColumn(
+        cell({ value: 1, numFmt: '#,##0' }),
+        cell({ value: 2, numFmt: '#,##0' }),
+        cell({ value: 1.5, numFmt: '0.###' })
+      );
+
+      expect(result.columns).toEqual([{ type: 'numeric', numericFormat: whole }]);
+      expect(result.cellsMeta).toEqual([{
+        row: 2, col: 0, meta: { type: 'numeric', numericFormat: { ...optional, useGrouping: false } },
+      }]);
+    });
+
+    it('should not fold when two formats with optional digits could take the whole numbers', () => {
+      const result = mapColumn(
+        cell({ value: 1, numFmt: '#,##0' }),
+        cell({ value: 2, numFmt: '#,##0' }),
+        cell({ value: 3, numFmt: '#,##0' }),
+        cell({ value: 1.5, numFmt: '#,##0.###' }),
+        cell({ value: 2.5, numFmt: '#,##0.#' })
+      );
+
+      expect(result.columns).toEqual([{ type: 'numeric', numericFormat: whole }]);
+      expect(result.cellsMeta).toHaveLength(2);
+    });
+
+    it('should fold when the format with optional digits also sits on an empty cell and on a text', () => {
+      // The export writes the column format on an empty cell and on a text too. Their meta is an
+      // equal object, not the same one as a number's, and read as a second candidate it stopped the
+      // fold: every whole number came back with a `cellsMeta` entry of its own.
+      const result = mapColumn(
+        cell({ value: 1234, numFmt: '#,##0' }),
+        cell({ value: null, numFmt: '#,##0.###' }),
+        cell({ value: 1234.5, numFmt: '#,##0.###' }),
+        cell({ value: 'n/a', numFmt: '#,##0.###' }),
+        cell({ value: 7, numFmt: '#,##0' })
+      );
+
+      expect(result.columns).toEqual([{ type: 'numeric', numericFormat: optional }]);
+      expect(result.cellsMeta).toBeUndefined();
+      expect(result.data).toEqual([[1234], [null], [1234.5], ['n/a'], [7]]);
+    });
+  });
+
   it('should lift the dominant meta and keep per-cell meta only for the cells that differ', () => {
     const sheet = createSheetSnapshot('Data');
 

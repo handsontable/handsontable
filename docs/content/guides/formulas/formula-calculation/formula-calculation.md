@@ -883,6 +883,32 @@ Press <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> to toggle between showing formulas an
 On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</kbd>+<kbd>**`**</kbd> -
 `Cmd`+`` ` `` is the system's window-cycling shortcut.
 
+## Formula cells and screen readers
+
+A screen reader reads the calculated value of a formula cell. To tell the user that the value comes
+from a formula, Handsontable adds the formula text to the cell's accessible name, after the value, such as
+`3 Formula: =SUM(A1:E1)`. The text names the cell references the formula reads, so a user can tell which cells
+feed the result.
+
+- The text appears only in formula cells. A cell with a plain value, and a cell that an array formula
+  spills into, carry none.
+- The text is generated content of the cell. The cell's own text does not change: `textContent`,
+  `innerText`, and the copied text of a formula cell stay the calculated value.
+- The text appears only while the [`ariaTags`](@/api/options.md#ariatags) option is `true`, which is its
+  default.
+- The text is left out while you [show formulas](#show-formulas-instead-of-values), because the cell
+  then displays the formula itself.
+- A formula longer than 120 characters is cut there and ends with an ellipsis, because the text is laid out on
+  every render and read aloud on every move onto the cell. On a grid of 620 cells with 300-character formulas, a
+  full render took about 6 ms without the text and about 16 ms with it.
+- A frozen cell is in the DOM twice, in the grid and in its overlay, so a screen reader can read it twice, the
+  way it reads the value.
+- The text is the `::after` of `td[data-ht-formula]`, so that selector is reserved. A rule of your own that sets
+  `content` on the `::after` of a formula cell loses to it, or wins and replaces the text.
+- The `Formula: [formula]` phrase is translated with the grid [language](@/guides/internationalization/language/language.md).
+  To change it, register a dictionary with the `Formulas:cellDescription` key. The `[formula]`
+  placeholder stands for the formula text.
+
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
 This hook fires whenever the calculation engine recomputes cell values - including cells that

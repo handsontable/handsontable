@@ -376,18 +376,17 @@ describe('inferCellType', () => {
 });
 
 describe('excelNumFmtToIntlOptions', () => {
-  // `intlNumFormatToExcelNumFmt` writes one digit count into the pattern (it reads
-  // `maximumFractionDigits ?? minimumFractionDigits`) and defaults `useGrouping` to `true`, so a
-  // format string cannot carry a minimum that differs from its maximum, nor an absent
-  // `useGrouping`. The inverse can therefore only return that normalized shape, and the round-trip
-  // expectation is the input options put through the same normalization.
-  function normalize(options) {
-    const digits = options.maximumFractionDigits ?? options.minimumFractionDigits ?? 0;
+  // `intlNumFormatToExcelNumFmt` writes the fraction digits `Intl` resolves for the options (a `0`
+  // for each digit the format always shows, a `#` for each optional one) and defaults
+  // `useGrouping` to `true`. The inverse returns those counts spelled out, so the round-trip
+  // expectation is the input options with the resolved digits and an explicit `useGrouping`.
+  function normalize(options, locale) {
+    const { minimumFractionDigits, maximumFractionDigits } = new Intl.NumberFormat(locale, options).resolvedOptions();
 
     return {
       ...options,
-      minimumFractionDigits: digits,
-      maximumFractionDigits: digits,
+      minimumFractionDigits,
+      maximumFractionDigits,
       useGrouping: options.useGrouping ?? true,
     };
   }
@@ -402,8 +401,44 @@ describe('excelNumFmtToIntlOptions', () => {
     ['a quoted symbol (pl-PL / PLN)', { style: 'currency', currency: 'PLN', minimumFractionDigits: 2 }, 'pl-PL'],
     ['a quoted ISO code (de-CH / CHF)', { style: 'currency', currency: 'CHF', minimumFractionDigits: 2 }, 'de-CH'],
     ['a quoted dollar composite (en-US / HKD)', { style: 'currency', currency: 'HKD' }, 'en-US'],
+    ['a format that names no digits', {}, undefined],
+    ['a currency that names no digits', { style: 'currency', currency: 'USD' }, 'en-US'],
+    ['a three-digit currency that names no digits', { style: 'currency', currency: 'KWD' }, 'en-US'],
+    ['a percent that names no digits', { style: 'percent' }, undefined],
+    ['a minimum below the maximum', { minimumFractionDigits: 1, maximumFractionDigits: 3 }, undefined],
+    ['a maximum only', { maximumFractionDigits: 1, useGrouping: false }, undefined],
   ])('should invert the export\'s own number format for %s', (_, options, locale) => {
-    expect(excelNumFmtToIntlOptions(intlNumFormatToExcelNumFmt(options, locale))).toEqual(normalize(options));
+    expect(excelNumFmtToIntlOptions(intlNumFormatToExcelNumFmt(options, locale))).toEqual(normalize(options, locale));
+  });
+
+  it('should bring a format that names no fraction digits back with the digits the grid showed', () => {
+    // The export used to write `#,##0` here, so 1234.567 came back as 1,235 (GitHub issue #14372).
+    expect(excelNumFmtToIntlOptions(intlNumFormatToExcelNumFmt({}))).toEqual({
+      minimumFractionDigits: 0, maximumFractionDigits: 3, useGrouping: true,
+    });
+    expect(excelNumFmtToIntlOptions(intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'USD' }, 'en-US')))
+      .toEqual({
+        style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+      });
+  });
+
+  it('should read a `#` after the decimal point as an optional fraction digit', () => {
+    // Excel shows 1.5 as `1.5` under `0.##`; read as no fraction digits, the grid showed `2`.
+    expect(excelNumFmtToIntlOptions('0.##')).toEqual({
+      minimumFractionDigits: 0, maximumFractionDigits: 2, useGrouping: false,
+    });
+    expect(excelNumFmtToIntlOptions('#,##0.0##')).toEqual({
+      minimumFractionDigits: 1, maximumFractionDigits: 3, useGrouping: true,
+    });
+    expect(excelNumFmtToIntlOptions('0.0#%')).toEqual({
+      style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 2, useGrouping: false,
+    });
+    // Excel shows every digit up to the last `0`, so a `#` in front of it is required too.
+    expect(excelNumFmtToIntlOptions('0.#0')).toEqual({
+      minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false,
+    });
+    // More optional digits than Intl accepts cannot be expressed.
+    expect(excelNumFmtToIntlOptions(`0.${'#'.repeat(101)}`)).toBeNull();
   });
 
   it('should read the positive section of a multi-section format, without its padding and fill', () => {

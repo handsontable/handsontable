@@ -141,6 +141,78 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     [3, 3, 6, null, null, null, null, null],
   ];
 
+  it('should bring a numeric column of whole numbers and fractions back with one format', async() => {
+    // The export writes 1234 under `#,##0` and 1234.5 under `#,##0.###` (Excel keeps the decimal
+    // point of the second format for a whole number); the import reads both as the column's format.
+    const numericFormat = { minimumFractionDigits: 0, maximumFractionDigits: 3, useGrouping: true };
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    const hot = new Handsontable(container, {
+      licenseKey: TEST_LICENSE_KEY,
+      colHeaders: true,
+      rowHeaders: true,
+      exportFile: true,
+      importFile: true,
+      columns: [{ type: 'numeric', numericFormat: {} }],
+      data: [[1234], [2], [1234.5], [0.125]],
+    });
+
+    container.hot = hot;
+    containers.push(container);
+
+    const bytes = await exportBytes(hot);
+    const snapshot = await nativeAdapter.read(bytes, undefined, new DroppedFeatures());
+
+    expect(snapshot.sheets[0].rows.slice(1).map(row => row[1].numFmt))
+      .toEqual(['#,##0', '#,##0', '#,##0.###', '#,##0.###']);
+
+    const result = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes, {
+      colHeaders: 'firstRow', rowHeaders: true, apply: false,
+    });
+
+    expect(result.columns).toEqual([{ type: 'numeric', numericFormat }]);
+    expect(result.cellsMeta).toBeUndefined();
+    expect(result.data).toEqual([[1234], [2], [1234.5], [0.125]]);
+  });
+
+  it.each([
+    ['built-in', undefined],
+    ['ExcelJS', ExcelJS],
+  ])('should bring such a column back with one format when it holds empty cells and a text (%s engine)', async(
+    name, engine
+  ) => {
+    // An empty cell and a text carry the column's format in the file. They stopped the import from
+    // reading the two formats as one, so every whole number got a `cellsMeta` entry.
+    const numericFormat = { minimumFractionDigits: 0, maximumFractionDigits: 3, useGrouping: true };
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    const hot = new Handsontable(container, {
+      licenseKey: TEST_LICENSE_KEY,
+      colHeaders: true,
+      rowHeaders: true,
+      exportFile: true,
+      importFile: true,
+      columns: [{ type: 'numeric', numericFormat: {} }],
+      data: [[1234], [null], [1234.5], ['n/a'], [7]],
+    });
+
+    container.hot = hot;
+    containers.push(container);
+
+    const bytes = await exportBytes(hot, engine);
+    const result = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes, {
+      colHeaders: 'firstRow', rowHeaders: true, apply: false, engine,
+    });
+
+    expect(result.columns).toEqual([{ type: 'numeric', numericFormat }]);
+    expect(result.cellsMeta).toBeUndefined();
+    expect(result.data).toEqual([[1234], [null], [1234.5], ['n/a'], [7]]);
+  });
+
   it('should write the arrays, the errors and the names into the file (built-in engine)', async() => {
     const bytes = await exportBytes(createSourceGrid());
     const snapshot = await nativeAdapter.read(bytes, undefined, new DroppedFeatures());

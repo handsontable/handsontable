@@ -247,8 +247,12 @@ function createSourceLabelsResolver(): SourceLabelsResolver {
  * holds. A formula cell resolves the same format a value cell of that type would, so a column of
  * live formulas keeps the column's own format instead of reaching the file unformatted — which the
  * import then reads back as `text`.
+ *
+ * The one exception is a `numeric` format whose fraction digits are all optional: given the number
+ * a value cell holds, it resolves the format with no decimal part for a number that shows no
+ * fraction digit (`intlNumFormatToExcelNumFmt`). A formula cell passes no value.
  */
-function resolveMetaNumFmt(meta: CellMeta): string | null {
+function resolveMetaNumFmt(meta: CellMeta, value?: unknown): string | null {
   switch (meta.type) {
     case 'intl-datetime':
       return intlDateTimeFmtToExcelNumFmt(meta.dateTimeFormat, meta.locale);
@@ -259,7 +263,7 @@ function resolveMetaNumFmt(meta: CellMeta): string | null {
     case 'intl-time':
       return intlTimeFmtToExcelNumFmt(meta.timeFormat, meta.locale);
     case 'numeric':
-      return intlNumFormatToExcelNumFmt(meta.numericFormat, meta.locale);
+      return intlNumFormatToExcelNumFmt(meta.numericFormat, meta.locale, value);
     default:
       return null;
   }
@@ -1822,7 +1826,9 @@ class Xlsx extends BaseType {
     }
 
     if (meta.type === 'numeric') {
-      return { value: this.#getCellValue(cellValue, meta), formula: null, numFmt: resolveMetaNumFmt(meta) };
+      const value = this.#getCellValue(cellValue, meta);
+
+      return { value, formula: null, numFmt: resolveMetaNumFmt(meta, value) };
     }
 
     if (facts.computedValue !== null) {
