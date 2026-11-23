@@ -6,15 +6,15 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T07:24:25.874Z"
+    "at": "2026-11-23T10:33:55.200Z"
   },
   "steps": {
-    "open-editor": "expanded list box a row 1 1 item",
+    "open-editor": "expanded list box a row 1 3 items",
     "arrow-down-first": "menu item 1 of 3 alpha menu item group 1 of 3",
     "arrow-down-second": "alfa menu item group 2 of 3 al strong fa 2 of 3",
     "arrow-down-third": "alto menu item group 3 of 3 al strong to 3 of 3",
-    "type-narrow": "alfa menu item group 2 of 3 alf",
-    "arrow-down-narrowed": "",
+    "type-narrow": "alf a row 1 list box pop up expanded combo box 1 choice available alfa",
+    "arrow-down-narrowed": "menu item 1 of 1 alfa menu item group 1 of 1",
     "commit-choice": "a al column 1 row al al",
     "back-to-committed": "a alfa column 1 row alfa al"
   }

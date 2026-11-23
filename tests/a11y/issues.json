@@ -92,10 +92,10 @@
     },
     {
       "id": "voiceover-chromium-reads-list-not-field",
-      "title": "When the autocomplete or handsontable editor opens, VoiceOver with Chromium reads the list or grid that opens (`expanded list box A, row 1`) instead of the field that takes the focus, so it says neither the cell's text nor the combo box role",
+      "title": "When the autocomplete, dropdown or handsontable editor opens, VoiceOver with Chromium reads the list or grid that opens (`expanded list box A, row 1`) instead of the field that takes the focus, so it says neither the cell's text nor the combo box role; the field is expanded a moment after it takes the focus, and the reading varies between runs",
       "tracker": "DEV-2970",
       "match": [
-        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["autocomplete-editor", "handsontable-editor"], "where": ["^open-editor$"] }
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["autocomplete-editor", "dropdown-editor", "handsontable-editor"], "where": ["^open-editor$"] }
       ]
     },
     {

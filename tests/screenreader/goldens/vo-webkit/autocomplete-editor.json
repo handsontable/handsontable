@@ -6,15 +6,15 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T07:24:44.021Z"
+    "at": "2026-11-23T10:33:51.252Z"
   },
   "steps": {
     "open-editor": "expanded list a row 1 3 items",
     "arrow-down-first": "alpha selected 1 of 3",
     "arrow-down-second": "alfa selected 2 of 3",
     "arrow-down-third": "alto selected 3 of 3",
-    "type-narrow": "f",
-    "arrow-down-narrowed": "",
+    "type-narrow": "1 choice available alfa",
+    "arrow-down-narrowed": "alfa selected 1 of 1",
     "commit-choice": "a al",
     "back-to-committed": "a alfa"
   }

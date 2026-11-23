@@ -6,10 +6,10 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T07:30:08.685Z"
+    "at": "2026-11-23T10:38:58.266Z"
   },
   "steps": {
-    "open-editor": "al expanded list a row 1 3 items",
+    "open-editor": "expanded list a row 1 3 items",
     "arrow-down-second": "alpha selected 1 of 3",
     "arrow-down-third": "alfa selected 2 of 3",
     "commit-choice": "a al",
