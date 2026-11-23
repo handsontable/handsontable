@@ -245,7 +245,9 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
       return {
         removals: own.filter(mutation => mutation.focused && mutation.removed).length,
         writes: own.filter(mutation => mutation.focused && !mutation.removed).length,
-        others: own.filter(mutation => !mutation.focused).length,
+        // A removal of the role from an element that does not hold the focus: a rebuild nobody asked for. The first
+        // write of a new element has no removal before it, so a taller band is not counted.
+        others: own.filter(mutation => !mutation.focused && mutation.removed).length,
       };
     };
 
@@ -277,11 +279,20 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
       await expect.poll(() => grid.page.evaluate(() => document.activeElement?.textContent)).toBe('A200');
 
       // The cell that takes the focus gets a new accessibility object, so a reader reads it as a move, with
-      // its column and row, and not as a name that changed.
-      const { removals, writes } = rebuilds(await grid.takeRoleMutations());
+      // its column and row, and not as a name that changed. The element that held the focus before is recycled
+      // for another row and is not rebuilt.
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
+    });
 
-      expect(removals).toBe(1);
-      expect(writes).toBe(1);
+    test('the grid scrolls while the selection stays, and recycles the focused element for other rows', async() => {
+      await grid.goto();
+      await grid.loadSmallViewportSpreadsheet(200, 3, 120);
+      expect(await grid.selectCell(0, 0)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.scrollToRow(60);
+      await grid.scrollToRow(120);
+
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 0, writes: 0, others: 0 });
     });
 
     test('the focus moves to the next cell with an arrow key', async() => {

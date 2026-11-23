@@ -96,9 +96,7 @@ const CONTROLS_SELECTOR = 'input, textarea, select';
  * its ARIA attributes, which include its column (`aria-colindex`, and the reference to its column header).
  * Two reads that return the same string describe a cell the reader has nothing new to say about.
  *
- * The cell's row is not in it: a row is the parent's attribute, and a draw has already written the new one by
- * the time its cells are painted. A cell that moves to another row while showing the same thing is not read
- * again, which is the rare case.
+ * The cell's row is not in it: a row is the parent's attribute. `hasCellChangedSinceAnnounced()` keeps it apart.
  *
  * @param {HTMLElement} cell The cell.
  * @returns {string}
@@ -124,7 +122,23 @@ export function readCellAnnouncementSignature(cell: HTMLElement): string {
  * element, so one slot is enough, and a cell that takes the focus overwrites it. The cell is held weakly, so
  * a destroyed grid's DOM is not kept reachable by a record nobody clears.
  */
-let announcedCell: { cell: WeakRef<HTMLElement>; signature: string; colIndex: string | null } | null = null;
+let announcedCell: {
+  cell: WeakRef<HTMLElement>;
+  signature: string;
+  colIndex: string | null;
+  rowIndex: string | null;
+} | null = null;
+
+/**
+ * Reads the row an element sits in, as the row's `aria-rowindex`. The rows renderer writes it before the cells are
+ * painted, so a cell the grid recycled for another row already reads the new one.
+ *
+ * @param {HTMLElement} cell The cell or header.
+ * @returns {string | null}
+ */
+function readRowIndex(cell: HTMLElement): string | null {
+  return cell.parentElement?.getAttribute('aria-rowindex') ?? null;
+}
 
 /**
  * Records what a cell shows now as what the screen reader knows about it. Called when the cell takes the focus.
@@ -142,13 +156,14 @@ export function rememberAnnouncedCell(cell: HTMLElement, keepExisting = false): 
     cell: new WeakRef(cell),
     signature: readCellAnnouncementSignature(cell),
     colIndex: cell.getAttribute('aria-colindex'),
+    rowIndex: readRowIndex(cell),
   };
 }
 
 /**
  * Tells whether the focused cell shows something else than the screen reader knows about it, and records what
- * it shows now. A cell the slot does not hold, and an element recycled for another column since, only start
- * a new record: the first was never announced to compare with, the second is another cell, which the focus
+ * it shows now. A cell the slot does not hold, and an element recycled for another column or row since, only
+ * start a new record: the first was never announced to compare with, the second is another cell, which the focus
  * move that follows announces on its own.
  *
  * @param {HTMLElement} cell The focused cell, painted.
@@ -157,9 +172,11 @@ export function rememberAnnouncedCell(cell: HTMLElement, keepExisting = false): 
 export function hasCellChangedSinceAnnounced(cell: HTMLElement): boolean {
   const previous = announcedCell?.cell.deref() === cell ? announcedCell : null;
   const colIndex = cell.getAttribute('aria-colindex');
+  const rowIndex = readRowIndex(cell);
   const signature = readCellAnnouncementSignature(cell);
 
-  announcedCell = { cell: new WeakRef(cell), signature, colIndex };
+  announcedCell = { cell: new WeakRef(cell), signature, colIndex, rowIndex };
 
-  return previous !== null && previous.colIndex === colIndex && previous.signature !== signature;
+  return previous !== null && previous.colIndex === colIndex && previous.rowIndex === rowIndex &&
+    previous.signature !== signature;
 }

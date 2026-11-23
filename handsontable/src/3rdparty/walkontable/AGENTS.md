@@ -2155,9 +2155,9 @@ values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
   rebuilds it. The record is what the cell showed when it took the focus, not what it showed before this paint,
   because the browser can change the state before the draw (a checkbox flipped by Space or a click). Only the
   one focused element is read, so a draw pays one read. Three limits. An element the grid recycles for another
-  column is not the cell the user is on and is not rebuilt (the `aria-colindex` in the record). A cell that moves
-  to another row while showing the same thing is not detected: the row is the parent's attribute, written before
-  the cells paint. A renderer whose markup changes on every paint (a generated id, an animated bar) makes the
+  column or row is not the cell the user is on and is not rebuilt (the `aria-colindex` and the row's
+  `aria-rowindex` in the record): a jump to a row the grid renders only then, or a scroll with the selection
+  fixed, recycles the focused element, and the focus move that follows announces the real cell. A renderer whose markup changes on every paint (a generated id, an animated bar) makes the
   focused cell read as changed on every draw, so such a cell is read again each time.
 - **The offsets that position the cells change** (`#hasPositionOffsetChanged`): when the number of row headers
   or column headers changes, every painted cell is rebuilt once, so a reader that learned the old positions
@@ -2169,7 +2169,7 @@ NVDA or VoiceOver with Chromium, which were silent on these steps before DEV-410
 The readers' speech is not testable in Chromium: the specs pin the mechanism (a `MutationObserver` on `role`), and
 the `Screen reader nightly` lanes (`vo-webkit`, `nvda-firefox`) show whether the reader says it.
 
-Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `helpers/__tests__/a11y.unit.ts`,
+Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `test/unit/renderer/cellsAnnounce.unit.ts`, `helpers/__tests__/a11y.unit.ts`,
 `focusManager/__tests__/grid.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
 from the same attributes on a new and a recycled element, a redraw plus a vertical scroll write no

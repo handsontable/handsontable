@@ -192,4 +192,29 @@ describe('hasCellChangedSinceAnnounced', () => {
 
     expect(hasCellChangedSinceAnnounced(first)).toBe(false);
   });
+
+  it('does not report an element that was recycled for another row, the row the parent writes', () => {
+    const TR = document.createElement('tr');
+    const TD = createCell('A1');
+
+    TR.setAttribute('aria-rowindex', '2');
+    TR.append(TD);
+    rememberAnnouncedCell(TD);
+    TR.setAttribute('aria-rowindex', '200');
+    TD.innerHTML = 'A200';
+
+    expect(hasCellChangedSinceAnnounced(TD)).toBe(false);
+  });
+
+  it('reports a change of a cell that stays in its row', () => {
+    const TR = document.createElement('tr');
+    const TD = createCell('A1');
+
+    TR.setAttribute('aria-rowindex', '2');
+    TR.append(TD);
+    rememberAnnouncedCell(TD);
+    TD.innerHTML = 'changed';
+
+    expect(hasCellChangedSinceAnnounced(TD)).toBe(true);
+  });
 });
