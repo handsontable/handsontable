@@ -182,6 +182,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Ebene [level], [position] von [setSize], zugeklappt',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Formel: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'schreibgeschützt',
+  [C.CELL_DESCRIPTION_LINK]: 'Link',
+  [C.CELL_DESCRIPTION_MERGED]: 'verbunden bis Zeile [row] Spalte [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Spaltengruppe [label] aufgeklappt',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Spaltengruppe [label] zugeklappt',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortiert nach [label], aufsteigend',

@@ -183,6 +183,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Úroveň [level], [position] z [setSize], sbaleno',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Vzorec: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'jen pro čtení',
+  [C.CELL_DESCRIPTION_LINK]: 'odkaz',
+  [C.CELL_DESCRIPTION_MERGED]: 'sloučeno do řádku [row] sloupce [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Rozbalena skupina sloupců [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sbalena skupina sloupců [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Seřazeno podle [label], vzestupně',

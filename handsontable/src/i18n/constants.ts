@@ -200,6 +200,11 @@ export const ARMED_PICK_NAMESPACE = 'ArmedPick:';
 export const ARMED_PICK_STARTED = `${ARMED_PICK_NAMESPACE}started`;
 export const ARMED_PICK_CANCELED = `${ARMED_PICK_NAMESPACE}canceled`;
 
+export const CELL_DESCRIPTION_NAMESPACE = 'CellDescription:';
+export const CELL_DESCRIPTION_READ_ONLY = `${CELL_DESCRIPTION_NAMESPACE}readOnly`;
+export const CELL_DESCRIPTION_LINK = `${CELL_DESCRIPTION_NAMESPACE}link`;
+export const CELL_DESCRIPTION_MERGED = `${CELL_DESCRIPTION_NAMESPACE}merged`;
+
 export const FORMULAS_NAMESPACE = 'Formulas:';
 export const FORMULAS_CELL_DESCRIPTION = `${FORMULAS_NAMESPACE}cellDescription`;
 

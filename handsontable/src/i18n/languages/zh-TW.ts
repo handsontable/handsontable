@@ -182,6 +182,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: '第 [level] 層，第 [position] 項，共 [setSize] 項，已摺疊',
 
   [C.FORMULAS_CELL_DESCRIPTION]: '公式: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: '唯讀',
+  [C.CELL_DESCRIPTION_LINK]: '連結',
+  [C.CELL_DESCRIPTION_MERGED]: '合併至第 [row] 列第 [column] 欄',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '已展開欄群組 [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '已摺疊欄群組 [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已依 [label] 升序排序',

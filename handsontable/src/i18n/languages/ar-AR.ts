@@ -184,6 +184,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'المستوى [level]، [position] من [setSize]، مطوي',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'الصيغة: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'للقراءة فقط',
+  [C.CELL_DESCRIPTION_LINK]: 'رابط',
+  [C.CELL_DESCRIPTION_MERGED]: 'مدمجة حتى الصف [row] العمود [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع مجموعة الأعمدة [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'تم طي مجموعة الأعمدة [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'تم الفرز حسب [label]، تصاعديًا',

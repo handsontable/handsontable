@@ -186,6 +186,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Līmenis [level], [position] no [setSize], sakļauts',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'tikai lasāms',
+  [C.CELL_DESCRIPTION_LINK]: 'saite',
+  [C.CELL_DESCRIPTION_MERGED]: 'apvienota līdz rindai [row] kolonnai [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta kolonnu grupa [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta kolonnu grupa [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Kārtots pēc [label], augošā secībā',

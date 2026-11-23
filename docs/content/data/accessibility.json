@@ -171,7 +171,7 @@
     },
     {
       "id": "cell-states-not-announced",
-      "text": "Some screen readers do not announce a checkbox's state, a read-only cell, a link in a cell, a comment, or the span of a merged cell.",
+      "text": "Some screen readers do not announce a checkbox's state or a comment on a cell.",
       "criteria": ["1.3.1", "4.1.2"],
       "reportRef": null
     },

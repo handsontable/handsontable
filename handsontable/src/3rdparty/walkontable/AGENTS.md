@@ -2153,6 +2153,12 @@ test live together on `TableRenderer` (`getAriaColumnHeaderIdPrefix`, `ownsAriaC
 `hasColumnHeaders`); the prefix is draw-constant and both renderers hoist it out of their per-element
 loop, appending the column index per element.
 
+A cell may also point at a description element (`utils/cellDescription/AGENTS.md`): the cell painter appends a reference that starts
+with `CELL_DESCRIPTION_ID_PREFIX` after this one, once the renderer ran. `prepareCellAriaAttributes` keeps such a value
+(`isKeptDescribedBy()` in `render/ariaAttributes.ts`: the cell's own header reference, then only description references) instead of
+resetting it to the header, which cost two writes per described cell per paint. A value with any other reference, or the header of
+another column, is reset as before.
+
 Four things are load-bearing, and each was a bug first:
 
 - **No single overlay owns every column header.** The master renders a contiguous band and does **not**

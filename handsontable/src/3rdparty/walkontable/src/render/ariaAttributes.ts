@@ -1,3 +1,5 @@
+import { CELL_DESCRIPTION_ID_PREFIX } from '../../../../helpers/a11y';
+
 /**
  * The attributes the renderers write on a cell or header, by name, with the value the current draw
  * gives them. A name that is not a key is not kept.
@@ -60,6 +62,38 @@ export function syncAriaAttributes(element: HTMLElement, attributes: KeptAriaAtt
   for (let i = 0; i < names.length; i++) {
     setAttributeIfChanged(element, names[i], attributes[names[i]]);
   }
+}
+
+/**
+ * Tells whether a cell's `aria-describedby` already holds what this draw would leave there, so the draw does not
+ * reset it to the column header. It does when the value is the reference to the cell's own column header, followed
+ * by any number of references to cell description elements (`CELL_DESCRIPTION_ID_PREFIX`), which are written after
+ * the renderer by the cell painter. A value that holds any other reference, the header of another column
+ * (a recycled cell moved to another column) or a renderer's own, is not kept.
+ *
+ * @param {string|null} value The attribute's current value, `null` when the cell has none.
+ * @param {string} columnHeaderId The id of the cell's column header, empty when the cell has none.
+ * @returns {boolean}
+ */
+export function isKeptDescribedBy(value: string | null, columnHeaderId: string): boolean {
+  if (value === null || value === '') {
+    return false;
+  }
+
+  const tokens = value.split(' ');
+  const first = columnHeaderId === '' ? 0 : 1;
+
+  if (columnHeaderId !== '' && tokens[0] !== columnHeaderId) {
+    return false;
+  }
+
+  for (let i = first; i < tokens.length; i++) {
+    if (!tokens[i].startsWith(CELL_DESCRIPTION_ID_PREFIX)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**

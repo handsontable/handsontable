@@ -185,6 +185,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: '第 [level] 级，第 [position] 项，共 [setSize] 项，已折叠',
 
   [C.FORMULAS_CELL_DESCRIPTION]: '公式: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: '只读',
+  [C.CELL_DESCRIPTION_LINK]: '链接',
+  [C.CELL_DESCRIPTION_MERGED]: '合并至第 [row] 行第 [column] 列',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '已展开列组 [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '已折叠列组 [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已按 [label] 升序排序',

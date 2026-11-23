@@ -182,6 +182,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: '수준 [level], [setSize]개 중 [position]번째, 접힘',
 
   [C.FORMULAS_CELL_DESCRIPTION]: '수식: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: '읽기 전용',
+  [C.CELL_DESCRIPTION_LINK]: '링크',
+  [C.CELL_DESCRIPTION_MERGED]: '[row]행 [column]열까지 병합됨',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '[label] 열 그룹 펼침',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '[label] 열 그룹 접음',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] 기준 오름차순 정렬',

@@ -186,6 +186,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Nivo [level], [position] od [setSize], skupljeno',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'samo za čitanje',
+  [C.CELL_DESCRIPTION_LINK]: 'veza',
+  [C.CELL_DESCRIPTION_MERGED]: 'spojeno do reda [row] kolone [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Proširena grupa kolona [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Skupljena grupa kolona [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortirano po [label], rastuće',

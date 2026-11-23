@@ -188,6 +188,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Niveau [level], [position] van [setSize], samengevouwen',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Formule: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'alleen-lezen',
+  [C.CELL_DESCRIPTION_LINK]: 'link',
+  [C.CELL_DESCRIPTION_MERGED]: 'samengevoegd tot rij [row] kolom [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Kolomgroep [label] uitgevouwen',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Kolomgroep [label] samengevouwen',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Gesorteerd op [label], oplopend',

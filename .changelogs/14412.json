@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added an accessible description to read-only, link, and merged cells, so a screen reader says what the cell holds beyond its text.",
+  "type": "added",
+  "issueOrPR": 14412,
+  "breaking": false,
+  "framework": "none"
+}

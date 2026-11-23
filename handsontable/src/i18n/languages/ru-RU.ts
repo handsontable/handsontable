@@ -182,6 +182,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Уровень [level], [position] из [setSize], свёрнуто',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Формула: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'только для чтения',
+  [C.CELL_DESCRIPTION_LINK]: 'ссылка',
+  [C.CELL_DESCRIPTION_MERGED]: 'объединено до строки [row] столбца [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута группа столбцов [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута группа столбцов [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Сортировка по [label], по возрастанию',
