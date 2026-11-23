@@ -150,6 +150,10 @@ jobs:
           # RC release branches build in production mode to mimic the final
           # production deployment (GTM/HotJar injected, dev badge hidden).
           BUILD_MODE: ${{ steps.release-info.outputs.is_release == 'true' && 'production' || '' }}
+          # Authenticates the release-list request behind data/common.json
+          # (docs/src/lib/docs-versions.mjs). An RC build runs in production
+          # mode and fails when GitHub refuses it (DEV-4146).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLIC_CHAT_API_URL: ${{ secrets.PUBLIC_CHAT_API_URL }}
           # The executed examples get the internal test key, so their grids run
           # off handsontable.com without the lock screen; the shown code keeps
