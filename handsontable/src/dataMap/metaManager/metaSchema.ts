@@ -618,6 +618,9 @@ export default (): Record<string, unknown> => {
      * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
      * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
      * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.
+     * Headers and frozen rows and columns are drawn as separate tables, so a row or a cell can be drawn
+     * more than once: one copy of each row carries `role="row"` and lists the row's other cells in
+     * `aria-owns`, and every copy of a cell that another table draws on top gets `aria-hidden`.
      * It defaults to `true`. Set it to `false` only when you add your own ARIA markup. The option also
      * removes the `tabindex` the grid puts on cells, headers, and menu items, so browser focus no longer
      * moves onto them. The menu styles read `aria-expanded` too, so a menu item keeps its focus outline
