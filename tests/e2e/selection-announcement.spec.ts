@@ -181,6 +181,83 @@ test.describe('Selection announcements', () => {
     expect(await grid.announcements()).toEqual([]);
   });
 
+  test('a range the grid deselects before the delay ends is not announced', { tag: CROSS_BROWSER_TAG }, async({ page }) => {
+    await open();
+    await grid.cell(1, 1).click();
+
+    await page.keyboard.press('Shift+ArrowRight');
+    await grid.advance(BEFORE_DEBOUNCE_MS);
+    await grid.outside().click();
+    await grid.advance(SETTLE_MS);
+    expect(await grid.selected()).toEqual([]);
+    expect(await grid.announcements()).toEqual([]);
+
+    await grid.cell(2, 1).click();
+    await page.keyboard.press('Shift+ArrowRight');
+    await grid.advance(SETTLE_MS);
+    expect(await grid.announcements()).toEqual(['Selection from column B, row 3 to column C, row 3']);
+  });
+
+  test('a layer added with Ctrl/Cmd and then extended with Shift+Arrow announces the range, not another layer',
+    { tag: CROSS_BROWSER_TAG }, async({ page }) => {
+      await open();
+
+      await grid.drag(grid.cell(1, 1), grid.cell(2, 2));
+      await grid.advance(SETTLE_MS);
+      await grid.cell(3, 3).click({ modifiers: ['ControlOrMeta'] });
+      await grid.advance(SETTLE_MS);
+      expect((await grid.announcements()).slice(1)).toEqual(['Selection added: column D, row 4. 2 selections']);
+
+      await page.keyboard.press('Shift+ArrowRight');
+      await grid.advance(SETTLE_MS);
+      expect(await grid.selected()).toEqual([[1, 1, 2, 2], [3, 3, 3, 4]]);
+      expect((await grid.announcements()).slice(2)).toEqual(['Selection from column D, row 4 to column E, row 4']);
+    });
+
+  test('column headers selected in a grid with no rows announce the columns', { tag: CROSS_BROWSER_TAG }, async() => {
+    await open({ data: 'empty' });
+
+    await grid.columnHeader(0).click();
+    await grid.advance(SETTLE_MS);
+    await grid.columnHeader(2).click({ modifiers: ['Shift'] });
+    await grid.advance(SETTLE_MS);
+
+    expect((await grid.announcements()).at(-1)).toBe('Columns A to C selected');
+  });
+
+  test('a row header click on a nested row announces its level only', { tag: CROSS_BROWSER_TAG }, async() => {
+    await open({ plugin: 'nestedRows' });
+
+    await grid.rowHeader(2).click();
+    await grid.advance(SETTLE_MS);
+
+    const log = await grid.announcements();
+
+    expect(log).toEqual(['Level 2, 2 of 2']);
+    expect(log.filter(text => text.endsWith('selected'))).toEqual([]);
+  });
+
+  test('an announcement of another grid in the middle of a key sequence does not silence the range',
+    { tag: CROSS_BROWSER_TAG }, async({ page }) => {
+      await open({ companion: 'pagination' });
+      await grid.cell(1, 1).click();
+
+      await page.keyboard.press('Shift+ArrowDown');
+      await grid.advance(SETTLE_MS);
+      expect(await grid.announcements()).toEqual(['Selection from column B, row 2 to column B, row 3']);
+
+      await grid.cell(1, 1).click();
+      await page.keyboard.press('Shift+ArrowRight');
+      await grid.advance(BEFORE_DEBOUNCE_MS);
+      await grid.turnCompanionPage(2);
+      await page.keyboard.press('Shift+ArrowRight');
+      await grid.advance(SETTLE_MS);
+
+      await expect(grid.assertiveAnnouncer()).toHaveText('Page 2 of 3');
+      expect(await grid.selected()).toEqual([[1, 1, 1, 3]]);
+      expect((await grid.announcements()).at(-1)).toBe('Selection from column B, row 2 to column D, row 2');
+    });
+
   test('a selection made through the API announces nothing', async() => {
     await open();
 

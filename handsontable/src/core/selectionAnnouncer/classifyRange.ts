@@ -24,7 +24,9 @@ export interface GridSize {
 /**
  * Tells what a selected range covers: one cell, a block of cells, whole columns, whole rows, or every cell.
  * A range counts as whole columns when it spans every row, and as whole rows when it spans every column,
- * whether a header click, a shortcut or a drag selected it.
+ * whether a header click, a shortcut or a drag selected it. An axis with no items counts as spanned, so a
+ * header range on a grid with no rows reads as columns. A grid with no rows and no columns has no cell to name,
+ * so its range reads as one cell, which is not announced.
  *
  * @param {RangeEdges} edges The visual edges of the range.
  * @param {GridSize} gridSize The number of visual rows and columns of the grid.
@@ -38,12 +40,12 @@ export function classifyRange(edges: RangeEdges, gridSize: GridSize, isMultiple:
 
   const { rowCount, columnCount } = gridSize;
 
-  if (rowCount === 0 || columnCount === 0) {
-    return 'range';
+  if (rowCount === 0 && columnCount === 0) {
+    return 'cell';
   }
 
-  const spansEveryRow = edges.top === 0 && edges.bottom === rowCount - 1;
-  const spansEveryColumn = edges.start === 0 && edges.end === columnCount - 1;
+  const spansEveryRow = rowCount === 0 || (edges.top === 0 && edges.bottom === rowCount - 1);
+  const spansEveryColumn = columnCount === 0 || (edges.start === 0 && edges.end === columnCount - 1);
 
   if (spansEveryRow && spansEveryColumn) {
     return 'all';

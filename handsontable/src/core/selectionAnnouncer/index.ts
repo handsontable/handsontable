@@ -62,7 +62,14 @@ const ADDED_MANY_PHRASES: Partial<Record<SelectedRangeKind, string>> = {
  *
  * The keyboard announcement waits until the keys stop, and the mouse announcement waits for the mouse button
  * to be released, so one user action makes one announcement. When another feature announces for the same
- * action (a header click that also sorts), that announcement wins and the selection is not announced.
+ * action (a header click that also sorts), that announcement wins and the selection is not announced. The count
+ * of announcements is read before each selection change, so an announcement made for an earlier key press does
+ * not silence a later one.
+ *
+ * The delay is set and cleared with the `setTimeout()` and `clearTimeout()` of the realm the bundle runs in, not
+ * with `hot._registerTimeout()` and `hot.rootWindow.clearTimeout()`: for a grid built in an iframe from the parent
+ * page's bundle those two belong to different realms, so the clear never cancelled the timer, and every cancelled
+ * handle stayed in the instance's timeout list. `afterDestroy` cancels a pending timer.
  *
  * @param {Core} hot The Handsontable instance.
  */
@@ -70,17 +77,19 @@ export function installSelectionAnnouncer(hot: HotInstance) {
   const { selection } = hot;
   let isPending = false;
   let announcementCountAtStart = 0;
+  let announcedLayerCount = 0;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const cancel = () => {
     if (timeoutId !== null) {
-      hot.rootWindow.clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
       timeoutId = null;
     }
   };
   const reset = () => {
     cancel();
     isPending = false;
+    announcedLayerCount = 0;
   };
   const flush = () => {
     timeoutId = null;
@@ -91,11 +100,16 @@ export function installSelectionAnnouncer(hot: HotInstance) {
 
     isPending = false;
 
+    const layerCount = selection.getSelectedRange().size();
+    const isLayerAdded = layerCount > 1 && layerCount > announcedLayerCount;
+
+    announcedLayerCount = layerCount;
+
     if (getAnnouncementCount() !== announcementCountAtStart || !hot.getSettings().ariaTags) {
       return;
     }
 
-    const message = buildSelectionMessage(hot);
+    const message = buildSelectionMessage(hot, isLayerAdded);
 
     if (message !== '') {
       announce(message, 'polite');
@@ -110,24 +124,28 @@ export function installSelectionAnnouncer(hot: HotInstance) {
       return;
     }
 
-    timeoutId = hot._registerTimeout(flush, ANNOUNCEMENT_DELAY);
+    timeoutId = setTimeout(flush, ANNOUNCEMENT_DELAY);
   };
-  const markPending = () => {
-    if (!isPending) {
-      isPending = true;
-      announcementCountAtStart = getAnnouncementCount();
-    }
+  const isUserSource = () => {
+    const source = selection.getSelectionSource();
+
+    return source === 'keyboard' || source === 'mouse';
   };
 
+  selection.addLocalHook('beforeSetRangeEnd', () => {
+    if (isUserSource()) {
+      announcementCountAtStart = getAnnouncementCount();
+    }
+  });
   selection.addLocalHook('afterSetRangeEnd', () => {
     const source = selection.getSelectionSource();
 
     if (source === 'keyboard') {
-      markPending();
+      isPending = true;
       schedule();
 
     } else if (source === 'mouse') {
-      markPending();
+      isPending = true;
       cancel();
     }
   });
@@ -144,9 +162,11 @@ export function installSelectionAnnouncer(hot: HotInstance) {
  * Builds the announcement for the current selection, or an empty string when there is nothing to announce.
  *
  * @param {Core} hot The Handsontable instance.
+ * @param {boolean} isLayerAdded `true` when the user action added a selection layer, which the announcement
+ * names together with the number of layers. Extending a layer that is already there is described as a range.
  * @returns {string}
  */
-function buildSelectionMessage(hot: HotInstance): string {
+function buildSelectionMessage(hot: HotInstance, isLayerAdded: boolean): string {
   const { selection } = hot;
   const range = selection.getActiveSelectedRange();
 
@@ -154,16 +174,15 @@ function buildSelectionMessage(hot: HotInstance): string {
     return '';
   }
 
-  const layerCount = selection.getSelectedRange().size();
   const kind = classifyRange(getRangeEdges(range), {
     rowCount: hot.countRows(),
     columnCount: hot.countCols(),
   }, selection.isMultiple(range) === true);
 
-  if (layerCount > 1) {
+  if (isLayerAdded) {
     return translate(hot, SELECTION_ANNOUNCEMENT_ADDED, {
       selection: describeAddedRange(hot, range, kind),
-      count: layerCount,
+      count: selection.getSelectedRange().size(),
     });
   }
 

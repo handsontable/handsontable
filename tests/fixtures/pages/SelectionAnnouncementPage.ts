@@ -17,6 +17,9 @@ interface FixtureWindow {
     selectAll(): void;
     getPlugin(name: string): { menu?: { hotMenu?: { getSelectedRangeLast(): { highlight: { row: number } } | undefined } } };
   };
+  companion: {
+    getPlugin(name: 'pagination'): { setPage(page: number): void };
+  };
 }
 
 /**
@@ -25,7 +28,9 @@ interface FixtureWindow {
 type GotoOptions = {
   aria?: 'on' | 'off';
   headers?: 'default' | 'custom';
-  plugin?: 'none' | 'columnSorting' | 'contextMenu';
+  plugin?: 'none' | 'columnSorting' | 'contextMenu' | 'nestedRows';
+  data?: 'grid' | 'empty';
+  companion?: 'none' | 'pagination';
 };
 
 /**
@@ -58,13 +63,20 @@ export class SelectionAnnouncementPage {
     const aria = options.aria ?? 'on';
     const headers = options.headers ?? 'default';
     const plugin = options.plugin ?? 'none';
+    const data = options.data ?? 'grid';
+    const companion = options.companion ?? 'none';
 
     await this.page.goto(
       `/tests/fixtures/demo/selection-announcement.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&aria=${aria}&headers=${headers}&plugin=${plugin}`);
+      `&aria=${aria}&headers=${headers}&plugin=${plugin}&data=${data}&companion=${companion}`);
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
-    await expect(this.cell(0, 0)).toBeVisible();
+    await expect(data === 'empty' ? this.columnHeader(0) : this.cell(0, 0)).toBeVisible();
+
+    if (companion !== 'none') {
+      await expect(this.page.getByTestId('companion').locator('.ht_master td').first()).toBeVisible();
+    }
+
     await expect(this.politeAnnouncer()).toHaveCount(1);
   }
 
@@ -115,6 +127,24 @@ export class SelectionAnnouncementPage {
    */
   politeAnnouncer(): Locator {
     return this.page.locator('[role="status"][aria-live="polite"]');
+  }
+
+  /**
+   * The assertive live region, which announcements that do not wait for the screen reader go through.
+   *
+   * @returns {Locator}
+   */
+  assertiveAnnouncer(): Locator {
+    return this.page.locator('[role="status"][aria-live="assertive"]');
+  }
+
+  /**
+   * A focusable button outside the grid.
+   *
+   * @returns {Locator}
+   */
+  outside(): Locator {
+    return this.page.getByTestId('outside');
   }
 
   /**
@@ -237,6 +267,18 @@ export class SelectionAnnouncementPage {
         hot.selectCell(1, 1, 3, 3);
       }
     }, kind);
+  }
+
+  /**
+   * Moves the companion grid to another page through the Pagination API, which announces the page
+   * without any selection change in the grid under test.
+   *
+   * @param {number} pageNumber The page to show.
+   */
+  async turnCompanionPage(pageNumber: number): Promise<void> {
+    await this.page.evaluate((target) => {
+      (window as unknown as FixtureWindow).companion.getPlugin('pagination').setPage(target);
+    }, pageNumber);
   }
 
   /**

@@ -33,8 +33,18 @@ describe('classifyRange', () => {
     expect(classifyRange({ top: 0, start: 2, bottom: 8, end: 2 }, grid, true)).toBe('range');
   });
 
-  it('should classify every multiple range as a range when the grid has no cells', () => {
+  it('should classify a header range as columns when the grid has columns and no rows', () => {
+    expect(classifyRange({ top: 0, start: 0, bottom: 0, end: 2 }, { rowCount: 0, columnCount: 4 }, true))
+      .toBe('columns');
+  });
+
+  it('should classify a header range as rows when the grid has rows and no columns', () => {
+    expect(classifyRange({ top: 1, start: 0, bottom: 3, end: 0 }, { rowCount: 5, columnCount: 0 }, true))
+      .toBe('rows');
+  });
+
+  it('should classify a range as a cell, which is not announced, when the grid has no rows and no columns', () => {
     expect(classifyRange({ top: 0, start: 0, bottom: 0, end: 0 }, { rowCount: 0, columnCount: 0 }, true))
-      .toBe('range');
+      .toBe('cell');
   });
 });
