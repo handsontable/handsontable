@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "id": "dropdown-editor-vo-none1",
+  "surface": "TEMPORARY EXPERIMENT, removed before merge: the dropdown-editor steps with ?voExp=none (run 1).",
+  "variantOf": "dropdown-editor",
+  "query": "voExp=none"
+}

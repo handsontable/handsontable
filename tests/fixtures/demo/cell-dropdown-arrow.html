@@ -263,6 +263,39 @@
       },
       licenseKey: window.htTestLicenseKey,
     });
+
+    // TEMPORARY EXPERIMENT (removed before merge): `?voExp=` patches the list editors at runtime to find
+    // what makes VoiceOver read the field, not the list, when an editor opens.
+    // `fill`: fill an array list in the task the field takes the focus (after the opening text is recorded).
+    // `unnamed`: leave the popup without a name. `both`: the two together. `none`: as shipped.
+    const voExp = ({ none: 'none', fill: 'fill', unnamed: 'unnamed', both: 'both' })[htParams.get('voExp') ?? 'none'];
+    if (voExp === undefined) {
+      throw new Error('Unknown ?voExp= value: ' + JSON.stringify(htParams.get('voExp')));
+    }
+    if (voExp !== 'none') {
+      const { AutocompleteEditor, HandsontableEditor } = Handsontable.editors;
+      const patchBeginEditing = (EditorClass) => {
+        const original = EditorClass.prototype.beginEditing;
+
+        EditorClass.prototype.beginEditing = function(...args) {
+          original.apply(this, args);
+
+          if (this.constructor !== EditorClass && EditorClass === HandsontableEditor) {
+            return;
+          }
+          if ((voExp === 'fill' || voExp === 'both') && this instanceof AutocompleteEditor && this.isOpened()
+              && Array.isArray(this.cellProperties.source)) {
+            this.queryChoices(this.TEXTAREA.value);
+          }
+          if ((voExp === 'unnamed' || voExp === 'both') && this.htEditor) {
+            this.htEditor.rootElement.removeAttribute('aria-label');
+          }
+        };
+      };
+
+      patchBeginEditing(AutocompleteEditor);
+      patchBeginEditing(HandsontableEditor);
+    }
   </script>
 </body>
 </html>

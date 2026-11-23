@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "id": "handsontable-editor-vo-none1",
+  "surface": "TEMPORARY EXPERIMENT, removed before merge: the handsontable-editor steps with ?voExp=none (run 1).",
+  "variantOf": "handsontable-editor",
+  "query": "voExp=none"
+}
