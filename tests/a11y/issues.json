@@ -2,7 +2,7 @@
   "schema": 1,
   "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) or an optional notDefect (the class that says why its findings are not a defect, never beside a tracker), and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triage lists every sampled finding shape (findingShape()) left in needs-triage, each with why it is neither a known cause nor the reader's own behavior yet; its length is the triage limit, exact: a shape leaves the list when it is sorted into a cluster, and joins it only visibly, with its reason, in the change that adds it.",
   "triage": [
-    { "shape": "reader|vo-webkit|token-missing|||editable-headers|f2-open-field", "reason": "VoiceOver with WebKit says nothing when F2 opens the header name field, in the run that recorded the page (#14348) and in the 2026-11-23 audit; no run of a plain named text field in a column header has told the reader's behavior from the grid's yet" },
+    { "shape": "reader|vo-webkit|token-missing|||editable-headers|f2-open-field", "reason": "VoiceOver with WebKit says nothing when F2 opens the header name field, in the run that recorded the page (#14348), in the 2026-11-23 audit and in the recording run after it; no run of a plain named text field in a column header has told the reader's behavior from the grid's yet" },
     { "shape": "reader|vo-webkit|token-missing|||editable-headers|f2-open-again", "reason": "VoiceOver with WebKit says nothing when F2 opens the header name field again, as on its first open: the same open question as f2-open-field" },
     { "shape": "reader|nvda-chromium|golden-differs|||grid-core|sort-ascending", "reason": "The golden predates #14296, which announces a sort: the reader now reads the new order, so the golden is recorded again and the shape leaves with the next audit after that." },
     { "shape": "reader|nvda-chromium|golden-differs|||grid-core|sort-descending", "reason": "The golden predates #14296, which announces a sort: the reader now reads the new order, so the golden is recorded again and the shape leaves with the next audit after that." },
@@ -330,12 +330,13 @@
     },
     {
       "id": "voiceover-row-level-replaces-cell",
-      "title": "On VoiceOver the nested rows level message (`Level 1, 1 of 38`) replaces the cell's own announcement when the focus reaches another row, so the cell's value is not read: with WebKit on every such move, with Chromium on the move into a frozen row; NVDA reads both",
+      "title": "On VoiceOver the nested rows level message (`Level 1, 1 of 38`) replaces the cell's own announcement when the focus reaches another row, so the cell's value is not read: with WebKit on the nested rows page in every run and on the complex demo in one run of two (the audit of 2026-11-23 heard the message alone, the recording run after it the cell and then the message), with Chromium on the move into a frozen row; NVDA reads both",
       "tracker": "DEV-4152",
       "match": [
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row|up-to-frozen-row)$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] },
-        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^up-to-frozen-row$"] }
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^up-to-frozen-row$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["complex-demo"], "where": ["^(up-past-hidden-row|up-to-frozen-row)$"] }
       ]
     },
     {
@@ -348,12 +349,13 @@
       ]
     },
     {
-      "id": "voiceover-webkit-in-place-change-silent",
-      "title": "VoiceOver with WebKit says nothing when the focused cell changes in place: a checkbox or the check all box toggled, a Filter by value item unchecked, a pending value that arrives. The cell keeps its accessibility object now that its attributes are written only when they change, and VoiceOver reads no change of a cell it is on",
+      "id": "cell-change-in-place-not-read",
+      "title": "A screen reader does not read a focused cell that changes in place: VoiceOver with WebKit says nothing for a checkbox or the check all box toggled, a Filter by value item unchecked, a pending value that arrives, and the jump to the last row of a long grid, which draws the last cell where the focus already is; NVDA with Firefox reads only the new value there, without its row. The cell keeps its accessibility object now that its attributes are written only when they change, so the readers take the change for an update of the cell they are on, not a move",
       "tracker": "DEV-4151",
       "match": [
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "checkbox-header", "filters-by-value"], "where": ["^(space-check|space-uncheck|space-check-all|space-uncheck-all)$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^value-resolves$"] }
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^value-resolves$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
       ]
     },
     {
@@ -487,6 +489,7 @@
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["dialog"], "where": ["^dialog-opens$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["golden-differs"], "pages": ["empty-data"], "where": ["^tab-last-header$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["freeze-bar"], "where": ["^f6-to-first-bar$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["editable-headers", "sheets-bar"], "where": ["^(arrow-up-to-header|tab-add-sheet)$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["time-editor", "datetime-editor"], "where": ["^open-editor$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["time-editor", "datetime-editor"], "where": ["^back-to-committed$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-checkable", "formula-function-help", "formula-suggestions", "read-only", "shared-demo"], "where": ["^(open-menu|open-editor|arrow-right-read-only|arrow-right-past-hidden)$"] },
@@ -496,6 +499,15 @@
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["complex-demo"], "where": ["^down-past-hidden-row$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["formula-builder"], "where": ["^tab-address-box$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing", "golden-differs"], "pages": ["license-bar"], "where": ["^(tab-to-renew|read-notice)$"] }
+      ]
+    },
+    {
+      "id": "reader-run-wrong-start",
+      "title": "A screen reader run whose steps start from another cell than the setup selects, so each step reads the cell beside the one the scenario means, or nothing, while another run of the same steps reads them all: NVDA with Firefox on the row selection page began on the Task column instead of Done in the audit of 2026-11-23, and the recording run after it read every step from Done",
+      "notDefect": "reader-runner-state",
+      "match": [
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["row-selection"], "where": ["^(arrow-up-unchecked|space-select-row|space-select-all|space-clear-all|arrow-down-cleared|arrow-down-cleared-next)$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["row-selection"], "where": ["^(arrow-up-unchecked|arrow-up-to-header|space-select-row|space-select-all|space-clear-all|arrow-down-cleared|arrow-down-cleared-next)$"] }
       ]
     },
     {
@@ -524,7 +536,7 @@
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["filters-by-condition"], "where": ["^type-value$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["formula-builder"], "where": ["^erase-to-function$"] },
         { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["formula-builder"], "where": ["^type-function-prefix$"] },
-        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["sheets-bar"], "where": ["^(type-name|enter-rename)$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["sheets-bar", "editable-headers"], "where": ["^(type-name|enter-rename)$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["datetime-editor"], "where": ["^open-editor$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["nested-rows", "row-selection-corner"], "where": ["^(expand-parent|space-select-row)$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["context-menu-checkable"], "where": ["^up-to-read-only-comment$"] },
