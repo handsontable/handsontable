@@ -45,13 +45,15 @@ import { pageLinesOf } from '../lib/a11y-check-run.mjs';
 import {
   EVIDENCE_CHECKS, PAGES_FILE, auditLedgerSectionOf, buildEvidenceCheckRun, checksForRun, ledgerSectionOf, renderEvidenceSummary, validateEvidence,
 } from '../lib/a11y-evidence.mjs';
-import { LEDGER_URL, ledgerIndex, pagesTouched, prLedgerOf } from '../lib/a11y-pr-ledger.mjs';
+import { LEDGER_URL, ledgerIndex, pagesTouched, prLedgerOf, sharedSourceFolders } from '../lib/a11y-pr-ledger.mjs';
 import { siteChecks, siteOf, siteOutputDir } from '../lib/a11y-site-checks.mjs';
 import { VERDICT_RULE } from '../lib/a11y-verdict.mjs';
 import { auditLedgerInput, verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The files API lists at most 3,000 files of a pull request, in pages of 100.
+const FILES_PAGES = 30;
 const env = process.env;
 // A site's checks read like the product's, from a registry, a folder and a page list of their own.
 const site = env.HOT_A11Y_SITE ? siteOf(env.HOT_A11Y_SITE) : null;
@@ -213,15 +215,12 @@ async function readPrLedger() {
   }
 
   const files = await changedFiles();
-  let touched = null;
+  const [{ A11Y_PAGES }, { PLUGIN_COVERAGE, EDITOR_COVERAGE }] = await Promise.all([import('../a11y/pages.mjs'), import('../a11y/coverage.mjs')]);
+  const touched = files ? pagesTouched(files, {
+    pages: A11Y_PAGES, plugins: PLUGIN_COVERAGE, editors: EDITOR_COVERAGE, shared: sharedSourceFolders(path.join(TESTS_ROOT, '../handsontable/src')),
+  }) : null;
 
-  if (files) {
-    const [{ A11Y_PAGES }, { PLUGIN_COVERAGE, EDITOR_COVERAGE }] = await Promise.all([import('../a11y/pages.mjs'), import('../a11y/coverage.mjs')]);
-
-    touched = pagesTouched(files, { pages: A11Y_PAGES, plugins: PLUGIN_COVERAGE, editors: EDITOR_COVERAGE });
-  }
-
-  return prLedgerOf({ index, touched, source: SOURCE });
+  return prLedgerOf({ index, touched, catalog: new Set(A11Y_PAGES.map(page => page.id)), source: SOURCE });
 }
 
 /**
@@ -242,7 +241,7 @@ async function changedFiles() {
 
   try {
     // The API lists at most 3,000 files, 100 a page.
-    for (let page = 1; page <= 30; page += 1) {
+    for (let page = 1; page <= FILES_PAGES; page += 1) {
       const batch = await fetchJson(`${env.GITHUB_API_URL || 'https://api.github.com'}/repos/${env.GITHUB_REPOSITORY}/pulls/${env.A11Y_PR_NUMBER}/files?per_page=100&page=${page}`,
         { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' });
 
@@ -253,6 +252,12 @@ async function changedFiles() {
     }
   } catch (error) {
     process.stderr.write(`a11y-evidence-report: the pull request's files were not read: ${error instanceof Error ? error.message : String(error)}\n`);
+
+    return null;
+  }
+  // At the API's limit the list may be cut, and a file left out would mark its page as unchanged: read none.
+  if (files.length >= FILES_PAGES * 100) {
+    process.stderr.write(`a11y-evidence-report: the pull request lists ${files.length} files, the API's limit, so the list may be cut; no page is marked as unchanged.\n`);
 
     return null;
   }

@@ -1505,19 +1505,30 @@ left no document gets a red tooling check run instead of none.
   summary list the regressions and new findings, so a fork's pull request, which posts no check run,
   still sees them. Two limits, stated in the report: the ledger is as old as the latest audit, so a
   defect merged to develop since then reads as new on the next pull request; and a row is keyed by the
-  element's selector, so a renamed class makes a known finding read as new. A new finding on a page
-  whose sources the pull request does not touch (`pagesTouched()`: the page's fixture and the plugin and
-  editor folders `a11y/coverage.mjs` lists it under; any other `handsontable/src/` file, `tests/a11y/`
-  or `tests/lib/` touches every page) is marked *on a page you did not change* and counts as a warning
-  at most. That is a hint, not a scope: the run measures every page. A ledger that does not load leaves
-  every finding counted, with a note, never a green run. `ledgerKey()` lives in `tests/lib` because the
-  ledger's own module reaches `tests/a11y` and the verdict jobs check out `tests/lib` alone, and
-  `a11y-evidence.mjs` and `a11y-check-run.mjs` take the classifier as an input (`prLedgerOf()`, and
-  `auditLedgerOf()` on an audit) for the same reason: they are loaded by those jobs too, and
-  `a11y-pr-ledger.mjs` reaches the site constants through `a11y-issues.mjs`.
+  element's selector, so a renamed class makes a known finding read as new. A new finding on a catalog
+  page whose sources the pull request does not touch is marked *on a page you did not change* and counts
+  as a warning at most. A page's sources (`pagesTouched()`) are its fixture and the plugin and editor
+  folders `a11y/coverage.mjs` lists it under. **Every doubt goes toward counting**, because the mark
+  softens a verdict: every page is touched by any other `handsontable/src/` file, by a plugin or editor
+  folder with no `pages` there (no entry, `none` or `gap`), by one another folder of its kind imports
+  (`sharedSourceFolders()` reads that from the source tree: `baseEditor`, `textEditor`, `dropdownMenu`
+  under `filters`), by the checks' own code (`tests/a11y/`, `tests/lib/`, `tests/reporters/`,
+  `tests/support/`, the Playwright configs, `tests/package.json`) and by any fixture file that is not a
+  page's `.html`. A regression is never marked: a resolved row is the audit's own evidence that the
+  finding was gone. A page outside the catalog (the pointer check's drag pages, the keyboard walker's
+  shortcut page) is never marked, since no map knows its sources, and neither is anything when the
+  changed files were not read (an API refusal, or a list at the API's 3,000-file limit). The mark is a
+  hint, not a scope: the run measures every page. A ledger that does not load leaves every finding
+  counted, with a note, never a green run. `ledgerKey()` is written in `tests/lib` rather than imported
+  from `.github/scripts/lib/a11y-ledger.mjs`, so `tests/` does not depend on `.github/scripts/`.
+  `a11y-pr-ledger.mjs` reaches `tests/a11y` through `a11y-issues.mjs`, and the verdict and input-guard
+  jobs load `a11y-evidence.mjs` from a sparse checkout of `tests/lib` and `tests/scripts`, so
+  `a11y-evidence.mjs` and `a11y-check-run.mjs` must never import it: they take the classifier as an input
+  (`prLedgerOf()`, and `auditLedgerOf()` on an audit), which the report scripts build.
   `.github/scripts/__tests__/a11y-pr-ledger.test.mjs` holds `ledgerKey()` to the ledger's `findingKey()` for
   every row source, through the collector and on a frozen sample of a real audit's rows
-  (`fixtures/a11y-audit-keys.json`), and `ledgerMeasured()` to `nightMeasured()`. Gating on a pull request waits for two clean weeks of report-only runs.
+  (`fixtures/a11y-audit-keys.json`), and `ledgerMeasured()` to `nightMeasured()`. Gating on a pull
+  request waits for two clean weeks of report-only runs.
   Locally: `A11Y_LEDGER_FILE=<saved a11y.json> A11Y_CHANGED_FILES=<paths file>
   node scripts/a11y-evidence-report.mjs --dry-run`.
 
