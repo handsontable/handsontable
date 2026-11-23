@@ -27,7 +27,7 @@ describe('Dialog keyboard shortcut', () => {
   }
 
   describe('"Shift" + "Tab"', () => {
-    it('should move the focus through the dialog component (no focusable elements inside)', async() => {
+    it('should keep the focus inside the dialog component (no focusable elements inside)', async() => {
       const { topInput, bottomInput } = createTestInputs();
 
       handsontable({
@@ -53,10 +53,16 @@ describe('Dialog keyboard shortcut', () => {
       await keyDownUp(['shift', 'tab']);
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(topInput[0]);
+      expect(document.activeElement).toBe(getDialogContainerElement());
+
+      await keyDownUp(['shift', 'tab']);
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(getDialogContainerElement());
+      expect(document.activeElement).not.toBe(topInput[0]);
     });
 
-    it('should move the focus through the dialog component (focusable elements inside)', async() => {
+    it('should keep the focus inside the dialog component (focusable elements inside)', async() => {
       const { topInput, bottomInput } = createTestInputs();
       const content = `
         <div>
@@ -99,10 +105,11 @@ describe('Dialog keyboard shortcut', () => {
       await keyDownUp(['shift', 'tab']);
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(topInput[0]);
+      expect(document.activeElement).toBe(getDialogContentContainerElement().querySelector('input'));
+      expect(document.activeElement).not.toBe(topInput[0]);
     });
 
-    it('should continue moving the focus starting from the clicked element', async() => {
+    it('should continue moving the focus starting from the clicked element and keep it inside the dialog', async() => {
       const { topInput } = createTestInputs();
       const content = `
         <div>
@@ -131,10 +138,11 @@ describe('Dialog keyboard shortcut', () => {
       await keyDownUp(['shift', 'tab']);
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(topInput[0]);
+      expect(document.activeElement).toBe(getDialogContentContainerElement().querySelector('input'));
+      expect(document.activeElement).not.toBe(topInput[0]);
     });
 
-    it('should move the focus through the `confirm` modal type (no buttons)', async() => {
+    it('should keep the focus inside the `confirm` modal type (no buttons)', async() => {
       const { topInput, bottomInput } = createTestInputs();
 
       handsontable({
@@ -163,10 +171,11 @@ describe('Dialog keyboard shortcut', () => {
       await keyDownUp(['shift', 'tab']);
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(topInput[0]);
+      expect(document.activeElement).toBe(getDialogContainerElement());
+      expect(document.activeElement).not.toBe(topInput[0]);
     });
 
-    it('should move the focus through the `confirm` modal type (with buttons)', async() => {
+    it('should keep the focus inside the `confirm` modal type (with buttons)', async() => {
       const { topInput, bottomInput } = createTestInputs();
 
       handsontable({
@@ -210,7 +219,8 @@ describe('Dialog keyboard shortcut', () => {
       await keyDownUp(['shift', 'tab']);
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(topInput[0]);
+      expect(document.activeElement).toBe(getDialogSecondaryButtonElement());
+      expect(document.activeElement).not.toBe(topInput[0]);
     });
   });
 });

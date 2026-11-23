@@ -3,7 +3,12 @@ import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
-import { isHTMLElement, isDocumentFragment, getDeepActiveElement } from '../../helpers/dom/element';
+import {
+  isHTMLElement,
+  isDocumentFragment,
+  getDeepActiveElement,
+  getShadowHostChain,
+} from '../../helpers/dom/element';
 import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
 import { isRootInstance } from '../../utils/rootInstance';
@@ -12,6 +17,7 @@ import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
 import { fitSelectionToGrid } from './selectionFit';
 import { isSameDialogDescription } from './description';
+import { getTabStops, resolveWrapTarget } from './focusCycle';
 import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'dialog';
@@ -748,11 +754,37 @@ export class Dialog extends BasePlugin {
       group: SHORTCUTS_GROUP,
     });
 
+    // An open modal keeps Tab and Shift+Tab inside it (WCAG 2.4.3). Only the presses that would leave
+    // the dialog are taken over: from the last tab stop to the first, from the first to the last, and
+    // from a non-focusable spot (the dialog itself, a clicked title) to the end the key points at. Every
+    // other press stays native, which is why the shortcut keeps `preventDefault: false`, and the hooks
+    // still run after the move. A press made while the focus is outside the dialog (a page input the
+    // user clicked) is left alone, so containment holds only while the dialog holds the keyboard.
     pluginContext.addShortcut({
       keys: [['Shift', 'Tab'], ['Tab']],
       preventDefault: false,
       callback: (event: KeyboardEvent) => {
+        const container = this.#ui!.getContainer();
+        const focused = this.#getFocusWithin(container);
+        const startedInside = focused !== null;
+
+        // A focus inside a shadow tree the content hosts resolves to its host, which says nothing about
+        // where the press goes inside the component, so that press stays native and only the safety net
+        // below applies.
+        if (startedInside && focused === getDeepActiveElement(this.hot.rootDocument)) {
+          const target = resolveWrapTarget(container, focused, event.shiftKey);
+
+          if (target !== null) {
+            event.preventDefault();
+            target.focus();
+          }
+        }
+
         this.hot._registerTimeout(() => {
+          if (startedInside) {
+            this.#keepFocusInside(event.shiftKey);
+          }
+
           if (event.shiftKey) {
             this.hot.runHooks('dialogFocusPreviousElement');
           } else {
@@ -762,6 +794,53 @@ export class Dialog extends BasePlugin {
       },
       group: SHORTCUTS_GROUP,
     });
+  }
+
+  /**
+   * Returns the focused element as the dialog's container sees it, or `null` when the focus is outside
+   * the dialog. The deepest focused element can sit inside a shadow tree that user `content` only hosts
+   * (a web component), which `Node.contains()` cannot see into, so the shadow hosts are tried too.
+   *
+   * @param {HTMLElement} container The dialog's container.
+   * @returns {Element|null}
+   */
+  #getFocusWithin(container: HTMLElement): Element | null {
+    const activeElement = getDeepActiveElement(this.hot.rootDocument);
+
+    if (activeElement === null) {
+      return null;
+    }
+
+    if (container.contains(activeElement)) {
+      return activeElement;
+    }
+
+    return getShadowHostChain(activeElement).find(host => container.contains(host)) ?? null;
+  }
+
+  /**
+   * Puts the focus back inside a visible dialog after a native Tab move took it out, on the first tab
+   * stop (Tab) or the last one (Shift+Tab), or on the dialog itself when it has none. Covers a browser
+   * that skips a tab stop the dialog counts, as Safari skips buttons by default, so the last stop it
+   * visits is not the last one in the dialog.
+   *
+   * @param {boolean} backwards `true` for Shift+Tab.
+   */
+  #keepFocusInside(backwards: boolean) {
+    if (!this.#isVisible || this.#ui === null) {
+      return;
+    }
+
+    const container = this.#ui.getContainer();
+
+    if (this.#getFocusWithin(container) !== null) {
+      return;
+    }
+
+    const stops = getTabStops(container);
+    const target = stops.length === 0 ? container : stops[backwards ? stops.length - 1 : 0];
+
+    target.focus();
   }
 
   /**

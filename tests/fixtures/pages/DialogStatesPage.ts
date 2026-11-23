@@ -72,6 +72,7 @@ export class DialogStatesPage {
   readonly dialog: Locator;
   readonly inputBefore: Locator;
   readonly inputAfter: Locator;
+  readonly title: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -80,6 +81,7 @@ export class DialogStatesPage {
     this.dialog = page.locator('.ht-dialog');
     this.inputBefore = page.getByTestId('input-before');
     this.inputAfter = page.getByTestId('input-after');
+    this.title = this.dialog.locator('.ht-dialog__title');
   }
 
   /**
@@ -150,6 +152,58 @@ export class DialogStatesPage {
     await this.page.evaluate(() => (window as unknown as { hot: { getPlugin(name: string): { show(): void } } })
       .hot.getPlugin('dialog').show());
     await expect(this.dialog).toHaveClass(/\bht-dialog--show\b/);
+  }
+
+  /**
+   * Shows a confirm dialog through `showConfirm()`, whose Cancel and OK buttons sit in that order.
+   */
+  async showConfirm(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      hot: { getPlugin(name: string): { showConfirm(message: string): void } };
+    }).hot.getPlugin('dialog').showConfirm('Confirm'));
+    await expect(this.dialog).toHaveClass(/\bht-dialog--show\b/);
+  }
+
+  /**
+   * Replaces the shown dialog with one whose content holds only the given controls, in that order,
+   * each carrying its `data-testid`.
+   *
+   * @param {Array<{tag: 'input' | 'button', testId: string}>} controls The controls to render.
+   */
+  async showControls(controls: { tag: 'input' | 'button'; testId: string }[]): Promise<void> {
+    await this.page.evaluate((list) => {
+      const content = document.createElement('div');
+
+      list.forEach(({ tag, testId }) => {
+        const control = document.createElement(tag);
+
+        control.setAttribute('data-testid', testId);
+
+        if (tag === 'button') {
+          control.textContent = testId;
+        }
+
+        content.appendChild(control);
+      });
+
+      (window as unknown as { hot: { getPlugin(name: string): { show(options: object): void } } })
+        .hot.getPlugin('dialog').show({ content });
+    }, controls);
+    await expect(this.dialog).toHaveClass(/\bht-dialog--show\b/);
+  }
+
+  /**
+   * Whether the focused element sits inside the dialog, read after two animation frames so a focus move
+   * queued by the last key press has landed.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async settledFocusIsInsideDialog(): Promise<boolean> {
+    return this.page.evaluate(async() => {
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+      return document.querySelector('.ht-dialog')!.contains(document.activeElement);
+    });
   }
 
   /**

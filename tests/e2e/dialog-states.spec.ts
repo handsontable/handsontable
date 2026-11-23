@@ -115,7 +115,8 @@ test.describe('dialog states', { tag: THEMES_TAG }, () => {
     expect(cancelBox!.x + cancelBox!.width).toBeLessThanOrEqual(okBox!.x);
     await expectCoveringTheRoot(dialogPage);
 
-    // The page's own input, the two buttons, the page's other input; then back onto OK.
+    // The page's own input, the two buttons; Tab from OK wraps to Cancel and Shift+Tab back to OK, since
+    // the open modal keeps the focus inside it.
     await page.keyboard.press('Tab');
     await expect(dialogPage.inputBefore).toBeFocused();
     await page.keyboard.press('Tab');
@@ -123,7 +124,7 @@ test.describe('dialog states', { tag: THEMES_TAG }, () => {
     await page.keyboard.press('Tab');
     await expect(ok).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(dialogPage.inputAfter).toBeFocused();
+    await expect(cancel).toBeFocused();
     await page.keyboard.press('Shift+Tab');
     await expect(ok).toBeFocused();
 
@@ -178,7 +179,7 @@ test.describe('dialog states', { tag: THEMES_TAG }, () => {
     expect((await dialogPage.geometry()).borderColor).toBe(resting.borderColor);
   });
 
-  test('Tab and Shift+Tab move around a dialog that holds inputs, and its afterDialogFocus listener takes the '
+  test('Tab and Shift+Tab move inside a dialog that holds inputs, and its afterDialogFocus listener takes the '
     + 'focus to "Input 1"', async({ page, theme, bundle }) => {
     const dialogPage = new DialogStatesPage(page, theme, bundle);
     const input1 = dialogPage.dialogControl('dialog-input-1');
@@ -197,14 +198,13 @@ test.describe('dialog states', { tag: THEMES_TAG }, () => {
 
     await page.keyboard.press('Shift+Tab');
     await expect(dialogPage.button('Close modal')).toBeFocused();
+    // The open modal keeps the focus inside it: Shift+Tab from its first stop wraps to its last one.
     await page.keyboard.press('Shift+Tab');
-    await expect(dialogPage.inputBefore).toBeFocused();
-    await page.keyboard.press('Shift+Tab');
-    await expect.poll(() => dialogPage.focusIsOnBody()).toBe(true);
+    await expect(dialogPage.dialogControl('dialog-input-2')).toBeFocused();
 
-    // Wrapping around the page from its end, the dialog is entered from below and the listener
-    // still lands on "Input 1", not on the last control.
-    await page.keyboard.press('Shift+Tab');
+    // From the page's input after the grid, the dialog is entered from below and the listener still
+    // lands on "Input 1", not on the last control.
+    await dialogPage.inputAfter.click();
     await expect(dialogPage.inputAfter).toBeFocused();
     await page.keyboard.press('Shift+Tab');
     await expect(input1).toBeFocused();

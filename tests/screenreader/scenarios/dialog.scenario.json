@@ -24,7 +24,7 @@
       "id": "tab-past-ok",
       "action": {"press": "Tab"},
       "expect": [["cancel"]],
-      "note": "A modal dialog keeps Tab inside it, back to its first button. Finding: Tab walks out of the dialog to the `Input 2` field behind it (known: `dialogs-leak-tab` in the findings ledger)."
+      "note": "A modal dialog keeps Tab inside it, back to its first button."
     },
     {
       "id": "shift-tab-ok",
