@@ -1,4 +1,12 @@
-import { EXPECTED_MESSAGES, isExpected } from '../jestExpectedConsole';
+import {
+  EXPECTED_MESSAGES,
+  LICENSE_KEY_MESSAGE,
+  assertNoUnexpectedLicenseMessage,
+  isExpected,
+  isLicenseTestFile,
+} from '../jestExpectedConsole';
+import Handsontable from '../../src';
+import { TEST_LICENSE_KEY } from '../helpers/licenseKey';
 
 /**
  * Pins the Jest-only console allowlist (see `test/jestExpectedConsole.js`).
@@ -39,5 +47,47 @@ describe('Jest expected console allowlist', () => {
     // The spy sits on the wrapper, so it counts the expected message too; only the real
     // console output is filtered.
     expect(calls).toEqual(['Something nobody expected', 'Theme "x" is already registered. Registration skipped.']);
+  });
+
+  describe('license key messages', () => {
+    it('should recognize the missing, invalid and expired key messages, and nothing else', () => {
+      expect(LICENSE_KEY_MESSAGE.test('The license key for Handsontable is missing. Use your purchased key'))
+        .toBe(true);
+      expect(LICENSE_KEY_MESSAGE.test('The license key for Handsontable is invalid. If you need any help'))
+        .toBe(true);
+      expect(LICENSE_KEY_MESSAGE.test('The license key for Handsontable expired on May 23, 2011, and is not'))
+        .toBe(true);
+
+      expect(LICENSE_KEY_MESSAGE.test('Your Handsontable subscription license expired on')).toBe(false);
+      expect(LICENSE_KEY_MESSAGE.test(' The license key for Handsontable is missing.')).toBe(false);
+    });
+
+    it('should let only the license tests log them', () => {
+      expect(isLicenseTestFile('/repo/handsontable/src/core/__tests__/license.unit.js')).toBe(true);
+      expect(isLicenseTestFile('C:\\repo\\handsontable\\src\\utils\\entitlementLicenseKey\\__tests__\\a.unit.js'))
+        .toBe(true);
+
+      expect(isLicenseTestFile('/repo/handsontable/src/__tests__/core/core.unit.js')).toBe(false);
+      expect(isLicenseTestFile(expect.getState().testPath)).toBe(false);
+    });
+
+    it('should fail a test that builds a grid without a key', () => {
+      const grid = new Handsontable(document.createElement('div'), {});
+
+      // The core prints the legacy message once per test file, so this is the file's first one.
+      expect(() => assertNoUnexpectedLicenseMessage())
+        .toThrow(/built without the test license key and logged "The license key for Handsontable is missing/);
+      expect(() => assertNoUnexpectedLicenseMessage()).not.toThrow();
+
+      grid.destroy();
+    });
+
+    it('should let a grid built with the test key pass', () => {
+      const grid = new Handsontable(document.createElement('div'), { licenseKey: TEST_LICENSE_KEY });
+
+      expect(() => assertNoUnexpectedLicenseMessage()).not.toThrow();
+
+      grid.destroy();
+    });
   });
 });

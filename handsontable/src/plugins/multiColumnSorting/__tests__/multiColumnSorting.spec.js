@@ -1793,7 +1793,7 @@ describe('MultiColumnSorting', () => {
     });
 
     spec().$container2 = $(`<div id='${id}-2'></div>`).appendTo('body');
-    spec().$container2.handsontable();
+    spec().$container2.handsontable({ licenseKey: TEST_LICENSE_KEY });
 
     await selectCell(0, 1);
     await keyDownUp('enter');
