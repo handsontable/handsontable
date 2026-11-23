@@ -926,6 +926,61 @@ describe('RowSelection', () => {
       destroy();
     });
 
+    it('should toggle the row when the checkbox node is replaced between the press and the release', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const checkbox = (hot.getCell(1, -1, true) as HTMLElement).querySelector('.htRowSelectionCheckbox')!;
+
+      pressHold(checkbox);
+
+      const replacement = checkbox.cloneNode(true) as HTMLElement;
+
+      checkbox.replaceWith(replacement);
+      release(replacement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
+    it('should not let a second press take the synthetic mouseup for the release of the first one', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      // The release of the first press is lost: the second press must not act, nor be acted on twice.
+      pressHold(hot.getCell(1, -1, true) as HTMLElement);
+      pressHold(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      release(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      release(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
+    it('should toggle a row on a tap whose event is not a TouchEvent of this window (a grid inside an iframe)', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+      const tap = Object.assign(new Event('touchstart', { bubbles: true, cancelable: true }), {
+        touches: [],
+        changedTouches: [],
+      });
+
+      Object.defineProperty(tap, 'target', { value: header.querySelector('.htRowSelectionCheckbox') });
+
+      expect(tap instanceof TouchEvent).toBe(false);
+
+      hot.runHooks('beforeOnCellMouseDown', tap, { row: 1, col: -1 }, header);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
     it('should drop a held press when the plugin is disabled', () => {
       const { hot, plugin, destroy } = createGrid();
       const header = hot.getCell(1, -1, true) as HTMLElement;

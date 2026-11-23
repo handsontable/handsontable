@@ -13,7 +13,7 @@ import {
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
-import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
+import { hasTouchList, isLeftClick } from '../../helpers/dom/event';
 import { isLongPressReplay } from '../../helpers/dom/longPress';
 import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
@@ -495,7 +495,8 @@ export class RowSelection extends BasePlugin {
   #boundWrite: { source: RowSelectionSource; selected: number[]; deselected: number[]; open: boolean } | null = null;
 
   /**
-   * Drops the press on a checkbox that waits for its release (see `#onBeforeOnCellMouseDown`).
+   * Drops the press on a checkbox that waits for its release (see `#onBeforeOnCellMouseDown`). The listeners
+   * of a press that is still held go with the event manager when the plugin is disabled or destroyed.
    */
   #disposePress: (() => void) | null = null;
 
@@ -607,9 +608,6 @@ export class RowSelection extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#disposePress?.();
-    this.#disposePress = null;
-
     super.disablePlugin();
 
     this.hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
@@ -2506,8 +2504,9 @@ export class RowSelection extends BasePlugin {
     const target = eventTargetEl(event);
 
     // On a touch device Walkontable runs this with the deferred `touchstart` (`event.ts`, `onTouchEnd`),
-    // which has no `button`, so a tap counts as a left click.
-    if (!target || !(isLeftClick(event) || isTouchEvent(event))) {
+    // which has no `button`, so a tap counts as a left click. It is found by its touch lists, not by
+    // `instanceof TouchEvent`, which is false for an event of a grid in an iframe.
+    if (!target || !(isLeftClick(event) || hasTouchList(event))) {
       return;
     }
 
@@ -2520,7 +2519,7 @@ export class RowSelection extends BasePlugin {
       return;
     }
 
-    const isTouch = isTouchEvent(event);
+    const isTouch = hasTouchList(event);
     // Read now: the key state belongs to the press, and the release can come with other keys held.
     const { shiftKey } = event;
     const isHeader = coords.row < 0;
@@ -2557,11 +2556,13 @@ export class RowSelection extends BasePlugin {
     // Keeps the browser focus off the checkbox: the keyboard stays with the grid, so Space and the
     // arrow keys keep working after a click.
     event.preventDefault();
-    // Fired before the press is armed, so it is not taken for the release.
+    // An earlier press whose release was lost would take the synthetic `mouseup` below for its own, so it
+    // is dropped first. The event is fired before this press is armed, so it is not taken for its release.
+    this.#disposePress?.();
+    this.#disposePress = null;
     this.eventManager.fireEvent(target, 'mouseup');
 
     if (!isTouch) {
-      this.#disposePress?.();
       this.#disposePress = armPressRelease(this.eventManager, this.hot.rootDocument, event, {
         isSame: releaseTarget => this.#isSameControl(releaseTarget, isHeader, physicalRow),
         onRelease: () => {
@@ -2631,7 +2632,7 @@ export class RowSelection extends BasePlugin {
   #onAfterOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
     const { enableClickSelection } = this.#getSettings();
 
-    if (enableClickSelection === false || !(isLeftClick(event) || isTouchEvent(event)) ||
+    if (enableClickSelection === false || !(isLeftClick(event) || hasTouchList(event)) ||
       coords.row < 0 || coords.col < 0 || coords.col === this.getBoundColumn()) {
       return;
     }

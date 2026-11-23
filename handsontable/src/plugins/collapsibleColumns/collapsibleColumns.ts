@@ -11,7 +11,7 @@ import {
   removeAttribute,
   setAttribute
 } from '../../helpers/dom/element';
-import { isTouchEvent } from '../../helpers/dom/event';
+import { hasTouchList } from '../../helpers/dom/event';
 import { isLongPressReplay } from '../../helpers/dom/longPress';
 import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { throwWithCause } from '../../helpers/errors';
@@ -306,7 +306,9 @@ export class CollapsibleColumns extends BasePlugin {
   #keyToggleGroupColumns: { from: number, to: number } | null = null;
 
   /**
-   * Drops the press on an indicator that waits for its release (see `#onBeforeOnCellMouseDown`).
+   * Drops the press on an indicator that waits for its release (see `#onBeforeOnCellMouseDown`). The
+   * listeners of a press that is still held go with the event manager when the plugin is disabled or
+   * destroyed.
    */
   #disposePress: (() => void) | null = null;
 
@@ -445,8 +447,6 @@ export class CollapsibleColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    this.#disposePress?.();
-    this.#disposePress = null;
     this.hot.columnIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeColumnCacheUpdate);
     this.hot.columnIndexMapper.removeLocalHook('afterCacheUpdate', this.#onAfterColumnCacheUpdate);
     this.#versionsBeforeCacheUpdate = [];
@@ -1466,10 +1466,13 @@ export class CollapsibleColumns extends BasePlugin {
 
     if (target) {
       if (hasClass(target, 'expanded') || hasClass(target, 'collapsed')) {
-        // Fired before the press is armed, so it is not taken for the release.
+        // An earlier press whose release was lost would take the synthetic `mouseup` below for its own, so it
+        // is dropped first. The event is fired before this press is armed, so it is not taken for its release.
+        this.#disposePress?.();
+        this.#disposePress = null;
         this.eventManager.fireEvent(target, 'mouseup');
 
-        if (isTouchEvent(event)) {
+        if (hasTouchList(event)) {
           // A tap acts at once. A long press is replayed with the finger still down and acts on nothing.
           if (!isLongPressReplay(event)) {
             this.#toggleSectionByUser(coords, hasClass(target, 'expanded') ? 'collapse' : 'expand');
@@ -1504,7 +1507,6 @@ export class CollapsibleColumns extends BasePlugin {
       return !!releaseCoords && releaseCoords.row === coords.row && releaseCoords.col === coords.col;
     };
 
-    this.#disposePress?.();
     this.#disposePress = armPressRelease(this.eventManager, this.hot.rootDocument, event, {
       isSame: isSameIndicator,
       onRelease: () => {
@@ -1557,8 +1559,6 @@ export class CollapsibleColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
-    this.#disposePress?.();
-    this.#disposePress = null;
     this.#collapsedColumnsMap = null;
     this.#visibleWhenMap = null;
 

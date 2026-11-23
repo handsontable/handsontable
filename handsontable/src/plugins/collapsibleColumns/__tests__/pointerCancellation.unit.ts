@@ -123,6 +123,52 @@ describe('CollapsibleColumns pointer cancellation', () => {
     expect(collapsed()).toEqual([]);
   });
 
+  it('should toggle the group when the indicator node is replaced between the press and the release', () => {
+    const original = indicator(0);
+
+    pressHold(original);
+
+    const replacement = original.cloneNode(true) as HTMLElement;
+
+    original.replaceWith(replacement);
+    release(replacement);
+
+    expect(collapsed()).toEqual([1]);
+  });
+
+  it('should not let a second press take the synthetic mouseup for the release of the first one', () => {
+    // The release of the first press is lost: the second press must not act, nor be acted on twice.
+    pressHold(indicator(0));
+    pressHold(indicator(0));
+
+    expect(collapsed()).toEqual([]);
+
+    release(indicator(0));
+
+    expect(collapsed()).toEqual([1]);
+
+    release(indicator(0));
+
+    expect(collapsed()).toEqual([1]);
+  });
+
+  it('should collapse the group at once on a tap whose event is not a TouchEvent of this window', () => {
+    const target = indicator(0);
+    const tap = Object.assign(new Event('collapsible-columns-test-frame-tap', { bubbles: true, cancelable: true }), {
+      touches: [],
+      changedTouches: [],
+    });
+
+    target.dispatchEvent(tap);
+
+    expect(tap instanceof TouchEvent).toBe(false);
+
+    hot.runHooks('beforeOnCellMouseDown', tap, hot.getCoords(target.closest('th')!), target.closest('th'),
+      { row: false, column: false, cell: false });
+
+    expect(collapsed()).toEqual([1]);
+  });
+
   it('should drop a held press when the plugin is disabled', () => {
     pressHold(indicator(0));
     hot.updateSettings({ collapsibleColumns: false });

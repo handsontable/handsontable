@@ -435,8 +435,8 @@ They are written in different places and can drift. Keep this in mind:
   by the PHYSICAL row, and the release target is resolved again (`#armPress()`: its header's coordinates,
   translated), because a render replaces the nodes between the two. A tap acts at once: Walkontable replays it at
   `touchend`, which is already the release. A long press is replayed with the finger still down and is marked
-  (`markLongPressReplay()`), so `toggleState()` claims it and skips the toggle for `isLongPressReplay(event)`. `disablePlugin()` and `destroy()` drop a held press
-  (`CollapsingUI#disposePress()`). `beforeRowCollapse`, `afterRowCollapse` and the expand pair, and the
+  (`markLongPressReplay()`), so `toggleState()` claims it and skips the toggle for `isLongPressReplay(event)`. A new press drops the one still held (`#armPress()`); no synthetic
+  `mouseup` is fired here. The touch branch is found by `hasTouchList(event)`, not `isTouchEvent()`: `instanceof TouchEvent` is false for an event of a grid inside an iframe, and that tap would be armed as a mouse press and never released. A press still held when the plugin is disabled or destroyed needs no disposal of its own: the plugin's event manager, which owns its listeners, is cleared by `BasePlugin#disablePlugin()` and `destroy()`. `beforeRowCollapse`, `afterRowCollapse` and the expand pair, and the
   selection hooks a collapse causes, fire at the release. The keyboard paths are untouched. Pinned by
   `__tests__/pointerCancellation.unit.ts` and `tests/e2e/pointer-cancellation-toggles.spec.ts`.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to

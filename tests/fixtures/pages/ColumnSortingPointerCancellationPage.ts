@@ -3,6 +3,12 @@ import { awaitBundle } from '../bundle';
 
 type Variant = 'column' | 'multi' | 'nested';
 
+interface GotoOptions {
+  dir?: 'ltr' | 'rtl';
+  frozen?: boolean;
+  shadow?: boolean;
+}
+
 /**
  * Page Object for the column-sorting-pointer-cancellation fixture.
  *
@@ -26,12 +32,26 @@ export class ColumnSortingPointerCancellationPage {
    * Navigate to the fixture and wait for the grid to render. `variant` picks the sorting plugin and
    * the header layout.
    */
-  async goto(variant: Variant = 'column'): Promise<void> {
+  async goto(variant: Variant = 'column', options: GotoOptions = {}): Promise<void> {
+    const dir = options.dir ?? 'ltr';
+    const frozen = options.frozen ? 'on' : 'off';
+    const shadow = options.shadow ? 'on' : 'off';
+
     await this.page.goto(
       `/tests/fixtures/demo/column-sorting-pointer-cancellation.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&variant=${variant}`);
+      `&variant=${variant}&dir=${dir}&frozen=${frozen}&shadow=${shadow}`);
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
+
+    if (options.frozen) {
+      // Scrolled to the last column, the first two headers stay in view only as frozen ones, which the
+      // top overlay clone keeps in place.
+      await this.page.evaluate(() => {
+        (window as unknown as { hot: any }).hot.scrollViewportTo({ row: 0, col: 3 });
+      });
+      await expect(this.header('D')).toBeVisible();
+      await expect(this.header('A')).toBeVisible();
+    }
   }
 
   /** A single data cell, by visual row/column. */

@@ -74,6 +74,22 @@ test.describe('option list pointer cancellation', { tag: [THEMES_TAG, BUNDLES_TA
         expect(await grid.storedEntryAt(EMPTY_ROW, col)).not.toBe('entry:PL');
       });
 
+      test('a press by the right button picks nothing and leaves no highlight on the option', async() => {
+        await grid.pressOption(pressed, 'right');
+
+        await expect(grid.option(pressed)).toBeVisible();
+        if (restored === null) {
+          await expect(grid.highlightedOption()).toHaveCount(0);
+        } else {
+          await expect(grid.highlightedOption()).toHaveText(restored);
+        }
+
+        await grid.releaseOnOption(pressed, 'right');
+
+        await expect(grid.option(pressed)).toBeVisible();
+        expect(await grid.storedEntryAt(EMPTY_ROW, col)).toBe('null');
+      });
+
       test('a plain click picks the option', async() => {
         await grid.pickOption(pressed);
 

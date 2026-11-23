@@ -197,6 +197,50 @@ describe.each([
     expect(sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
   });
 
+  /**
+   * Presses the label of the rendered header, so the press event targets a real element.
+   *
+   * @param {number} column The visual column.
+   * @returns {HTMLElement} The header cell the press landed on.
+   */
+  function pressRenderedHeader(column) {
+    const header = hot.getCell(-1, column);
+    const event = new MouseEvent('mousedown', { button: 0, bubbles: true });
+    const coords = { row: -1, col: column };
+
+    header.querySelector('.colHeader').dispatchEvent(event);
+
+    hot.runHooks('beforeOnCellMouseDown', event, coords, null, { row: false, column: false, cell: false });
+    hot.selectColumns(column);
+    hot.runHooks('afterOnCellMouseDown', event, coords, null);
+
+    return header;
+  }
+
+  it('should sort when the release lands on a recycled header element at the pressed coordinates', async() => {
+    const pressed = pressRenderedHeader(1);
+    const replacement = pressed.cloneNode(true);
+
+    pressed.replaceWith(replacement);
+    releaseOverElement(replacement.querySelector('.colHeader'));
+    await flush();
+
+    expect(sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
+  it('should not sort when the release lands on the pressed header element now standing at another column', async() => {
+    const pressed = pressRenderedHeader(1);
+    const first = hot.getCell(-1, 0);
+
+    // The element that was pressed is recycled into the first column's place.
+    first.before(pressed);
+    releaseOverElement(pressed.querySelector('.colHeader'));
+    await flush();
+
+    expect(hot.getCoords(pressed).col).toBe(0);
+    expect(sortConfig()).toEqual([]);
+  });
+
   it('should sort a later press after a cancelled one', async() => {
     pressHeader(1);
     releaseOverCell(2, 1);

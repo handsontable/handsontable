@@ -183,7 +183,7 @@
     },
     {
       "id": "pointer-cancellation",
-      "text": "The formula suggestion list inserts an item when the pointer is pressed, and the arrow of an autocomplete cell opens its list on the press.",
+      "text": "The formula suggestion list inserts an item when the pointer is pressed. The arrows of autocomplete, dropdown, and multiselect cells open their list on the press.",
       "criteria": ["2.5.2"],
       "reportRef": null
     },

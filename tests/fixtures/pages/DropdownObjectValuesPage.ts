@@ -131,19 +131,19 @@ export class DropdownObjectValuesPage {
   }
 
   /**
-   * Presses the left mouse button over an option and keeps it down.
+   * Presses a mouse button (the left one by default) over an option and keeps it down.
    */
-  async pressOption(label: string): Promise<void> {
+  async pressOption(label: string, button: 'left' | 'right' = 'left'): Promise<void> {
     await this.option(label).hover();
-    await this.page.mouse.down();
+    await this.page.mouse.down({ button });
   }
 
   /**
-   * Moves the pointer over an option and releases the left mouse button there.
+   * Moves the pointer over an option and releases a mouse button (the left one by default) there.
    */
-  async releaseOnOption(label: string): Promise<void> {
+  async releaseOnOption(label: string, button: 'left' | 'right' = 'left'): Promise<void> {
     await this.option(label).hover();
-    await this.page.mouse.up();
+    await this.page.mouse.up({ button });
   }
 
   /**

@@ -569,6 +569,106 @@ describe('TabDrag', () => {
 
       drag.destroy();
     });
+
+    it('is suppressed when abort() ends a drag and the pointer is released outside the strip', () => {
+      const { drag, tab } = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, tab));
+      drag.abort();
+
+      expect(drag.consumeSuppressedClick()).toBe(false);
+
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 1, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(true);
+
+      drag.destroy();
+    });
+
+    it('is kept when abort() ends a drag and the pointer is released over the strip', () => {
+      const { drag, tab } = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, tab));
+      drag.abort();
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 1, 10));
+
+      expect(drag.consumeSuppressedClick()).toBe(false);
+
+      drag.destroy();
+    });
+
+    it('is suppressed when the window losing focus ends a drag and the pointer is released outside', () => {
+      const { drag, tab } = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, tab));
+      host.ownerDocument.defaultView.dispatchEvent(new Event('blur'));
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 1, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(true);
+
+      drag.destroy();
+    });
+
+    it('is not armed by an abort of a press that never became a drag', () => {
+      const { drag, tab } = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 52, tab));
+      drag.abort();
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 52, tab, 1, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(false);
+
+      drag.destroy();
+    });
+
+    it('is not armed when the browser cancels the pointer or takes the capture away', () => {
+      const first = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, first.tab));
+      host.ownerDocument.dispatchEvent(pointer('pointercancel', 80, first.tab));
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, first.tab, 1, 200));
+
+      expect(first.drag.consumeSuppressedClick()).toBe(false);
+
+      first.drag.destroy();
+      host.remove();
+
+      const second = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, second.tab));
+      second.tab.dispatchEvent(pointer('lostpointercapture', 80, second.tab));
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, second.tab, 1, 200));
+
+      expect(second.drag.consumeSuppressedClick()).toBe(false);
+
+      second.drag.destroy();
+    });
+
+    it('ignores the release of another pointer while it waits for the drag\'s own', () => {
+      const { drag, tab } = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, tab));
+      drag.abort();
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 2, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(false);
+
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 1, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(true);
+
+      drag.destroy();
+    });
+
+    it('stops waiting for the release once destroyed', () => {
+      const { drag, tab } = press();
+
+      host.ownerDocument.dispatchEvent(pointer('pointermove', 80, tab));
+      drag.destroy();
+      host.ownerDocument.dispatchEvent(pointer('pointerup', 80, tab, 1, 200));
+
+      expect(drag.consumeSuppressedClick()).toBe(false);
+    });
   });
 
   describe('a touch press', () => {

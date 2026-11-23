@@ -160,10 +160,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `TabDrag#onPointerUp` therefore sets a one-shot `#suppressClick` when a real drag (past the threshold) is
   released outside the strip's rect (`#isOutsideHost`); `TabStrip#onTabClick` asks
   `TabDrag#consumeSuppressedClick()` first and returns when it answers `true`, and `start()` clears the flag so
-  a click that never came cannot swallow a later one. The Escape path does the same: after Escape ends a drag
-  the tab still holds the capture, so `#onKeyDown` arms a one-shot `pointerup` listener
-  (`#onReleaseAfterCancel`) that decides the same way. A release back over the strip keeps reordering and
-  activating, and a press under the threshold, a touch tap and keyboard activation (`activateFocusedTab()`
+  a click that never came cannot swallow a later one. Every way the gesture can end while the pointer is
+  still down does the same, because the tab keeps the capture and its `click` still comes: Escape, `abort()`
+  (a repaint of the strip mid-drag) and the window losing focus. `#cancel(true)` arms a one-shot `pointerup`
+  listener (`#onReleaseAfterCancel`) for a real drag, reading the pointer id BEFORE `#finish()` clears it and
+  ignoring any other pointer; `destroy()` removes it. A `pointercancel` and a lost capture do not arm it: the
+  pointer is gone and no click comes. Only the sheet switch is cancelled: a drag that was not cancelled and is
+  released outside the strip still commits its reorder, as before. A release back over the strip keeps
+  reordering and activating, and a press under the threshold, a touch tap and keyboard activation
+  (`activateFocusedTab()`
   calls the hook directly) are unchanged. Pinned by `__tests__/tabDrag.unit.js` and
   `tests/e2e/sheets-bar-tab-pointer-cancellation.spec.ts`.
 - **Every tab is its own stacking context (`isolation: isolate`).** The chevron glyph carries

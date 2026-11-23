@@ -4,6 +4,10 @@ import { CollapsibleColumnsA11yPage } from '../fixtures/pages/CollapsibleColumns
 import { NestedRowsPage } from '../fixtures/pages/NestedRowsPage';
 import { CheckboxHeaderPage } from '../fixtures/pages/CheckboxHeaderPage';
 import { RowSelectionPage } from '../fixtures/pages/RowSelectionPage';
+import {
+  PointerCancellationTogglesPage,
+  type PointerCancellationVariant,
+} from '../fixtures/pages/PointerCancellationTogglesPage';
 
 /**
  * WCAG 2.5.2 Pointer Cancellation for the controls that toggle something: the collapse indicator of a
@@ -402,4 +406,95 @@ test.describe('Toggle controls and pointer cancellation', { tag: THEMES_TAG }, (
 
     expect(await grid.selectedRows()).toEqual([]);
   });
+});
+
+/**
+ * The same controls in the layouts that move them: a right to left grid, frozen columns (the headers and
+ * checkboxes are drawn by overlay clones, and the user presses the clone's copy), and a grid inside a shadow
+ * root, where `event.target` is retargeted to the host.
+ */
+const LAYOUTS: PointerCancellationVariant[] = ['rtl', 'frozen', 'shadow'];
+
+interface LayoutControl {
+  name: string;
+  control(grid: PointerCancellationTogglesPage): Locator;
+  state(grid: PointerCancellationTogglesPage): Promise<unknown>;
+  toggled: unknown;
+}
+
+const LAYOUT_CONTROLS: LayoutControl[] = [
+  {
+    name: 'collapse indicator',
+    control: grid => grid.groupIndicator(),
+    state: grid => grid.collapsedColumns(),
+    toggled: [3, 4],
+  },
+  {
+    name: 'Done column header checkbox',
+    control: grid => grid.doneHeaderCheckbox(),
+    state: grid => grid.doneValues(),
+    toggled: [true, true, true, true, true, true],
+  },
+  {
+    name: 'row checkbox',
+    control: grid => grid.rowCheckbox(1),
+    state: grid => grid.selectedRows(),
+    toggled: [1],
+  },
+  {
+    name: '"select all" checkbox',
+    control: grid => grid.selectAllCheckbox(),
+    state: grid => grid.selectedRows(),
+    toggled: [0, 1, 2, 3, 4, 5],
+  },
+];
+
+test.describe('Toggle controls and pointer cancellation in other layouts', { tag: THEMES_TAG }, () => {
+  for (const variant of LAYOUTS) {
+    for (const { name, control, state, toggled } of LAYOUT_CONTROLS) {
+      test(`${name}: does nothing on the press alone and toggles on the release over it (${variant})`,
+        async({ page, theme, bundle }) => {
+          const grid = new PointerCancellationTogglesPage(page, theme, bundle, variant);
+
+          await grid.goto();
+
+          const initial = await state(grid);
+          const initialSelection = await grid.cellSelection();
+
+          await pressOn(page, control(grid));
+
+          expect(await state(grid)).toEqual(initial);
+          expect(await grid.cellSelection()).toEqual(initialSelection);
+
+          await page.mouse.up();
+
+          await expect.poll(() => state(grid)).toEqual(toggled);
+          expect(await grid.cellSelection()).toEqual(initialSelection);
+        });
+
+      test(`${name}: is cancelled when the pointer is released over a cell or outside the grid (${variant})`,
+        async({ page, theme, bundle }) => {
+          const grid = new PointerCancellationTogglesPage(page, theme, bundle, variant);
+
+          await grid.goto();
+
+          const initial = await state(grid);
+
+          await pressOn(page, control(grid));
+          await releaseOn(page, grid.cell(2, 3));
+
+          expect(await state(grid)).toEqual(initial);
+
+          await pressOn(page, control(grid));
+          await releaseOutsideGrid(page);
+
+          expect(await state(grid)).toEqual(initial);
+
+          // The cancelled presses left nothing armed: the next click works.
+          await control(grid).click();
+
+          await expect.poll(() => state(grid)).toEqual(toggled);
+        });
+    }
+  }
 });

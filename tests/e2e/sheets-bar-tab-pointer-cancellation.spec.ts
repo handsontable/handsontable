@@ -80,6 +80,32 @@ test.describe('sheets bar tab pointer cancellation', { tag: THEMES_TAG }, () => 
     await expect(bar.tab(0).locator('.ht-sheets-bar__tab-label')).toHaveText('Beta');
   });
 
+  test('a drag ended by a repaint and released outside the bar does not switch the sheet', async({ page }) => {
+    const box = (await bar.tab(1).boundingBox())!;
+    const x = box.x + (box.width / 2);
+    const y = box.y + (box.height / 2);
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 20, y, { steps: 4 });
+    await expect(page.locator('.ht-sheets-bar__tab--dragging')).toHaveCount(1);
+
+    // A rename repaints the strip, which ends the drag while the button is still down.
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: any }).hot;
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.renameSheet(plugin.getSheets()[2].id, 'Zeta');
+    });
+    await expect(page.locator('.ht-sheets-bar__tab--dragging')).toHaveCount(0);
+
+    await page.mouse.move(x + 20, box.y - 60, { steps: 4 });
+    await page.mouse.up();
+
+    await bar.expectActiveTab(0);
+    await expect.poll(() => tabNames(page)).toEqual(['Alpha', 'Beta', 'Zeta']);
+  });
+
   test('a click on an inactive tab switches the sheet', async() => {
     await bar.clickTab(1);
 

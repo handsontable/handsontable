@@ -36,6 +36,11 @@
     // `nested` (ColumnSorting under two header levels, the top one spanning two columns).
     window.htVariant = htPick(
       { column: 'column', multi: 'multi', nested: 'nested' }, htParams.get('variant'), 'column', 'variant');
+    // `rtl` builds the grid right to left, `frozen` freezes the first two columns so their headers live
+    // in an overlay clone, and `shadow` mounts the grid in a native open shadow root.
+    window.htDirection = htPick({ ltr: 'ltr', rtl: 'rtl' }, htParams.get('dir'), 'ltr', 'dir');
+    window.htFrozen = htPick({ off: false, on: true }, htParams.get('frozen'), 'off', 'frozen');
+    window.htShadow = htPick({ off: false, on: true }, htParams.get('shadow'), 'off', 'shadow');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
@@ -50,15 +55,33 @@
     data-testid="cell-<row>-<col>", and `window.sortCount` counts the sorts so a gesture that must not
     sort is asserted on the count: a header class cannot show a stray sort that lands on the same column.
   -->
-  <div id="grid" data-testid="grid"></div>
+  <div id="grid-host"></div>
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    const container = document.querySelector('[data-testid="grid"]');
+    // The grid lives in the light DOM, or in an open shadow root whose own stylesheets are linked
+    // inside it, because document styles do not cross the boundary.
+    const host = document.getElementById('grid-host');
+    const mountPoint = window.htShadow ? host.attachShadow({ mode: 'open' }) : host;
 
+    if (window.htShadow) {
+      ['/handsontable/styles/handsontable.min.css', `/handsontable/styles/ht-theme-${window.htTheme}.min.css`]
+        .forEach((href) => {
+          const link = document.createElement('link');
+
+          link.rel = 'stylesheet';
+          link.href = href;
+          mountPoint.appendChild(link);
+        });
+    }
+
+    const container = document.createElement('div');
+
+    container.setAttribute('data-testid', 'grid');
     container.className = `ht-theme-${window.htTheme}`;
+    mountPoint.appendChild(container);
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);

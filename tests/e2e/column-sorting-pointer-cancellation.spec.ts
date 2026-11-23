@@ -171,3 +171,71 @@ test.describe('nested headers sorting pointer cancellation', { tag: THEMES_TAG }
     expect(await grid.sortCount()).toBe(0);
   });
 });
+
+/**
+ * The same cancellation has to hold where the header is not the plain left-to-right one in the
+ * light DOM: mirrored by the layout direction, drawn by an overlay clone of the frozen columns, or
+ * rendered inside a shadow root, where `event.target` is retargeted to the host.
+ */
+const SURFACES = [
+  { name: 'an RTL grid', options: { dir: 'rtl' as const }, pressed: 'A', other: 'B', body: [2, 0] },
+  { name: 'a frozen header', options: { frozen: true }, pressed: 'A', other: 'B', body: [2, 0] },
+  { name: 'a scrolled header next to frozen columns', options: { frozen: true }, pressed: 'C', other: 'D', body: [2, 3] },
+  { name: 'a grid inside a shadow root', options: { shadow: true }, pressed: 'B', other: 'C', body: [2, 1] },
+];
+
+for (const surface of SURFACES) {
+  test.describe(`column sorting pointer cancellation in ${surface.name}`, { tag: THEMES_TAG }, () => {
+    let grid: ColumnSortingPointerCancellationPage;
+
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new ColumnSortingPointerCancellationPage(page, theme, bundle);
+      await grid.goto('column', surface.options);
+    });
+
+    test('a release over the pressed header sorts', async() => {
+      await grid.pressLabel(surface.pressed);
+      await grid.releaseOver(grid.sortLabel(surface.pressed));
+
+      await expect.poll(() => grid.sortCount()).toBe(1);
+    });
+
+    test('a release over another header does not sort', async() => {
+      await grid.pressLabel(surface.pressed);
+      await grid.releaseOver(grid.sortLabel(surface.other));
+
+      expect(await grid.sortCount()).toBe(0);
+    });
+
+    test('a release over a body cell does not sort', async() => {
+      await grid.pressLabel(surface.pressed);
+      await grid.releaseOver(grid.cell(surface.body[0], surface.body[1]));
+
+      expect(await grid.sortCount()).toBe(0);
+    });
+
+    test('a release outside the grid does not sort', async() => {
+      await grid.pressLabel(surface.pressed);
+      await grid.releaseOutsideTheGrid();
+
+      expect(await grid.sortCount()).toBe(0);
+    });
+  });
+}
+
+test.describe('column sorting pointer cancellation with frozen columns', { tag: THEMES_TAG }, () => {
+  test('the frozen headers stay in view while the grid is scrolled sideways', async({ page, theme, bundle }) => {
+    const grid = new ColumnSortingPointerCancellationPage(page, theme, bundle);
+
+    await grid.goto('column', { frozen: true });
+
+    const frozen = (await grid.header('A').boundingBox())!;
+    const scrolled = (await grid.header('D').boundingBox())!;
+    const gridBox = (await page.getByTestId('grid').boundingBox())!;
+
+    // The frozen header sits at the start of the grid, the last column at its end: pressing them tests
+    // the header the overlay clone keeps in place, not one at its unscrolled position.
+    expect(frozen.x).toBeLessThan(gridBox.x + (gridBox.width / 2));
+    expect(scrolled.x).toBeGreaterThan(frozen.x);
+  });
+});

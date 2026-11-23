@@ -8,7 +8,10 @@ import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics
 import { getVerticalRoom, getVisibleVerticalRange } from '../utils/visibleVerticalRange';
 import {
   stopImmediatePropagation,
+  isLeftClick,
+  hasTouchList,
 } from '../../helpers/dom/event';
+import { isLongPressReplay } from '../../helpers/dom/longPress';
 import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { extend } from '../../helpers/object';
 import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts';
@@ -27,6 +30,10 @@ interface PendingOptionPress {
    * The visual column of the pressed option.
    */
   col: number;
+  /**
+   * The value of the pressed option when the press began, so a release can tell the list was reloaded under it.
+   */
+  value: unknown;
   /**
    * The selection of the list (`[row, column]`, or `null` for none) and its origin before the press.
    */
@@ -887,7 +894,9 @@ export class HandsontableEditor extends TextEditor {
    * Starts a press on a list option. The press only highlights the option; the pick waits for the
    * release of the pointer on the same option (WCAG 2.5.2), so moving off it before the release cancels.
    *
-   * A touch tap needs no wait: Walkontable replays the tap as a press and a release in one go.
+   * A touch tap needs no wait: Walkontable replays the tap as a press and a release in one go. A press
+   * that is not a primary-button press, or a replayed long press (the finger is still down and the context
+   * menu follows), picks nothing, so it gives the highlight back at once.
    *
    * @param {Event} event The event that started the press.
    * @param {object} coords The visual coordinates of the pressed option.
@@ -899,14 +908,22 @@ export class HandsontableEditor extends TextEditor {
       return;
     }
 
+    const isTouch = hasTouchList(event);
     const press: PendingOptionPress = {
       row: coords.row,
       col: coords.col,
+      value: this.htEditor.getDataAtCell(coords.row, coords.col),
       before: this.#selectionBeforePress,
       dispose: () => {},
     };
 
-    if (event.type === 'mousedown') {
+    if (isTouch ? isLongPressReplay(event) : !isLeftClick(event)) {
+      this.#abandonOptionPress(press);
+
+      return;
+    }
+
+    if (!isTouch) {
       // The commit stays in the nested grid's own `afterOnCellMouseUp`, because the document listener
       // runs in the capture phase, before the grid's. This only has to cancel a release anywhere else.
       press.dispose = armPressRelease(this.eventManager, this.hot.rootDocument, event as MouseEvent, {
@@ -939,13 +956,15 @@ export class HandsontableEditor extends TextEditor {
 
     this.#disposePendingPress();
 
-    if (coords.row !== press.row || coords.col !== press.col) {
-      this.#restoreSelectionBeforePress(press);
+    const sourceValue = this.htEditor.getDataAtCell(coords.row, coords.col);
+
+    // The list can be reloaded while the button is held (an asynchronous `source` answering late), and the
+    // pointer then rests on a different option than the one that was pressed.
+    if (coords.row !== press.row || coords.col !== press.col || !Object.is(sourceValue, press.value)) {
+      this.#abandonOptionPress(press);
 
       return;
     }
-
-    const sourceValue = this.htEditor.getDataAtCell(coords.row, coords.col);
 
     this.innerSelectionOrigin = 'user';
 
@@ -981,6 +1000,16 @@ export class HandsontableEditor extends TextEditor {
     }
 
     this.#pendingPress = null;
+    this.#abandonOptionPress(press);
+  }
+
+  /**
+   * Gives the list back the way it was before a press that picks nothing: the selection returns, and the
+   * keys return to the editor's text field.
+   *
+   * @param {PendingOptionPress} press The press that was abandoned.
+   */
+  #abandonOptionPress(press: PendingOptionPress): void {
     this.#restoreSelectionBeforePress(press);
 
     // The press moved the keyboard to the list. A pick that did not happen leaves the editor open, so

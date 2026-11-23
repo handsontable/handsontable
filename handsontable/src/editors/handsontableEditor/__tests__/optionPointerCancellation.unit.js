@@ -1,5 +1,6 @@
 import { HandsontableEditor } from '../handsontableEditor';
 import { TextEditor } from '../../textEditor';
+import { markLongPressReplay } from '../../../helpers/dom/longPress';
 
 /**
  * A press on a list option commits on the release of the same option, and a release anywhere else
@@ -12,16 +13,18 @@ describe('HandsontableEditor list option press', () => {
   let options;
   let optionCells;
   let outside;
+  let timeouts;
 
   /**
    * Builds a stand-in for the nested grid that keeps one selection and resolves cells by data attributes.
    */
   function createNested() {
     const grid = {
+      data: ['Alpha', 'Beta', 'Gamma'],
       isDestroyed: false,
       rootElement: document.createElement('div'),
       selection: null,
-      getDataAtCell: (row, col) => ['Alpha', 'Beta', 'Gamma'][row + col],
+      getDataAtCell: (row, col) => grid.data[row + col],
       getSelectedLast: () => (grid.selection ? [...grid.selection, ...grid.selection] : undefined),
       getSelectedActive: () => grid.selection !== null,
       getValue: () => grid.getDataAtCell(...grid.selection),
@@ -58,11 +61,20 @@ describe('HandsontableEditor list option press', () => {
    * Plays the press the way Walkontable does: the `before` hook, the selection of the cell, the `after` hook.
    *
    * @param {number} row The pressed option.
-   * @param {string} [type] The event type that started the press.
+   * @param {object} [init] What kind of press.
+   * @param {boolean} [init.touch] A touch tap, replayed at `touchend`.
+   * @param {boolean} [init.longPress] A touch replayed while the finger is still down.
+   * @param {number} [init.button] The mouse button.
    */
-  function press(row, type = 'mousedown') {
-    const event = type === 'mousedown' ? new MouseEvent('mousedown', { button: 0 }) : new Event(type);
+  function press(row, { touch = false, longPress = false, button = 0 } = {}) {
+    const event = touch || longPress ?
+      Object.assign(new Event('touchstart'), { touches: [], changedTouches: [] }) :
+      new MouseEvent('mousedown', { button });
     const coords = { row, col: 0 };
+
+    if (longPress) {
+      markLongPressReplay(event);
+    }
 
     options.beforeOnCellMouseDown.call(nested, event, coords);
     nested.selectCell(row, 0);
@@ -70,19 +82,28 @@ describe('HandsontableEditor list option press', () => {
   }
 
   /**
+   * Runs the callbacks the editor handed to its `_registerTimeout()`, as the elapsed timers would.
+   */
+  function flushTimeouts() {
+    timeouts.splice(0).forEach(callback => callback());
+  }
+
+  /**
    * Plays a release: the capture listener on the document runs first, then the nested grid's own hook,
    * as it does in the browser when the release is on one of its cells.
    *
    * @param {HTMLElement} target Where the pointer is released.
+   * @param {boolean} [reachesCellHook] Whether the nested grid's own hook gets the release. A listener that
+   * stops the event keeps it from there.
    */
-  function release(target) {
+  function release(target, reachesCellHook = true) {
     const event = new MouseEvent('mouseup', { bubbles: true, button: 0 });
 
     // Walkontable calls the hook from its own listener, which runs after the document capture phase.
     target.addEventListener('mouseup', () => {
       const coords = nested.getCoords(target.closest('td'));
 
-      if (coords) {
+      if (coords && reachesCellHook) {
         options.afterOnCellMouseUp.call(nested, event, coords);
       }
     }, { once: true });
@@ -92,6 +113,7 @@ describe('HandsontableEditor list option press', () => {
   beforeEach(() => {
     jest.spyOn(TextEditor.prototype, 'prepare').mockImplementation(() => {});
 
+    timeouts = [];
     editor = new HandsontableEditor({
       rootDocument: document,
       rootWindow: window,
@@ -102,7 +124,9 @@ describe('HandsontableEditor list option press', () => {
       isRtl: () => false,
       listen: jest.fn(),
       destroyEditor: jest.fn(),
-      _registerTimeout: jest.fn(),
+      _registerTimeout: jest.fn((callback) => {
+        timeouts.push(callback);
+      }),
     });
     editor.setValue = jest.fn();
     editor.cellProperties = {};
@@ -181,7 +205,7 @@ describe('HandsontableEditor list option press', () => {
     // the keys come back from a deferred callback.
     expect(editor.hot.listen).not.toHaveBeenCalled();
 
-    editor.hot._registerTimeout.mock.calls[0][0]();
+    flushTimeouts();
 
     expect(editor.hot.listen).toHaveBeenCalled();
     expect(editor.TEXTAREA.focus).toHaveBeenCalled();
@@ -207,7 +231,7 @@ describe('HandsontableEditor list option press', () => {
   it('commits a touch tap, which has no document release to wait for', () => {
     const event = new MouseEvent('mouseup', { button: 0 });
 
-    press(1, 'touchstart');
+    press(1, { touch: true });
     options.afterOnCellMouseUp.call(nested, event, { row: 1, col: 0 });
 
     expect(editor.setValue).toHaveBeenCalledWith('Beta');
@@ -256,5 +280,66 @@ describe('HandsontableEditor list option press', () => {
 
     expect(beforeHook).toHaveBeenCalledWith(event, coords, optionCells[1]);
     expect(afterHook).toHaveBeenCalledWith(event, coords, optionCells[1]);
+  });
+
+  describe('a press that must not pick', () => {
+    it('gives the highlight back at once for a press by a button other than the primary one', () => {
+      nested.selection = [2, 0];
+
+      press(1, { button: 2 });
+
+      expect(nested.selection).toEqual([2, 0]);
+
+      release(optionCells[1]);
+
+      expect(editor.setValue).not.toHaveBeenCalled();
+      expect(editor.hot.destroyEditor).not.toHaveBeenCalled();
+    });
+
+    it('gives the keys back to the editor after a press by another button', () => {
+      editor._opened = true;
+      editor.TEXTAREA.focus = jest.fn();
+
+      press(1, { button: 2 });
+      flushTimeouts();
+
+      expect(editor.hot.listen).toHaveBeenCalled();
+      expect(editor.TEXTAREA.focus).toHaveBeenCalled();
+    });
+
+    it('picks nothing at the lift of a finger that long-pressed the option', () => {
+      nested.selection = [2, 0];
+
+      press(1, { longPress: true });
+
+      expect(nested.selection).toEqual([2, 0]);
+
+      options.afterOnCellMouseUp.call(nested, new MouseEvent('mouseup'), { row: 1, col: 0 });
+
+      expect(editor.setValue).not.toHaveBeenCalled();
+      expect(editor.hot.destroyEditor).not.toHaveBeenCalled();
+    });
+
+    it('cancels when the list changed under the pointer between the press and the release', () => {
+      press(1);
+      nested.data[1] = 'Delta';
+      release(optionCells[1]);
+
+      expect(editor.setValue).not.toHaveBeenCalled();
+      expect(editor.hot.destroyEditor).not.toHaveBeenCalled();
+      expect(nested.selection).toBeNull();
+    });
+
+    it('drops a press the nested grid never answered, so a later gesture on the same option picks nothing', () => {
+      press(1);
+      // The release lands on the option, but a listener stops it before the nested grid's hook.
+      release(optionCells[1], false);
+      flushTimeouts();
+
+      options.afterOnCellMouseUp.call(nested, new MouseEvent('mouseup'), { row: 1, col: 0 });
+
+      expect(editor.setValue).not.toHaveBeenCalled();
+      expect(editor.hot.destroyEditor).not.toHaveBeenCalled();
+    });
   });
 });

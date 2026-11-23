@@ -56,13 +56,12 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
   `#onRootClick` still cancels the browser's own toggle and no opposite state flashes. A tap acts at once: the
   touch path is already the release. A long press does not: Walkontable replays it with the finger still down,
   marks it (`markLongPressReplay()`), and the hook skips the toggle for `isLongPressReplay(event)` while still
-  claiming the press. `disablePlugin()` and `destroy()` drop a held press
-  (`#disposePress`). `beforeChange`, `afterChange` and the selection hooks therefore fire at the release.
-- **A tap is a press too: gate on `isLeftClick(event) || isTouchEvent(event)`, never `event.button`.**
+  claiming the press. The press that is still held is dropped first, then the synthetic `mouseup` fires, then the new press is armed: an earlier press whose release was lost would otherwise take the synthetic event for its own and act on it. A press still held when the plugin is disabled or destroyed needs no disposal of its own: the plugin's event manager, which owns its listeners, is cleared by `BasePlugin#disablePlugin()` and `destroy()`. `beforeChange`, `afterChange` and the selection hooks therefore fire at the release.
+- **A tap is a press too: gate on `isLeftClick(event) || hasTouchList(event)`, never `event.button`.**
   On touch, Walkontable calls `beforeOnCellMouseDown` with the deferred `touchend` (see
   `../../3rdparty/walkontable/src/event.ts`), which has no `button`; the browser's synthesized
   `mousedown` never reaches the hook and `#onRootClick` cancels the click. A `button !== 0` gate made a
-  tap on the header checkbox do nothing on iPad. Same gate as `../collapsibleColumns/`.
+  tap on the header checkbox do nothing on iPad. Same gate as `../collapsibleColumns/`. The touch branch is found by `hasTouchList(event)`, not `isTouchEvent()`: `instanceof TouchEvent` is false for an event of a grid inside an iframe, and that tap would be armed as a mouse press and never released.
 - **The `afterSetSourceDataAtCell` listener exists only while a header state is cached**
   (`#syncSourceDataListener()`). The plugin is on in every grid, and any listener on that hook makes
   `setSourceDataAtCell()` build the hook's payload; registered unconditionally, it turned every grid's

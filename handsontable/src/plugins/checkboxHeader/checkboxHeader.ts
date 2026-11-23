@@ -8,7 +8,7 @@ import {
   removeAttribute,
   setAttribute,
 } from '../../helpers/dom/element';
-import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
+import { hasTouchList, isLeftClick } from '../../helpers/dom/event';
 import { isLongPressReplay } from '../../helpers/dom/longPress';
 import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
@@ -202,7 +202,9 @@ export class CheckboxHeader extends BasePlugin {
   #isReadingMeta = false;
 
   /**
-   * Drops the press on a header checkbox that waits for its release (see `#onBeforeOnCellMouseDown`).
+   * Drops the press on a header checkbox that waits for its release (see `#onBeforeOnCellMouseDown`). The
+   * listeners of a press that is still held go with the event manager when the plugin is disabled or
+   * destroyed.
    */
   #disposePress: (() => void) | null = null;
 
@@ -270,9 +272,6 @@ export class CheckboxHeader extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#disposePress?.();
-    this.#disposePress = null;
-
     super.disablePlugin();
 
     this.hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
@@ -683,11 +682,11 @@ export class CheckboxHeader extends BasePlugin {
   #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
     const target = eventTargetEl(event);
 
-    if (!target || !(isLeftClick(event) || isTouchEvent(event)) || !hasClass(target, CHECKBOX_CLASS)) {
+    if (!target || !(isLeftClick(event) || hasTouchList(event)) || !hasClass(target, CHECKBOX_CLASS)) {
       return;
     }
 
-    const isTouch = isTouchEvent(event);
+    const isTouch = hasTouchList(event);
 
     // A tap acts at once (it already is the release). A long press opens the context menu, so it acts on
     // nothing: its finger is still down.
@@ -699,14 +698,16 @@ export class CheckboxHeader extends BasePlugin {
     (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
     // Keeps the browser focus off the checkbox, so the keyboard stays with the grid.
     event.preventDefault();
-    // Fired before the press is armed, so it is not taken for the release.
+    // An earlier press whose release was lost would take the synthetic `mouseup` below for its own, so it
+    // is dropped first. The event is fired before this press is armed, so it is not taken for its release.
+    this.#disposePress?.();
+    this.#disposePress = null;
     this.eventManager.fireEvent(target, 'mouseup');
 
     if (!isTouch) {
       // The column is kept by its physical index: a render, or a move, can change the visual one.
       const physicalColumn = this.hot.toPhysicalColumn(coords.col);
 
-      this.#disposePress?.();
       this.#disposePress = armPressRelease(this.eventManager, this.hot.rootDocument, event, {
         isSame: releaseTarget => this.#isOnCheckboxOf(releaseTarget, physicalColumn),
         onRelease: () => {
@@ -869,8 +870,6 @@ export class CheckboxHeader extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#disposePress?.();
-    this.#disposePress = null;
     this.#summaryCache.clear();
     this.#syncSourceDataListener();
 

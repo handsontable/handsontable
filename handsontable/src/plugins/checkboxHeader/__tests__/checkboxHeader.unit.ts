@@ -368,6 +368,42 @@ describe('CheckboxHeader', () => {
       destroy();
     });
 
+    it('should toggle the column when the checkbox node is replaced between the press and the release', () => {
+      const { hot, done, destroy } = createGrid();
+      const input = checkboxOf(hot);
+
+      pressHold(input);
+
+      const replacement = input.cloneNode(true) as HTMLInputElement;
+
+      input.replaceWith(replacement);
+      release(replacement);
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      destroy();
+    });
+
+    it('should not let a second press take the synthetic mouseup for the release of the first one', () => {
+      const { hot, done, destroy } = createGrid();
+
+      // The release of the first press is lost: the second press must not act, nor be acted on twice.
+      pressHold(checkboxOf(hot));
+      pressHold(checkboxOf(hot));
+
+      expect(done()).toEqual([false, true, false, true, false, false]);
+
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      destroy();
+    });
+
     it('should drop a held press when the grid is destroyed', () => {
       const { hot, destroy } = createGrid();
       const input = checkboxOf(hot);
@@ -379,6 +415,25 @@ describe('CheckboxHeader', () => {
 
       expect(data.map(row => row.done)).toEqual([false, true, false, true, false, false]);
     });
+  });
+
+  it('should toggle on a tap whose event is not a TouchEvent of this window (a grid inside an iframe)', () => {
+    const { hot, done, destroy } = createGrid();
+    const input = hot.rootElement.querySelector('.htCheckboxHeaderInput')!;
+    const tap = Object.assign(new Event('checkbox-header-test-frame-tap', { bubbles: true, cancelable: true }), {
+      touches: [],
+      changedTouches: [],
+    });
+
+    input.dispatchEvent(tap);
+
+    expect(tap instanceof TouchEvent).toBe(false);
+
+    hot.runHooks('beforeOnCellMouseDown', tap, hot._createCellCoords(-1, 1), input.closest('th'));
+
+    expect(done()).toEqual([true, true, true, true, true, true]);
+
+    destroy();
   });
 
   it('should claim a long press and not toggle the column: it is replayed while the finger is down', () => {

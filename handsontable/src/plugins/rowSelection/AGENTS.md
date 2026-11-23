@@ -78,7 +78,7 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   still cancels the browser's own toggle and no opposite state flashes. A tap acts at once (the touch path is
   already the release), but a long press does not: Walkontable replays it with the finger still down and marks it
   (`markLongPressReplay()`), so the hook claims the press and skips the write for `isLongPressReplay(event)`; a press of another button than the main one is ignored.
-  `disablePlugin()` drops a held press (`#disposePress`). `beforeRowSelectionChange`, `afterRowSelectionChange`, `afterChange` of a bound
+  The press that is still held is dropped first, then the synthetic `mouseup` fires, then the new press is armed: an earlier press whose release was lost would otherwise take the synthetic event for its own and act on it. A press still held when the plugin is disabled or destroyed needs no disposal of its own: the plugin's event manager, which owns its listeners, is cleared by `BasePlugin#disablePlugin()` and `destroy()`. `beforeRowSelectionChange`, `afterRowSelectionChange`, `afterChange` of a bound
   column and the announcement fire at the release.
 - **`headerCheckbox: false` and `'singleRow'` turn the corner off completely** (`#hasHeaderCheckbox()`).
   No checkbox, no `htRowSelectionHeader` class (the pointer cursor and the hit area key on it), no
@@ -97,7 +97,7 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   the next Shift+click then started a range from a row the user never selected.
 - **Taps arrive with the deferred `touchstart`.** Walkontable calls `onMouseDown` with it on `touchend`
   (`3rdparty/walkontable/src/event.ts`), and a `TouchEvent` has no `button`, so both mouse handlers accept
-  `isLeftClick(event) || isTouchEvent(event)`. A bare `button !== 0` check made every tap a no-op on iPad.
+  `isLeftClick(event) || hasTouchList(event)`. A bare `button !== 0` check made every tap a no-op on iPad. The touch branch is found by `hasTouchList(event)`, not `isTouchEvent()`: `instanceof TouchEvent` is false for an event of a grid inside an iframe, and that tap would be armed as a mouse press and never released.
   The unit test calls the hook with a `TouchEvent`; `tests/e2e/row-selection.spec.ts` ("on a touch screen")
   taps for real.
 - **Space on a checkbox must be marked handled.** Both Space shortcuts set

@@ -335,7 +335,7 @@ export class TabDrag {
    * gesture — the listeners re-attach on the next `start()`.
    */
   abort(): void {
-    this.#cancel();
+    this.#cancel(true);
   }
 
   /**
@@ -677,16 +677,16 @@ export class TabDrag {
 
     if (this.#isDragging) {
       event.preventDefault();
-      this.#watchReleaseAfterCancel();
     }
 
-    this.#cancel();
+    this.#cancel(true);
   };
 
   /**
-   * Waits for the release of a drag Escape canceled. The tab still holds the pointer capture, so
-   * the `click` of that release lands on it: when the release is outside the strip, the click is
-   * ignored like the one of a drag released there.
+   * Waits for the release of a drag that was canceled while the pointer was still down (Escape, a
+   * repaint, the window losing focus). The tab still holds the pointer capture, so the `click` of that
+   * release lands on it: when the release is outside the strip, the click is ignored like the one of a
+   * drag released there.
    *
    * @param {PointerEvent} event The pointerup or pointercancel event.
    */
@@ -704,7 +704,8 @@ export class TabDrag {
   };
 
   /**
-   * Starts waiting for the release of a drag that is being canceled.
+   * Starts waiting for the release of a drag that is being canceled. Called by `#cancel()` before it
+   * clears the pointer id.
    */
   #watchReleaseAfterCancel(): void {
     const ownerDocument = this.#host.ownerDocument;
@@ -777,14 +778,22 @@ export class TabDrag {
    * the document then.
    */
   #onWindowBlur = (): void => {
-    this.#cancel();
+    this.#cancel(true);
   };
 
   /**
    * Restores the original order and ends the gesture without reporting anything.
+   *
+   * @param {boolean} [watchRelease] Whether the pointer is still down and still holds the capture
+   *   on the tab (Escape, a repaint, the window losing focus), so the `click` of its release will
+   *   land on the tab. A `pointercancel` and a lost capture mean the pointer is gone: no click comes.
    */
-  #cancel(): void {
+  #cancel(watchRelease = false): void {
     const tab = this.#tab;
+
+    if (watchRelease && this.#isDragging) {
+      this.#watchReleaseAfterCancel();
+    }
 
     if (tab && this.#isDragging && tab.parentNode === this.#host) {
       const tabs = this.#tabs().filter(element => element !== tab);
