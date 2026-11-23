@@ -178,6 +178,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '第 [level] 層，第 [position] 項，共 [setSize] 項',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: '第 [level] 層，第 [position] 項，共 [setSize] 項，已展開',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: '第 [level] 層，第 [position] 項，共 [setSize] 項，已摺疊',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: '公式: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '已展開欄群組 [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '已摺疊欄群組 [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已依 [label] 升序排序',

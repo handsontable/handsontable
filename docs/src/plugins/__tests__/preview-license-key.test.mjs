@@ -10,9 +10,12 @@ import {
   TEST_KEY_MARKER,
   checkEveryExampleRewritten,
   checkKeyInOutput,
+  KEYED_SITE_SCRIPTS,
   injectLicenseKey,
   isExecutedExampleId,
+  isKeyedSiteScriptId,
   listExamplesWithPlaceholder,
+  listSiteScriptsWithPlaceholder,
   resolvePreviewLicenseKey,
 } from '../preview-license-key.mjs';
 import { TEST_LICENSE_KEY } from '../../test-license-key.mjs';
@@ -251,6 +254,27 @@ test('the build check fails on a key in displayed output, on a key missing from 
     assert.throws(() => checkKeyInOutput(dist, { injected: true }), /javascript-data-grid\/index\.md/);
   } finally {
     rmSync(dist, { recursive: true, force: true });
+  }
+});
+
+test('the site scripts that build a grid get the key too, and still parse', () => {
+  assert.equal(isKeyedSiteScriptId('/repo/docs/src/scripts/minesweeper-404.ts'), true);
+  assert.equal(isKeyedSiteScriptId('C:\\repo\\docs\\src\\scripts\\minesweeper-404.ts'), true);
+  assert.equal(isKeyedSiteScriptId('/repo/docs/src/scripts/minesweeper-404.ts?raw'), false);
+  assert.equal(isKeyedSiteScriptId('/repo/docs/src/scripts/example-runner.ts'), false);
+
+  // Every listed script holds a placeholder: one without it builds its grid with no key, and the build
+  // check would expect nothing from it.
+  assert.equal(listSiteScriptsWithPlaceholder(DOCS_DIR).length, KEYED_SITE_SCRIPTS.length);
+
+  for (const script of KEYED_SITE_SCRIPTS) {
+    const file = join(DOCS_DIR, script);
+    const code = readFileSync(file, 'utf8');
+    const out = injectLicenseKey(code, TEST_LICENSE_KEY);
+
+    assert.equal(out.split(KEY_JSON).length - 1, 1, `${script} gets the key once.`);
+    assert.equal(out.split('\n').length, code.split('\n').length, `${script} keeps its line count.`);
+    assert.deepEqual(moduleSyntaxErrors(out, file), moduleSyntaxErrors(code, file), `${script} still parses.`);
   }
 });
 

@@ -128,6 +128,7 @@ describe('Formulas memory leak check', () => {
       },
     });
     const hot2 = spec().$container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: [['3', '4', '=A1+B1']],
       formulas: {
         engine: hfInstance,
@@ -155,6 +156,7 @@ describe('Formulas memory leak check', () => {
       },
     });
     const hot2 = spec().$container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: [['3', '4', '=A1+B1']],
       formulas: {
         engine: hfInstance,
@@ -239,6 +241,7 @@ describe('Formulas memory leak check', () => {
     });
 
     const hot2 = spec().$container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: [['=SheetA!A1']],
       formulas: {
         engine: hfInstance,
@@ -266,6 +269,7 @@ describe('Formulas memory leak check', () => {
       },
     });
     const hot2 = spec().$container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: [['bar'], ['Sheet1:A1']],
       formulas: {
         engine: hfInstance1,
@@ -307,6 +311,7 @@ describe('Formulas memory leak check', () => {
       },
     });
     const hot2 = spec().$container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: [['bar'], ['Sheet1:A1']],
       formulas: {
         engine: hot1.getPlugin('formulas').engine,
@@ -354,6 +359,7 @@ describe('Formulas memory leak check', () => {
       },
     });
     const hot2 = spec().$container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: [['bar'], ['Sheet1:A1']],
       formulas: {
         engine: hfInstance1,
@@ -405,6 +411,7 @@ describe('Formulas memory leak check', () => {
       },
     });
     const hot2 = spec().$container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: [['bar'], ['Sheet1:A1']],
       formulas: {
         engine: hot1.getPlugin('formulas').engine,
