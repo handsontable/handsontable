@@ -67,6 +67,8 @@ test.describe('keyboard focus on the docs theme', () => {
 
       await expect(focused).toHaveCount(1);
       await expect(focused).toHaveCSS('opacity', '1');
+      await expect(focused).toHaveCSS('outline-style', 'solid');
+      await expect(focused).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
     });
   }
 

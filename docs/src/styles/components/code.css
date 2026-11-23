@@ -134,6 +134,10 @@
   opacity: 1;
 }
 
+:root[data-theme] .expressive-code .copy button:focus-visible {
+  border-color: transparent;
+}
+
 .expressive-code .copy button div {
   background: none;
   opacity: 0;
