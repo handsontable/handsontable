@@ -2720,8 +2720,9 @@ runs `node .github/scripts/a11y-learn.mjs` after the weekly audit, then follows
   `notDefect` fields of clusters that exist in `tests/a11y/issues.json`, nothing else.**
   `node .github/scripts/a11y-learn.mjs --guard` reads the whole change against `origin/develop`, untracked
   files included, and fails on any other path, a file that is not a plain file, any other catalog field, a
-  changed `budget` in `rules.json`, a task id other than the branch's in a commit message or the body, and
-  a body that does not name a class that reached its second strike.
+  `rules.json` that is added, deleted, not readable as JSON or has another `budget`, a task id other than
+  the branch's in a commit message or the body, and a body that does not name a class that reached its
+  second strike. A file the guard cannot read is a problem, never a pass.
 - **A rule broken twice becomes a check.** A strike is a finding that broke a rule, recorded on the rule's
   class in `rules.json`. Two distinct pull requests or two audits among a class's strikes are the second
   strike: the pull request body then says which check the rule needs. The routine builds no check.

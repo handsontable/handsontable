@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
@@ -554,12 +554,32 @@ test('every value the page writes is escaped for where it lands: the backslash w
   assert.equal(text.split('\n').filter(item => item.startsWith('#') && !item.startsWith('# Accessibility') && !item.startsWith('## ') && !item.startsWith('### ')).length, 0);
 });
 
-test('the rate reads attributable findings against the pull requests that changed the grid\'s own code', () => {
+test('the rate reads the grid\'s attributable findings against the pull requests that changed the grid\'s own code', () => {
   const packet = packetOfCut(fixture('audit-2026-11-17.json'));
 
-  // 57 in the real range: the cut leaves out the unit test folders, and one pull request changed nothing else there.
-  assert.deepEqual(packet.metric, { attributableFindings: 26, sourcePullRequests: 56, per10PullRequests: 4.6 });
+  // The two docs findings are attributable too, to a pull request that changed a guide: they are no part of a rate
+  // whose other side counts changes to `handsontable/src` and `wrappers`.
+  assert.equal(packet.counts.outcomes.attributable, 26);
+  assert.deepEqual([packet.counts.bySource.a11y.attributable, packet.counts.bySource.docs.attributable], [24, 2]);
+  // 57 pull requests in the real range: the cut leaves out the unit test folders, and one changed nothing else there.
+  assert.deepEqual(packet.metric, { attributableFindings: 24, sourcePullRequests: 56, per10PullRequests: 4.3 });
+  assert.match(renderPacket(packet), /\nRate: 24 attributable findings on the grid against 56 pull requests that changed `handsontable\/src` or `wrappers` \(4\.3 per 10\)\.\n/);
   assert.equal(packetOf(twoAudits()).metric.per10PullRequests, null, 'no pull request, no rate');
+});
+
+test('a week whose only attributable findings are on the docs has a grid rate of zero', () => {
+  // Two audits of the docs: the second finds the rule on page r, which a check of the first had measured.
+  const { doc: before } = record(null, [[103, '2026-11-16T03:00:00Z', siteNight('docs', 'aria-required-parent', ['p'])]]);
+  const { doc: after } = record(before, [[203, '2026-11-23T03:00:00Z', siteNight('docs', 'aria-required-parent', ['p', 'r'])]]);
+  const previous = { ...before.nights[0], coverage: { ...before.nights[0].coverage, checks: { 'docs-reflow': ['p|light|', 'r|light|'] } } };
+  const guide = commit(21, ['docs/content/guides/r/r.md']);
+  const core = commit(22, ['handsontable/src/core.ts']);
+  const packet = learnPacket({ ledger: after, coverage: { docs: previous }, commits: { a11y: [core], reader: [core], docs: [guide, core] }, catalog: CATALOG,
+    rules: RULES, maps: { docsFolders: { r: ['docs/content/guides/r/'] } }, now: NOW });
+
+  assert.deepEqual(packet.attributable.map(group => [group.source, group.page, group.findings, group.candidates.map(candidate => candidate.pullRequest)]),
+    [['docs', 'r', 1, [21]]]);
+  assert.deepEqual(packet.metric, { attributableFindings: 0, sourcePullRequests: 1, per10PullRequests: 0 });
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -639,13 +659,16 @@ test('the path guard allows the accessibility skill\'s folder and nothing beside
   const allowed = [changed(`${LEARN_SKILL_DIR}SKILL.md`), changed(LEARN_RULES_FILE), changed(`${LEARN_SKILL_DIR}references/classes.md`),
     changed(`${LEARN_SKILL_DIR}references/new-trap.md`, 'A'), changed(`${LEARN_SKILL_DIR}references/old.md`, 'D', '000000')];
 
+  // The change edits rules.json, so the guard reads it on both sides.
+  const rules = { rulesBefore: RULES, rulesAfter: { ...RULES, notPreventable: [{ cluster: 'reader-quirk', reason: 'The reader words it its own way.' }] } };
+
   assert.equal(LEARN_SKILL_DIR, '.claude/skills/handsontable-a11y/');
-  assert.deepEqual(guardProblems({ changes: allowed }), []);
+  assert.deepEqual(guardProblems({ changes: allowed, ...rules }), []);
 
   for (const file of ['handsontable/src/core.ts', 'wrappers/react-wrapper/src/hotTable.tsx', 'tests/a11y/axe-baseline.json',
     'tests/a11y/tree-goldens/grid.yml', '.github/workflows/a11y.yml', '.github/scripts/a11y-learn.mjs', 'tests/AGENTS.md', 'docs/AGENTS.md',
     '.claude/skills/handsontable-a11y-learn/SKILL.md', '.claude/skills/handsontable-a11y', '.claude/settings.json', 'tests/a11y/issues.json.bak']) {
-    const problems = guardProblems({ changes: [...allowed, changed(file)] });
+    const problems = guardProblems({ changes: [...allowed, changed(file)], ...rules });
 
     assert.equal(problems.length, 1, file);
     assert.equal(problems[0], `${file}: outside what the routine may change (.claude/skills/handsontable-a11y/ and defectClass, notDefect in tests/a11y/issues.json)`);
@@ -697,6 +720,22 @@ test('the path guard keeps the skill\'s size budget where a person set it', () =
   assert.deepEqual(guardProblems({ changes: [changed(LEARN_RULES_FILE)], rulesBefore: RULES, rulesAfter: raised }),
     ['.claude/skills/handsontable-a11y/rules.json: "budget" changed; the routine never raises its own limits']);
   assert.deepEqual(guardProblems({ changes: [changed(LEARN_RULES_FILE)], rulesBefore: RULES, rulesAfter: { ...RULES, notPreventable: [{ cluster: 'a', reason: 'b' }] } }), []);
+  assert.deepEqual(guardProblems({ changes: [changed(`${LEARN_SKILL_DIR}SKILL.md`)], rulesBefore: RULES, rulesAfter: RULES }), [], 'an untouched rules.json is not read');
+});
+
+test('the path guard does not fail open on rules.json: the routine never deletes it, adds it, or leaves it unreadable', () => {
+  const inPlace = '.claude/skills/handsontable-a11y/rules.json: the routine edits the skill\'s rules in place; it never adds or deletes them';
+  const unreadable = '.claude/skills/handsontable-a11y/rules.json: cannot be read as JSON on both sides, so its budget cannot be compared';
+
+  // Deleted: the budget, every class and every strike would go with it.
+  assert.deepEqual(guardProblems({ changes: [changed(LEARN_RULES_FILE, 'D', '000000')], rulesBefore: RULES, rulesAfter: null }), [inPlace]);
+  assert.deepEqual(guardProblems({ changes: [changed(LEARN_RULES_FILE, 'A')], rulesBefore: null, rulesAfter: RULES }), [inPlace]);
+  // Edited into something that is not JSON, or was not JSON at the base.
+  assert.deepEqual(guardProblems({ changes: [changed(LEARN_RULES_FILE)], rulesBefore: RULES, rulesAfter: null }), [unreadable]);
+  assert.deepEqual(guardProblems({ changes: [changed(LEARN_RULES_FILE)], rulesBefore: null, rulesAfter: RULES }), [unreadable]);
+  // JSON that is no longer the rules document has no budget to keep.
+  assert.deepEqual(guardProblems({ changes: [changed(LEARN_RULES_FILE)], rulesBefore: RULES, rulesAfter: [] }),
+    ['.claude/skills/handsontable-a11y/rules.json: "budget" changed; the routine never raises its own limits']);
 });
 
 test('the raw diff is read with each path\'s status and new mode', () => {
@@ -709,6 +748,29 @@ test('the raw diff is read with each path\'s status and new mode', () => {
     { path: 'handsontable/src/core.ts', status: 'D', mode: '000000' },
   ]);
   assert.deepEqual(parseRawDiff(''), []);
+});
+
+test('the raw diff as git prints it: the second field is the new mode, which is the one the guard judges', () => {
+  // `git diff --raw --no-renames --no-abbrev -z HEAD` in a repository where SKILL.md was made executable, a link and a
+  // script were added and a note was deleted, copied as git printed it. The fields are the old mode, the new mode, the
+  // old object, the new object and the status.
+  const zero = '0'.repeat(40);
+  const raw = [
+    ':100644 100755 78981922613b2afb6025042ff6bd878ac1994e85 78981922613b2afb6025042ff6bd878ac1994e85 M', `${LEARN_SKILL_DIR}SKILL.md`,
+    `:000000 120000 ${zero} d69512cfc83b99237b23cf465aecb450d8df1a73 A`, `${LEARN_SKILL_DIR}link.md`,
+    `:100644 000000 61780798228d17af2d34fce4cfbdf35556832472 ${zero} D`, `${LEARN_SKILL_DIR}notes.md`,
+    `:000000 100755 ${zero} 1a2485251c33a70432394c93fb89330ef214bfc9 A`, `${LEARN_SKILL_DIR}run.sh`,
+    '',
+  ].join('\0');
+  const changes = parseRawDiff(raw);
+
+  assert.deepEqual(changes.map(change => [change.path.slice(LEARN_SKILL_DIR.length), change.status, change.mode]),
+    [['SKILL.md', 'M', '100755'], ['link.md', 'A', '120000'], ['notes.md', 'D', '000000'], ['run.sh', 'A', '100755']]);
+  assert.deepEqual(guardProblems({ changes }), [
+    `${LEARN_SKILL_DIR}SKILL.md: a plain file only, not a link, a submodule or an executable (mode 100755)`,
+    `${LEARN_SKILL_DIR}link.md: a plain file only, not a link, a submodule or an executable (mode 120000)`,
+    `${LEARN_SKILL_DIR}run.sh: a plain file only, not a link, a submodule or an executable (mode 100755)`,
+  ], 'a file made executable, an added link and an added script fail; a deleted plain file does not');
 });
 
 test('the text of the routine\'s pull request names no task but the branch\'s own, and names a rule at its second strike', () => {
@@ -933,6 +995,46 @@ test('the guard fails on product code, an untracked file, a link, a forbidden ca
       '- handsontable/src/core.ts', '- notes/plan.md', '- tests/a11y/issues.json']);
     assert.ok(lines.some(line => line.includes('cluster "menu-semantics" changed "tracker"')));
     assert.ok(lines.some(line => line.includes('core.ts: a plain file only') && line.includes('mode 120000')));
+  } finally {
+    rmSync(repo.dir, { recursive: true, force: true });
+  }
+});
+
+test('the guard, read from git: a tracked file made executable, a staged link and a deleted rules.json all fail', () => {
+  const repo = scratchRepo();
+
+  try {
+    chmodSync(path.join(repo.dir, LEARN_SKILL_DIR, 'SKILL.md'), 0o755);
+    symlinkSync('SKILL.md', path.join(repo.dir, LEARN_SKILL_DIR, 'link.md'));
+    repo.git('rm', '--quiet', LEARN_RULES_FILE);
+    repo.git('add', '-A');
+    repo.git('commit', '--quiet', '-m', 'DEV-100: Change modes');
+
+    const result = run(['--guard', '--repo', repo.dir, '--base', 'develop']);
+    const lines = result.stdout.trim().split('\n');
+
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(lines[0], 'guard: 3 problems');
+    assert.deepEqual(lines.slice(1).sort(), [
+      `- ${LEARN_SKILL_DIR}SKILL.md: a plain file only, not a link, a submodule or an executable (mode 100755)`,
+      `- ${LEARN_SKILL_DIR}link.md: a plain file only, not a link, a submodule or an executable (mode 120000)`,
+      `- ${LEARN_RULES_FILE}: the routine edits the skill's rules in place; it never adds or deletes them`,
+    ].sort());
+  } finally {
+    rmSync(repo.dir, { recursive: true, force: true });
+  }
+});
+
+test('the guard, read from git: a rules.json edited into something that is not JSON fails', () => {
+  const repo = scratchRepo();
+
+  try {
+    repo.write(LEARN_RULES_FILE, '{ "schema": 1, "budget": ');
+
+    const result = run(['--guard', '--repo', repo.dir, '--base', 'develop']);
+
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(result.stdout, `guard: 1 problem\n- ${LEARN_RULES_FILE}: cannot be read as JSON on both sides, so its budget cannot be compared\n`);
   } finally {
     rmSync(repo.dir, { recursive: true, force: true });
   }

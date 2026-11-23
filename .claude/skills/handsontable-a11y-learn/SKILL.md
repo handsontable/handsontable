@@ -72,7 +72,7 @@ Change or add at most five rules in one pull request. With more, keep the five g
 
 A class whose strikes name two distinct pull requests, or two audits, is at its **second strike**: the rule failed as prose twice, so it needs a check. The packet shows each class's strikes before this run, and `--guard` prints `second strike: <class>` for a class that reached it in your change.
 
-For each such class, add a section "Rules that need a check" to the pull request body with: the class id and its rule, both strikes (cluster, audit date, pull request number), the check to build or extend, and where it must run. Start from the class's `enforcedBy`: a check that runs `weekly` and would have seen the finding needs to run on the pull request; `none` needs a new check. The guard fails a body that does not name the class.
+For each such class, add a section "Rules that need a check" to the pull request body with: the class id and its rule, both strikes (cluster, audit date, pull request number), the check to build or extend, and where it must run. Start from the class's `enforcedBy`: a check that runs `weekly` and would have seen the finding needs to run on the pull request; one that already runs on the `pull-request` and let it through needs the case it misses; `none` needs a new check. The guard fails a body that does not name the class.
 
 Do not build the check and do not shorten the rule: both are outside what you may change. The rule's prose shrinks to a pointer in the change that lands the check, so a rule is never left with neither.
 
@@ -81,7 +81,7 @@ Do not build the check and do not shorten the rule: both are outside what you ma
 - Anything under `.claude/skills/handsontable-a11y/`: `SKILL.md`, `references/*.md`, `rules.json`.
 - In `tests/a11y/issues.json`: the `defectClass` and `notDefect` fields of clusters that exist. No other field, no new cluster, no reorder.
 
-Nothing else: no product code, no test, no baseline or golden, no workflow, no `AGENTS.md`, not this skill and not the script. `rules.json` keeps its `budget`. The guard reads the whole change against `origin/develop`, untracked files included, and fails on anything outside this list. The skill's own test keeps `SKILL.md` inside its line and rule budget: when a new line does not fit, shorten or merge an existing one, never raise the budget.
+Nothing else: no product code, no test, no baseline or golden, no workflow, no `AGENTS.md`, not this skill and not the script. `rules.json` is edited in place: never deleted, always valid JSON, with its `budget` as it was. The guard reads the whole change against `origin/develop`, untracked files included, and fails on anything outside this list. The skill's own test keeps `SKILL.md` inside its line and rule budget: when a new line does not fit, shorten or merge an existing one, never raise the budget.
 
 ## The pull request
 

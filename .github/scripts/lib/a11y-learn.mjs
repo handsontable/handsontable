@@ -81,6 +81,8 @@ const TASK_ID = /(?<![A-Za-z0-9])[A-Z][A-Z0-9]*-\d+(?![A-Za-z0-9])/g;
 const PULL_REQUEST = /\(#(\d+)\)\s*$/;
 const SEVERITY_ORDER = ['critical', 'serious', 'moderate', 'minor', 'advisory'];
 const READER_SOURCE = 'reader';
+// The night sources that audit the grid, whose findings and pull requests the packet's rate counts.
+const GRID_SOURCES = Object.freeze(['a11y', 'reader']);
 // The row sources that scan whole pages with axe, whose night says only that the scan was complete.
 const SCAN_SOURCES = new Set(['axe', 'docs', 'website']);
 const REGULAR_FILE = '100644';
@@ -271,9 +273,10 @@ export function parseRawDiff(text) {
   const changes = [];
 
   for (let index = 0; index + 1 < parts.length; index += 2) {
-    const [, mode = '', , , status = ''] = parts[index].replace(/^:/, '').split(' ');
+    // The fields, in git's order: the old mode, the new mode, the old object, the new object, the status.
+    const [, newMode = '', , , status = ''] = parts[index].replace(/^:/, '').split(' ');
 
-    changes.push({ path: parts[index + 1], status: status.charAt(0), mode });
+    changes.push({ path: parts[index + 1], status: status.charAt(0), mode: newMode });
   }
 
   return changes;
@@ -820,10 +823,12 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
   }).sort((a, b) => b.findings - a.findings || a.id.localeCompare(b.id));
   const outcomes = Object.fromEntries(LEARN_OUTCOMES.map(outcome => [outcome, sorted.filter(entry => entry.outcome === outcome).length]));
   const newlyMeasured = sorted.filter(entry => entry.outcome === 'newly-measured' || entry.outcome === 'inherited');
-  // The grid's own code: the rate of attributable findings is read against the pull requests that changed it.
+  // The grid's own code: the rate reads the grid's attributable findings against the pull requests that changed it. A
+  // finding on the docs is tied to a pull request that changed a guide, which is on neither side of that rate.
   const gridCommits = new Map();
+  const gridAttributable = sorted.filter(entry => entry.outcome === 'attributable' && GRID_SOURCES.includes(entry.source)).length;
 
-  for (const source of ['a11y', 'reader']) {
+  for (const source of GRID_SOURCES) {
     for (const commit of commits[source] ?? []) {
       if (commit.files.some(path => path.startsWith('handsontable/src/') || path.startsWith('wrappers/'))) {
         gridCommits.set(commit.sha, commit);
@@ -854,9 +859,9 @@ export function learnPacket({ ledger: ledgerDoc, coverage = {}, commits = {}, ca
       attributableGroups: attributable.length,
     },
     metric: {
-      attributableFindings: outcomes.attributable,
+      attributableFindings: gridAttributable,
       sourcePullRequests: gridCommits.size,
-      per10PullRequests: gridCommits.size > 0 ? Math.round((outcomes.attributable / gridCommits.size) * 100) / 10 : null,
+      per10PullRequests: gridCommits.size > 0 ? Math.round((gridAttributable / gridCommits.size) * 100) / 10 : null,
     },
     rules: { file: LEARN_RULES_FILE, present: rules !== null, classes, notPreventable: [...notPreventable].map(([cluster, reason]) => ({ cluster, reason })) },
     attributable,
@@ -988,7 +993,7 @@ export function renderPacket(packet) {
     `- Not sorted (see the refusals): ${counts.outcomes.unsorted}`,
     `- **Attributable, to sort: ${counts.outcomes.attributable} in ${plural(counts.attributableGroups, 'group', 'groups')}**`,
     '',
-    `Rate: ${packet.metric.attributableFindings} attributable ${packet.metric.attributableFindings === 1 ? 'finding' : 'findings'} against `
+    `Rate: ${packet.metric.attributableFindings} attributable ${packet.metric.attributableFindings === 1 ? 'finding' : 'findings'} on the grid against `
       + `${plural(packet.metric.sourcePullRequests, 'pull request', 'pull requests')} that changed \`handsontable/src\` or \`wrappers\``
       + `${packet.metric.per10PullRequests === null ? '' : ` (${packet.metric.per10PullRequests} per 10)`}.`);
 
@@ -1149,15 +1154,16 @@ export function catalogProblems(before, after) {
 /**
  * Why a change set is not one the routine's pull request may hold. It may touch the accessibility skill's folder,
  * and two fields of the catalog's clusters. Nothing else: no product code, no test, no baseline or golden, no
- * workflow, and not this routine's own skill or script.
+ * workflow, and not this routine's own skill or script. Inside the skill's folder `rules.json` is edited in place:
+ * it stays, it stays JSON, and its budget stays as it was.
  *
  * @param {object} change The change set.
  * @param {Array<{path: string, status: string, mode?: string}>} change.changes Every path that differs from the base,
  * untracked files included (`parseRawDiff()`).
  * @param {object|null} [change.catalogBefore] The catalog at the base, when the change touches it.
  * @param {object|null} [change.catalogAfter] The catalog in the change, parsed; `null` when it is not JSON.
- * @param {object|null} [change.rulesBefore] `rules.json` at the base, when both sides have it.
- * @param {object|null} [change.rulesAfter] `rules.json` in the change.
+ * @param {object|null} [change.rulesBefore] `rules.json` at the base, parsed; `null` when it is missing or not JSON there.
+ * @param {object|null} [change.rulesAfter] `rules.json` in the change, parsed; `null` when it is missing or not JSON.
  * @returns {string[]} The problems; empty when the change set is allowed.
  */
 export function guardProblems({ changes, catalogBefore = null, catalogAfter = null, rulesBefore = null, rulesAfter = null }) {
@@ -1178,11 +1184,18 @@ export function guardProblems({ changes, catalogBefore = null, catalogAfter = nu
       } else {
         problems.push(...catalogProblems(catalogBefore, catalogAfter));
       }
+    } else if (path === LEARN_RULES_FILE) {
+      // The rules hold the budget, every class and every strike: a file that is gone, new or not JSON has none of them
+      // to compare, so it is a problem and never a pass.
+      if (status !== 'M') {
+        problems.push(`${path}: the routine edits the skill's rules in place; it never adds or deletes them`);
+      } else if (rulesBefore === null || rulesAfter === null) {
+        problems.push(`${path}: cannot be read as JSON on both sides, so its budget cannot be compared`);
+      } else if (canonical(rulesBefore.budget) !== canonical(rulesAfter.budget)) {
+        // The size budget of the skill is a person's to raise.
+        problems.push(`${path}: "budget" changed; the routine never raises its own limits`);
+      }
     }
-  }
-  // The size budget of the skill is a person's to raise.
-  if (rulesBefore !== null && rulesAfter !== null && canonical(rulesBefore.budget) !== canonical(rulesAfter.budget)) {
-    problems.push(`${LEARN_RULES_FILE}: "budget" changed; the routine never raises its own limits`);
   }
 
   return problems;
