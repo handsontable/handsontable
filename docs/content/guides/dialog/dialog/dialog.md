@@ -376,9 +376,13 @@ When a dialog opens, focus moves into it. Where it lands depends on how you conf
 
 Focus moves only if the grid was focused when the dialog opened. If the user has not interacted with the grid yet, the dialog opens without taking focus away from the rest of the page. The [`afterDialogFocus`](@/api/hooks.md#afterdialogfocus) hook follows the same rule, so it does not run in that case either.
 
-While the dialog is open and holds the focus, **Tab** and **Shift+Tab** move between the focusable elements inside it and skip the grid. From the last focusable element, **Tab** goes back to the first one. From the first one, **Shift+Tab** goes to the last one. The focus does not leave the dialog by **Tab**. To leave, use a button inside the dialog, press **Escape** when `closable` is set to `true`, or close the dialog from your code with [`hide()`](@/api/dialog.md#hide). The [`showAlert()`](@/api/dialog.md#showalert) and [`showConfirm()`](@/api/dialog.md#showconfirm) methods set `closable` to `false`, so **Escape** does not close those dialogs.
+While the dialog is open and holds the focus, **Tab** and **Shift+Tab** move between the focusable elements inside it and skip the grid. The dialog keeps **Tab** inside only when it offers a keyboard exit: it has at least one focusable element, or `closable` is `true`.
 
-The dialog keeps **Tab** inside only when it offers a keyboard exit: it has at least one focusable element, or `closable` is `true`. If it has no focusable element and `closable` is `false`, **Tab** moves on to the page, so the dialog never traps the keyboard. The [Loading](@/guides/dialog/loading/loading.md) screen is such a dialog. With no focusable element and `closable` set to `true`, the focus stays on the dialog box.
+- In a dialog with focusable elements, **Tab** goes from the last one back to the first one, and **Shift+Tab** goes from the first one to the last one. To leave, use a button inside the dialog, press **Escape** when `closable` is set to `true`, or close the dialog from your code with [`hide()`](@/api/dialog.md#hide). The [`showAlert()`](@/api/dialog.md#showalert) and [`showConfirm()`](@/api/dialog.md#showconfirm) methods set `closable` to `false`, so **Escape** does not close those dialogs.
+- In a dialog with no focusable element and `closable` set to `true`, the focus stays on the dialog box, and **Escape** closes it.
+- In a dialog with no focusable element and `closable` set to `false`, **Tab** moves on to the page, so the dialog never traps the keyboard. The [Loading](@/guides/dialog/loading/loading.md) screen is such a dialog.
+
+An element in your `content` that handles **Tab** itself, such as a code editor that inserts a tab character, keeps that key: when its handler calls `preventDefault()`, the dialog does not move the focus.
 
 The containment applies only to a press made while the focus is inside the dialog. After the user clicks an element outside the dialog, **Tab** follows the page.
 
