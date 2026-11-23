@@ -133,4 +133,40 @@ export class CellDescriptionPage {
       window.hot.render();
     }, merged);
   }
+
+  /**
+   * Fill the grid with many rows and count the writes to the `aria-describedby` of its cells while it repaints
+   * unchanged and while it scrolls down and back over recycled cells. A warm-up pass first paints every cell the
+   * scroll reaches, so a cell that is new is not counted.
+   */
+  async countDescribedByWrites(): Promise<{ repaint: number; scroll: number }> {
+    return this.page.evaluate(async() => {
+      const hot = window.hot;
+      const data = Array.from({ length: 300 }, (_, r) => Array.from({ length: 4 }, (_, c) => `r${r}c${c}`));
+
+      hot.updateSettings({ data, mergeCells: false, autoLink: false, formulas: false, height: 200 });
+      hot.render();
+      hot.scrollViewportTo({ row: 250 });
+      hot.scrollViewportTo({ row: 0 });
+      hot.render();
+
+      const observer = new MutationObserver(() => {});
+
+      observer.observe(hot.rootElement, { attributes: true, attributeFilter: ['aria-describedby'], subtree: true });
+      hot.render();
+
+      const repaint = observer.takeRecords().length;
+
+      hot.scrollViewportTo({ row: 250 });
+      hot.scrollViewportTo({ row: 0 });
+      hot.render();
+
+      const scroll = observer.takeRecords().length;
+
+      observer.disconnect();
+
+      return { repaint, scroll };
+    });
+  }
 }
+

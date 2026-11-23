@@ -1233,6 +1233,5 @@ The selection extra class (`afterDrawSelection`) is asked by Walkontable on ever
   rows and the row header columns, plus one (`lastMergedRowIndex + countColHeaders() + 1`). Hidden lines are skipped, so the
   numbers agree with what a screen reader says for that cell, which a count of data rows from 1 did not (it was one header
   row and one header column short). NVDA with Chromium reads the native `rowspan`/`colspan` and the other readers read
-  nothing. **Known limit:** NVDA with Chromium may now say the span twice; the proof run on the branch decides whether the
-  part stays. Only the origin gets the part; the covered cells are `display: none`. Rules:
+  nothing. **Known limit, accepted:** NVDA with Chromium says the span twice, once from the description and once from the native `rowspan`; the numbers agree (screen reader proof run 45148360219, groups `structure` and `menus`: VoiceOver with WebKit speaks the part too). Only the origin gets the part; the covered cells are `display: none`. Rules:
   `../../utils/cellDescription/AGENTS.md`.

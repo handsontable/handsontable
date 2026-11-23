@@ -67,11 +67,22 @@ Rules, each from a measured reason:
   plus a forced layout, median of 41, alternating builds) took 9.0 to 9.5 ms without the description and 8.6 to 10.3 ms with
   it, so no measurable cost; with ARIA off it took 6.8 ms, which is the ARIA the grid writes anyway. The generated-content
   version of this took 11 to 12 ms and then 13 to 18 ms on the same grid.
-- **Reader support is the open risk.** Chromium's accessibility tree gives the description (`Accessibility.getPartialAXTree`,
-  which `tests/e2e/cell-description.spec.ts` reads), and NVDA reads descriptions by default; VoiceOver may drop them or read
-  them as a delayed hint. The header reference already reads on both, which is the evidence for. The screen reader proof run
-  on the branch decides (`gh workflow run screenreader-nightly.yml --ref <branch> -f projects=nvda-chromium,vo-webkit
-  -f groups=editors`). If a reader drops a part, that part moves to the name channel as a follow-up.
+- **Reader support, measured** by the screen reader proof run on this change (`screenreader-nightly`, run 45148360219,
+  groups `structure` and `menus`, NVDA with Chromium and VoiceOver with WebKit): both speak all three parts. NVDA with Chromium
+  reads the description after the value (`B 1, B read only, row 2`), VoiceOver with WebKit before it (`B read only B2`,
+  `merged through row 3 column 3 1-1`). Two repeats follow from that and are accepted: VoiceOver says `link` twice for an
+  auto-linked cell (once from the description, once for the anchor), and NVDA with Chromium says a merged block's span twice
+  (the description and the native `rowspan`; the numbers agree). NVDA with Firefox and VoiceOver with Chromium were not run.
+  Chromium's accessibility tree gives the description (`Accessibility.getPartialAXTree`, read by
+  `tests/e2e/cell-description.spec.ts`). If a reader drops a part, that part moves to the name channel as a follow-up.
+- **Walkontable keeps our reference on a recycled cell.** `prepareCellAriaAttributes` (`render/cells.ts`) resets a cell's
+  `aria-describedby` to the column header on every paint; without an exception the painter wrote it again after the renderer,
+  two writes per described cell per paint (72 on a repaint and 56 on a scroll of a 300 by 4 read-only grid, 0 and 0 now).
+  `isKeptDescribedBy()` (`render/ariaAttributes.ts`) leaves the value alone when it is the cell's own header reference followed
+  by references that start with `CELL_DESCRIPTION_ID_PREFIX` (kept in `helpers/a11y.ts`, which both sides import). A recycled
+  cell that moved to another column is reset as before. The cost: a renderer that reads `aria-describedby` on a recycled
+  described cell sees our reference after the header, which a fresh cell does not have. Pinned by
+  `walkontable/test/unit/renderer/ariaAttributes.unit.ts` and the write-count case of `tests/e2e/cell-description.spec.ts`.
 
 Pinned by `__tests__/cellDescription.unit.ts` and `tests/e2e/cell-description.spec.ts`, which asks Chromium's own
 accessibility tree for the name and the description (`tests/fixtures/pages/CellDescriptionPage.ts`).

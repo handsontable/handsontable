@@ -1,11 +1,12 @@
+import { CELL_DESCRIPTION_ID_PREFIX } from '../../helpers/a11y';
+
 /**
- * The prefix of the ids of the hidden elements that hold the descriptions of a grid's cells. A cell points at one
- * of them through `aria-describedby`, after the reference Walkontable writes to the cell's column header, so a
- * screen reader reads the description after the cell's name and the header, as it reads the header. The text is
- * never inside the cell and never drawn, so the cell's own text, its accessible name, `textContent`,
- * `innerText`, the copied text and its box stay as they were.
+ * A cell points at the hidden element that holds its description through `aria-describedby`, after the reference
+ * Walkontable writes to its column header, so a screen reader reads the description with the cell and the header.
+ * The text is never inside the cell and never drawn, so the cell's own text, its accessible name, `textContent`,
+ * `innerText`, the copied text and its box stay as they were. The ids start with {@link CELL_DESCRIPTION_ID_PREFIX}.
  */
-export const CELL_DESCRIPTION_ID_PREFIX = 'ht-description-';
+export { CELL_DESCRIPTION_ID_PREFIX };
 
 /**
  * The position of each part in the description. A part with a lower rank is read first.

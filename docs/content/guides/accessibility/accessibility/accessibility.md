@@ -132,7 +132,7 @@ Browsers in the last audit: {{$a11y.browsers.sentence}}.
 
 ## Cell descriptions for screen readers
 
-A screen reader reads the value of the cell it moves onto. Some cells hold more than a value, and the focus stays on the cell, so Handsontable gives the cell an accessible description that a screen reader reads after the value and the column header:
+A screen reader reads the value of the cell it moves onto. Some cells hold more than a value, and the focus stays on the cell, so Handsontable gives the cell an accessible description that a screen reader reads together with the value and the column header. Where the description falls in the announcement depends on the screen reader:
 
 | The cell is | Its description reads |
 | --- | --- |
@@ -146,6 +146,7 @@ A cell that has several of these reads them in the order of the table, separated
 - The description is not part of the cell's accessible name, its text, or its box. `textContent`, `innerText`, the copied text, and the cell's styles do not change. Handsontable adds a hidden element for each distinct description to the grid's root element, and the cell points at it with `aria-describedby`, after the reference to its column header.
 - A merged block names the row and column of its last cell the way the grid numbers them for a screen reader (`aria-rowindex` and `aria-colindex`): the header rows and the row header columns count, and hidden rows and columns do not. The example above is for a grid with one header row and one row header column.
 - A frozen cell is in the DOM twice, in the grid and in its overlay, so a screen reader can read it twice, the way it reads the value.
+- A screen reader that already says `link` for an anchor in the cell says it twice.
 - Each phrase is translated with the grid [language](@/guides/internationalization/language/language.md). To change one, register a dictionary with the `CellDescription:readOnly`, `CellDescription:link`, or `CellDescription:merged` key. The `CellDescription:merged` phrase uses the `[row]` and `[column]` placeholders.
 
 ## Accessible data grid demo

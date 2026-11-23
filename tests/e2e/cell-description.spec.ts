@@ -209,6 +209,17 @@ test.describe('cell description: what a cell holds beyond its text', { tag: [THE
     expect(counts.elements).toBeLessThanOrEqual(4);
   });
 
+  test('a repaint, and a scroll over recycled cells, write no description reference again', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new CellDescriptionPage(page, theme, bundle);
+
+    await grid.goto({ readonlygrid: 'on' });
+
+    // Every cell is described, and the header reference Walkontable writes is not reset and written again.
+    expect(await grid.countDescribedByWrites()).toEqual({ repaint: 0, scroll: 0 });
+  });
+
   test('`ariaTags: false` leaves every cell and the root alone', async({ page, theme, bundle }) => {
     const grid = new CellDescriptionPage(page, theme, bundle);
 
