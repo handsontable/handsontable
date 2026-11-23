@@ -269,6 +269,7 @@ describe('Comments (RTL mode)', () => {
         `).appendTo(spec().$container);
 
         const hot = new Handsontable(testContainer.find('#hot-container')[0], {
+          licenseKey: TEST_LICENSE_KEY,
           layoutDirection,
           data: createSpreadsheetData(20, 10),
           width: 400,
