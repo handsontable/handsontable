@@ -60,7 +60,8 @@ It computes `current` / `destination` / `possible`, fires the cancelable `before
 change, then fires `after*` with whether the state really changed, and renders once. Four callers
 reach it, and they must all keep reaching it or the UI and the API will drift apart:
 
-1. the row header button — `CollapsingUI#toggleState` (a `beforeOnCellMouseDown` listener)
+1. the row header button — `CollapsingUI#toggleState` (a `beforeOnCellMouseDown` listener; it claims the
+   press and toggles on the `mouseup` over the same button, see "The button toggles on the release" below)
 2. the <kbd>Enter</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow and <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow shortcuts —
    `registerShortcuts()` in `nestedRows.ts`
    (1 and 2 go through `NestedRows#toggleParentByUser()`, which adds the announcement)
@@ -427,6 +428,17 @@ They are written in different places and can drift. Keep this in mind:
 - **Undo restores the tree shape, not a list of rows.** See "UndoRedo" under How it interacts. A
   two-level "no error" assertion is not enough — use `__tests__/integration/undoRedo.spec.js` plus
   `tests/e2e/nested-rows-undo.spec.ts`.
+- **The button toggles on the release, not on the press** (WCAG 2.5.2 Pointer Cancellation: a pointer moved off
+  the button before the release cancels the toggle). `CollapsingUI#toggleState` still claims the press with
+  `stopImmediatePropagation()`, so it selects nothing, but arms `armPressRelease()`
+  (`helpers/dom/pointerRelease.ts`) and runs `NestedRows#toggleParentByUser()` from the release. The press is kept
+  by the PHYSICAL row, and the release target is resolved again (`#armPress()`: its header's coordinates,
+  translated), because a render replaces the nodes between the two. A tap acts at once: Walkontable replays it at
+  `touchend`, which is already the release. A long press is replayed with the finger still down and is marked
+  (`markLongPressReplay()`), so `toggleState()` claims it and skips the toggle for `isLongPressReplay(event)`. A new press drops the one still held (`#armPress()`); no synthetic
+  `mouseup` is fired here. The touch branch is found by `hasTouchList(event)`, not `isTouchEvent()`: `instanceof TouchEvent` is false for an event of a grid inside an iframe, and that tap would be armed as a mouse press and never released. A press still held when the plugin is disabled or destroyed needs no disposal of its own: the plugin's event manager, which owns its listeners, is cleared by `BasePlugin#disablePlugin()` and `destroy()`. `beforeRowCollapse`, `afterRowCollapse` and the expand pair, and the
+  selection hooks a collapse causes, fire at the release. The keyboard paths are untouched. Pinned by
+  `__tests__/pointerCancellation.unit.ts` and `tests/e2e/pointer-cancellation-toggles.spec.ts`.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new

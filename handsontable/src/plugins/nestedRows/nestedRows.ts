@@ -1177,7 +1177,7 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeOnCellMousedown` hook callback.
+   * `beforeOnCellMousedown` hook callback. The row toggles when the press is released over its button.
    *
    * @param {MouseEvent} event Mousedown event.
    * @param {object} coords Cell coords.

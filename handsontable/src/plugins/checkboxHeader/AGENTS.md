@@ -45,14 +45,23 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
   `span.htCheckboxRendererBox` wrapper. The header checkbox lives in such a wrapper
   (`htCheckboxHeaderBox`), and `syncIcon()` swaps its icon between `checkbox` and `collapseOff` (the
   mixed state's dash). Pinned by `__tests__/checkboxHeader.unit.ts`.
-- **The press is handled on `mousedown` and the `click` is cancelled**, like RowSelection: the
-  header is re-rendered on `mousedown`, and the browser's own toggle on `click` would flip it back.
-  `isImmediatePropagationEnabled = false` keeps the press from selecting or sorting the column.
-- **A tap is a press too: gate on `isLeftClick(event) || isTouchEvent(event)`, never `event.button`.**
+- **The press is claimed on `mousedown`, the column toggles on the `mouseup` over the same checkbox, and the
+  `click` is cancelled**, like RowSelection (WCAG 2.5.2 Pointer Cancellation: a pointer moved off the checkbox
+  before the release cancels the toggle). `#onBeforeOnCellMouseDown` sets
+  `isImmediatePropagationEnabled = false` (the press neither selects nor sorts the column), calls
+  `preventDefault()`, fires its synthetic `mouseup` and only then arms `armPressRelease()`
+  (`helpers/dom/pointerRelease.ts`), so the synthetic event is not taken for the release. The press is kept by
+  the column's PHYSICAL index and the release target is resolved again (`#isOnCheckboxOf()`), because a render
+  replaces the nodes between the two. The header re-renders on the `mouseup`, which comes before the `click`, so
+  `#onRootClick` still cancels the browser's own toggle and no opposite state flashes. A tap acts at once: the
+  touch path is already the release. A long press does not: Walkontable replays it with the finger still down,
+  marks it (`markLongPressReplay()`), and the hook skips the toggle for `isLongPressReplay(event)` while still
+  claiming the press. The press that is still held is dropped first, then the synthetic `mouseup` fires, then the new press is armed: an earlier press whose release was lost would otherwise take the synthetic event for its own and act on it. A press still held when the plugin is disabled or destroyed needs no disposal of its own: the plugin's event manager, which owns its listeners, is cleared by `BasePlugin#disablePlugin()` and `destroy()`. `beforeChange`, `afterChange` and the selection hooks therefore fire at the release.
+- **A tap is a press too: gate on `isLeftClick(event) || hasTouchList(event)`, never `event.button`.**
   On touch, Walkontable calls `beforeOnCellMouseDown` with the deferred `touchend` (see
   `../../3rdparty/walkontable/src/event.ts`), which has no `button`; the browser's synthesized
   `mousedown` never reaches the hook and `#onRootClick` cancels the click. A `button !== 0` gate made a
-  tap on the header checkbox do nothing on iPad. Same gate as `../collapsibleColumns/`.
+  tap on the header checkbox do nothing on iPad. Same gate as `../collapsibleColumns/`. The touch branch is found by `hasTouchList(event)`, not `isTouchEvent()`: `instanceof TouchEvent` is false for an event of a grid inside an iframe, and that tap would be armed as a mouse press and never released.
 - **The `afterSetSourceDataAtCell` listener exists only while a header state is cached**
   (`#syncSourceDataListener()`). The plugin is on in every grid, and any listener on that hook makes
   `setSourceDataAtCell()` build the hook's payload; registered unconditionally, it turned every grid's

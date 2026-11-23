@@ -6,7 +6,7 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-06T11:52:59.828Z"
+    "at": "2026-11-23T11:08:21.401Z"
   },
   "steps": {
     "read-1": "alpha bravo b1 column 3 of 4",
@@ -30,6 +30,6 @@
     "read-19": "alpha bravo b9 column 3 of 4",
     "read-20": "bravo charlie c9 column 4 of 4",
     "read-21": "alpha a15",
-    "read-22": "alpha a15"
+    "read-22": "alpha bravo b15 column 3 of 4"
   }
 }
