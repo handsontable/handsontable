@@ -18,9 +18,9 @@ export const RELEASES_URL = 'https://api.github.com/repos/handsontable/handsonta
 
 /**
  * The authenticated request. GraphQL needs a token, answers with the tag names
- * only, and pages. `deploy/getListOrPreviousVersions.mjs` sends the same query
- * (without paging); its comment records "Premature close" failures of its REST
- * call on GitHub Actions runners.
+ * only, and pages. `deploy/getListOrPreviousVersions.mjs` reads the list through
+ * this module too; it moved from the REST list to GraphQL after "Premature
+ * close" failures on GitHub Actions runners.
  */
 export const GRAPHQL_URL = 'https://api.github.com/graphql';
 
@@ -47,8 +47,8 @@ export const MIN_DOCS_VERSION = '9.0';
 
 /**
  * How many pages of 100 releases the GraphQL request reads before it gives up.
- * The list is newest first, so it stops earlier, at the first stable release of
- * `MIN_DOCS_VERSION`.
+ * The list is newest first, so it stops earlier, once it holds every release of
+ * `MIN_DOCS_VERSION` and a stable release older than it.
  */
 export const MAX_PAGES = 5;
 
@@ -100,13 +100,20 @@ export function groupReleaseTags(tags) {
 }
 
 /**
- * Whether the tags already hold a stable release of `MIN_DOCS_VERSION`.
+ * Whether the tags already cover every release of `MIN_DOCS_VERSION`.
  *
- * @param {string[]} tags Release tag names.
+ * The list is newest first. It covers the floor when it holds a stable release
+ * of that minor and its last stable tag is already older than the minor, so no
+ * later page can add another patch of it.
+ *
+ * @param {string[]} tags Release tag names, newest first.
  * @returns {boolean} `true` when no older page is needed.
  */
-function reachesFloor(tags) {
-  return tags.some((tag) => semver.valid(tag) && !semver.prerelease(tag) && toMinor(tag) === MIN_DOCS_VERSION);
+function coversFloor(tags) {
+  const stable = tags.filter((tag) => semver.valid(tag) && !semver.prerelease(tag));
+  const holdsFloor = stable.some((tag) => toMinor(tag) === MIN_DOCS_VERSION);
+
+  return holdsFloor && semver.lt(stable.at(-1), `${MIN_DOCS_VERSION}.0`);
 }
 
 /**
@@ -146,7 +153,7 @@ function readPage(graphql, body) {
  *
  * With a token the request goes to GraphQL, which lifts the limit from about 60
  * requests per hour for a shared runner IP to the token's own, returns tag
- * names only, and reads further pages until the list reaches `MIN_DOCS_VERSION`
+ * names only, and reads further pages until the list covers `MIN_DOCS_VERSION`
  * (at most `MAX_PAGES`). Without a token it falls back to the anonymous REST
  * list, which is one page of 100. A rejected token (401) is not retried. The
  * function throws once every attempt at a page has failed, so the caller
@@ -235,7 +242,7 @@ export async function fetchReleaseTags({
 
     tags.push(...result.tags);
 
-    if (!result.next || reachesFloor(tags)) {
+    if (!result.next || coversFloor(tags)) {
       break;
     }
 

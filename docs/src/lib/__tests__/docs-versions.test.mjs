@@ -110,26 +110,44 @@ test('fetchReleaseTags with a token sends an authenticated GraphQL request', asy
   assert.ok(calls[0].options.signal instanceof AbortSignal);
 });
 
-test('fetchReleaseTags with a token reads the next page until the list reaches the floor', async() => {
+test('fetchReleaseTags with a token reads the next page until the list covers the floor', async() => {
   const { fetchImpl, calls } = fakeFetch([
     { body: graphqlPage(['19.0.0-rc5', '18.1.3', '17.1.0'], 'cursor-1') },
     { body: graphqlPage(['10.0.0', '9.0.1', '9.0.0'], 'cursor-2') },
-    { body: graphqlPage(['8.4.0']) },
+    { body: graphqlPage(['8.4.0', '8.3.0'], 'cursor-3') },
   ]);
   const tags = await fetchReleaseTags({ token: 'secret', fetchImpl, sleep: noSleep });
 
-  assert.deepEqual(tags, ['19.0.0-rc5', '18.1.3', '17.1.0', '10.0.0', '9.0.1', '9.0.0']);
-  assert.equal(calls.length, 2);
+  assert.deepEqual(tags, ['19.0.0-rc5', '18.1.3', '17.1.0', '10.0.0', '9.0.1', '9.0.0', '8.4.0', '8.3.0']);
+  assert.equal(calls.length, 3);
   assert.equal(JSON.parse(calls[0].options.body).variables.after, null);
   assert.equal(JSON.parse(calls[1].options.body).variables.after, 'cursor-1');
+  assert.equal(JSON.parse(calls[2].options.body).variables.after, 'cursor-2');
 });
 
-test('fetchReleaseTags with a token stops at the first page that holds the floor', async() => {
+test('fetchReleaseTags with a token stops at the first page that ends below the floor', async() => {
   const { fetchImpl, calls } = fakeFetch([{ body: graphqlPage(HEALTHY_TAGS, 'cursor-1') }]);
   const tags = await fetchReleaseTags({ token: 'secret', fetchImpl, sleep: noSleep });
 
   assert.deepEqual(tags, HEALTHY_TAGS);
   assert.equal(calls.length, 1);
+});
+
+test('fetchReleaseTags keeps paging when a page boundary falls inside the floor minor', async() => {
+  const { fetchImpl, calls } = fakeFetch([
+    { body: graphqlPage(['18.1.3', '10.0.0', '9.0.2'], 'cursor-1') },
+    { body: graphqlPage(['9.0.1', '9.0.0', '8.4.0'], 'cursor-2') },
+  ]);
+  const { minors, minorMap } = await resolveReleaseVersions({
+    token: 'secret',
+    fetchImpl,
+    sleep: noSleep,
+    requireFloor: true,
+  });
+
+  assert.equal(calls.length, 2);
+  assert.deepEqual(minors.at(-1), '9.0');
+  assert.deepEqual(minorMap.get('9.0'), ['9.0.2', '9.0.1', '9.0.0']);
 });
 
 test('fetchReleaseTags with a token stops at maxPages and at the last page', async() => {
@@ -321,10 +339,11 @@ test('buildVersionList on another build accepts a list that stops above the floo
   assert.deepEqual(minors, ['18.1', '18.0']);
 });
 
-test('the floor matches the one the deploy script uses', () => {
-  const deploy = readFileSync(resolve(repoRoot, 'docs/deploy/getListOrPreviousVersions.mjs'), 'utf8');
+test('the floor matches the oldest major the worker deploys', () => {
+  const worker = readFileSync(resolve(repoRoot, 'docs/cloudflare/_worker.js'), 'utf8');
+  const [major] = MIN_DOCS_VERSION.split('.');
 
-  assert.match(deploy, new RegExp(`const MIN_DOCS_VERSION = '${MIN_DOCS_VERSION.replace('.', '\\.')}';`));
+  assert.match(worker, new RegExp(`const OLDEST_DEPLOYED_DOCS_MAJOR = ${major};`));
 });
 
 test('every workflow that builds the docs passes GITHUB_TOKEN to the build step', () => {
