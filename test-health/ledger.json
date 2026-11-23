@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-23T10:49:50.398Z",
+  "updatedAt": "2026-11-23T14:11:52.915Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-webkit",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 493,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "45188018896",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45188018896",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3679_A11y-learning-routine",
+      "headSha": "6ae670d3f0b38d43e7d062187bda5d06e5c7527b",
+      "event": "pull_request",
+      "seenAt": "2026-11-23T14:10:58Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-webkit",
