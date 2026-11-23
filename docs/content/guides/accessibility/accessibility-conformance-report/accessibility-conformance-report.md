@@ -250,7 +250,7 @@ Conformance levels used in this report:
     <tr>
       <td><strong>2.5.3 Label in Name</strong></td>
       <td>Partially Supports</td>
-      <td>Some interactive controls expose accessible names that do not contain the visible label text. The top-left corner button ("Select whole grid") has an accessible name conveyed only via <code>aria-label</code> with no matching visible text. Sorting and filter controls may similarly diverge. Under review in the internal backlog.</td>
+      <td>Some interactive controls expose accessible names that do not contain the visible label text. Sorting and filter controls may diverge. Under review in the internal backlog.</td>
     </tr>
     <tr>
       <td><strong>2.5.4 Motion Actuation</strong></td>
@@ -285,7 +285,7 @@ Conformance levels used in this report:
     <tr>
       <td><strong>3.3.2 Labels or Instructions</strong></td>
       <td>Partially Supports</td>
-      <td>The top-left corner button ("Select whole grid") provides an accessible name via <code>aria-label</code> for screen reader users but has no visible label, icon, or text to communicate its purpose to sighted users - particularly those with cognitive impairments (Normal severity). Other controls are generally labeled appropriately.</td>
+      <td>The top-left corner cell carries no name of its own. With row selection, it holds the "select all" checkbox, which shows its state and carries a translated name. Other controls are generally labeled appropriately.</td>
     </tr>
     <tr>
       <td><strong>3.3.7 Redundant Entry</strong></td>
