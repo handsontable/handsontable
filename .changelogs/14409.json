@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed sortable column headers, collapse buttons, and autocomplete or dropdown list options acting on the mouse press or after the pointer left them. They now act when the pointer is released over the same control, so releasing elsewhere cancels the action.",
+  "type": "fixed",
+  "issueOrPR": 14409,
+  "breaking": false,
+  "framework": "none"
+}

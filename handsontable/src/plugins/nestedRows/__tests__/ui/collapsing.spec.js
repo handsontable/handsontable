@@ -607,7 +607,7 @@ describe('NestedRows Collapsing UI', () => {
         afterRowCollapse
       });
 
-      $(getCell(0, -1)).find('.ht_nestingButton').simulate('mousedown');
+      $(getCell(0, -1)).find('.ht_nestingButton').simulate('mousedown').simulate('mouseup');
       await render();
 
       expect(afterRowCollapse).toHaveBeenCalledWith([], [0], true, true);

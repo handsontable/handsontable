@@ -1900,6 +1900,12 @@ export class TabStrip {
    * @param {Event} event The `click` event.
    */
   #onTabClick = (event: MouseEvent) => {
+    // The click of a drag released outside the strip: the pointer capture sent it here.
+    // A keyboard activation has no pointer behind it (`detail` is 0), so it is never that click.
+    if (this.#drag.consumeSuppressedClick(event.detail === 0)) {
+      return;
+    }
+
     const target = this.#tabOfEvent(event);
 
     if (target === null || this.#isWithinRenameInput(event)) {

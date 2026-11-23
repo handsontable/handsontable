@@ -6,7 +6,7 @@ import {
   classifyEntitlement,
   resolveChannels,
   HANDSONTABLE_PRODUCT,
-  BADGE_FLAG,
+  ATTRIBUTION_BAR_FLAG,
 } from '../utils/entitlementLicenseKey';
 import { getKeyTiers } from '../utils/licenseCapabilities/tiers';
 import type {
@@ -602,14 +602,14 @@ export type LicenseStateKey = LicenseLifecycleFacet['state'];
 /**
  * The resolved license state handed to the UI and the feature gates: the lifecycle facet (what the
  * license IS right now), the channels it leaves open (where it may say so), and the tiers it names
- * (what it UNLOCKS). `badge` says the Handsontable entry carries the `badge` flag - the "Powered by"
+ * (what it UNLOCKS). `attributionBar` says the Handsontable entry carries the `attribution-bar` flag - the "Powered by"
  * bar the licensee agreed to show. It is branding, not a channel, so no silencing flag closes it;
  * every key outside the entitlement format, and an unreadable one, has none.
  */
 export interface LicenseStateDescriptor {
   lifecycle: LicenseLifecycleFacet;
   channels: LicenseChannels;
-  badge: boolean;
+  attributionBar: boolean;
   /**
    * The license tiers the Handsontable entry names (`tier:<name>` tokens), in order. Only a tier
    * restricts: `null` (no tier) unlocks every feature, and a list unlocks the features whose tiers
@@ -713,7 +713,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     return {
       lifecycle: _nonEntitlementLifecycle('legacy_valid'),
       channels: OPEN_CHANNELS,
-      badge: false,
+      attributionBar: false,
       tiers: null,
     };
   }
@@ -722,7 +722,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     return {
       lifecycle: _classifyLegacyKey(key, releaseDate),
       channels: OPEN_CHANNELS,
-      badge: false,
+      attributionBar: false,
       tiers: null,
     };
   }
@@ -740,7 +740,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     return {
       lifecycle: _nonEntitlementLifecycle('invalid'),
       channels: OPEN_CHANNELS,
-      badge: false,
+      attributionBar: false,
       tiers: null,
     };
   }
@@ -756,19 +756,19 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
   return {
     lifecycle,
     channels: resolveChannels(entitlement),
-    badge: _carriesBadge(entitlement),
+    attributionBar: _carriesAttributionBar(entitlement),
     tiers: getKeyTiers(entitlement.capabilities),
   };
 }
 
 /**
- * Tells whether a product entry asks for the "Powered by" bar (the `badge` flag).
+ * Tells whether a product entry asks for the "Powered by" bar (the `attribution-bar` flag).
  *
  * @param {ProductEntitlement} entitlement The Handsontable entry of a verified key.
  * @returns {boolean}
  */
-function _carriesBadge(entitlement: ProductEntitlement): boolean {
-  return entitlement.flags.indexOf(BADGE_FLAG) !== -1;
+function _carriesAttributionBar(entitlement: ProductEntitlement): boolean {
+  return entitlement.flags.indexOf(ATTRIBUTION_BAR_FLAG) !== -1;
 }
 
 /**
