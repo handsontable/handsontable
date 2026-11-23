@@ -332,6 +332,15 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   recycled elements. With no builder (the engine detached, or a rebuild failed) `#markCell()` removes the
   attribute itself, because `#builder?.markCell()` would do nothing and the stale mark would be described
   on the cell the element shows next; `#onEngineDetach` clears every mark at once.
+- **The error popup follows a mark only through `markCell()`.** A commit that keeps the focus on the
+  cell (a one-cell grid, `enterMoves: { row: 0, col: 0 }`, an application write) gives the focus back
+  before the render clears the mark, so the popup's `focusin` reopens it on the old message. Since
+  hyperformula-ui 0.3.7 `markCell()` tells the popup the mark changed, and it closes or takes the new
+  message (0.3.6 left the stale popup open until Escape). So while a builder exists, a mark is changed
+  through `#markCell()` only, never with `removeAttribute()`. Removing the attribute directly is safe only
+  once the builder and its popup are gone: the no-builder branch of `#markCell()`, `#onEngineDetach` and
+  the teardown. Pinned by "formulaBuilder error popup follows the cell error" in
+  `tests/e2e/formula-builder-popups.spec.ts`.
 - **The adapter answers `false` for an address it cannot select.** `setActiveCell()` and `setSelection()`
   return `false` when the grid shows no row or column to move to; the package reads that as
   "unavailable" and announces it, while `undefined` left the address in the box with nothing selected.
