@@ -240,6 +240,20 @@ page; holding the focus there would trap the keyboard. Do not drop that check. T
 - A safety net in the existing `_registerTimeout` (`#keepFocusInside`) pulls the focus back when a native move
   left the dialog. It covers Safari, which skips buttons by default and so can step past a trailing button the
   dialog counts as a stop.
+- The safety net calls `hot.listen()` after it moves the focus back. The native move that left the dialog
+  landed outside every scope, so the scope manager unlistened, and a focus moved by script re-activates the
+  scope as `unknown`, which does not listen again. Without it the next press never reaches the shortcut.
+- A press whose `defaultPrevented` is already `true` when the shortcut runs is left alone, safety net
+  included: a widget in the content (a code editor inserting a tab) answered Tab itself. The shortcut
+  manager listens in the bubble phase on the document element, so the widget's own handler runs first.
+- A focused element that is not a stop (the container, a heading the app focused, a roving-tabindex item)
+  wraps only when no stop lies in the key's direction (`compareDocumentPosition`); otherwise the press is
+  native. The container itself always goes to the end the key points at.
+- `getTabStops` leaves out `:disabled` controls (a `fieldset[disabled]` descendant included, its first
+  legend excepted) and elements hidden with `visibility` (`checkVisibility({ visibilityProperty: true })`,
+  with a computed-style fallback for jsdom).
+- An `iframe` in the content is a stop, but Tab inside it never reaches the parent document's keydown, so a
+  press from inside an iframe that is the last stop is not contained.
 - Containment applies only to a press made while the focus is inside the dialog. After a click outside, Tab
   follows the page.
 - On a wrap, the hooks see the focus at the other end of the dialog.

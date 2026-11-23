@@ -178,6 +178,28 @@ test.describe('dialog Tab containment', { tag: CROSS_BROWSER_TAG }, () => {
     expect(await dialogPage.activeShortcutContext()).toBe('plugin:dialog');
   });
 
+  test('a widget that answers Tab itself keeps its press, and the dialog does not wrap', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+    const textarea = dialogPage.dialogControl('dialog-textarea');
+
+    await dialogPage.goto();
+    await dialogPage.showControls([
+      { tag: 'input', testId: 'dialog-input-1' },
+      { tag: 'tab-textarea', testId: 'dialog-textarea' },
+    ]);
+    await textarea.click();
+    await expect(textarea).toBeFocused();
+    await expect.poll(() => dialogPage.activeShortcutContext()).toBe('plugin:dialog');
+
+    // The textarea is the last stop, so without its own handler Tab would wrap to the input.
+    await page.keyboard.press('Tab');
+    await expect.poll(() => dialogPage.controlValue('dialog-textarea')).toBe('\t');
+    expect(await dialogPage.settledFocusIsInsideDialog()).toBe(true);
+    await expect(textarea).toBeFocused();
+  });
+
   test('a native Tab that would leave the dialog past a button the engine skips is put back inside', async({
     page, theme, bundle, browserName,
   }) => {
@@ -204,10 +226,11 @@ test.describe('dialog Tab containment', { tag: CROSS_BROWSER_TAG }, () => {
 });
 
 /**
- * The browser's own move from Cancel to OK does not exist where Tab skips buttons (DEV-1118), so the full
- * cycle runs on the Chromium legs only; the wraps alone run on every engine above.
+ * Cases that rely on a native move only some engines make: the move from Cancel to OK, which does not exist
+ * where Tab skips buttons (DEV-1118), and the move between radios of one group, which visits the checked one
+ * only. They run on the Chromium legs; the wraps alone run on every engine above.
  */
-test.describe('dialog Tab containment between buttons', () => {
+test.describe('dialog Tab containment around native moves', () => {
   test('a confirm dialog cycles OK, Cancel, OK, Cancel and never reaches the page inputs', async({
     page, theme, bundle,
   }) => {
@@ -231,5 +254,37 @@ test.describe('dialog Tab containment between buttons', () => {
     await expect(cancel).toBeFocused();
     await expect(dialogPage.inputAfter).not.toBeFocused();
     await expect(dialogPage.inputBefore).not.toBeFocused();
+  });
+
+  test('the safety net keeps the grid listening, so every later press stays inside the dialog', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+    const input = dialogPage.dialogControl('dialog-input-1');
+    const radioA = dialogPage.dialogControl('dialog-radio-a');
+
+    await dialogPage.goto();
+    // The browser visits one radio of a group, the checked one, so Tab from it leaves the dialog past the
+    // unchecked radio the dialog counts as its last stop: the safety net's case, as a skipped button is on
+    // WebKit (DEV-1118).
+    await dialogPage.showControls([
+      { tag: 'input', testId: 'dialog-input-1' },
+      { tag: 'radio', testId: 'dialog-radio-a' },
+      { tag: 'radio', testId: 'dialog-radio-b' },
+    ]);
+    await input.click();
+    await expect(input).toBeFocused();
+
+    for (let round = 0; round < 3; round += 1) {
+      await page.keyboard.press('Tab');
+      await expect(radioA).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(input).toBeFocused();
+      expect(await dialogPage.settledFocusIsInsideDialog()).toBe(true);
+      expect(await dialogPage.isListening()).toBe(true);
+      await expect.poll(() => dialogPage.activeShortcutContext()).toBe('plugin:dialog');
+    }
+
+    await expect(dialogPage.inputAfter).not.toBeFocused();
   });
 });

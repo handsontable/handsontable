@@ -769,13 +769,16 @@ export class Dialog extends BasePlugin {
       callback: (event: KeyboardEvent) => {
         const container = this.#ui!.getContainer();
         const focus = this.#getFocusWithin(container);
-        const contains = focus !== null && this.#offersKeyboardExit(container);
+        const stops = focus === null ? [] : getTabStops(container);
+        // A widget in the content that answers Tab itself (a code editor inserting a tab character)
+        // prevents the default before the event bubbles here; its press is left to it, safety net included.
+        const contains = focus !== null && !event.defaultPrevented && this.#offersKeyboardExit(stops);
 
         // A focus inside a shadow tree the content hosts resolves to its host, which says nothing about
         // where the press goes inside the component, so that press stays native and only the safety net
         // below applies.
         if (contains && focus.inLightDom) {
-          const target = resolveWrapTarget(container, focus.element, event.shiftKey);
+          const target = resolveWrapTarget(container, focus.element, event.shiftKey, stops);
 
           if (target !== null) {
             event.preventDefault();
@@ -828,11 +831,11 @@ export class Dialog extends BasePlugin {
    * Checks whether the keyboard can leave the open dialog without Tab: through Escape (`closable`) or
    * through one of its tab stops (a button that closes it, a control the application handles).
    *
-   * @param {HTMLElement} container The dialog's container.
+   * @param {HTMLElement[]} stops The dialog's tab stops.
    * @returns {boolean}
    */
-  #offersKeyboardExit(container: HTMLElement): boolean {
-    return Boolean(this.getSetting('closable')) || getTabStops(container).length > 0;
+  #offersKeyboardExit(stops: HTMLElement[]): boolean {
+    return Boolean(this.getSetting('closable')) || stops.length > 0;
   }
 
   /**
@@ -858,6 +861,10 @@ export class Dialog extends BasePlugin {
     const target = stops.length === 0 ? container : stops[backwards ? stops.length - 1 : 0];
 
     target.focus();
+    // The native move that left the dialog landed outside every focus scope, so the grid stopped
+    // listening; a focus moved back by script activates the scope again as `unknown`, which does not
+    // listen again. Without this the next press never reaches the shortcut and walks out of the dialog.
+    this.hot.listen();
   }
 
   /**

@@ -166,20 +166,47 @@ export class DialogStatesPage {
 
   /**
    * Replaces the shown dialog with one whose content holds only the given controls, in that order,
-   * each carrying its `data-testid`.
+   * each carrying its `data-testid`. A `radio` control joins one radio group, the first of them checked;
+   * a `tab-textarea` is a textarea that answers Tab itself: it inserts a tab character and prevents the
+   * default, as a code editor does.
    *
-   * @param {Array<{tag: 'input' | 'button', testId: string}>} controls The controls to render.
+   * @param {Array<{tag: 'input' | 'button' | 'radio' | 'tab-textarea', testId: string}>} controls The controls.
    * @param {{closable?: boolean}} [options] Dialog options to show it with.
    */
   async showControls(
-    controls: { tag: 'input' | 'button'; testId: string }[],
+    controls: { tag: 'input' | 'button' | 'radio' | 'tab-textarea'; testId: string }[],
     options: { closable?: boolean } = {},
   ): Promise<void> {
     await this.page.evaluate(({ list, dialogOptions }) => {
       const content = document.createElement('div');
+      let hasCheckedRadio = false;
 
       list.forEach(({ tag, testId }) => {
-        const control = document.createElement(tag);
+        let control: HTMLElement;
+
+        if (tag === 'radio') {
+          const radio = document.createElement('input');
+
+          radio.type = 'radio';
+          radio.name = 'dialog-radio-group';
+          radio.checked = !hasCheckedRadio;
+          hasCheckedRadio = true;
+          control = radio;
+
+        } else if (tag === 'tab-textarea') {
+          const textarea = document.createElement('textarea');
+
+          textarea.addEventListener('keydown', (event) => {
+            if (event.key === 'Tab' && !event.shiftKey) {
+              event.preventDefault();
+              textarea.setRangeText('\t', textarea.selectionStart, textarea.selectionEnd, 'end');
+            }
+          });
+          control = textarea;
+
+        } else {
+          control = document.createElement(tag);
+        }
 
         control.setAttribute('data-testid', testId);
 
@@ -194,6 +221,25 @@ export class DialogStatesPage {
         .hot.getPlugin('dialog').show({ ...dialogOptions, content });
     }, { list: controls, dialogOptions: options });
     await expect(this.dialog).toHaveClass(/\bht-dialog--show\b/);
+  }
+
+  /**
+   * Whether the grid listens to the keyboard, as `isListening()` reports it.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async isListening(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as { hot: { isListening(): boolean } }).hot.isListening());
+  }
+
+  /**
+   * The value of a control inside the dialog's content.
+   *
+   * @param {string} testId The control's `data-testid`.
+   * @returns {Promise<string>}
+   */
+  async controlValue(testId: string): Promise<string> {
+    return this.dialogControl(testId).inputValue();
   }
 
   /**
