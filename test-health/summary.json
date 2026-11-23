@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-23T16:02:46.600Z",
+  "generatedAt": "2026-11-23T16:18:07.196Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 467,
+    "tests": 468,
     "needsTicket": 7,
     "quarantined": 1,
-    "entries": 2358
+    "entries": 2361
   },
   "rows": [
     {
@@ -729,6 +729,41 @@
         "leg": "js/chromium-theme-main-dark",
         "status": "failed",
         "error": "differs from base/develop (pr tier); render sha256 70861b1d8686",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/selection-announcement.spec.ts|Selection announcements › a row header click on a nested row announces its level only",
+      "tier": "playwright",
+      "file": "e2e/selection-announcement.spec.ts",
+      "line": 228,
+      "title": "Selection announcements › a row header click on a nested row announces its level only",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox",
+        "e2e-main",
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-23T16:16:44Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45203861233",
+        "branch": "feature/DEV-4152_VoiceOver-nested-rows-level-with-cell",
+        "leg": "e2e-firefox",
+        "status": "failed",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
         "source": "ci"
       },
       "needsTicket": false
