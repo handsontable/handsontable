@@ -22,6 +22,7 @@ import {
   syncAriaAttributes,
 } from './ariaAttributes';
 import type { KeptAriaAttributes } from './ariaAttributes';
+import { hasAriaTreeId } from '../overlay/ariaCells';
 
 const ID = 'id';
 const COLINDEX = A11Y_COLINDEX(0)[0];
@@ -92,7 +93,9 @@ function writeColumnHeaderAriaAttributes(
 
   if (columnHeaderId) {
     setAttributeIfChanged(TH, ID, columnHeaderId);
-  } else {
+
+  } else if (!hasAriaTreeId(TH)) {
+    // An id the tree pass gave the header (`overlay/ariaCells.ts`) stays: a row lists it in `aria-owns`.
     TH.removeAttribute(ID);
   }
 }

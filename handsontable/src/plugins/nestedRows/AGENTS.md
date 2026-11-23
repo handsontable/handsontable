@@ -818,7 +818,12 @@ row semantics. Six things look simpler than they are.
   recycles `TR` elements across rows, so every write covers all three and a row the cache does not
   know clears them. The writer compares before it writes (`writeRowAttributes()`): it runs on every
   header paint, in every overlay copy, and a same-value `setAttribute()` is still a DOM mutation
-  that assistive technologies re-read on each scroll. Two cleanups exist because the writer is a header hook. `disablePlugin()` walks
+  that assistive technologies re-read on each scroll. **Only the copy that carries `role="row"` gets
+  the attributes** (DEV-3652): the grid is one tree of rows, a grid row is a `row` in one table only
+  (the inline-start clone, which holds the row header; Walkontable's `isGridRowOfTable`), and the
+  master's copy of the row carries no role, where axe reports all three as not allowed
+  (`aria-allowed-attr`, critical). `updateRowAttributes()` clears a copy that is no `row`. The row
+  renderer runs before the row header renderer, so the role is final when the hook reads it. Two cleanups exist because the writer is a header hook. `disablePlugin()` walks
   `tbody tr` (`removeRenderedRowAttributes()`), not the headers, and skips it while `updatePlugin()`
   rebuilds (`#isRebuilding`): a rebuild runs on every React re-render, and stripping there made the
   next draw write every attribute back. A rebuild that stops on invalid data clears them itself.

@@ -1,49 +1,40 @@
 # grid
-- textbox "Cell address": C1
+- textbox "Cell address"
 - textbox "Formula input"
-- treegrid:
-  - rowgroup:
-    - row "1 2 3":
-      - gridcell "1"
-      - gridcell "2"
-      - gridcell "3" [selected]
-    - row "3 4 7":
-      - gridcell "3"
-      - gridcell "4"
-      - gridcell "7"
-    - row "5 6 10":
-      - gridcell "5"
-      - gridcell "6"
-      - gridcell "10"
-    - row:
-      - gridcell
-      - gridcell
-      - gridcell
-    - row "yes":
-      - gridcell
-      - gridcell
-      - gridcell "yes"
-  - rowgroup:
-    - row "Select whole grid A B C":
+- treegrid
+  - combobox "Formula editor"
+  - rowgroup
+    - row "Select whole grid A B C"
       - gridcell "Select whole grid"
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
-  - rowgroup:
-    - row "1":
+  - rowgroup
+    - row "1 1 2 3"
       - rowheader "1"
-    - row "2":
+      - gridcell "1"
+      - gridcell "2"
+      - gridcell "3"
+    - row "2 3 4 7"
       - rowheader "2"
-    - row "3":
+      - gridcell "3"
+      - gridcell "4"
+      - gridcell "7"
+    - row "3 5 6 10"
       - rowheader "3"
-    - row "4":
+      - gridcell "5"
+      - gridcell "6"
+      - gridcell "10"
+    - row "4"
       - rowheader "4"
-    - row "5":
+      - gridcell
+      - gridcell
+      - gridcell
+    - row "5 yes"
       - rowheader "5"
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - combobox "Formula editor": =A1+B1
+      - gridcell
+      - gridcell
+      - gridcell "yes"
 # portal
 - status
 - status

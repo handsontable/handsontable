@@ -26,4 +26,5 @@ export function gridRows(nodes: TreeNode[]): Array<{ id: string; rowindex: numbe
 export function structureFindings(nodes: TreeNode[]): TreeFinding[];
 export function nameFindings(nodes: TreeNode[]): TreeFinding[];
 export function diffSnapshot(expected: string, actual: string): { line: number; expected: string | null; actual: string | null; expectedLines: number; actualLines: number } | null;
+export function serializeTree(nodes: TreeNode[]): string;
 export function maskSnapshot(snapshot: string, run?: { origin?: string | null; version?: string | null }): string;

@@ -13,6 +13,8 @@ import { applyRowHeight } from './exactRowHeight';
 import { firstRowDrawsTopBorder, firstRowTopBorderOutsideHeight } from '../axisSizing/boxModel';
 import { CLONE_INLINE_END, CLONE_INLINE_START, INLINE_END_CLONE_TYPES } from '../overlay/constants';
 import { getFreezeLineOverlap } from '../settings/fixedColumnsEnd';
+import { readAriaTreeLayout } from '../overlay/ariaCells';
+import type { AriaTreeLayout } from '../overlay/ariaCells';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
@@ -498,6 +500,17 @@ export class TableRenderer {
    */
   isAriaEnabled() {
     return this.rowUtils!.wtSettings.getSetting<boolean>('ariaTags');
+  }
+
+  /**
+   * Returns the layout the grid's single accessibility tree is built from (`overlay/ariaCells.ts`), or `null`
+   * for a grid that keeps its tables apart. The settings behind it walk the index mapper in core, so a
+   * renderer reads it once per render.
+   *
+   * @returns {AriaTreeLayout | null}
+   */
+  getAriaTreeLayout(): AriaTreeLayout | null {
+    return readAriaTreeLayout(this.rowUtils!.wtSettings);
   }
 
   /**

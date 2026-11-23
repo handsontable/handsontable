@@ -4,8 +4,10 @@ import { A11Y_PAGES, type A11yPage } from '../pages.mjs';
 import { fixtureUrl, emulate, openTarget, reachState, releaseParkedFetches } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
-import { TREE_CRITERIA, diffSnapshot, maskSnapshot, nameFindings, structureFindings } from '../../lib/aria-tree.mjs';
-import { flattenAxTree, treeSnapshot } from './ax-tree';
+import {
+  TREE_CRITERIA, diffSnapshot, maskSnapshot, nameFindings, serializeTree, structureFindings,
+} from '../../lib/aria-tree.mjs';
+import { flattenAxTree } from './ax-tree';
 
 /**
  * The accessibility-tree snapshots: WCAG 1.3.1, 1.3.2 and 4.1.2, read from Chromium's accessibility
@@ -16,8 +18,9 @@ import { flattenAxTree, treeSnapshot } from './ax-tree';
  *   their row and column headers, their row and column indexes, and whether one row is exposed twice.
  * - **Names and roles** (`nameFindings()`): every control has a name, every header has one, every tab
  *   stop has a role.
- * - **Goldens**: Playwright's `ariaSnapshot()` of the grid and the portal, on the main theme, kept under
- *   `../tree-goldens/<page>.yml`. A difference is advisory (`tree-snapshot-changed`): a change to a role,
+ * - **Goldens**: the same tree written as text (`serializeTree()`), on the main theme, kept under
+ *   `../tree-goldens/<page>.yml`. It is Chromium's tree, not a snapshot computed from the DOM, because the
+ *   grid joins its tables with `aria-owns`, which only the browser's tree shows. A difference is advisory (`tree-snapshot-changed`): a change to a role,
  *   a name or the structure for a reviewer to read. The server's origin and the installed version are
  *   masked first (`maskSnapshot()`). `HOT_A11Y_UPDATE_GOLDENS=1` records them.
  *
@@ -93,7 +96,7 @@ async function readTree(page: Page, testInfo: TestInfo, entry: A11yPage, theme: 
   const nodes = await flattenAxTree(page, cdp, opened.root);
   const findings: EvidenceFinding[] = [...structureFindings(nodes), ...nameFindings(nodes)];
   // What the run decides (the server's port, the version) is masked, so a golden moves for the tree only.
-  const snapshot = maskSnapshot(await treeSnapshot(page, opened.root), {
+  const snapshot = maskSnapshot(serializeTree(nodes), {
     origin: new URL(page.url()).origin, version: environment.handsontableVersion,
   });
 

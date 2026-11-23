@@ -414,20 +414,20 @@ test.describe('NestedRows treegrid accessibility', () => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.goto();
-    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(9 * 2);
+    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(9);
 
     await nestedRows.updateSettings({ nestedRows: false });
     await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(0);
 
     await nestedRows.updateSettings({ nestedRows: true });
-    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(9 * 2);
+    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(9);
   });
 
   test('the attributes are removed when the row headers are switched off', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.goto();
-    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(9 * 2);
+    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(9);
 
     await nestedRows.updateSettings({ rowHeaders: false });
 

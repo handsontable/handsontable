@@ -1,15 +1,19 @@
 # grid
-- treegrid:
-  - rowgroup:
-    - row "#bad-value# two":
-      - gridcell "#bad-value#" [selected]
+- treegrid
+  - Date "A, row 1"
+    - spinbutton "Day Day"
+    - spinbutton "Month Month"
+    - spinbutton "Year Year"
+    - button "Show date picker"
+  - rowgroup
+    - row "#bad-value# two"
+      - gridcell "#bad-value#"
       - gridcell "two"
       - gridcell
-    - row "#bad-value# four":
+    - row "#bad-value# four"
       - gridcell "#bad-value#"
       - gridcell "four"
       - gridcell
-  - textbox "A, row 1"
 # portal
 - status
 - status

@@ -1,43 +1,32 @@
 # grid
-- treegrid:
-  - rowgroup:
-    - row "Alpha Alpha":
-      - gridcell "Alpha" [selected]
-      - gridcell "Alpha"
-    - row "Alpha Alpha":
-      - gridcell "Alpha"
-      - gridcell "Alpha"
-    - row:
-      - gridcell
-      - gridcell
-  - rowgroup:
-    - row "Select whole grid A B":
+- treegrid
+  - group "Select options"
+    - textbox "Search options"
+    - list
+      - listitem
+        - checkbox "Alpha"
+      - listitem
+        - checkbox "Alfa"
+      - listitem
+        - checkbox "Alto"
+  - rowgroup
+    - row "Select whole grid A B"
       - gridcell "Select whole grid"
       - columnheader "A"
       - columnheader "B"
-  - rowgroup:
-    - row "1":
+  - rowgroup
+    - row "1 Alpha Alpha"
       - rowheader "1"
-    - row "2":
+      - gridcell "Alpha"
+      - gridcell "Alpha"
+    - row "2 Alpha Alpha"
       - rowheader "2"
-    - row "3":
+      - gridcell "Alpha"
+      - gridcell "Alpha"
+    - row "3"
       - rowheader "3"
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - group "Select options":
-    - textbox "Search options":
-      - /placeholder: Search...
-    - list:
-      - listitem:
-        - checkbox "Alpha" [checked]
-        - text: Alpha
-      - listitem:
-        - checkbox "Alfa"
-        - text: Alfa
-      - listitem:
-        - checkbox "Alto"
-        - text: Alto
+      - gridcell
+      - gridcell
 # portal
 - status
 - status

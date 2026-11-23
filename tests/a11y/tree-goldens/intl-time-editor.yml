@@ -1,15 +1,18 @@
 # grid
-- treegrid:
-  - rowgroup:
-    - row "#bad-value# two":
+- treegrid
+  - InputTime "C, row 1"
+    - spinbutton "Hours Hours"
+    - spinbutton "Minutes Minutes"
+    - button "Show time picker"
+  - rowgroup
+    - row "#bad-value# two"
       - gridcell "#bad-value#"
       - gridcell "two"
-      - gridcell [selected]
-    - row "#bad-value# four":
+      - gridcell
+    - row "#bad-value# four"
       - gridcell "#bad-value#"
       - gridcell "four"
       - gridcell
-  - textbox "C, row 1"
 # portal
 - status
 - status

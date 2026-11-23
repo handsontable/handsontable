@@ -232,6 +232,49 @@ export function nameFindings(nodes) {
   return [...found.values()];
 }
 
+// The roles of the text a node's name is already built from: the snapshot leaves them out.
+const TEXT_ROLES = new Set(['StaticText', 'InlineTextBox', 'LineBreak', 'ListMarker']);
+
+/**
+ * The flattened tree as text, one node per line, indented by its depth: what the goldens keep. It is
+ * written from Chromium's own accessibility tree, the tree a screen reader gets, so it shows what
+ * `aria-owns` moves and what `aria-hidden` removes; a snapshot computed from the DOM shows neither. A node
+ * with no role (a generic container) and a text node are left out, and their children are kept in their
+ * place. Each root (the grid, every portal) starts with a header line. A live status region is written
+ * without its message, which is transient.
+ *
+ * @param {object[]} nodes The flattened tree, in reading order.
+ * @returns {string} The snapshot.
+ */
+export function serializeTree(nodes) {
+  const byId = new Map(nodes.map(item => [item.id, item]));
+  const isWritten = item => !NO_ROLE.has(item.role) && !TEXT_ROLES.has(item.role);
+  const depths = new Map();
+  const depthOf = (item) => {
+    if (!depths.has(item.id)) {
+      const parent = byId.get(item.parent);
+
+      depths.set(item.id, parent ? depthOf(parent) + (isWritten(parent) ? 1 : 0) : 0);
+    }
+
+    return depths.get(item.id);
+  };
+  const lines = [];
+
+  for (const item of nodes) {
+    if (item.parent === null) {
+      lines.push(`# ${item.region}`);
+    }
+    if (isWritten(item)) {
+      const name = item.role === 'status' ? '' : String(item.name ?? '').trim();
+
+      lines.push(`${'  '.repeat(depthOf(item))}- ${item.role}${name ? ` ${JSON.stringify(name)}` : ''}`);
+    }
+  }
+
+  return `${lines.join('\n')}\n`;
+}
+
 /**
  * The first line where an accessibility snapshot differs from its golden, or `null` when they match.
  *

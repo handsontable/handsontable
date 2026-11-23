@@ -19,6 +19,7 @@ import {
   syncOversizedRowsWithFrozenOverlays,
 } from '../axisSizing/oversizedRows';
 import { measureHolderInlineStartMargin } from './holderInlineStartMargin';
+import { reconcileAriaTree } from '../overlay/ariaCells';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
 import type Viewport from '../viewport/viewport';
@@ -306,6 +307,9 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
 
       wtOverlays.applyToDOM();
 
+      // Every table has rendered: leave one copy of each cell exposed and join each grid row into one row.
+      reconcileAriaTree(wtSettings, collectAriaTables(wtOverlays));
+
       wtSettings.getSetting('onDraw', true);
     }
   }
@@ -323,6 +327,26 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   wtOverlays.afterDraw(!ctx.runFastDraw && ctx.performRedraw);
 
   table.deps.setDrawn(true);
+}
+
+/**
+ * Returns the master table and the tables of the overlay clones, for the accessibility tree pass.
+ *
+ * @param {Overlays} wtOverlays The overlays.
+ * @returns {Table[]}
+ */
+function collectAriaTables(wtOverlays: Overlays): Table[] {
+  const tables: Table[] = [];
+
+  wtOverlays.getOverlays(true).forEach((overlay) => {
+    const wtTable = 'clone' in overlay ? overlay.clone?.wtTable : overlay;
+
+    if (wtTable) {
+      tables.push(wtTable);
+    }
+  });
+
+  return tables;
 }
 
 /**

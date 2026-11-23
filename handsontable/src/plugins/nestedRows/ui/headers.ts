@@ -229,8 +229,8 @@ class HeadersUI extends BaseUI {
    * They go on the row because none of them is supported on a `rowheader`. `aria-expanded` stays on
    * the header alone: the WAI-ARIA treegrid pattern puts it on the row or on a cell of the row, and
    * the header is the cell that takes the keyboard focus, so a second copy on the row would only be
-   * read twice. A row is painted in the master table and in every overlay that covers it, and each
-   * copy gets the same attributes.
+   * read twice. A row is painted in the master table and in every overlay that covers it, and only the
+   * copy that carries the `row` role gets the attributes.
    *
    * @private
    * @param {HTMLTableCellElement} TH Row header element.
@@ -245,7 +245,9 @@ class HeadersUI extends BaseUI {
 
     const treePosition = physicalRow === null ? null : this.dataManager!.getRowTreePosition(physicalRow);
 
-    if (!treePosition || !this.hot.getSettings().ariaTags) {
+    // A grid row is a `row` in one table only (the one that holds its row header for assistive technology);
+    // the copies of it in the other tables carry no role, and none of the three attributes is allowed there.
+    if (!treePosition || !this.hot.getSettings().ariaTags || TR.getAttribute('role') !== 'row') {
       clearRowAttributes(TR);
 
       return;

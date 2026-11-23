@@ -32,6 +32,8 @@ function createBody() {
     },
     renderedRowToSource: (renderedRow: number) => renderedRow,
     isAriaEnabled: () => state.ariaEnabled,
+    getAriaTreeLayout: () => null,
+    activeOverlayName: 'master',
     isRowRecyclingAllowed: () => false,
     renderEpoch: 0,
   } as unknown as TableRenderer);
@@ -69,6 +71,8 @@ function createHead() {
       return state.rowHeaders;
     },
     isAriaEnabled: () => state.ariaEnabled,
+    getAriaTreeLayout: () => null,
+    activeOverlayName: 'master',
   } as unknown as TableRenderer);
 
   const draw = (size: number, ariaEnabled = true, columns = 3, rowHeaders = 1) => {

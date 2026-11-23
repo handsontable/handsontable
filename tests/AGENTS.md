@@ -1648,8 +1648,11 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   no class there, because its classes are rendering state (the selection, the last visible header) and
   would split one finding across themes and runs. A closed cell editor stays in the DOM and in the tree,
   so its input is judged on every page.
-- **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds Playwright's
-  `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
+- **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds the flattened tree
+  written as text (`serializeTree()` in `lib/aria-tree.mjs`): Chromium's own tree of the grid and of each
+  portal, one node per line, without generic containers and text nodes. It is not Playwright's
+  `ariaSnapshot()`, which is computed from the DOM and shows neither what `aria-owns` moves nor the row a
+  cell ends up in, and the grid joins its tables with `aria-owns`. The theme changes which rows are drawn, not the roles or
   names, so one theme keeps the goldens and every theme is judged. A difference is
   `tree-snapshot-changed`, with the first line that differs. What the run decides, not the page, is
   masked before the comparison (`maskSnapshot()`): the server's origin reads `<origin>`, the installed

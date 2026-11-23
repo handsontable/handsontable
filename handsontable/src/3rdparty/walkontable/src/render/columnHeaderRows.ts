@@ -6,6 +6,7 @@ import {
   A11Y_ROWINDEX,
 } from '../../../../helpers/a11y';
 import { dropRowGroupRole, dropRowRole, giveRowGroupRole } from './ariaAttributes';
+import { isGridRowOfTable } from '../overlay/ariaCells';
 
 /**
  * Column header rows renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to THEAD.
@@ -58,15 +59,19 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
   render() {
     const { columnHeadersCount } = this.table;
 
-    // As in the body (`RowsRenderer`): a head row is a `row` only while it holds a cell.
-    const rowsHoldCells = this.table.columnsToRender + this.table.rowHeadersCount > 0;
+    // As in the body (`RowsRenderer`): a head row is a `row` only while it holds a cell, and, in a grid that
+    // joins its tables into one tree, only in the table that holds the head rows' first cells.
+    const ariaEnabled = this.table.isAriaEnabled();
+    const treeLayout = ariaEnabled ? this.table.getAriaTreeLayout() : null;
+    const areGridRows = this.table.columnsToRender + this.table.rowHeadersCount > 0 && (
+      treeLayout === null || isGridRowOfTable(this.table.activeOverlayName, treeLayout, -1)
+    );
 
-    if (this.table.isAriaEnabled()) {
-      if (columnHeadersCount > 0 && rowsHoldCells) {
-        giveRowGroupRole(this.rootNode);
-      } else {
-        dropRowGroupRole(this.rootNode);
-      }
+    if (ariaEnabled && columnHeadersCount > 0 && areGridRows) {
+      giveRowGroupRole(this.rootNode);
+
+    } else if (ariaEnabled) {
+      dropRowGroupRole(this.rootNode);
     }
 
     this.orderView
@@ -79,13 +84,13 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
 
       const TR = this.orderView.getCurrentNode();
 
-      if (TR && this.table.isAriaEnabled() && rowsHoldCells) {
+      if (TR && ariaEnabled && areGridRows) {
         setAttribute(TR, [
           A11Y_ROW(),
           A11Y_ROWINDEX(visibleRowIndex + 1),
         ]);
 
-      } else if (TR && this.table.isAriaEnabled()) {
+      } else if (TR && ariaEnabled) {
         dropRowRole(TR);
       }
     }

@@ -1,8 +1,10 @@
-import { A11Y_ROW, A11Y_ROWGROUP, A11Y_ROWINDEX } from '../../../../helpers/a11y';
+import { A11Y_HIDDEN, A11Y_ROW, A11Y_ROWGROUP, A11Y_ROWINDEX } from '../../../../helpers/a11y';
+import { isHiddenByAriaTree } from '../overlay/ariaCells';
 
 const [ROLE, ROWGROUP] = A11Y_ROWGROUP();
 const ROW = A11Y_ROW()[1];
 const ROWINDEX = A11Y_ROWINDEX(0)[0];
+const ARIA_HIDDEN = A11Y_HIDDEN()[0];
 
 /**
  * The attributes the renderers write on a cell or header, by name, with the value the current draw
@@ -29,6 +31,20 @@ export function isClearedAriaAttribute(name: string): boolean {
 }
 
 /**
+ * Checks whether an attribute is the `aria-hidden` the grid's tree pass wrote on a covered copy of a cell
+ * (`overlay/ariaCells.ts`). That pass is the attribute's only writer and runs after every draw, so a renderer
+ * leaves it in place and does not remove and write it again on each paint. An `aria-hidden` a cell renderer
+ * wrote itself is not kept.
+ *
+ * @param {HTMLElement} element The cell or header.
+ * @param {string} name The attribute name.
+ * @returns {boolean}
+ */
+export function isKeptForAriaTree(element: HTMLElement, name: string): boolean {
+  return name === ARIA_HIDDEN && isHiddenByAriaTree(element);
+}
+
+/**
  * Clears the accessibility attributes the previous paint of a recycled element left on it, except the ones
  * this draw writes. Those stay in place for the caller to overwrite when their value differs, so a repaint of
  * an element with the attributes it already carries makes no DOM write, and a changed one costs one write.
@@ -39,7 +55,7 @@ export function isClearedAriaAttribute(name: string): boolean {
 export function clearStaleAriaAttributes(element: HTMLElement, kept: KeptAriaAttributes): void {
   for (const name of element.getAttributeNames()) {
     // No name of the object prototype contains `aria-` or `role`, so a plain lookup is safe here.
-    if (isClearedAriaAttribute(name) && kept[name] === undefined) {
+    if (isClearedAriaAttribute(name) && kept[name] === undefined && !isKeptForAriaTree(element, name)) {
       element.removeAttribute(name);
     }
   }

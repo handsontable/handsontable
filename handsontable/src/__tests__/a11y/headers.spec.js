@@ -234,16 +234,19 @@ describe('header-related a11y config', () => {
         fixedColumnsStart: 2,
       });
 
+      // The id a data cell points at (`aria-describedby`). A header can carry another id: the one the head
+      // row lists it by (`aria-owns`), which every exposed header of the top clone has.
+      const COLUMN_HEADER_ID = 'thead th[id*="-colheader-"]';
       const idHeaderTexts = overlay =>
-        [...overlay.get(0).querySelectorAll('thead th[id]')].map(th => th.textContent);
+        [...overlay.get(0).querySelectorAll(COLUMN_HEADER_ID)].map(th => th.textContent);
 
       // The master owns the scrolling columns; the inline-start overlay owns the frozen ones.
       expect(idHeaderTexts(getMaster())).toEqual(['Position', 'Country', 'Score']);
       expect(idHeaderTexts(getInlineStartClone())).toEqual(['ID', 'Name']);
 
-      // The sticky clones and corner are duplicate copies and must carry no id.
-      expect(getTopClone().get(0).querySelectorAll('thead th[id]').length).toBe(0);
-      expect(getTopInlineStartClone().get(0).querySelectorAll('thead th[id]').length).toBe(0);
+      // The sticky clones and corner are duplicate copies and must carry no such id.
+      expect(getTopClone().get(0).querySelectorAll(COLUMN_HEADER_ID).length).toBe(0);
+      expect(getTopInlineStartClone().get(0).querySelectorAll(COLUMN_HEADER_ID).length).toBe(0);
 
       // Every stamped id is unique in the document.
       [...document.querySelectorAll('thead th[id]')].forEach((th) => {

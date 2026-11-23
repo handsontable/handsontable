@@ -8,17 +8,20 @@ import { FrozenEdgesPage, type FrozenEdges } from '../fixtures/pages/FrozenEdges
  * before the headers that label it (DEV-3652).
  */
 
-const HEADS = ['top_inline_start_corner head', 'top head', 'top_inline_end_corner head'];
-const TOP = ['top_inline_start_corner body', 'top body', 'top_inline_end_corner body'];
-const MIDDLE = ['inline_start body', 'master body', 'inline_end body'];
-const BOTTOM = ['bottom_inline_start_corner body', 'bottom body', 'bottom_inline_end_corner body'];
+// A grid row is a row of one table: the one that holds its first cells. With row headers that is the start
+// corner for the head row and the frozen top rows, the start clone for the rows between, and the bottom
+// start corner for the frozen bottom rows.
+const HEAD = 'top_inline_start_corner head';
+const TOP = 'top_inline_start_corner body';
+const MIDDLE = 'inline_start body';
+const BOTTOM = 'bottom_inline_start_corner body';
 
-// The row groups each shape lists, by the clones it builds and the sections that hold rows in them.
+// The row groups each shape lists, in reading order.
 const EXPECTED: Record<FrozenEdges, string[]> = {
-  none: [HEADS[0], HEADS[1], MIDDLE[0], MIDDLE[1]],
-  'top-start': [HEADS[0], HEADS[1], TOP[0], TOP[1], MIDDLE[0], MIDDLE[1]],
-  'bottom-end': [...HEADS, ...MIDDLE, ...BOTTOM],
-  all: [...HEADS, ...TOP, ...MIDDLE, ...BOTTOM],
+  none: [HEAD, MIDDLE],
+  'top-start': [HEAD, TOP, MIDDLE],
+  'bottom-end': [HEAD, MIDDLE, BOTTOM],
+  all: [HEAD, TOP, MIDDLE, BOTTOM],
 };
 
 test.describe('the reading order of the grid\'s row groups', () => {
@@ -59,7 +62,7 @@ test.describe('the reading order of the grid\'s row groups', () => {
 
     const owned = await grid.ownedRowGroups();
 
-    expect(owned.map(item => item.name)).toEqual([TOP[0], TOP[1], MIDDLE[0], MIDDLE[1]]);
+    expect(owned.map(item => item.name)).toEqual([TOP, MIDDLE]);
     expect(owned.filter(item => item.role !== 'rowgroup' || item.rows === 0)).toEqual([]);
   });
 
@@ -70,13 +73,12 @@ test.describe('the reading order of the grid\'s row groups', () => {
 
     await grid.updateSettings({ fixedRowsTop: 1 });
 
-    await expect.poll(async() => (await grid.ownedRowGroups()).map(item => item.name))
-      .toEqual([HEADS[0], HEADS[1], TOP[0], TOP[1], MIDDLE[0], MIDDLE[1]]);
+    await expect.poll(async() => (await grid.ownedRowGroups()).map(item => item.name)).toEqual([HEAD, TOP, MIDDLE]);
 
     await grid.loadData([]);
 
-    // No rows: only the head row groups are left.
-    await expect.poll(async() => (await grid.ownedRowGroups()).map(item => item.name)).toEqual([HEADS[0], HEADS[1]]);
+    // No rows: only the head row group is left.
+    await expect.poll(async() => (await grid.ownedRowGroups()).map(item => item.name)).toEqual([HEAD]);
 
     await grid.updateSettings({ colHeaders: false, rowHeaders: false });
 
@@ -88,9 +90,10 @@ test.describe('the reading order of the grid\'s row groups', () => {
     await grid.goto('all');
     await grid.updateSettings({ rowHeaders: false, fixedColumnsStart: 0, fixedColumnsEnd: 0 });
 
-    // The start and end clones keep their rows, now without cells: they are no row groups any more.
+    // The start and end clones keep their rows, now without cells: the top clone, the master and the bottom
+    // clone hold the rows' first cells and lead.
     await expect.poll(async() => (await grid.ownedRowGroups()).map(item => item.name))
-      .toEqual([HEADS[1], TOP[1], MIDDLE[1], BOTTOM[1]]);
+      .toEqual(['top head', 'top body', 'master body', 'bottom body']);
 
     const tree = await grid.accessibilityTree();
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { diffSnapshot, gridRows, maskSnapshot, nameFindings, structureFindings } from '../aria-tree.mjs';
+import { diffSnapshot, gridRows, maskSnapshot, nameFindings, serializeTree, structureFindings } from '../aria-tree.mjs';
 import { findingId, validatePart, EVIDENCE_SCHEMA } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", the accessibility-tree snapshots): the verdicts the
@@ -317,6 +317,38 @@ test('a live status region\'s message is masked: when the snapshot is taken deci
   assert.equal(maskSnapshot(portal, {}), ['# portal', '- status: <announcement>', '- status', '- text: Page 1 of 5'].join('\n'),
     'the announcer\'s message is masked; an empty status and the pager\'s own text are kept');
   assert.equal(maskSnapshot('  - status "Saved": Row 3 saved', {}), '  - status "Saved": <announcement>');
+});
+
+test('the tree is written as text in reading order, without generic containers and text nodes', () => {
+  const grid = node('treegrid', { name: '' });
+  const holder = node('generic', { parent: grid.id });
+  const group = node('rowgroup', { parent: holder.id });
+  const [tr, header, cell] = row(2, [['rowheader', '1', 1], ['gridcell', 'A "quoted" 1', 2]], group.id);
+  const text = node('StaticText', { name: 'A "quoted" 1', parent: cell.id });
+  const portal = node('generic', { region: 'portal' });
+  const status = node('status', { name: 'Sorted ascending', parent: portal.id, region: 'portal' });
+
+  assert.equal(serializeTree([grid, holder, group, tr, header, cell, text, portal, status]), [
+    '# grid',
+    '- treegrid',
+    '  - rowgroup',
+    '    - row',
+    '      - rowheader "1"',
+    '      - gridcell "A \\"quoted\\" 1"',
+    '# portal',
+    '- status',
+    '',
+  ].join('\n'));
+});
+
+test('a node owned by another one is written under its owner, where the tree holds it', () => {
+  // `aria-owns`: Chromium's tree has the cell under the row that owns it, whatever the DOM says.
+  const grid = node('treegrid');
+  const [tr, header] = row(2, [['rowheader', '1', 1]], grid.id);
+  const owned = node('gridcell', { name: 'A1', parent: tr.id });
+
+  assert.equal(serializeTree([grid, tr, header, owned]),
+    '# grid\n- treegrid\n  - row\n    - rowheader "1"\n    - gridcell "A1"\n');
 });
 
 test('a snapshot that differs from its golden names its first differing line', () => {

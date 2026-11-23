@@ -1,43 +1,34 @@
 # grid
-- treegrid:
-  - rowgroup:
-    - row "Alice Red":
-      - gridcell "Alice"
-      - gridcell "Red" [selected]
-    - row "Bob Green":
-      - gridcell "Bob"
-      - gridcell "Green" [selected]
-    - row "Charlie Blue":
-      - gridcell "Charlie"
-      - gridcell "Blue" [selected]
-    - row "Dave Green":
-      - gridcell "Dave"
-      - gridcell "Green" [selected]
-    - row "Eve Red":
-      - gridcell "Eve"
-      - gridcell "Red" [selected]
-  - rowgroup:
-    - row "Select whole grid Name Color":
+- treegrid
+  - textbox "Color, row 1"
+  - rowgroup
+    - row "Select whole grid Name Color"
       - gridcell "Select whole grid"
       - columnheader "Name"
       - columnheader "Color"
-  - rowgroup:
-    - row "1":
+  - rowgroup
+    - row "1 Alice Red"
       - rowheader "1"
-    - row "2":
+      - gridcell "Alice"
+      - gridcell "Red"
+    - row "2 Bob Green"
       - rowheader "2"
-    - row "3":
+      - gridcell "Bob"
+      - gridcell "Green"
+    - row "3 Charlie Blue"
       - rowheader "3"
-    - row "4":
+      - gridcell "Charlie"
+      - gridcell "Blue"
+    - row "4 Dave Green"
       - rowheader "4"
-    - row "5":
+      - gridcell "Dave"
+      - gridcell "Green"
+    - row "5 Eve Red"
       - rowheader "5"
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - textbox "Color, row 1"
+      - gridcell "Eve"
+      - gridcell "Red"
 # portal
-- menu "Column menu":
+- menu "Column menu"
   - menuitem "Insert column left"
   - menuitem "Insert column right"
   - separator
@@ -49,31 +40,28 @@
   - separator
   - menuitem "Alignment"
   - separator
-  - menuitem "Filter by condition:":
-    - text: "Filter by condition:"
-    - listbox: None
-  - menuitem "Filter by value:":
-    - group "Filter by value:":
-      - text: "Filter by value:"
-      - textbox "Filter by value:":
-        - /placeholder: Search
+  - menuitem "Filter by condition:"
+    - listbox
+  - menuitem "Filter by value:"
+    - group "Filter by value:"
+      - textbox "Filter by value:"
       - button "Select all"
       - button "Select none"
-      - treegrid:
-        - rowgroup:
-          - row "Checked Blue":
-            - gridcell "Checked Blue":
-              - checkbox "Checked" [checked]
-              - text: Blue
-          - row "Checked Green":
-            - gridcell "Checked Green":
-              - checkbox "Checked" [checked]
-              - text: Green
-          - row "Checked Red":
-            - gridcell "Checked Red":
-              - checkbox "Checked" [checked]
-              - text: Red
-  - menuitem "Action bar":
+      - treegrid
+        - rowgroup
+          - row "Checked Blue"
+            - gridcell "Checked Blue"
+              - LabelText
+                - checkbox "Checked"
+          - row "Checked Green"
+            - gridcell "Checked Green"
+              - LabelText
+                - checkbox "Checked"
+          - row "Checked Red"
+            - gridcell "Checked Red"
+              - LabelText
+                - checkbox "Checked"
+  - menuitem "Action bar"
     - button "OK"
     - button "Cancel"
 - status

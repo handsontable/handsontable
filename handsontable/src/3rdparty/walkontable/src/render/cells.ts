@@ -13,6 +13,7 @@ import {
 } from '../../../../helpers/a11y';
 import {
   isClearedAriaAttribute,
+  isKeptForAriaTree,
   setAttributeIfChanged,
   setAttributeIfMissing,
 } from './ariaAttributes';
@@ -60,7 +61,8 @@ function prepareCellAriaAttributes(
   for (let i = 0; i < attributeNames.length; i++) {
     const name = attributeNames[i];
 
-    if (isClearedAriaAttribute(name) && !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId))) {
+    if (isClearedAriaAttribute(name) && !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId)) &&
+        !isKeptForAriaTree(TD, name)) {
       TD.removeAttribute(name);
     }
   }

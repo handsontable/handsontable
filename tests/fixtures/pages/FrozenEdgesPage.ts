@@ -1,5 +1,5 @@
 import { type Page, type Locator } from '@playwright/test';
-import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
+import { awaitBundle, awaitFixtureBuilt, BUNDLE_POLLING_MS, type Bundle } from '../bundle';
 import { flattenAxTree } from '../../a11y/checks/ax-tree';
 import { gridRows, structureFindings } from '../../lib/aria-tree.mjs';
 
@@ -165,11 +165,12 @@ export class FrozenEdgesPage {
 
   /**
    * The grid as Chromium's accessibility tree holds it, which is what a screen reader gets: the cell
-   * roles of each row in reading order, and the kinds of the structural findings of the tree check.
+   * roles and the cell names of each row in reading order, the number of cells that sit in no row, and
+   * the kinds of the structural findings of the tree check.
    *
-   * @returns The rows and the finding kinds.
+   * @returns The rows, the orphan count and the finding kinds.
    */
-  async accessibilityTree(): Promise<{ rows: string[][], findings: string[] }> {
+  async accessibilityTree(): Promise<{ rows: string[][], names: string[][], orphanCells: number, findings: string[] }> {
     const cdp = await this.page.context().newCDPSession(this.page);
 
     try {
@@ -177,13 +178,75 @@ export class FrozenEdgesPage {
 
       const nodes = await flattenAxTree(this.page, cdp, '[data-testid="grid"]');
 
+      const rows = gridRows(nodes).filter(row => row.cells.length > 0);
+      const cellRoles = new Set(['gridcell', 'columnheader', 'rowheader']);
+      const roleOf = new Map(nodes.map(item => [item.id, item.role]));
+
       return {
-        rows: gridRows(nodes).filter(row => row.cells.length > 0).map(row => row.cells.map(cell => cell.role)),
+        rows: rows.map(row => row.cells.map(cell => cell.role)),
+        names: rows.map(row => row.cells.map(cell => cell.name)),
+        orphanCells: nodes.filter(item => cellRoles.has(item.role) && roleOf.get(item.parent ?? '') !== 'row').length,
         findings: structureFindings(nodes).map(item => item.kind),
       };
     } finally {
       await cdp.detach();
     }
+  }
+
+  /**
+   * Replaces the data with a grid of the given size in a viewport that scrolls both ways, and scrolls to
+   * the given cell. Ends when the cell is rendered.
+   *
+   * @param rows The number of rows.
+   * @param columns The number of columns.
+   * @param target The cell to scroll to.
+   * @param target.row The row.
+   * @param target.col The column.
+   */
+  async makeScrollableAndScrollTo(rows: number, columns: number, target: { row: number, col: number }): Promise<void> {
+    await this.page.evaluate(([rowCount, columnCount, cell]) => {
+      const { hot, Handsontable } = window as unknown as {
+        hot: { updateSettings(settings: object): void, scrollViewportTo(cell: object): void },
+        Handsontable: { helper: { createSpreadsheetData(rows: number, columns: number): unknown[][] } },
+      };
+
+      hot.updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(rowCount as number, columnCount as number), width: 600, height: 320,
+      });
+      hot.scrollViewportTo(cell as object);
+    }, [rows, columns, target] as const);
+    await this.page.waitForFunction(
+      cell => (window as unknown as { hot: { getCell(row: number, col: number): unknown } }).hot.getCell(cell.row, cell.col) !== null,
+      target,
+      { polling: BUNDLE_POLLING_MS },
+    );
+  }
+
+  /**
+   * Selects a cell through the API, so the keyboard acts on the grid from it.
+   *
+   * @param row The row.
+   * @param col The column.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(
+      ([cellRow, cellCol]) => (window as unknown as { hot: { selectCell(row: number, col: number): void } }).hot.selectCell(cellRow, cellCol),
+      [row, col] as const,
+    );
+  }
+
+  /**
+   * The element that holds the browser focus: its text, and whether it or an ancestor is hidden from
+   * assistive technology.
+   *
+   * @returns The focused element's text and hidden state.
+   */
+  async focused(): Promise<{ text: string, hidden: boolean }> {
+    return this.page.evaluate(() => {
+      const element = document.activeElement;
+
+      return { text: element?.textContent ?? '', hidden: element?.closest('[aria-hidden="true"]') !== null };
+    });
   }
 
   /**

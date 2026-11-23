@@ -56,9 +56,10 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
 
   /**
    * The treegrid attributes of every rendered row, top to bottom, read in one evaluation so a
-   * re-render between two reads cannot mix two layouts. Throws when the master copy of a row and
-   * its inline-start copy disagree, and when a row element carries `aria-expanded`, which belongs to
-   * the row header.
+   * re-render between two reads cannot mix two layouts. A grid row is a `row` in one table only, the
+   * inline-start clone, which holds its row header; the master's copy carries no role, and none of the
+   * attributes is allowed on it. Throws when the master copy of a row carries one, when a clone row is
+   * no `row`, and when a row element carries `aria-expanded`, which belongs to the row header.
    */
   rowAttributes(): Promise<TreegridRowAttributes[]> {
     return this.page.evaluate(() => {
@@ -77,12 +78,16 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
         });
       const master = read('.ht_master');
       const clone = read('.ht_clone_inline_start');
+      const cloneRoles = Array.from(document.querySelectorAll('.ht_clone_inline_start tbody tr'), TR => TR.getAttribute('role'));
 
-      if (JSON.stringify(master) !== JSON.stringify(clone)) {
-        throw new Error(`Row copies disagree: ${JSON.stringify({ master, clone })}`);
+      if (master.some(item => item.level !== null || item.posinset !== null || item.setsize !== null)) {
+        throw new Error(`A master row, which is no row for assistive technology, carries a tree attribute: ${JSON.stringify(master)}`);
+      }
+      if (cloneRoles.some(role => role !== 'row')) {
+        throw new Error(`A row of the inline-start clone is no row: ${JSON.stringify(cloneRoles)}`);
       }
 
-      return master;
+      return clone;
     });
   }
 
@@ -100,7 +105,8 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
-   * How many rendered rows carry any of the treegrid row attributes, across every copy.
+   * How many rendered rows carry any of the treegrid row attributes, across every copy. One copy of each
+   * row carries them: the one that is the grid row's `row`.
    */
   countRowsWithTreegridAttributes(): Promise<number> {
     return this.page.evaluate(() => document.querySelectorAll(
