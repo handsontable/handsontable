@@ -20,10 +20,14 @@ name: A11y
 # from the run page, built to locate every element (fixture, steps, selector, DOM path,
 # screenshot). The `A11y / axe report` check run on the pull request's head commit: its
 # icon is the visible verdict, and its annotations sit on the line to change. Only `CI Gate`
-# is required, so a red check run never blocks a merge by itself. A sticky pull request comment on every pull
-# request the scan ran on, edited in place by later runs: the headline, what needs
-# action, what the pull request added to the baseline (compared with the base commit's)
-# and the report link. And `a11y-findings.json` for an
+# is required, so a red check run never blocks a merge by itself. On a pull request the check run also
+# judges what the pull request adds to the baseline (tests/lib/a11y-baseline-guard.mjs): an entry that is
+# neither inherited (a page the pull request adds, showing a finding the base baseline has on another page)
+# nor an approved exception (its issue names a tracker, and the `a11y-exception-approved` label a person
+# added covers it) is the pull request's own finding, and the check run is red. A sticky pull request
+# comment on every pull request the scan ran on, edited in place by later runs: the headline, what needs
+# action, what the pull request added to the baseline and of which kind, and the report link. And
+# `a11y-findings.json` for an
 # implementer agent, in the zipped raw results with a short retention: they are the
 # evidence behind a warning, not a record.
 #
@@ -75,12 +79,18 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     # Job-level, like docs.yml's angular-types and visual.yml's compare: `checks: write` posts the
-    # report check run, `pull-requests: write` the sticky comment. Kept off the workflow level so
-    # nothing else in the run inherits them.
+    # report check run, `pull-requests: write` the sticky comment and lets the baseline guard read the
+    # `a11y-exception-approved` label from the pull request's events (GitHub serves a pull request's
+    # issue events to the Pull requests permission as well as to Issues). `actions: read` finds the head
+    # the label approved among the pull request's runs. Never `issues`: publish.yml's rc and stable test
+    # jobs grant the Tests run a ceiling without it, and GitHub refuses the whole run at startup when a
+    # nested job asks for more (workflow-permissions.test.mjs walks every caller). Kept off the workflow level
+    # so nothing else in the run inherits them.
     permissions:
       contents: read
       checks: write
       pull-requests: write
+      actions: read
     env:
       # The commit the check run goes on and the report names. On a pull request it is the
       # head, not the merge commit `github.sha` names, or the check never shows on the PR.
@@ -132,8 +142,13 @@ jobs:
         run: printf '\n📊 [Open the HTML report](%s)\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
       # The visible verdict on the pull request (tests/lib/a11y-check-run.mjs), by the severity rule;
       # GITHUB_EVENT_NAME says what counts and GITHUB_RUN_ID is stamped on it for the nightly's run
-      # verdict. A fork's or Dependabot's token cannot write checks, so the canonical guard skips it
-      # there; the job summary and the report still carry everything. It reports and never decides the job.
+      # verdict. On a pull request it also judges the baseline growth: the base commit is the checked-out
+      # merge commit's first parent (the payload's base.sha is only the fallback, as for the comment), the
+      # label is read live, so a re-run of this job after the label went on reads it, and A11Y_HEAD_REF
+      # finds the head the label approved. A11Y_EXCEPTION_APPROVERS, a repository variable, limits who may
+      # approve; unset, anyone who can label the pull request may. A fork's or Dependabot's token cannot
+      # write checks, so the canonical guard skips it there; the job summary and the report still carry
+      # everything. It reports and never decides the job.
       - name: Post the report check run
         id: check
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
@@ -141,14 +156,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+          A11Y_PR_NUMBER: ${{ github.event.pull_request.number }}
+          A11Y_CHECKOUT_SHA: ${{ steps.checkout.outputs.commit }}
+          A11Y_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          A11Y_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          A11Y_EXCEPTION_APPROVERS: ${{ vars.A11Y_EXCEPTION_APPROVERS }}
         run: node tests/scripts/a11y-check-run.mjs
       # The sticky comment (tests/lib/a11y-pr-comment.mjs): posted on the first run, clean or not,
       # and edited in place by every later one; never a screenshot, it links the HTML report. It
       # reads the baseline at the first parent of the checked-out merge commit (A11Y_CHECKOUT_SHA,
-      # through the REST API) to list what the pull request adds to it: the payload's base.sha can
-      # be older than the tip the merge ref was built on (a re-run, a base merged in), so it is
-      # only the fallback. Pull requests only, behind the same guard (a fork's token cannot
-      # comment).
+      # through the REST API) to list what the pull request adds to it, judged as the check run
+      # judges it: the payload's base.sha can be older than the tip the merge ref was built on (a
+      # re-run, a base merged in), so it is only the fallback. Pull requests only, behind the same
+      # guard (a fork's token cannot comment).
       - name: Post the report comment
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
         continue-on-error: true
@@ -157,6 +177,8 @@ jobs:
           A11Y_PR_NUMBER: ${{ github.event.pull_request.number }}
           A11Y_CHECKOUT_SHA: ${{ steps.checkout.outputs.commit }}
           A11Y_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          A11Y_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          A11Y_EXCEPTION_APPROVERS: ${{ vars.A11Y_EXCEPTION_APPROVERS }}
           A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
           A11Y_CHECK_URL: ${{ steps.check.outputs.check-url }}
         run: node tests/scripts/a11y-pr-comment.mjs

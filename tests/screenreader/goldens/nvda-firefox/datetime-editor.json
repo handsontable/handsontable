@@ -6,14 +6,14 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-10T12:09:57.676Z"
+    "at": "2026-11-23T10:59:56.727Z"
   },
   "steps": {
-    "open-editor": "date edit multi line month spin button 06",
+    "open-editor": "datetime row 1 date edit multi line month spin button 06",
     "type-date": "00 year spin button 2024",
     "commit-datetime": "",
     "back-to-committed": "01 slash 01 slash 2024 09 30 00 datetime row 2 column 7",
-    "reopen-editor": "date edit multi line month spin button 01",
-    "cancel-edit": ""
+    "reopen-editor": "datetime row 1 date edit multi line month spin button 01",
+    "cancel-edit": "01 slash 01 slash 2024 09 30 00 datetime row 2 column 7"
   }
 }

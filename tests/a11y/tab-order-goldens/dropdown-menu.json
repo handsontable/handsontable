@@ -17,7 +17,7 @@
       {
         "region": "portal",
         "role": "textbox",
-        "name": "Search"
+        "name": "Filter by value:"
       },
       {
         "region": "portal",

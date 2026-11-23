@@ -17,13 +17,13 @@
       "id": "space-check",
       "action": {"press": "Space"},
       "expect": [["checked"]],
-      "note": "Space toggles the focused cell's checkbox and the focus stays on the cell. Only the state is required: a reader that announces a state change does not repeat the cell. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state; the golden pins the words. Finding: with Chromium, NVDA and VoiceOver say nothing when Space toggles the cell; NVDA with Firefox reads the cell again (`Checked, Done, row 2`) and VoiceOver with WebKit reads `Done Checked`."
+      "note": "Space toggles the focused cell's checkbox and the focus stays on the cell. Only the state is required: a reader that announces a state change does not repeat the cell. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state; the golden pins the words. Finding: with Chromium, NVDA and VoiceOver say nothing when Space toggles the cell; NVDA with Firefox says the new state alone (`checked`). Finding (the grid's): VoiceOver with WebKit says nothing too, where it read `Done Checked`: the cell's attributes are written only when they change, so the cell keeps its accessibility object, and VoiceOver reads no change of a cell it is on."
     },
     {
       "id": "space-uncheck",
       "action": {"press": "Space"},
       "expect": [["unchecked", "not checked"]],
-      "note": "Space again unchecks the cell. Finding: silent on NVDA and VoiceOver with Chromium, as for the check."
+      "note": "Space again unchecks the cell. Finding: silent on NVDA and VoiceOver with Chromium, as for the check; NVDA with Firefox says `unchecked`. Finding (the grid's): VoiceOver with WebKit says nothing too (the check step)."
     },
     {
       "id": "arrow-down-checked",

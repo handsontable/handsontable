@@ -6,15 +6,15 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-05T11:02:00.182Z"
+    "at": "2026-11-23T12:22:04.102Z"
   },
   "steps": {
     "arrow-up-to-lower-header": "",
     "arrow-up-to-group": "b expanded column 2 row a b f",
-    "enter-collapse": "b collapsed column 2 row a b f",
+    "enter-collapse": "b collapsed column 2 row a b f collapsed column group b",
     "arrow-right-after-collapse": "f column 3 row a b f",
     "arrow-left-back": "b collapsed column 2 row a b f",
-    "enter-expand": "b expanded column 2 row a b f",
+    "enter-expand": "b expanded column 2 row a b f expanded column group b",
     "arrow-down-to-lower": "b menu pop up column 2 row a b c d e f"
   }
 }
