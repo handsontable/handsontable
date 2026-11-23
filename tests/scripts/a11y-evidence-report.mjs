@@ -23,19 +23,32 @@
  * pull request's head on a pull request, `github.sha` otherwise), plus the optional `GITHUB_API_URL`,
  * `GITHUB_SERVER_URL`, `GITHUB_EVENT_NAME` and `GITHUB_RUN_ID` (stamped on each check run as its
  * `external_id`, which the run verdict reads).
+ *
+ * On a pull request (`GITHUB_EVENT_NAME` is `pull_request`) the product checks read the findings ledger as their
+ * baseline (`lib/a11y-pr-ledger.mjs`): a finding whose ledger row is open is known and does not count, a resolved row
+ * is a regression and a missing one is new. The ledger is read from `A11Y_LEDGER_URL` (the published `a11y.json` by
+ * default) or `A11Y_LEDGER_FILE` (a saved copy, which also turns the ledger on for a local run), and the pull request's
+ * changed files from the API (`A11Y_PR_NUMBER` with `GITHUB_TOKEN`) or `A11Y_CHANGED_FILES` (a file of paths, one per
+ * line), so a new finding on a page the pull request did not change is marked so. A ledger that does not load leaves
+ * every finding counted, with a note; unknown files mark nothing.
  */
 import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
 import { pageLinesOf } from '../lib/a11y-check-run.mjs';
-import { EVIDENCE_CHECKS, PAGES_FILE, buildEvidenceCheckRun, checksForRun, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
+import {
+  EVIDENCE_CHECKS, PAGES_FILE, buildEvidenceCheckRun, checksForRun, ledgerSectionOf, renderEvidenceSummary, validateEvidence,
+} from '../lib/a11y-evidence.mjs';
+import { LEDGER_URL, ledgerIndex, pagesTouched, prLedgerOf, sharedSourceFolders } from '../lib/a11y-pr-ledger.mjs';
 import { siteChecks, siteOf, siteOutputDir } from '../lib/a11y-site-checks.mjs';
 import { VERDICT_RULE } from '../lib/a11y-verdict.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The files API lists at most 3,000 files of a pull request, in pages of 100.
+const FILES_PAGES = 30;
 const env = process.env;
 // A site's checks read like the product's, from a registry, a folder and a page list of their own.
 const site = env.HOT_A11Y_SITE ? siteOf(env.HOT_A11Y_SITE) : null;
@@ -86,7 +99,11 @@ for (const check of expected.filter(name => !reports.some(report => report.check
 }
 
 const { scope, tracked, externalId, notes } = verdictInputs({ env, testsRoot: TESTS_ROOT });
-const payloads = reports.map(report => buildEvidenceCheckRun({ ...report, pages, runUrl, artifactUrl, scope, tracked, pagesFile: PAGE_LIST, source: SOURCE }));
+// The product checks on a pull request, or a local run given a saved ledger: the ledger tells new from known.
+const prLedger = !site && (env.GITHUB_EVENT_NAME === 'pull_request' || env.A11Y_LEDGER_FILE) ? await readPrLedger() : undefined;
+const payloads = reports.map(report => buildEvidenceCheckRun({
+  ...report, pages, runUrl, artifactUrl, scope, tracked, pagesFile: PAGE_LIST, source: SOURCE, prLedger,
+}));
 const ROW = { success: '✔ green', neutral: '⚠ warning', failure: '✖ red' };
 // A subset run names what ran, so nobody reads the missing checks as clean: the ledger resolves a row only
 // where its check measured, the run verdict expects the named checks only, and the summary says the same.
@@ -100,13 +117,17 @@ const summary = [
   `Each check's verdict follows the severity rule ${VERDICT_RULE}, on ${scope === 'audit' ? 'an audit run: every open finding counts' : 'a change run: a tracked finding is a warning at most'}. `
     + 'Its check run carries the verdict; this job never fails on a finding.',
   '',
+  ...(prLedger?.classify
+    ? ['On a pull request the findings ledger is the baseline: a finding it holds as open is known and does not count; a regression or a new finding does.', '']
+    : []),
+  ...(prLedger?.problem ? [`> Known and new findings were not told apart, so every finding counts: ${escapeMarkdownText(prLedger.problem)}.`, ''] : []),
   ...notes.map(note => `> ${escapeMarkdownText(note)}\n`),
   '| Verdict | Check run | Title |',
   '| --- | --- | --- |',
   ...payloads.map(payload => `| ${ROW[payload.conclusion]} | ${escapeMarkdownText(payload.name)} | ${escapeMarkdownText(payload.title)} |`),
   '',
   ...reports.map((report, index) => (report.doc && report.problems.length === 0
-    ? renderEvidenceSummary(report.doc, { runUrl, artifactUrl })
+    ? [renderEvidenceSummary(report.doc, { runUrl, artifactUrl }), ledgerSectionOf(report.doc, prLedger)].filter(Boolean).join('\n')
     : `### ${payloads[index].name}\n\n${payloads[index].summary}\n`)),
 ].join('\n');
 
@@ -157,4 +178,90 @@ for (const payload of payloads) {
 
 if (refused > 0) {
   process.exit(1);
+}
+
+/**
+ * The findings ledger as a pull request's baseline: the ledger's index of the product checks' rows, and the pages the
+ * pull request touches, read from its changed files. A ledger that does not load is a problem the check runs state;
+ * changed files that cannot be read mark no page.
+ *
+ * @returns {Promise<object>} The input `buildEvidenceCheckRun()` takes as `prLedger`.
+ */
+async function readPrLedger() {
+  let index;
+
+  try {
+    const ledger = env.A11Y_LEDGER_FILE ? JSON.parse(readFileSync(env.A11Y_LEDGER_FILE, 'utf8')) : await fetchJson(env.A11Y_LEDGER_URL || LEDGER_URL);
+
+    index = ledgerIndex(ledger, SOURCE);
+  } catch (error) {
+    return { problem: `the findings ledger did not load (${error instanceof Error ? error.message : String(error)})` };
+  }
+
+  const files = await changedFiles();
+  const [{ A11Y_PAGES }, { PLUGIN_COVERAGE, EDITOR_COVERAGE }] = await Promise.all([import('../a11y/pages.mjs'), import('../a11y/coverage.mjs')]);
+  const touched = files ? pagesTouched(files, {
+    pages: A11Y_PAGES, plugins: PLUGIN_COVERAGE, editors: EDITOR_COVERAGE, shared: sharedSourceFolders(path.join(TESTS_ROOT, '../handsontable/src')),
+  }) : null;
+
+  return prLedgerOf({ index, touched, catalog: new Set(A11Y_PAGES.map(page => page.id)), source: SOURCE });
+}
+
+/**
+ * The pull request's changed files: from `A11Y_CHANGED_FILES` (a file, one path per line), or through the API, or
+ * `null` when neither is at hand or the API refuses.
+ *
+ * @returns {Promise<string[]|null>} The paths.
+ */
+async function changedFiles() {
+  if (env.A11Y_CHANGED_FILES) {
+    return readFileSync(env.A11Y_CHANGED_FILES, 'utf8').split('\n').map(line => line.trim()).filter(Boolean);
+  }
+  if (!env.GITHUB_TOKEN || !env.GITHUB_REPOSITORY || !/^\d+$/.test(env.A11Y_PR_NUMBER ?? '')) {
+    return null;
+  }
+
+  const files = [];
+
+  try {
+    // The API lists at most 3,000 files, 100 a page.
+    for (let page = 1; page <= FILES_PAGES; page += 1) {
+      const batch = await fetchJson(`${env.GITHUB_API_URL || 'https://api.github.com'}/repos/${env.GITHUB_REPOSITORY}/pulls/${env.A11Y_PR_NUMBER}/files?per_page=100&page=${page}`,
+        { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' });
+
+      files.push(...batch.map(file => file.filename));
+      if (batch.length < 100) {
+        break;
+      }
+    }
+  } catch (error) {
+    process.stderr.write(`a11y-evidence-report: the pull request's files were not read: ${error instanceof Error ? error.message : String(error)}\n`);
+
+    return null;
+  }
+  // At the API's limit the list may be cut, and a file left out would mark its page as unchanged: read none.
+  if (files.length >= FILES_PAGES * 100) {
+    process.stderr.write(`a11y-evidence-report: the pull request lists ${files.length} files, the API's limit, so the list may be cut; no page is marked as unchanged.\n`);
+
+    return null;
+  }
+
+  return files;
+}
+
+/**
+ * Fetches a URL's JSON.
+ *
+ * @param {string} url The URL.
+ * @param {Record<string, string>} [headers] The headers.
+ * @returns {Promise<any>} The parsed body.
+ */
+async function fetchJson(url, headers = {}) {
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    throw new Error(`${url} answered ${response.status}`);
+  }
+
+  return response.json();
 }

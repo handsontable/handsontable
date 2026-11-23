@@ -40,6 +40,7 @@ import {
   LINK_SCHEMES,
   LINK_SCHEME_CLASS_NAME,
   createLinkElement,
+  describeLink,
   normalizeSchemesWithFallback,
   resolveLinkUrl,
   unwrapLinks,
@@ -49,6 +50,7 @@ import {
 } from '../../utils/cellLinks';
 import { fastInnerText, getCellContentRoot } from '../../helpers/dom/element';
 import { FORMULAS_CELL_DESCRIPTION } from '../../i18n/constants';
+import { CELL_DESCRIPTION_RANK, removeCellDescriptionPart } from '../../utils/cellDescription/cellDescription';
 import {
   describeFormulaCell,
   limitFormulaText,
@@ -6695,6 +6697,7 @@ export class Formulas extends BasePlugin {
     // that wrapper on every render pass. The nodes are moved, never re-serialized, so a label
     // containing markup stays text.
     wrapCellContent(TD, link);
+    describeLink(this.hot, TD);
   };
 
   /**
@@ -6816,6 +6819,8 @@ export class Formulas extends BasePlugin {
 
     this.#flushEvaluation();
     fastInnerText(TD, String(this.#readableFormula(this.engine!.getCellSerialized(address))));
+    // The text replaced the cell's content, an anchor AutoLink made from the value included.
+    removeCellDescriptionPart(TD, CELL_DESCRIPTION_RANK.LINK);
   };
 
   /**

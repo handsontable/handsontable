@@ -24,8 +24,8 @@
     "menu-arrow-down-again": "insert column left row 4",
     "close-context-menu": "handsontable screen reader fixture document",
     "reselect-cell": "table alice selected name row 2 column 2",
-    "extend-range": "",
-    "extend-range-again": "",
+    "extend-range": "selection from column name row 1 to column age row 1",
+    "extend-range-again": "row 1 selected",
     "up-to-header-for-sort": "name column header selected row 1 column 2",
     "sort-ascending": "name column header sorted ascending row 1 column 2 sorted by name ascending",
     "sort-descending": "name column header sorted descending row 1 column 2 sorted by name descending"

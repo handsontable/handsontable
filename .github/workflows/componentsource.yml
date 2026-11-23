@@ -177,6 +177,8 @@ jobs:
 
           printf '%s\n' "Handsontable documentation for the following ${HOT_VERSION} version of the software can be found online at https://handsontable.com/docs/" > "$DOCS/documentation.txt"
 
+          printf '%s\n' "The example in the example folder needs a Handsontable license key. Without one, a blocking license message covers the grid. Open example/index.html, uncomment the licenseKey line, and add your key. Get a key at https://handsontable.com/pricing/" >> "$DOCS/documentation.txt"
+
           printf '%s\n' "Release notes (changelog) for the following ${HOT_VERSION} version of the software can be found online at https://handsontable.com/docs/javascript-data-grid/changelog/" > "$DOCS/release notes.txt"
 
           cat > "$EX/index.html" <<'HTML'
@@ -198,13 +200,15 @@ jobs:
               ['2019', 30, 15, 12, 13]
             ];
 
+            // The grid needs a license key. Without one, a blocking license message covers it.
             const container = document.querySelector('#handsontable');
             const hot = new Handsontable(container, {
               data: data,
               rowHeaders: true,
               colHeaders: true,
               filters: true,
-              dropdownMenu: true
+              dropdownMenu: true,
+              // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
             });
           </script>
           </body>

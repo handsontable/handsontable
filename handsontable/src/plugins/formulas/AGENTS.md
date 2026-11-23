@@ -1320,8 +1320,10 @@ measured reason:
   A screen reader drops `title` from a cell that has `aria-describedby`, and `aria-label` on a gridcell replaces the
   value instead of adding to it. `aria-description` loses to the `aria-describedby` Walkontable writes (the column
   header), so it cannot carry this. Chromium's tree names the cell `3 Formula: =SUM(A1:B1)`, value first, with a
-  space between them because the absolutely positioned pseudo-element is a block. `td::after` is free: the
-  selection area uses only `td.area::before`. Do not give a theme or plugin rule an `::after` on `td[data-ht-formula]`.
+  space between them because the absolutely positioned pseudo-element is a block. The cell's `::after` is not free: the
+  Comments indicator (`td.htCommentCell::after`) and the empty first-row guard (`td:first-child:empty::after`, `_base.scss`)
+  draw into it, and `_formulas.scss` has a rule for each that puts the text inside their box. Do not give a theme or plugin
+  rule an `::after` on `td[data-ht-formula]`.
 - **The attribute is written only when it changes** (`describeFormulaCell()` compares first), like the ARIA
   attributes of the cell. A paint that changes nothing writes nothing.
 - **Skipped while `showFormulas()` is on**, because the cell already displays the formula. Skipped when the cell's
