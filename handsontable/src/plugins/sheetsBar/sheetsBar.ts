@@ -4923,10 +4923,10 @@ export class SheetsBar extends BasePlugin {
    * write) is left alone, and nothing is written while `ariaTags` is off.
    */
   #syncGridName() {
-    const root = this.hot.rootElement;
+    const root = this.hot.view?.getAriaGridElement() ?? null;
     const labelId = this.#tabStrip?.getActiveLabelId() ?? null;
 
-    if (!this.hot.getSettings().ariaTags || labelId === null || this.#hostNamesGrid(root)) {
+    if (root === null || labelId === null || this.#hostNamesGrid(root)) {
       this.#clearGridName();
 
       return;
@@ -4982,7 +4982,7 @@ export class SheetsBar extends BasePlugin {
    * Takes the name the bar gave the grid off again, when the bar is turned off.
    */
   #clearGridName() {
-    const root = this.hot.rootElement;
+    const root = this.hot.view?.getAriaGridElement() ?? null;
 
     this.#gridNameObserver?.disconnect();
     this.#gridNameObserver = null;

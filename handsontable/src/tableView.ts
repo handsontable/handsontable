@@ -319,6 +319,15 @@ class TableView {
    */
   #ariaOwnedRowGroups = '';
   /**
+   * The element that carries the grid role (`treegrid`) and lists the row groups, or `null` for a grid
+   * that writes no accessibility attributes.
+   */
+  #ariaGridElement: HTMLElement | null = null;
+  /**
+   * Watches the root for a name the host gives the grid, to copy it to the element with the grid role.
+   */
+  #gridNameObserver: MutationObserver | null = null;
+  /**
    * Whether the last `_wt.draw()` of `render()` reached the cells. The engine reports it through `onDraw`, which a draw
    * that a `beforeViewRender` listener cancelled (`skipRender`) never fires.
    *
@@ -793,12 +802,19 @@ class TableView {
         A11Y_PRESENTATION()
       ]);
 
-      setAttribute(rootElement, [
+      // The grid role sits on an element of its own, which owns the row groups (`aria-owns`). On the
+      // root it had the scroll holders between it and its rows: focusable elements (`tabindex="-1"`,
+      // which keeps them out of the Tab order), and a `treegrid` may hold only rows and row groups.
+      this.#ariaGridElement = rootDocument.createElement('div');
+      addClass(this.#ariaGridElement, 'ht-aria-grid');
+      setAttribute(this.#ariaGridElement, [
         A11Y_TREEGRID(),
         A11Y_ROWCOUNT(-1),
         A11Y_COLCOUNT(this.hot.countCols()),
         A11Y_MULTISELECTABLE(),
       ]);
+      rootElement.appendChild(this.#ariaGridElement);
+      this.#forwardGridName(rootElement, this.#ariaGridElement);
     }
 
     this.THEAD = rootDocument.createElement('thead');
@@ -3214,11 +3230,16 @@ class TableView {
    * list this method wrote is ever removed.
    */
   #syncAriaRowGroupOrder() {
-    const { rootElement, guid } = this.hot;
+    const { guid } = this.hot;
+    const gridElement = this.#ariaGridElement;
     const [ownsAttribute] = A11Y_OWNS('');
     let owned = '';
 
-    if (this.settings.ariaTags && guid) {
+    if (gridElement === null) {
+      return;
+    }
+
+    if (guid) {
       // The same tables the engine's pass joins into rows (`Overlays#getTables`).
       owned = stampRowGroupsInReadingOrder(this._wt.wtOverlays.getTables(), guid).join(' ');
     }
@@ -3228,12 +3249,54 @@ class TableView {
     }
 
     if (owned === '') {
-      rootElement.removeAttribute(ownsAttribute);
+      gridElement.removeAttribute(ownsAttribute);
     } else {
-      rootElement.setAttribute(ownsAttribute, owned);
+      gridElement.setAttribute(ownsAttribute, owned);
     }
 
     this.#ariaOwnedRowGroups = owned;
+  }
+
+  /**
+   * Returns the element that carries the grid role, where the grid's name and its counts belong, or `null`
+   * for a grid that writes no accessibility attributes.
+   *
+   * @returns {HTMLElement | null}
+   */
+  getAriaGridElement(): HTMLElement | null {
+    return this.#ariaGridElement;
+  }
+
+  /**
+   * Copies the name a host gives the grid on its root element (`aria-label`, `aria-labelledby`,
+   * `aria-describedby`) to the element with the grid role, now and whenever the host changes it. The root
+   * carried the grid role before, so that is where existing applications name the grid.
+   *
+   * @param {HTMLElement} rootElement The grid's root element.
+   * @param {HTMLElement} gridElement The element with the grid role.
+   */
+  #forwardGridName(rootElement: HTMLElement, gridElement: HTMLElement) {
+    const names = ['aria-label', 'aria-labelledby', 'aria-describedby'];
+    const forwarded = new Set<string>();
+    const sync = () => {
+      names.forEach((name) => {
+        const value = rootElement.getAttribute(name);
+
+        if (value !== null) {
+          forwarded.add(name);
+          gridElement.setAttribute(name, value);
+
+        } else if (forwarded.has(name)) {
+          // Only a name copied from the root goes with it: the grid may have one of its own (the sheets bar).
+          forwarded.delete(name);
+          gridElement.removeAttribute(name);
+        }
+      });
+    };
+
+    sync();
+    this.#gridNameObserver = new this.hot.rootWindow.MutationObserver(sync);
+    this.#gridNameObserver.observe(rootElement, { attributes: true, attributeFilter: names });
   }
 
   /**
@@ -3932,7 +3995,7 @@ class TableView {
    * @returns {number} The value of the `aria-colcount` attribute.
    */
   #getAriaColcount() {
-    return parseInt(this.hot.rootElement.getAttribute('aria-colcount') ?? '0', 10);
+    return parseInt(this.#ariaGridElement?.getAttribute('aria-colcount') ?? '0', 10);
   }
 
   /**
@@ -3943,8 +4006,8 @@ class TableView {
   #syncAriaColcount() {
     const colCount = this.hot.countCols() + this.#rowHeadersCount;
 
-    if (this.#getAriaColcount() !== colCount) {
-      setAttribute(this.hot.rootElement, [A11Y_COLCOUNT(colCount)]);
+    if (this.#ariaGridElement !== null && this.#getAriaColcount() !== colCount) {
+      setAttribute(this.#ariaGridElement, [A11Y_COLCOUNT(colCount)]);
     }
   }
 
@@ -4125,6 +4188,11 @@ class TableView {
       this.hot.rootWindow.cancelAnimationFrame(this.#contentSettledFrame);
       this.#contentSettledFrame = null;
     }
+
+    this.#gridNameObserver?.disconnect();
+    this.#gridNameObserver = null;
+    this.#ariaGridElement?.remove();
+    this.#ariaGridElement = null;
 
     this._wt.destroy();
     this.eventManager.destroy();

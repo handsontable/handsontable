@@ -252,8 +252,10 @@ function replaceData(
     hotInstance.render();
   }
 
-  if (hotInstance.getSettings().ariaTags) {
-    setAttribute(hotInstance.rootElement, [
+  const ariaGridElement = hotInstance.view?.getAriaGridElement() ?? null;
+
+  if (ariaGridElement !== null) {
+    setAttribute(ariaGridElement, [
       A11Y_ROWCOUNT(-1),
     ]);
   }
