@@ -78,6 +78,9 @@ export function loadingContent({ id, icon, title, description, sanitizer = true,
         tag: 'i',
         ref: 'icon',
         className: `${LOADING_CLASS_NAME}__icon`,
+        // The spinner is decoration: the title and the description say what is going on. A custom icon
+        // is the caller's markup and keeps whatever semantics it carries.
+        ...(isDefaultIcon ? { attrs: { 'aria-hidden': 'true' } } : {}),
         children: isDefaultIcon ? [DEFAULT_ICON_SPEC] : [],
       },
       {
