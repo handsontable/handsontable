@@ -8,6 +8,7 @@ const TABLE_WRAPPER = '.table-container';
 const FORMULA_BUILDER = '/javascript-data-grid/formula-builder/';
 const ROWS_SORTING = '/javascript-data-grid/rows-sorting/';
 const MIGRATION_GUIDE = '/vue-data-grid/migration-from-17.1-to-18.0/';
+const API_FILTERS = '/javascript-data-grid/api/filters/';
 
 const EXAMPLE_DUMPS = [
   {
@@ -41,43 +42,15 @@ const EXAMPLE_DUMPS = [
 const NARROW_COLUMN_VIEWPORT = { width: 1280, height: 720 };
 const WIDE_COLUMN_VIEWPORT = { width: 1150, height: 720 };
 
-const RESIZED_BLOCKS = [
-  {
-    title: 'a Markdown table',
-    path: FORMULA_BUILDER,
-    headingId: 'autocomplete-and-popups',
-    selector: TABLE_WRAPPER,
-    name: 'Table: Autocomplete and popups',
-  },
-  {
-    title: 'a code block',
-    path: ROWS_SORTING,
-    headingId: 'sort-data-programmatically',
-    selector: CODE_BLOCK,
-    name: 'Code: Sort data programmatically',
-  },
-] as const;
-
-const PAGES_WITH_SCROLLABLE_BLOCKS = [
-  FORMULA_BUILDER,
-  '/javascript-data-grid/xlsx-engine/',
-  ROWS_SORTING,
-  '/javascript-data-grid/api/filters/',
-  '/javascript-data-grid/recipes/accessibility/aria-grid/',
-  MIGRATION_GUIDE,
-  ...EXAMPLE_DUMPS.map(dump => dump.path),
-];
-
 type Axis = 'x' | 'y';
 
 /**
- * Opens a docs page and waits until its examples have rendered, so that no block changes size afterward.
+ * Opens a docs page. It does not wait for the examples of the page: each assertion waits for its own block.
  */
 async function openDocsPage(page: Page, baseURL: string | undefined, path: string) {
   await page.goto(`${baseURL}${path}`);
   await expect(page.getByText('Page not found (404)')).toHaveCount(0);
   await expect(page.getByText('Password protected site')).toHaveCount(0);
-  await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, { timeout: 30000 });
 }
 
 /**
@@ -199,88 +172,153 @@ test.beforeEach(async({ page, baseURL }) => {
   ]);
 });
 
+/**
+ * Asserts that a block is not in the Tab order and carries no region role or name.
+ */
+async function expectNoTabStop(block: Locator) {
+  await expect(block).not.toHaveAttribute('tabindex');
+  await expect(block).not.toHaveAttribute('role');
+  await expect(block).not.toHaveAttribute('aria-label');
+}
+
+/**
+ * Asserts that a block stops being a Tab stop when the viewport makes it fit, and gets the same name back
+ * when it overflows again.
+ */
+async function expectResizeToToggleTabStop(page: Page, block: Locator, name: string) {
+  await expect(block).toHaveAccessibleName(name);
+
+  await page.setViewportSize(WIDE_COLUMN_VIEWPORT);
+  await expect.poll(() => overflowOf(block, 'x')).toBe(0);
+  await expectNoTabStop(block);
+
+  await page.setViewportSize(NARROW_COLUMN_VIEWPORT);
+  await expect.poll(() => overflowOf(block, 'x')).toBeGreaterThan(0);
+  await expectNamedTabStop(block);
+  await expect(block).toHaveAccessibleName(name);
+}
+
+/**
+ * Asserts that every region of the main content has a name and that no two regions share one.
+ */
+async function expectUniqueRegionNames(page: Page) {
+  await expect.poll(async() => {
+    const names = await regionNames(page);
+
+    return {
+      hasRegions: names.length > 0,
+      unnamed: names.filter(name => name === '').length,
+      repeated: [...new Set(names.filter((name, index) => name !== '' && names.indexOf(name) !== index))],
+    };
+  }).toEqual({ hasRegions: true, unnamed: 0, repeated: [] });
+}
+
 test.describe('Markdown tables', () => {
-  test('a table wider than its column is a named Tab stop that ArrowRight scrolls', async({ page, baseURL }) => {
-    await openDocsPage(page, baseURL, FORMULA_BUILDER);
-
-    const [table] = await blocksBelow(page, 'autocomplete-and-popups', TABLE_WRAPPER, { overflowing: true, count: 1 });
-
-    await expectNamedTabStop(table);
-    await expect(page.getByRole('region', { name: 'Table: Autocomplete and popups', exact: true })).toHaveCount(1);
-    await expectArrowKeyToScroll(page, table, 'ArrowRight', 'x');
-  });
-
-  test('a table that fits its column is not a Tab stop', async({ page, baseURL }) => {
+  test('a wide table is a named Tab stop that ArrowRight scrolls, and only while it overflows', async({
+    page, baseURL,
+  }) => {
+    await page.setViewportSize(NARROW_COLUMN_VIEWPORT);
     await openDocsPage(page, baseURL, FORMULA_BUILDER);
 
     const [wideTable] = await blocksBelow(page, 'autocomplete-and-popups', TABLE_WRAPPER, { overflowing: true, count: 1 });
     const [fittingTable] = await blocksBelow(page, 'configuration-options', TABLE_WRAPPER, { overflowing: false, count: 1 });
 
-    await expect(wideTable).toHaveAttribute('tabindex', '0');
-    await expect(fittingTable).not.toHaveAttribute('tabindex');
-    await expect(fittingTable).not.toHaveAttribute('role');
-  });
+    await test.step('the wide table is a named Tab stop', async() => {
+      await expectNamedTabStop(wideTable);
+      await expect(page.getByRole('region', { name: 'Table: Autocomplete and popups', exact: true })).toHaveCount(1);
+    });
 
-  test('a second wide table below the same heading gets a numbered name', async({ page, baseURL }) => {
-    await openDocsPage(page, baseURL, MIGRATION_GUIDE);
+    await test.step('a table that fits its column is not a Tab stop', async() => {
+      await expectNoTabStop(fittingTable);
+    });
 
-    const [first, second] = await blocksBelow(
-      page, 'replace-other-removed-plugin-types', TABLE_WRAPPER, { overflowing: true, count: 2 }
-    );
+    await test.step('every region of the page has its own name', async() => {
+      await expectUniqueRegionNames(page);
+    });
 
-    await expectNamedTabStop(first);
-    await expectNamedTabStop(second);
-    await expect(first).toHaveAccessibleName('Table: Replace other removed plugin types');
-    await expect(second).toHaveAccessibleName('Table 2: Replace other removed plugin types');
+    await test.step('ArrowRight scrolls the focused table', async() => {
+      await expectArrowKeyToScroll(page, wideTable, 'ArrowRight', 'x');
+    });
+
+    await test.step('the table is a Tab stop only while it overflows', async() => {
+      await expectResizeToToggleTabStop(page, wideTable, 'Table: Autocomplete and popups');
+    });
   });
 });
 
 test.describe('Code blocks', () => {
-  test('a code block wider than its column is a named Tab stop that ArrowRight scrolls', async({ page, baseURL }) => {
+  test('a wide code block is a named Tab stop that ArrowRight scrolls, and only while it overflows', async({
+    page, baseURL,
+  }) => {
+    await page.setViewportSize(NARROW_COLUMN_VIEWPORT);
     await openDocsPage(page, baseURL, ROWS_SORTING);
 
     const [codeBlock] = await blocksBelow(page, 'configure-sorting', CODE_BLOCK, { overflowing: true, count: 1 });
+    const [resizedBlock] = await blocksBelow(
+      page, 'sort-data-programmatically', CODE_BLOCK, { overflowing: true, count: 1 }
+    );
 
-    await expectNamedTabStop(codeBlock);
-    await expect(page.getByRole('region', { name: 'Code: Configure sorting', exact: true })).toHaveCount(1);
-    await expectArrowKeyToScroll(page, codeBlock, 'ArrowRight', 'x');
+    await test.step('the wide code block is a named Tab stop', async() => {
+      await expectNamedTabStop(codeBlock);
+      await expect(page.getByRole('region', { name: 'Code: Configure sorting', exact: true })).toHaveCount(1);
+    });
+
+    await test.step('every region of the page has its own name', async() => {
+      await expectUniqueRegionNames(page);
+    });
+
+    await test.step('ArrowRight scrolls the focused code block', async() => {
+      await expectArrowKeyToScroll(page, codeBlock, 'ArrowRight', 'x');
+    });
+
+    await test.step('a code block is a Tab stop only while it overflows', async() => {
+      await expectNamedTabStop(resizedBlock);
+      await expectResizeToToggleTabStop(page, resizedBlock, 'Code: Sort data programmatically');
+    });
   });
 
-  test('a second wide code block below the same heading gets a numbered name', async({ page, baseURL }) => {
-    await openDocsPage(page, baseURL, MIGRATION_GUIDE);
+  test('a code block below an API heading is named without the controls of the heading', async({ page, baseURL }) => {
+    await openDocsPage(page, baseURL, API_FILTERS);
 
-    const [first, second] = await blocksBelow(page, 'replace-detailedsettings', CODE_BLOCK, { overflowing: true, count: 2 });
+    await expect(page.locator('main').locator(`${CODE_BLOCK}[role="region"]`).first()).toHaveAccessibleName(/\S/);
 
-    await expectNamedTabStop(first);
-    await expectNamedTabStop(second);
-    await expect(first).toHaveAccessibleName('Code: Replace DetailedSettings');
-    await expect(second).toHaveAccessibleName('Code 2: Replace DetailedSettings');
+    const names = await regionNames(page);
+
+    expect(names.filter(name => /Ask AI|Source code/.test(name))).toEqual([]);
+    await expectUniqueRegionNames(page);
   });
 });
 
-test.describe('Viewport changes', () => {
-  RESIZED_BLOCKS.forEach(({ title, path, headingId, selector, name }) => {
-    test(`${title} stops being a Tab stop when it fits and gets the same name back when it overflows again`, async({
-      page, baseURL,
-    }) => {
-      await page.setViewportSize(NARROW_COLUMN_VIEWPORT);
-      await openDocsPage(page, baseURL, path);
+test.describe('Repeated headings', () => {
+  test('blocks below the same heading get numbered names, and no two regions of the page share one', async({
+    page, baseURL,
+  }) => {
+    await openDocsPage(page, baseURL, MIGRATION_GUIDE);
 
-      const [block] = await blocksBelow(page, headingId, selector, { overflowing: true, count: 1 });
+    await test.step('a second wide table below a heading gets a numbered name', async() => {
+      const [first, second] = await blocksBelow(
+        page, 'replace-other-removed-plugin-types', TABLE_WRAPPER, { overflowing: true, count: 2 }
+      );
 
-      await expectNamedTabStop(block);
-      await expect(block).toHaveAccessibleName(name);
+      await expectNamedTabStop(first);
+      await expectNamedTabStop(second);
+      await expect(first).toHaveAccessibleName('Table: Replace other removed plugin types');
+      await expect(second).toHaveAccessibleName('Table 2: Replace other removed plugin types');
+    });
 
-      await page.setViewportSize(WIDE_COLUMN_VIEWPORT);
-      await expect.poll(() => overflowOf(block, 'x')).toBe(0);
-      await expect(block).not.toHaveAttribute('tabindex');
-      await expect(block).not.toHaveAttribute('role');
-      await expect(block).not.toHaveAttribute('aria-label');
+    await test.step('a second wide code block below a heading gets a numbered name', async() => {
+      const [first, second] = await blocksBelow(
+        page, 'replace-detailedsettings', CODE_BLOCK, { overflowing: true, count: 2 }
+      );
 
-      await page.setViewportSize(NARROW_COLUMN_VIEWPORT);
-      await expect.poll(() => overflowOf(block, 'x')).toBeGreaterThan(0);
-      await expectNamedTabStop(block);
-      await expect(block).toHaveAccessibleName(name);
+      await expectNamedTabStop(first);
+      await expectNamedTabStop(second);
+      await expect(first).toHaveAccessibleName('Code: Replace DetailedSettings');
+      await expect(second).toHaveAccessibleName('Code 2: Replace DetailedSettings');
+    });
+
+    await test.step('every region of the page has its own name', async() => {
+      await expectUniqueRegionNames(page);
     });
   });
 });
@@ -292,28 +330,11 @@ test.describe('Store dumps in the examples', () => {
 
       const dump = page.locator(selector);
 
-      await expect(dump).toBeVisible();
-      await expect.poll(() => overflowOf(dump, axis)).toBeGreaterThan(0);
+      await expect(dump).toBeVisible({ timeout: 30000 });
+      await expect.poll(() => overflowOf(dump, axis), { timeout: 30000 }).toBeGreaterThan(0);
       await expectNamedTabStop(dump);
+      await expectUniqueRegionNames(page);
       await expectArrowKeyToScroll(page, dump, key, axis);
-    });
-  });
-});
-
-test.describe('Region names', () => {
-  PAGES_WITH_SCROLLABLE_BLOCKS.forEach((path) => {
-    test(`every scrolling region on ${path} has a name no other region shares`, async({ page, baseURL }) => {
-      await openDocsPage(page, baseURL, path);
-
-      await expect.poll(async() => {
-        const names = await regionNames(page);
-
-        return {
-          hasRegions: names.length > 0,
-          unnamed: names.filter(name => name === '').length,
-          repeated: [...new Set(names.filter((name, index) => name !== '' && names.indexOf(name) !== index))],
-        };
-      }).toEqual({ hasRegions: true, unnamed: 0, repeated: [] });
     });
   });
 });
