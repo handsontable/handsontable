@@ -190,6 +190,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Poziom [level], [position] z [setSize], zwinięty',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Formuła: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'tylko do odczytu',
+  [C.CELL_DESCRIPTION_LINK]: 'link',
+  [C.CELL_DESCRIPTION_MERGED]: 'scalona do wiersza [row] kolumny [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto grupę kolumn [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto grupę kolumn [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Posortowano według [label], rosnąco',

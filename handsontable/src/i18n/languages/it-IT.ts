@@ -183,6 +183,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Livello [level], [position] di [setSize], compresso',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'sola lettura',
+  [C.CELL_DESCRIPTION_LINK]: 'collegamento',
+  [C.CELL_DESCRIPTION_MERGED]: 'unita fino alla riga [row] colonna [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Gruppo di colonne [label] espanso',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Gruppo di colonne [label] compresso',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Ordinato per [label], crescente',

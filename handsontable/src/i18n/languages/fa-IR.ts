@@ -188,6 +188,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'سطح [level]، [position] از [setSize]، بسته',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'فرمول: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'فقط خواندنی',
+  [C.CELL_DESCRIPTION_LINK]: 'پیوند',
+  [C.CELL_DESCRIPTION_MERGED]: 'ادغام‌شده تا ردیف [row] ستون [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'گروه ستون [label] باز شد',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'گروه ستون [label] بسته شد',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'مرتب‌سازی بر اساس [label]، صعودی',

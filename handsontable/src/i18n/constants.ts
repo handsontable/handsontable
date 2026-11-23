@@ -196,6 +196,11 @@ export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
 export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
 export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
 
+export const CELL_DESCRIPTION_NAMESPACE = 'CellDescription:';
+export const CELL_DESCRIPTION_READ_ONLY = `${CELL_DESCRIPTION_NAMESPACE}readOnly`;
+export const CELL_DESCRIPTION_LINK = `${CELL_DESCRIPTION_NAMESPACE}link`;
+export const CELL_DESCRIPTION_MERGED = `${CELL_DESCRIPTION_NAMESPACE}merged`;
+
 export const FORMULAS_NAMESPACE = 'Formulas:';
 export const FORMULAS_CELL_DESCRIPTION = `${FORMULAS_NAMESPACE}cellDescription`;
 
