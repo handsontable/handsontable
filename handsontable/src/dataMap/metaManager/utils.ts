@@ -290,3 +290,18 @@ export function normalizeEditorSetting<T extends Record<string, unknown>>(settin
 
   return normalizedSettings;
 }
+
+/**
+ * Applies the settings a `cells` function returned to a cell meta object that is not stored: the
+ * settings themselves, then the options of the `type` they name. The object is extended directly,
+ * never through `MetaManager#updateCellMeta()`, which would store it.
+ *
+ * @param {object} cellMeta The transient cell meta object.
+ * @param {object} cellSettings The settings the `cells` function (or the `type` resolution) produced.
+ */
+export function applyTransientCellSettings(cellMeta: Record<string, unknown>, cellSettings: Record<string, unknown>) {
+  const normalizedSettings = normalizeEditorSetting(cellSettings);
+
+  extend(cellMeta, normalizedSettings);
+  extendByMetaType(cellMeta, normalizedSettings, cellMeta, cellSettings.editor === true);
+}

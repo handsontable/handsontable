@@ -5,7 +5,7 @@
 
 .star-rating .star {
   font-size: 18px;
-  color: #d3d3d3;
+  color: light-dark(#8c8c8c, #6b6b6b);
   line-height: 1;
   cursor: default;
   user-select: none;
@@ -17,7 +17,7 @@
 }
 
 .star-rating .star.filled {
-  color: #ffb400;
+  color: light-dark(#b45309, #ffb400);
 }
 
 .rating-cell {

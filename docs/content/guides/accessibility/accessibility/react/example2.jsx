@@ -513,7 +513,7 @@ const ExampleComponent = () => {
       {/* DemoOptions component for changing Handsontable options */}
       <DemoOptions changeToggleOptions={setToggleableOptions} {...toggleableOptions} />
 
-      <input className="placeholder-input" type="text" placeholder="Focusable text input" />
+      <input className="placeholder-input" type="text" placeholder="Focusable text input" aria-label="Focusable text input" />
 
       {/* Handsontable component with dynamic options */}
       <HotTable
@@ -538,7 +538,7 @@ const ExampleComponent = () => {
         <HotColumn data="orderId" type="text" />
         <HotColumn data="country" type="dropdown" source={countries} />
       </HotTable>
-      <input className="placeholder-input" type="text" placeholder="Focusable text input" />
+      <input className="placeholder-input" type="text" placeholder="Focusable text input" aria-label="Focusable text input" />
     </div>
   );
 };

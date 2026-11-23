@@ -65,7 +65,7 @@ export class AppComponent {
 }
 ```
 
-Settings passed through the `[settings]` input already run outside Angular's zone.
+Changes to the `[settings]` and `[data]` inputs already run outside Angular's zone.
 
 ## Result
 

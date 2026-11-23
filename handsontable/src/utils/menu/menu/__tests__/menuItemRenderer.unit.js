@@ -369,4 +369,51 @@ describe('menuItemRenderer', () => {
       expect(TD.classList.contains('htSeparator')).toBe(true);
     });
   });
+  describe('the row of an item', () => {
+    /**
+     * Renders one item into a cell that sits in a table row, the way the menu grid renders it.
+     *
+     * @param {object} item The menu item definition under test.
+     * @param {object} [settings] Settings the main instance should report.
+     * @returns {{ TD: HTMLTableCellElement, TR: HTMLTableRowElement }}
+     */
+    function renderItemInRow(item, settings) {
+      const { mainTableHot, menuHot } = createInstances(item, settings);
+      const TR = document.createElement('tr');
+      const TD = document.createElement('td');
+
+      TR.appendChild(TD);
+      createMenuItemRenderer(mainTableHot)(menuHot, TD, 0, 0, '0', item.name, {});
+
+      return { TD, TR };
+    }
+
+    it('should take the row out of the accessibility tree, so the item is a child of the menu', () => {
+      const { TD, TR } = renderItemInRow({ name: 'Insert row above' }, { ariaTags: true });
+
+      expect(TR.getAttribute('role')).toBe('presentation');
+      expect(TD.getAttribute('role')).toBe('menuitem');
+    });
+
+    it('should mark the row of a separator as well', () => {
+      const { TD, TR } = renderItemInRow({ name: SEPARATOR }, { ariaTags: true });
+
+      expect(TR.getAttribute('role')).toBe('presentation');
+      expect(TD.getAttribute('role')).toBe('separator');
+    });
+
+    it('should write no role on the row when `ariaTags` is off', () => {
+      const { TD, TR } = renderItemInRow({ name: 'Insert row above' }, { ariaTags: false });
+
+      expect(TR.hasAttribute('role')).toBe(false);
+      expect(TD.hasAttribute('role')).toBe(false);
+    });
+
+    it('should render a cell that sits in no row', () => {
+      const { TD } = renderItem({ name: 'Insert row above' }, { ariaTags: true });
+
+      expect(TD.parentElement).toBe(null);
+      expect(TD.getAttribute('role')).toBe('menuitem');
+    });
+  });
 });

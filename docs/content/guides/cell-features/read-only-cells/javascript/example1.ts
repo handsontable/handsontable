@@ -1,18 +1,10 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { BaseRenderer } from 'handsontable/renderers';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // Register all Handsontable's modules.
 registerAllModules();
 
 const container = document.querySelector('#example1')!;
-
-const dimmedTextRenderer: BaseRenderer = (instance, td, ...rest) => {
-  textRenderer(instance, td, ...rest);
-
-  td.style.opacity = '0.6';
-};
 
 new Handsontable(container, {
   data: [
@@ -29,7 +21,6 @@ new Handsontable(container, {
     {
       data: 'name',
       readOnly: true,
-      renderer: dimmedTextRenderer,
     },
     {
       data: 'symbol',

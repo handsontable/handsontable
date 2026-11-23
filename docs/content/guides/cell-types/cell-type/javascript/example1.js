@@ -9,11 +9,13 @@ const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'wh
 const yellowRenderer = (instance, td, ...rest) => {
   textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
+  td.style.color = '#1f2937';
 };
 
 const greenRenderer = (instance, td, ...rest) => {
   textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'green';
+  td.style.color = '#ffffff';
 };
 
 const container = document.querySelector('#example1');

@@ -259,6 +259,15 @@ painting the disabled `GrayText` border on first/prev after they were re-enabled
 `border-color` was already right, only the paint was stale. `tests/e2e/icon-elements-misc.spec.ts`
 compares the button's paint after a page change with a fresh paint of it.
 
+**The navigation button has a 24 px floor, and the icon is centered by auto margins.** The classic theme
+draws a 12 px icon, so icon plus padding plus border came to 22 px, under the 24 px target WCAG 2.2 2.5.8
+asks for. `_pagination.scss` sets `min-width` and `min-height` to `--ht-icon-button-hit-area-size` (24 px in
+every theme; do not add a token for it). A block icon sits at the inline start of a wider button, so the
+`.ht-icon` carries `margin-inline: auto`, which centers it in both directions of text without making the
+button flex. The sheets bar buttons have the same floor (`_sheets-bar.scss`). Pinned by
+`tests/e2e/bar-button-target-size.spec.ts`: first and previous are disabled on page 1, so the spec pages
+forward first, as axe skips disabled buttons.
+
 ## Styling: the label spans declare their own text metrics
 
 `ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare

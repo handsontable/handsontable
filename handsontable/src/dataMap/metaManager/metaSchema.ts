@@ -807,8 +807,22 @@ export default (): Record<string, unknown> => {
      *
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
+     * On a tall grid, the first measure measures only the columns on screen (and the columns their merged cells
+     * span) before the first paint, and the other columns in the background. That happens at initialization and
+     * on [`loadData()`](@/api/core.md#loaddata), when all of these are true:
+     * - You don't set `syncLimit` in an object (with `autoColumnSize: true`, or unset, the plugin measures 51 columns).
+     * - [`autoRowSize`](#autorowsize) is off.
+     * - The measured columns times the rows exceed 1,000,000 cells (with 51 columns, from 19,608 rows).
+     *
+     * Until the background work ends, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for
+     * an off-screen column. A [`selectCell()`](@/api/core.md#selectcell) or
+     * [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made then measures the columns up to its
+     * target first, so it scrolls by the real widths. Set `syncLimit` to keep its columns measured before the
+     * first paint, whatever the number of rows.
+     *
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
+     * - [Performance](@/guides/optimization/performance/performance.md)
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -1098,6 +1112,53 @@ export default (): Record<string, unknown> => {
      * ```
      */
     cells: undefined,
+
+    /**
+     * The `applyCellsToDataReads` option makes data reads call the [`cells`](#cells) function for
+     * every cell they read, so a [`valueGetter`](#valuegetter) or a key/value cell type that `cells`
+     * sets applies to every row, rendered or not.
+     *
+     * By default, a data read applies such a `valueGetter` only to the cells the grid has rendered.
+     * The grid keeps the cell meta of the rows around the viewport and drops it when they scroll away,
+     * so without this option, [`getData()`](@/api/core.md#getdata) and the other `getDataAt*()` methods,
+     * copying, column sorting, and filtering read the raw value for the other rows.
+     *
+     * With this option on, those reads call `cells` once for every cell they read. A read runs no
+     * `beforeGetCellMeta` or `afterGetCellMeta` hook and stores no cell meta. The cost grows with what
+     * `cells` does: a `cells` function that reads grid data (for example, `this.instance.getDataAtRow(row)`)
+     * pays that read for every cell, so a full `getData()` of a large grid can take seconds. Turn the
+     * option on only for the columns whose `cells` function sets a `valueGetter` or a cell type.
+     *
+     * Filtering passes physical row and column indexes to the `valueGetter`, as described in
+     * [`valueGetter`](#valuegetter).
+     *
+     * Read more:
+     * - [`cells`](#cells)
+     * - [`valueGetter`](#valuegetter)
+     * - [Performance: Avoid the `cells` option when possible](@/guides/optimization/performance/performance.md#avoid-the-cells-option-when-possible)
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     // apply the `valueGetter` that `cells` sets to every row a data read returns
+     *     applyCellsToDataReads: true,
+     *   },
+     *   {},
+     * ],
+     * cells(row, column) {
+     *   return column === 0 ? { valueGetter: value => String(value).toUpperCase() } : {};
+     * },
+     * ```
+     */
+    applyCellsToDataReads: false,
 
     /**
      * The `checkedTemplate` option lets you configure what value
@@ -7651,7 +7712,14 @@ export default (): Record<string, unknown> => {
      *
      * Default `queryMethod` behavior: case-insensitive, locale-aware substring match using `toLocaleLowerCase()` with `cellProperties.locale`.
      *
-     * Default `callback` behavior: sets `instance.getCellMeta(row, col).isSearchResult = testResult` on every cell.
+     * Default `callback` behavior: sets `isSearchResult` to `true` on the cell metadata of every match, and to `false`
+     * on every other cell that already has stored metadata. A non-matching cell without stored metadata is left as it
+     * is, so a query does not store metadata for every cell it scans, and its `isSearchResult` reads `undefined`.
+     * A custom `callback` that calls `getCellMeta()` for every cell stores metadata for every cell; to keep the default
+     * behavior, call the callback that `getCallback()` returns from yours.
+     *
+     * The `cellProperties` object passed to `queryMethod` can be a temporary object that is not stored, so
+     * read from it, but do not write to it.
      *
      * **Per-cell overrides:** `queryMethod` and `callback` can also be set on individual cells, columns, or rows
      * using the cascading configuration model. A cell-level `search.queryMethod` or `search.callback` takes
@@ -7685,15 +7753,6 @@ export default (): Record<string, unknown> => {
      *
      *     return queryStr.toString() === value.toString();
      *   },
-     *   // Count results while preserving default highlighting
-     *   callback(instance, row, col, data, testResult) {
-     *     // Preserve the default isSearchResult flag so highlighting still works
-     *     instance.getCellMeta(row, col).isSearchResult = testResult;
-     *
-     *     if (testResult) {
-     *       // Custom logic: e.g., increment a result counter
-     *     }
-     *   }
      * },
      *
      * // Override queryMethod for a specific column only (per-cell via cascading config)
@@ -7707,6 +7766,22 @@ export default (): Record<string, unknown> => {
      *     }
      *   }
      * ],
+     * ```
+     *
+     * ```js
+     * // Count results while preserving the default highlighting: get the default callback
+     * // before you pass your own, and call it from yours
+     * const searchPlugin = hot.getPlugin('search');
+     * const defaultCallback = searchPlugin.getCallback();
+     * let resultCount = 0;
+     *
+     * searchPlugin.query('He', (instance, row, col, data, testResult) => {
+     *   defaultCallback(instance, row, col, data, testResult);
+     *
+     *   if (testResult) {
+     *     resultCount += 1;
+     *   }
+     * });
      * ```
      */
     search: false,
@@ -9224,6 +9299,11 @@ export default (): Record<string, unknown> => {
      * @description
      * The `valueGetter` option configures a function that defines what value will be used when displaying the cell content.
      * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
+     *
+     * When the [`Filters`](@/api/filters.md) plugin filters a column, it passes the physical row and column
+     * indexes as `row` and `column`. After you sort, move, or filter rows, a `valueGetter` that reads other
+     * cells by these indexes can read different cells while filtering than in
+     * [`getDataAtCell()`](@/api/core.md#getdataatcell).
      *
      * @example
      * ```js

@@ -11,6 +11,9 @@ export const CONTEXT_MENU_ITEMS_NAMESPACE = 'ContextMenu:items';
 
 const CM_ALIAS = CONTEXT_MENU_ITEMS_NAMESPACE;
 
+export const CONTEXTMENU_LABEL = 'ContextMenu:label';
+export const DROPDOWNMENU_LABEL = 'DropdownMenu:label';
+
 export const CONTEXTMENU_ITEMS_NO_ITEMS = `${CM_ALIAS}.noItems`;
 export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_ALIAS}.insertRowAbove`;
 export const CONTEXTMENU_ITEMS_ROW_BELOW = `${CM_ALIAS}.insertRowBelow`;

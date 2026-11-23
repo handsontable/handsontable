@@ -15,6 +15,8 @@ const dictionary = {
   [C.CANCEL]: 'إلغاء',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'لا توجد خيارات متوفرة',
+  [C.CONTEXTMENU_LABEL]: 'قائمة السياق',
+  [C.DROPDOWNMENU_LABEL]: 'قائمة العمود',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'إدراج صف للأعلى',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'إدراج صف للأسفل',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'إدراج عمود لليسار',

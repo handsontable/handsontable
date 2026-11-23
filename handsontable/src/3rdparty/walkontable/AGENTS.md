@@ -2105,6 +2105,42 @@ offered to the host with its own coordinates) and `tests/e2e/incremental-render.
 a scroll down and up, element identity in the master and the frozen-columns clone, equality to a
 full repaint, an open editor across a scroll).
 
+## A painted element's accessibility attributes are reconciled, never stripped and rewritten
+
+Every draw repaints recycled TD and TH elements, mostly with the attributes they already carry. The
+renderers used to remove every `aria-*` and `role` attribute (a regex walk) and write the managed ones
+again for a DOM that ended up identical. They now write only what differs, which cut the scripting time
+of the `scroll-down` performance scenario by about 13% (DEV-4105):
+
+- **Cells are brought to their start state before the renderer runs** (`prepareCellAriaAttributes` in
+  `render/cells.ts`). Every attribute whose name contains `aria-` or `role` is removed (the old unanchored
+  regexes, so a renderer's `data-role` still goes), except the cell's own `role`, `aria-colindex` and
+  `aria-describedby`, which are then set to this draw's values with `tabindex`, each written only when it
+  differs. A vertical scroll and a plain redraw write none of these; a horizontal scroll rewrites the two
+  that follow the column, in place. An attribute the cell renderer adds itself (core's base renderer adds
+  `aria-readonly` and `aria-invalid`) is still cleared and written again on every paint.
+- **A cell renderer therefore starts from core's attributes**: `role="gridcell"`, `tabindex`,
+  `aria-colindex` and `aria-describedby`, on a new element and a recycled one alike. Before, it started from
+  none of them. Keep that state the same for both: when a fresh element and a recycled one reach the renderer
+  in different states, a renderer that reads before it writes (`if (!TD.hasAttribute('role'))`, or appending
+  to `aria-describedby`) gives output that depends on the element's paint history.
+- **After the renderer** (`restoreCellAriaAttributes`), `role` and `aria-describedby` are written back only
+  when the renderer removed them, so a renderer's own value wins; `aria-colindex` and `tabindex` are written
+  when the renderer changed them, so core wins there, as before.
+- **Headers** (`columnHeaders.ts`, `rowHeaders.ts`) write before their header renderers, so they use
+  `syncAriaAttributes(element, attributes)` from `render/ariaAttributes.ts`: clear the rest, then write each
+  one that differs. The object lists the attributes in the order a new element gets them.
+- **`ariaTags: false` keeps nothing** (`NO_KEPT_ARIA_ATTRIBUTES`): every such attribute is cleared, as
+  before.
+- Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
+  renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
+
+Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
+showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
+from the same attributes on a new and a recycled element, and a redraw plus a vertical scroll write no
+accessibility attribute on an element that already holds it (a `MutationObserver`, with a horizontal scroll
+as the positive control).
+
 ## A data cell names its column header through `aria-describedby`, and the owner is per column
 
 So a screen reader announces the header with the cell ("Position, C1", not "C1"), `render/cells.ts`
@@ -2130,10 +2166,10 @@ Four things are load-bearing, and each was a bug first:
 - **The cell gate is grid-wide, not this table's `columnHeadersCount`.** A bottom clone renders no
   header row, so its own count is `0` while the grid has headers its cells must still reference — read
   `hasColumnHeaders()` (from the grid-level `columnHeaders` setting), not the per-table count.
-- **`id` is not covered by the `aria-*`/`role` strip, so `render/columnHeaders.ts` strips it explicitly
-  (`/^id$/`) each paint.** Header nodes are pooled and reused across draws; without the strip a header
-  that stops owning an id (scrolled to a different column, or a corner cell reused as a header) keeps a
-  stale id a data cell points at.
+- **`id` is not covered by the `aria-*`/`role` clearing pass, so `render/columnHeaders.ts` handles it
+  explicitly each paint**: written when the header owns an id and differs, removed otherwise. Header nodes
+  are pooled and reused across draws; without that a header that stops owning an id (scrolled to a
+  different column, or a corner cell reused as a header) keeps a stale id a data cell points at.
 - **A renderer spec's `TableRendererMock` must provide `hasColumnHeaders`, `ownsAriaColumnHeaderId`,
   and `getAriaColumnHeaderIdPrefix`** (same reason the mock must provide `shouldPaintCell`). The
   no-column-header path is inert without a `guid`, so a standalone Walkontable host that sets none

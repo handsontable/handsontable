@@ -238,12 +238,23 @@ export class MultiSelectEditor extends BaseEditor {
 
   /**
    * Hides the dropdown element, unregisters keyboard shortcuts, and stops the search input listener.
+   * When the browser focus sat inside the dropdown, it goes to the highlighted cell (`cell` focus mode):
+   * hiding the element would otherwise drop the focus to the document body, and the focus manager does
+   * not move it while the editor still counts as open.
    */
   close(): void {
+    const focusManager = this.hot.getFocusManager();
+    const hadFocus = this.#editorContainer!.contains(getDeepActiveElement(this.hot.rootDocument));
+
+    this._opened = false;
     this.#hideEditableElement();
     this.#unregisterShortcuts();
     this.dropdownController!.getInputController()!.unlisten();
     this.isFlippedHorizontally = false;
+
+    if (hadFocus && focusManager.getFocusMode() === 'cell') {
+      focusManager.focusOnHighlightedCell();
+    }
   }
 
   /**

@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Otkaži',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih opcija',
+  [C.CONTEXTMENU_LABEL]: 'Kontekstni meni',
+  [C.DROPDOWNMENU_LABEL]: 'Meni kolone',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Unesi red iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Unesi red ispod',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Unesi kolonu levo',

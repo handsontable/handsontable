@@ -150,6 +150,16 @@ You can configure the value of the [`autoRowSize`](@/api/options.md#autorowsize)
 
 For more information, see our documentation for [rows](@/api/options.md#autorowsize) and [columns](@/api/options.md#autocolumnsize).
 
+### Size columns on large data sets
+
+[`autoColumnSize`](@/api/options.md#autocolumnsize) is on by default, and it reads every row of a column to find the widest value. On a large data set, that work grows with the number of rows.
+
+- By default, the grid measures 51 columns before the first paint. When those columns hold more than 1,000,000 cells (from 19,608 rows), it measures only the columns on screen before the first paint, at initialization and on [`loadData()`](@/api/core.md#loaddata). It measures the other columns in the background, so their widths are final shortly after the grid appears.
+- Until then, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for those columns. A [`selectCell()`](@/api/core.md#selectcell) or [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made in that time measures the columns up to its target first.
+- A grid with [`autoRowSize`](@/api/options.md#autorowsize) on still measures the first 51 columns before the first paint, whatever the number of rows. A wider grid measures the other columns in the background and then measures its rows again, so a row with long text in one of those columns can get shorter shortly after the grid appears.
+- To keep a set number of columns measured before the first paint, set `syncLimit`, for example `autoColumnSize: { syncLimit: 10 }`. The grid then measures those columns before the first paint, whatever the number of rows.
+- To skip the measurement entirely, set `autoColumnSize: false` and give the columns fixed widths with [`colWidths`](@/api/options.md#colwidths).
+
 ## Define the number of pre-rendered rows and columns
 
 You can explicitly specify the number of rows and columns to be rendered outside of the visible part of the table. Better results can be achieved by setting a lower number, as fewer elements get rendered in some cases. However, sometimes setting a larger number may also work well as fewer operations are being made on each scroll event. Fine-tuning these settings and finding the sweet spot may improve the feeling of your Handsontable implementation.
@@ -163,6 +173,8 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 ## Avoid the `cells` option when possible
 
 The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/rendering/rendering.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
+
+With [`applyCellsToDataReads`](@/api/options.md#applycellstodatareads) on, data reads call it too, for every cell they read: [`getData()`](@/api/core.md#getdata) and the other `getDataAt*()` methods, copying, sorting, and filtering. A full `getData()` of a large grid then calls it for every row, not only the visible ones, and a `cells` function that reads grid data pays that read for every cell. Turn the option on only for the columns whose `cells` function sets a `valueGetter` or a cell type.
 
 Prefer lighter alternatives when they meet your needs:
 
