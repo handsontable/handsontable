@@ -112,6 +112,8 @@ moves focus" is a decision; a missing line is not.
 4. A finding the PR caused is fixed in the PR, never baselined to quiet the check. Only a finding
    that already existed and a new page exposes gets an entry, under an issue (`tests/AGENTS.md`,
    "Baselining a finding, and fixing one").
+   Exception: the issue names its fix task in `tracker`, and the accessibility lead adds the
+   `a11y-exception-approved` label by hand, never an agent. Any other own entry turns the check red.
 
 ## References
 

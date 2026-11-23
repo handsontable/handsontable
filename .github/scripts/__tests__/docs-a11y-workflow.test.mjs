@@ -41,9 +41,9 @@ test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by its
   assert.deepEqual([...paths.matchAll(/- '([^']+)'/g)].map(([, file]) => file),
     ['.github/workflows/docs-a11y.yml', 'tests/a11y/docs/**', 'tests/a11y/axe-scan.ts', 'tests/a11y/issues.json',
       'tests/playwright.a11y-docs.config.ts', 'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*',
-      'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-docs-drift.*',
+      'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-baseline-guard.*', 'tests/lib/a11y-pr-comment.*', 'tests/lib/a11y-docs-drift.*',
       'tests/lib/a11y-issues.*', 'tests/lib/a11y-evidence.*', 'tests/lib/a11y-pr-ledger.*', 'tests/lib/a11y-site-checks.*', 'tests/lib/a11y-subset.*',
-      'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/lib/website-pages.*',
+      'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/lib/github-rest.*', 'tests/lib/website-pages.*',
       'tests/scripts/a11y-check-run.mjs', 'tests/scripts/a11y-docs-new-pages.mjs', 'docs/tests/paths.js'],
     `${DOCS}: a pull request runs the scan only when it changes the scan's own code; a full scan is too long for every docs pull request. ${DOC}`);
   // Every module of tests/lib the spec, its reporter and the check run's poster reach, import by import, is in the

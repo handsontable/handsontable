@@ -2,7 +2,9 @@ import type { default as CellCoords } from '../../../3rdparty/walkontable/src/ce
 import type { HotInstance } from '../../../core/types';
 import type { SelectionState } from '../../../selection/types';
 import type { NestedRows } from '../nestedRows';
-import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { hasTouchList, stopImmediatePropagation } from '../../../helpers/dom/event';
+import { armPressRelease, getCoordsWithinGrid } from '../../../helpers/dom/pointerRelease';
+import { isLongPressReplay } from '../../../helpers/dom/longPress';
 import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
@@ -84,6 +86,11 @@ class CollapsingUI extends BaseUI {
    * `#captureSelectionRecords()`). A header keeps its negative row number.
    */
   #selectionRecords: { layers: SelectionRecords[], state: SelectionState } | null = null;
+  /**
+   * Drops the press on a button that waits for its release (see `toggleState()`). The listeners of a press
+   * that is still held go with the plugin's event manager when it is disabled or destroyed.
+   */
+  #disposePress: (() => void) | null = null;
 
   /**
    * Initializes the collapsing UI component and sets up the stash mechanism for preserving collapsed row state across operations.
@@ -1090,7 +1097,10 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
-   * Toggle collapsed state. Callback for the `beforeOnCellMousedown` hook.
+   * Toggle collapsed state. Callback for the `beforeOnCellMousedown` hook. A press on the button is
+   * claimed at once, so it selects nothing, but the row toggles when the pointer is released over the same
+   * button: moving it off before letting go cancels the toggle. A tap toggles at once, because Walkontable
+   * replays it at `touchend`.
    *
    * @private
    * @param {MouseEvent} event `mousedown` event.
@@ -1106,10 +1116,58 @@ class CollapsingUI extends BaseUI {
     // By ancestor, not by the target's own class: the button hosts a real icon element whose
     // markup a theme `icons` renderer may extend, and the press may then target that markup.
     if (eventTargetEl(event)!.closest(`.${HeadersUI.CSS_CLASSES.button}`) !== null) {
-      this.plugin.toggleParentByUser(row, this.areChildrenCollapsed(row) ? 'expand' : 'collapse');
+      if (hasTouchList(event)) {
+        // A tap acts at once. A long press is replayed with the finger still down and acts on nothing.
+        if (!isLongPressReplay(event)) {
+          this.#toggleByUser(row);
+        }
+
+      } else {
+        this.#armPress(event as MouseEvent, row);
+      }
 
       stopImmediatePropagation(event);
     }
+  }
+
+  /**
+   * Toggles a parent the way the button does.
+   *
+   * @param {number} physicalRow Physical row index of the parent.
+   */
+  #toggleByUser(physicalRow: number) {
+    this.plugin.toggleParentByUser(physicalRow, this.areChildrenCollapsed(physicalRow) ? 'expand' : 'collapse');
+  }
+
+  /**
+   * Waits for the release of a press on a button, and toggles the row there when it is over the button of
+   * the same row.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   * @param {number} physicalRow Physical row index of the pressed parent.
+   */
+  #armPress(event: MouseEvent, physicalRow: number) {
+    // The header resolves to the same row at the release, whatever node a render put there.
+    const isSameButton = (releaseTarget: HTMLElement | null) => {
+      const button = releaseTarget?.closest<HTMLElement>(`.${HeadersUI.CSS_CLASSES.button}`) ?? null;
+      const header = button?.closest<HTMLElement>('th') ?? null;
+      const coords = getCoordsWithinGrid(this.hot, header);
+
+      return !!coords && coords.col !== null && coords.col < 0 && coords.row !== null &&
+        this.translateTrimmedRow(coords.row) === physicalRow;
+    };
+
+    this.#disposePress?.();
+    this.#disposePress = armPressRelease(this.plugin.eventManager, this.hot.rootDocument, event, {
+      isSame: isSameButton,
+      onRelease: () => {
+        this.#disposePress = null;
+        this.#toggleByUser(physicalRow);
+      },
+      onCancel: () => {
+        this.#disposePress = null;
+      },
+    });
   }
 
   /**

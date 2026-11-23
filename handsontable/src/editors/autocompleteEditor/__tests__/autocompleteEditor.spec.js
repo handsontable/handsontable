@@ -1367,6 +1367,7 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(3)').simulate('mousedown');
+      autocomplete().find('tbody td:eq(3)').simulate('mouseup');
 
       expect(getDataAtCell(0, 0)).toEqual('green');
     });
@@ -1388,6 +1389,7 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(0)').simulate('mousedown');
+      autocomplete().find('tbody td:eq(0)').simulate('mouseup');
 
       expect(typeof getDataAtCell(0, 0)).toEqual('number');
     });
@@ -1415,6 +1417,7 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(0)').simulate('mousedown');
+      autocomplete().find('tbody td:eq(0)').simulate('mouseup');
 
       expect(typeof getDataAtCell(0, 0)).toEqual('number');
     });
@@ -1443,6 +1446,7 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(1)').simulate('mousedown');
+      autocomplete().find('tbody td:eq(1)').simulate('mouseup');
 
       expect(changesInside[0]).toEqual([0, 0, null, 2]);
     });
@@ -1478,6 +1482,7 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(1)').simulate('mousedown');
+      autocomplete().find('tbody td:eq(1)').simulate('mouseup');
 
       expect(changesInside[0]).toEqual([0, 0, null, 2]);
     });
@@ -2643,6 +2648,7 @@ describe('AutocompleteEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('one');
 
     autocomplete().find('tbody td:eq(0)').simulate('mousedown');
+    autocomplete().find('tbody td:eq(0)').simulate('mouseup');
 
     expect(getDataAtCell(0, 0)).toEqual('');
   });
@@ -3113,6 +3119,7 @@ describe('AutocompleteEditor', () => {
 
     onAfterChange.calls.reset();
     autocomplete().find('tbody td:eq(1)').simulate('mousedown');
+    autocomplete().find('tbody td:eq(1)').simulate('mouseup');
 
     expect(getDataAtCell(0, 0)).toEqual('red');
     expect(onAfterChange.calls.count()).toEqual(1);
@@ -3212,6 +3219,7 @@ describe('AutocompleteEditor', () => {
 
     afterValidateCallback.calls.reset();
     $(getActiveEditor().htContainer).find('tr:eq(1) td:eq(0)').simulate('mousedown');
+    $(getActiveEditor().htContainer).find('tr:eq(1) td:eq(0)').simulate('mouseup');
 
     await waitForNextAnimationFrames(2);
 

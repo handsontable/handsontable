@@ -3,10 +3,10 @@
   "scenario": "sheets-bar",
   "project": "vo-chromium",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-05T14:00:05.132Z"
+    "at": "2026-11-23T12:37:16.468Z"
   },
   "steps": {
     "tab-add-sheet": "add sheet button",
@@ -14,7 +14,7 @@
     "tab-active-sheet": "alpha menu pop up collapsed current item button sheets group",
     "arrow-right-sheet": "beta button group",
     "enter-switch-sheet": "sheet beta activated",
-    "enter-sheet-menu": "rename menu item group table",
+    "enter-sheet-menu": "rename menu item group sheet actions beta menu",
     "enter-rename": "beta contents selected sheet name current item edit text sheets group",
     "type-name": "",
     "enter-commit-rename": "budget menu pop up collapsed current item button",

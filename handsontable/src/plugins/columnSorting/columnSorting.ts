@@ -1,11 +1,13 @@
 import {
   addClass,
   eventTargetEl,
+  getComposedEventTargetEl,
   hasClass,
   isBottomMostColumnHeader,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
+import { getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
@@ -124,6 +126,10 @@ markBuiltInRootComparator(rootComparator, positionComparator);
  * A press on a sortable column header, waiting to be resolved on mouse up.
  */
 export interface HeaderSortPress {
+  /**
+   * The visual row of the pressed header, negative for a header row.
+   */
+  row: number;
   column: number;
   isCtrlPressed: boolean;
   /**
@@ -411,11 +417,11 @@ export class ColumnSorting extends BasePlugin {
     // Primary release signal. On touch devices Walkontable calls its `onMouseUp` directly from
     // `touchend` instead of dispatching a DOM `mouseup`, so a document listener alone would never
     // fire and tapping a header would stop sorting.
-    this.addHook('afterOnCellMouseUp', this.#resolvePendingSort);
-    // Fallback for a release that lands outside any cell - that is the drag case, and the queued
-    // sort still has to be cleared rather than left pending for the next release.
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
-      () => this.#resolvePendingSort());
+    this.addHook('afterOnCellMouseUp', this.#onAfterOnCellMouseUp);
+    // Release that lands outside any cell - that is the drag case, and the queued sort still has to be
+    // cleared rather than left pending for the next release. A release over a header resolves here too,
+    // so which signal arrives first does not matter.
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#onDocumentMouseUp);
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
@@ -1626,6 +1632,7 @@ export class ColumnSorting extends BasePlugin {
 
     const activeEditor = this.hot.getActiveEditor();
     const press: HeaderSortPress = {
+      row: coords.row,
       column: coords.col,
       isCtrlPressed,
       validation: null,
@@ -1672,13 +1679,46 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Callback for the `afterOnCellMouseUp` hook. Resolves the queued press against the cell the release
+   * landed on.
+   *
+   * @param {MouseEvent} event The release event.
+   * @param {CellCoords} coords Visual coords of the cell the release landed on.
+   */
+  #onAfterOnCellMouseUp = (event: Event, coords: { row: number, col: number }) => {
+    this.#resolvePendingSort(coords);
+  };
+
+  /**
+   * Callback for the document `mouseup`. Resolves the queued press against the header the release landed
+   * on, or cancels it when the release is not over a header. The header is read as coordinates, never as an
+   * element: Walkontable recycles header elements and the frozen overlays clone them.
+   *
+   * @param {MouseEvent} event The release event.
+   */
+  #onDocumentMouseUp = (event: MouseEvent) => {
+    if (this.#pendingHeaderSort === null) {
+      return;
+    }
+
+    const header = getComposedEventTargetEl(event)?.closest('th') ?? null;
+    const coords = getCoordsWithinGrid(this.hot, header);
+
+    this.#resolvePendingSort(coords);
+  };
+
+  /**
    * Resolves a header press on release: sorts, unless ManualColumnMove turned the press into a
-   * drag.
+   * drag, or the release landed away from the pressed header. A click completes on the control it
+   * started on, so a release elsewhere cancels the sort.
    *
    * Safe to call more than once for the same gesture - the queued press is taken first, so
    * whichever release signal arrives first wins and the rest are no-ops.
+   *
+   * @param {CellCoords|null} release Visual coords of the cell the release landed on, `null` when it
+   *   landed outside any cell.
    */
-  #resolvePendingSort = () => {
+  #resolvePendingSort = (release: { row: number | null, col: number | null } | null) => {
     const pending = this.#pendingHeaderSort;
 
     if (pending === null) {
@@ -1692,6 +1732,12 @@ export class ColumnSorting extends BasePlugin {
     // last. Running first, the drag is still in progress; running second, the move has already
     // fired. Either one cancels the sort.
     if (pending.consumedByMove || this.#isColumnBeingDragged()) {
+      this.#stopWaitingForEditor(pending);
+
+      return;
+    }
+
+    if (release === null || release.row !== pending.row || release.col !== pending.column) {
       this.#stopWaitingForEditor(pending);
 
       return;
