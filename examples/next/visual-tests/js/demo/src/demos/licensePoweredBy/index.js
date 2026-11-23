@@ -5,12 +5,12 @@ import { LICENSE_KEYS } from './keys';
 
 /**
  * Visual regression demo: a small grid built with a license key that shows the "Powered by
- * Handsontable DataGrid" bar under it, chosen by `?key=` (`badge` or `trial`, see `./keys.js`). The grid
+ * Handsontable DataGrid" bar under it, chosen by `?key=` (`attribution-bar` or `trial`, see `./keys.js`). The grid
  * is 480 px wide so the bar's text stays on one line, and it has row and column headers so a trial's
  * corner badge has its corner cell.
  */
 export function init() {
-  const keyName = getFromURL('key', 'badge');
+  const keyName = getFromURL('key', 'attribution-bar');
 
   if (!Object.prototype.hasOwnProperty.call(LICENSE_KEYS, keyName)) {
     throw new Error(`Unknown ?key= value: ${JSON.stringify(keyName)}`);

@@ -10,9 +10,9 @@ import {
   CUSTOM_FLAG_KEY,
   TRIAL_KEY,
   PERPETUAL_KEY,
-  SPONSORED_BADGE_KEY,
-  SPONSORED_BADGE_EXTERNAL_KEY,
-  SPONSORED_NO_BADGE_KEY,
+  SPONSORED_ATTRIBUTION_BAR_KEY,
+  SPONSORED_ATTRIBUTION_BAR_EXTERNAL_KEY,
+  SPONSORED_NO_ATTRIBUTION_BAR_KEY,
 } from './fixtures';
 
 const BUILD_DATE = '2026-08-12';
@@ -223,30 +223,31 @@ describe('entitlementLicenseKey/classify', () => {
       expect(resolveChannels(entitlementOf(CUSTOM_FLAG_KEY))).toEqual({ console: true, ui: true });
     });
 
-    it('should leave the channels to the silencing flags, with or without the badge flag', () => {
-      expect(resolveChannels(entitlementOf(SPONSORED_BADGE_KEY))).toEqual({ console: true, ui: true });
-      expect(resolveChannels(entitlementOf(SPONSORED_NO_BADGE_KEY))).toEqual({ console: true, ui: true });
-      expect(resolveChannels(entitlementOf(SPONSORED_BADGE_EXTERNAL_KEY))).toEqual({ console: false, ui: false });
+    it('should leave the channels to the silencing flags, with or without the attribution-bar flag', () => {
+      expect(resolveChannels(entitlementOf(SPONSORED_ATTRIBUTION_BAR_KEY))).toEqual({ console: true, ui: true });
+      expect(resolveChannels(entitlementOf(SPONSORED_NO_ATTRIBUTION_BAR_KEY))).toEqual({ console: true, ui: true });
+      expect(resolveChannels(entitlementOf(SPONSORED_ATTRIBUTION_BAR_EXTERNAL_KEY)))
+        .toEqual({ console: false, ui: false });
     });
   });
 
-  describe('the badge flag', () => {
+  describe('the attribution-bar flag', () => {
     it('should measure a sponsored key as a usage license, whether or not it carries the flag', () => {
-      const withBadge = at(entitlementOf(SPONSORED_BADGE_KEY), '2027-01-01T00:00:00Z');
-      const withoutBadge = at(entitlementOf(SPONSORED_NO_BADGE_KEY), '2027-01-01T00:00:00Z');
+      const withAttributionBar = at(entitlementOf(SPONSORED_ATTRIBUTION_BAR_KEY), '2027-01-01T00:00:00Z');
+      const withoutAttributionBar = at(entitlementOf(SPONSORED_NO_ATTRIBUTION_BAR_KEY), '2027-01-01T00:00:00Z');
 
-      expect(withBadge.state).toBe('usage_valid');
-      expect(withBadge.isTrial).toBe(false);
-      expect(withBadge.licensedUntil).toBe('2027-11-04');
-      expect(withBadge).toEqual(withoutBadge);
+      expect(withAttributionBar.state).toBe('usage_valid');
+      expect(withAttributionBar.isTrial).toBe(false);
+      expect(withAttributionBar.licensedUntil).toBe('2027-11-04');
+      expect(withAttributionBar).toEqual(withoutAttributionBar);
     });
 
     it('should run the same notice window with the flag as without it', () => {
-      const withBadge = at(entitlementOf(SPONSORED_BADGE_KEY), '2027-10-01T00:00:00Z');
-      const withoutBadge = at(entitlementOf(SPONSORED_NO_BADGE_KEY), '2027-10-01T00:00:00Z');
+      const withAttributionBar = at(entitlementOf(SPONSORED_ATTRIBUTION_BAR_KEY), '2027-10-01T00:00:00Z');
+      const withoutAttributionBar = at(entitlementOf(SPONSORED_NO_ATTRIBUTION_BAR_KEY), '2027-10-01T00:00:00Z');
 
-      expect(withBadge.state).toBe('usage_notice');
-      expect(withBadge).toEqual(withoutBadge);
+      expect(withAttributionBar.state).toBe('usage_notice');
+      expect(withAttributionBar).toEqual(withoutAttributionBar);
     });
   });
 });
