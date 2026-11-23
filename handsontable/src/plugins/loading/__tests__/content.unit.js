@@ -60,6 +60,20 @@ describe('loadingContent', () => {
     expect(svg.querySelector('path').getAttribute('d')).toBe('M15 8a7 7 0 1 1-3.5-6.062');
   });
 
+  it('should hide the default spinner from assistive technology', () => {
+    const fragment = render({ title: 'Loading' });
+
+    expect(fragment.querySelector('.ht-loading__icon').getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('should leave the semantics of a custom icon to the caller', () => {
+    const fragment = render({ title: 'Loading', icon: '<svg role="img" aria-label="Spinner"></svg>' });
+    const icon = fragment.querySelector('.ht-loading__icon');
+
+    expect(icon.hasAttribute('aria-hidden')).toBe(false);
+    expect(icon.querySelector('svg').getAttribute('aria-label')).toBe('Spinner');
+  });
+
   it('should match what parsing the documented default produced', () => {
     const parser = document.createElement('div');
 

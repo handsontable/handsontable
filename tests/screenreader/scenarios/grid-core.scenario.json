@@ -5,7 +5,7 @@
   "group": "keyboard",
   "fixture": "screenreader-grid.html",
   "catalogPages": ["grid", "text-editor"],
-  "criteria": ["1.3.1", "4.1.2"],
+  "criteria": ["1.3.1", "4.1.2", "4.1.3"],
   "setup": [
     {
       "selectCell": [
@@ -279,13 +279,16 @@
       },
       "expect": [
         [
-          "34"
+          "selection from"
         ],
         [
-          "selected"
+          "column name, row 1"
+        ],
+        [
+          "column age, row 1"
         ]
       ],
-      "note": "Shift+ArrowRight extends the selection, so the new end cell and its selected state are each required. Finding: NVDA and VoiceOver say nothing on every browser (the committed goldens are empty), because the focus stays on the anchor cell."
+      "note": "Shift+ArrowRight extends the selection while the focus stays on the anchor cell, so the grid announces the range in its polite live region: \"Selection from column Name, row 1 to column Age, row 1\"."
     },
     {
       "id": "extend-range-again",
@@ -294,13 +297,10 @@
       },
       "expect": [
         [
-          "oslo"
-        ],
-        [
-          "selected"
+          "row 1 selected"
         ]
       ],
-      "note": "The next cell joins the range: its value and the selected state are each required. Finding: NVDA and VoiceOver say nothing on every browser (the committed goldens are empty)."
+      "note": "The next Shift+ArrowRight reaches column City, the last of the three columns, so the range covers the whole row and the grid announces \"Row 1 selected\"."
     },
     {
       "id": "up-to-header-for-sort",

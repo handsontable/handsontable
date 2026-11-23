@@ -71,6 +71,87 @@ export class EmptyDataStateShortcutsPage {
   }
 
   /**
+   * Builds a second grid with an empty data state on the page, with its own settings, and returns the
+   * element of its message that takes the focus.
+   *
+   * @param {object} settings Setting overrides of the second grid, `ariaTags` for one.
+   * @returns {Locator} The second grid's message element.
+   */
+  async buildSecondGrid(settings: Record<string, unknown> = {}): Promise<Locator> {
+    await this.page.evaluate((overrides) => {
+      const host = document.createElement('div');
+
+      host.setAttribute('data-testid', 'second-grid');
+      document.body.appendChild(host);
+      const win = window as any;
+
+      // A function cannot cross the evaluate boundary, so a `callback` key arrives as a placeholder and
+      // becomes a no-op here, which the buttons of the message require.
+      const revive = (value: unknown): unknown => {
+        if (Array.isArray(value)) {
+          return value.map(revive);
+        }
+
+        if (value !== null && typeof value === 'object') {
+          return Object.fromEntries(Object.entries(value).map(
+            ([key, item]) => [key, key === 'callback' ? () => {} : revive(item)]));
+        }
+
+        return value;
+      };
+
+      win.secondHot = new win.Handsontable(host, {
+        data: [],
+        colHeaders: ['A', 'B'],
+        width: 300,
+        height: 200,
+        emptyDataState: true,
+        licenseKey: win.htTestLicenseKey,
+        ...(revive(overrides) as Record<string, unknown>),
+      });
+    }, settings);
+
+    const message = this.page.getByTestId('second-grid').locator('.ht-empty-data-state__content-wrapper-inner');
+
+    await expect(message).toBeVisible();
+
+    return message;
+  }
+
+  /** The element of the message that takes the focus when the message has no buttons. */
+  get messageTarget(): Locator {
+    return this.overlay.locator('.ht-empty-data-state__content-wrapper-inner');
+  }
+
+  /** The message's title. */
+  get messageTitle(): Locator {
+    return this.messageTarget.locator('.ht-empty-data-state__title');
+  }
+
+  /** The message's description. */
+  get messageDescription(): Locator {
+    return this.messageTarget.locator('.ht-empty-data-state__description');
+  }
+
+  /**
+   * Presses Tab from outside the grid until the message holds the focus, the way a keyboard user
+   * reaches it. The grid has no rows, so the presses go through its headers first.
+   */
+  async focusMessageWithTab(): Promise<void> {
+    for (let press = 0; press < 12; press++) {
+      await this.page.keyboard.press('Tab');
+
+      const focused = await this.messageTarget.evaluate(element => element === element.ownerDocument.activeElement);
+
+      if (focused) {
+        return;
+      }
+    }
+
+    throw new Error('Twelve Tab presses never reached the empty data state message.');
+  }
+
+  /**
    * Selects the whole grid the way a user does: click a cell, then Ctrl/Cmd+A.
    *
    * Which cell is a parameter because two calls that press the SAME point within the double-click

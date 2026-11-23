@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - selection announcements</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Fixture for the polite announcement a user's selection makes.
+
+    A 10 x 6 grid with row and column headers. ?aria=on|off sets `ariaTags`, ?headers=default|custom
+    picks the default A, B, C labels or Name, Price, Total, Tax, Qty, Note, and
+    ?plugin=none|columnSorting|contextMenu|nestedRows turns one plugin on. With nestedRows the data is
+    a tree: row 1 is a parent of rows 2 and 3, row 4 is a parent of row 5, rows 6 to 8 are top-level.
+    ?data=grid|empty swaps the data for none at all, with four columns. ?companion=none|pagination
+    adds a second grid, with Pagination on, below the first one.
+
+    Cells carry data-testid="cell-<row>-<col>", column headers "col-header-<col>" and row headers
+    "row-header-<row>". The button below the grid is a focus target outside it.
+  -->
+  <div id="grid" data-testid="grid"></div>
+  <button type="button" data-testid="outside">Outside the grid</button>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const ariaTags = htPick({ on: true, off: false }, htParams.get('aria'), 'on', 'aria');
+    const colHeaders = htPick(
+      { default: true, custom: ['Name', 'Price', 'Total', 'Tax', 'Qty', 'Note'] },
+      htParams.get('headers'), 'default', 'headers');
+    const pluginKey = htPick(
+      { none: null, columnSorting: 'columnSorting', contextMenu: 'contextMenu', nestedRows: 'nestedRows' },
+      htParams.get('plugin'), 'none', 'plugin');
+    const dataKey = htPick({ grid: 'grid', empty: 'empty' }, htParams.get('data'), 'grid', 'data');
+    const companionKey = htPick(
+      { none: null, pagination: 'pagination' }, htParams.get('companion'), 'none', 'companion');
+
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const nestedRow = (row, children) => {
+      const record = { a: `A${row}`, b: `B${row}`, c: `C${row}` };
+
+      if (children) {
+        record.__children = children;
+      }
+
+      return record;
+    };
+
+    const datasets = {
+      grid: () => Array.from({ length: 10 }, (_, row) =>
+        Array.from({ length: 6 }, (__, col) => `${String.fromCharCode(65 + col)}${row + 1}`)),
+      tree: () => [
+        nestedRow(1, [nestedRow(2), nestedRow(3)]),
+        nestedRow(4, [nestedRow(5)]),
+        nestedRow(6),
+        nestedRow(7),
+        nestedRow(8),
+      ],
+      empty: () => [],
+    };
+
+    const settings = {
+      data: datasets[pluginKey === 'nestedRows' ? 'tree' : dataKey](),
+      colHeaders,
+      rowHeaders: true,
+      ariaTags,
+      renderer: testIdRenderer,
+      afterGetColHeader(col, TH) {
+        if (col >= 0) {
+          TH.setAttribute('data-testid', `col-header-${col}`);
+        }
+      },
+      afterGetRowHeader(row, TH) {
+        if (row >= 0) {
+          TH.setAttribute('data-testid', `row-header-${row}`);
+        }
+      },
+      licenseKey: window.htTestLicenseKey,
+    };
+
+    if (pluginKey) {
+      settings[pluginKey] = true;
+    }
+
+    if (dataKey === 'empty') {
+      settings.columns = [{}, {}, {}, {}];
+    }
+
+    try {
+      window.hot = new Handsontable(container, settings);
+
+      if (companionKey) {
+        const companion = document.createElement('div');
+
+        companion.className = `ht-theme-${window.htTheme}`;
+        companion.setAttribute('data-testid', 'companion');
+        document.body.appendChild(companion);
+        window.companion = new Handsontable(companion, {
+          data: Array.from({ length: 30 }, (_, row) => [`A${row + 1}`, `B${row + 1}`]),
+          colHeaders: true,
+          pagination: { pageSize: 10 },
+          licenseKey: window.htTestLicenseKey,
+        });
+      }
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import type { GridSettings } from '../../../core/settings';
 import type { MenuItemConfig } from '../types';
 import { Positioner } from './positioner';
 import { createMenuNavigator } from './navigator';
+import { refreshFocusCatchers } from '../../../focusManager/scopeManager';
 import { createKeyboardShortcutsCtrl } from './shortcuts';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './../predefinedItems';
 import {
@@ -864,6 +865,10 @@ export class Menu {
 
       this.runLocalHooks('afterClose');
       this.#returnToParentMenu();
+
+      if (!this.hot.isDestroyed) {
+        refreshFocusCatchers(this.hot);
+      }
     }
   }
 

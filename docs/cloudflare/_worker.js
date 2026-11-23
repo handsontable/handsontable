@@ -195,8 +195,8 @@ function abs(path, base) {
 const LATEST_VERSION = '__LATEST_DOCS_VERSION__';
 
 // The oldest major whose docs are deployed. Keep in step with MIN_DOCS_VERSION
-// in deploy/getListOrPreviousVersions.mjs. Rule 12b sends older versions to
-// the current docs.
+// in src/lib/docs-versions.mjs, which deploy/getListOrPreviousVersions.mjs
+// reads. Rule 12b sends older versions to the current docs.
 const OLDEST_DEPLOYED_DOCS_MAJOR = 9;
 
 // ---------------------------------------------------------------------------

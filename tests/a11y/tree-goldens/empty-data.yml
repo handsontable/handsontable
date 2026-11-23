@@ -10,8 +10,9 @@
       - columnheader "Order ID"
       - columnheader "In stock"
       - columnheader "Qty"
-- heading "No data available" [level=2]
-- paragraph
+- group "No data available There’s nothing to display yet."
+  - heading "No data available" [level=2]
+  - paragraph
 # portal
 - status
 - status

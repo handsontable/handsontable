@@ -347,6 +347,8 @@ export class EmptyDataState extends BasePlugin {
       this.#ui = new EmptyDataStateUI({
         gridContainer: this.hot.rootGridElement,
         rootDocument: this.hot.rootDocument,
+        idPrefix: this.hot.guid,
+        ariaTags: this.hot.getSettings().ariaTags !== false,
       });
 
       this.#registerFocusScope();
