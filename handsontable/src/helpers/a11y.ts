@@ -106,7 +106,7 @@ const CONTROLS_SELECTOR = 'input, textarea, select';
 export function readCellAnnouncementSignature(cell: HTMLElement): string {
   const ariaState = cell.getAttributeNames()
     .filter(name => name.startsWith('aria-') && name !== SELECTION_ATTRIBUTE)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .map(name => `${name}=${cell.getAttribute(name)}`)
     .join(';');
   const controls = cell.querySelectorAll<HTMLInputElement>(CONTROLS_SELECTOR);
