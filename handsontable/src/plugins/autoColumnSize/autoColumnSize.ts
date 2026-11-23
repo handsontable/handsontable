@@ -506,8 +506,8 @@ export class AutoColumnSize extends BasePlugin {
    */
   #rewalkAfterSweepPending = false;
   /**
-   * `true` while the render that ends a sweep run with `syncViewport` runs. Its visible pass fills in the
-   * widths it lacks and overwrites none.
+   * `true` while the render that ends an idle-task sweep that does not reuse samples runs. Its visible pass
+   * fills in the widths it lacks and overwrites none.
    *
    * @type {boolean}
    */
@@ -768,7 +768,7 @@ export class AutoColumnSize extends BasePlugin {
    * Calculates widths for visible columns in the viewport only.
    */
   calculateVisibleColumnsWidth(): void {
-    // One-shot: the render that ends a `syncViewport` sweep fills in widths. A render held by `suspendRender()`
+    // One-shot: the render that ends an idle-task sweep fills in widths. A render held by `suspendRender()`
     // runs later, so the flag waits for it rather than for `render()` to return.
     const fillOnly = this.#fillOnlyRender;
 
@@ -932,8 +932,10 @@ export class AutoColumnSize extends BasePlugin {
    * With `syncViewport`, only the columns on screen (at most `syncColumns` of them) are measured before this
    * method returns, and every other column waits for idle tasks, with no chunk run now. Before the first draw
    * nothing is rendered yet, so the columns on screen are the frozen end columns plus the columns from the
-   * start that fill the viewport's width, measured one at a time until they do. Once the last idle chunk
-   * ends, the grid draws, so the scroll range takes the widths measured meanwhile.
+   * start that fill the viewport's width, measured one at a time until they do.
+   *
+   * Once the last idle chunk of any sweep ends, the grid draws, so the scroll range takes the widths measured
+   * meanwhile. A sweep that ends in the caller's own chunk draws nothing.
    *
    * @param {object} options The sweep options.
    * @param {object} options.rowsRange The visual row range to sample, with `from` and `to` indexes.
@@ -1983,18 +1985,18 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Measures the column a scroll goes to and every column before it that has no width yet, while a sweep run
-   * with `syncViewport` still has columns left for idle tasks, and renders before the scroll is computed. The
-   * scroll offset is the sum of those widths, so a `selectCell()` or `scrollViewportTo()` made right after the
-   * constructor landed on fallback widths, and the selected cell was out of view once the sweep measured the
-   * columns before it. Walkontable reads the widths from its last draw, so measuring alone does not reach the
-   * scroll: the render does, and it only fills in widths, like the render that ends the sweep.
+   * Measures the column a scroll goes to and every column before it that has no width yet, while a sweep still
+   * has columns left for idle tasks, and renders before the scroll is computed. The scroll offset is the sum of
+   * those widths, so a `selectCell()` or `scrollViewportTo()` made right after the constructor landed on
+   * fallback widths, and the selected cell was out of view once the sweep measured the columns before it.
+   * Walkontable reads the widths from its last draw, so measuring alone does not reach the scroll: the render
+   * does, and it only fills in widths, like the render that ends the sweep.
    *
    * @param {number} visualColumn The visual column the viewport scrolls to.
    * @returns {number} The same column.
    */
   #onBeforeViewportScrollHorizontally = (visualColumn: number, snapping?: string | { value?: string }) => {
-    const mayLackDrawnWidths = this.#viewportSweepPending || this.#widthsChangedSinceDraw;
+    const mayLackDrawnWidths = this.#viewportSweepPending || this.#widthsChangedSinceDraw || this.inProgress;
 
     if (!mayLackDrawnWidths || visualColumn < 0 || this.hot.countRows() === 0) {
       return visualColumn;

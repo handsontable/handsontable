@@ -19,7 +19,7 @@ export interface SyncBudgetGrid {
  */
 export type AfterBuild =
   'toggleAutoColumnSize' | 'toggleAutoColumnSizeWithoutRender' | 'enableAutoRowSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'selectCell0x25InBatch' |
-  'selectCell0x25WhileSuspended' | 'suspendRender';
+  'selectCell0x25WhileSuspended' | 'suspendRender' | 'recordRenderCount' | 'selectCell0x159' | 'scrollViewportToColumn159';
 
 /**
  * What the constructor did: the visual columns it read cell meta for (the columns measured before the
@@ -61,6 +61,7 @@ interface FixtureWindow extends Window {
   hot: FixtureHot;
   Handsontable: { hooks: { add(key: string, callback: () => void): void } };
   renderCount: number;
+  rendersAtBuild: number;
   constructorColumns: number[];
   buildGrid(settings: Record<string, unknown>, budget?: number): void;
 }
@@ -153,6 +154,16 @@ export class AutoColumnSizeSyncBudgetPage {
           break;
         case 'suspendRender':
           win.hot.suspendRender();
+          break;
+        case 'selectCell0x159':
+          win.hot.selectCell(0, 159);
+          break;
+        case 'scrollViewportToColumn159':
+          win.hot.scrollViewportTo({ col: 159 });
+          break;
+        case 'recordRenderCount':
+          // Read in the constructor's task, before any idle chunk can end the sweep.
+          win.rendersAtBuild = win.renderCount;
           break;
         default:
           break;
@@ -401,14 +412,15 @@ export class AutoColumnSizeSyncBudgetPage {
   }
 
   /**
-   * Counts the draws of every grid the fixture builds from now on, in `renderCount`. A case that counts
-   * resets the count right before it builds the grid under test.
+   * Counts the draws of every grid the fixture builds from now on. A case reads the draws made after the
+   * constructor with `build(…, 'recordRenderCount')` and `rendersSinceBuild()`.
    */
   async countRenders(): Promise<void> {
     await this.page.evaluate(() => {
       const win = window as unknown as FixtureWindow;
 
       win.renderCount = 0;
+      win.rendersAtBuild = 0;
       win.Handsontable.hooks.add('afterRender', () => {
         win.renderCount += 1;
       });
@@ -416,28 +428,44 @@ export class AutoColumnSizeSyncBudgetPage {
   }
 
   /**
-   * Sets the draw count back to 0.
+   * The draws made since the grid built with `build(…, 'recordRenderCount')` returned from its constructor.
    */
-  async resetRenderCount(): Promise<void> {
-    await this.page.evaluate(() => {
-      (window as unknown as FixtureWindow).renderCount = 0;
+  async rendersSinceBuild(): Promise<number> {
+    return this.page.evaluate(() => {
+      const win = window as unknown as FixtureWindow;
+
+      return win.renderCount - win.rendersAtBuild;
     });
   }
 
   /**
-   * The draws counted since `countRenders()` or the last `resetRenderCount()`.
-   */
-  async renderCount(): Promise<number> {
-    return this.page.evaluate(() => (window as unknown as FixtureWindow).renderCount);
-  }
-
-  /**
-   * Asks the grid to scroll a column into view once. Nothing renders before it, and it returns at once.
+   * Calls `scrollViewportTo({ col })` once, with no `render()` before it, and does not wait for a draw.
    */
   async scrollViewportToColumn(column: number): Promise<void> {
     await this.page.evaluate((col) => {
       (window as unknown as FixtureWindow).hot.scrollViewportTo({ col });
     }, column);
+  }
+
+  /**
+   * Whether the cell is drawn and any part of it lies inside the master holder's visible box. A column wider
+   * than the viewport is never fully visible, so the full-visibility reads cannot say.
+   */
+  async cellIsInView(row: number, column: number): Promise<boolean> {
+    return this.page.evaluate(([visualRow, visualColumn]) => {
+      const { hot } = window as unknown as FixtureWindow;
+      const cell = (hot as unknown as { getCell(r: number, c: number): HTMLElement | null }).getCell(visualRow, visualColumn);
+      const holder = hot.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      if (cell === null) {
+        return false;
+      }
+
+      const box = cell.getBoundingClientRect();
+      const view = holder.getBoundingClientRect();
+
+      return box.right > view.left && box.left < view.right;
+    }, [row, column]);
   }
 
   /**

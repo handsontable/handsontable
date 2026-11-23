@@ -394,20 +394,44 @@ test.describe('AutoColumnSize idle sweep on a grid wider than its synchronous pa
     await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
   });
 
-  test('draws once more when the sweep ends, and only a grid that leaves columns to idle tasks does', async() => {
-    // The control: 100 columns fit the synchronous part, so the constructor ends the sweep and nothing
-    // follows it.
-    await grid.resetRenderCount();
-    await grid.build({ ...WIDE_GRID, cols: 100 });
+  for (const after of ['selectCell0x159', 'scrollViewportToColumn159'] as const) {
+    test(`keeps the last column in view after a call made before the sweep ends (${after})`, async() => {
+      // The scroll offset is the sum of the widths of the columns before the target, so the hook measures the
+      // ones the sweep has not reached and draws them before the scroll is computed.
+      await grid.build({ ...WIDE_GRID, settings: WIDE_EXACT }, undefined, after);
+      await expect.poll(() => grid.cellIsInView(0, LAST_COLUMN)).toBe(true);
+
+      await grid.build(WIDE_GRID, undefined, after);
+      await grid.waitForSweepEnd();
+
+      await expect.poll(() => grid.cellIsInView(0, LAST_COLUMN)).toBe(true);
+    });
+  }
+
+  test('widens the scroll range once the sweep ends with an explicit syncLimit below the column count', async() => {
+    const limited = { autoColumnSize: { syncLimit: 10 } };
+
+    await grid.build({ ...WIDE_GRID, settings: WIDE_EXACT });
+
+    const referenceScrollWidth = await grid.scrollWidth();
+
+    await grid.build({ ...WIDE_GRID, settings: limited });
     await grid.waitForSweepEnd();
 
-    const initRenders = await grid.renderCount();
+    await expect.poll(() => grid.scrollWidth()).toBe(referenceScrollWidth);
+  });
 
-    await grid.resetRenderCount();
-    await grid.build(WIDE_GRID);
+  test('draws once when the sweep ends on a grid wider than its synchronous part, and not on one that fits it', async() => {
+    // The control: 100 columns fit the synchronous part (`syncLimit` + 1 columns and one chunk of 51), so the
+    // constructor ends the sweep and nothing follows it. Both counts start in the constructor's task.
+    await grid.build({ ...WIDE_GRID, cols: 100 }, undefined, 'recordRenderCount');
     await grid.waitForSweepEnd();
 
-    expect(initRenders).toBeGreaterThan(0);
-    expect(await grid.renderCount()).toBe(initRenders + 1);
+    expect(await grid.rendersSinceBuild()).toBe(0);
+
+    await grid.build(WIDE_GRID, undefined, 'recordRenderCount');
+    await grid.waitForSweepEnd();
+
+    expect(await grid.rendersSinceBuild()).toBe(1);
   });
 });
