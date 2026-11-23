@@ -334,6 +334,8 @@ export class NestedRows extends BasePlugin {
     this.unregisterShortcuts();
     super.disablePlugin();
 
+    this.collapsingUI?.disposePress();
+
     // A stash still open here is never applied: a fresh CollapsingUI replaces this one, and the expand
     // it made stays in place. The grow it held is applied now, so a whole-column selection covers the
     // rows that expand brought back. Only AFTER the hooks are gone: a removal's stash window also
@@ -1177,7 +1179,7 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeOnCellMousedown` hook callback.
+   * `beforeOnCellMousedown` hook callback. The row toggles when the press is released over its button.
    *
    * @param {MouseEvent} event Mousedown event.
    * @param {object} coords Cell coords.
@@ -2244,6 +2246,7 @@ export class NestedRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.collapsingUI?.disposePress();
     this.#stopWaitingForObjectData();
     super.destroy();
   }

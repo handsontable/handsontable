@@ -1,16 +1,63 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
-import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
+import {
+  setCaretPosition, getFixedContainingBlockRect, isHTMLElement, removeAttribute,
+} from '../../helpers/dom/element';
 import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 import { getVerticalRoom, getVisibleVerticalRange } from '../utils/visibleVerticalRange';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
+import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { extend } from '../../helpers/object';
 import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
+
+/**
+ * A press on a list option that waits for its release.
+ */
+interface PendingOptionPress {
+  /**
+   * The visual row of the pressed option.
+   */
+  row: number;
+  /**
+   * The visual column of the pressed option.
+   */
+  col: number;
+  /**
+   * The selection of the list (`[row, column]`, or `null` for none) and its origin before the press.
+   */
+  before: { selected: [number, number] | null, origin: 'user' | 'auto' | null };
+  /**
+   * Drops the document listeners that wait for the release.
+   */
+  dispose: () => void;
+}
+
+/**
+ * A mouse hook of the nested grid.
+ */
+type NestedMouseHook = (this: HotInstance, event: Event, coords: Record<string, number>) => void;
+
+/**
+ * Chains the hooks the user passed in the `handsontable` option (one function or an array of them)
+ * in front of the editor's own, so the editor's pick still runs.
+ *
+ * @param userHook The user's hook value.
+ * @param ownHook The editor's hook.
+ * @returns A hook that runs both, the user's first.
+ */
+function chainNestedHook(userHook: unknown, ownHook: NestedMouseHook): NestedMouseHook {
+  const userHooks = ([] as unknown[]).concat(userHook).filter(hook => typeof hook === 'function') as NestedMouseHook[];
+
+  return function(this: HotInstance, event, coords) {
+    userHooks.forEach(hook => hook.call(this, event, coords));
+    ownHook.call(this, event, coords);
+  };
+}
 
 export const EDITOR_TYPE = 'handsontable';
 
@@ -80,6 +127,16 @@ export class HandsontableEditor extends TextEditor {
   protected innerSelectionOrigin: 'user' | 'auto' | null = null;
 
   /**
+   * The press on a list option that is waiting for its release, if any.
+   */
+  #pendingPress: PendingOptionPress | null = null;
+
+  /**
+   * The selection of the list and its origin as the last press found them, read before the press moved it.
+   */
+  #selectionBeforePress: PendingOptionPress['before'] = { selected: null, origin: null };
+
+  /**
    * Whether the document scroll listener that keeps the list on its cell is bound.
    */
   #scrollFollowBound = false;
@@ -133,6 +190,7 @@ export class HandsontableEditor extends TextEditor {
    */
   open(): void {
     super.open();
+    this.#disposePendingPress();
 
     const containerStyle = this.htContainer.style;
 
@@ -197,6 +255,7 @@ export class HandsontableEditor extends TextEditor {
       this.htEditor.rootElement.style.display = 'none';
     }
 
+    this.#disposePendingPress();
     this.removeHooksByKey('beforeKeyDown');
     super.close();
   }
@@ -263,11 +322,6 @@ export class HandsontableEditor extends TextEditor {
     td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    const { hot } = this;
-    const setValue = this.setValue.bind(this);
-    const markUserPick = () => {
-      this.innerSelectionOrigin = 'user';
-    };
     const options: Record<string, unknown> = {
       startRows: 0,
       startCols: 0,
@@ -283,27 +337,29 @@ export class HandsontableEditor extends TextEditor {
       autoWrapRow: false,
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
-      afterOnCellMouseDown(this: HotInstance, _: Event, coords: Record<string, number>) {
-        if (coords.row < 0 || coords.col < 0) {
-          return;
-        }
-
-        const sourceValue = this.getDataAtCell(coords.row, coords.col);
-
-        markUserPick();
-
-        // if the value is undefined then it means we don't want to set the value
-        if (sourceValue !== undefined) {
-          setValue(sourceValue);
-        }
-        hot.destroyEditor();
-      },
+      beforeOnCellMouseDown: () => this.#rememberSelectionBeforePress(),
+      afterOnCellMouseDown: (event: Event, coords: Record<string, number>) => this.#startOptionPress(event, coords),
+      afterOnCellMouseUp: (_: Event, coords: Record<string, number>) => this.#finishOptionPress(coords),
       preventWheel: true,
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
     };
 
     if (this.cellProperties.handsontable) {
-      extend(options, cellProperties.handsontable as Record<string, unknown>);
+      const userOptions = cellProperties.handsontable as Record<string, unknown>;
+      const ownBeforeMouseDown = options.beforeOnCellMouseDown as NestedMouseHook;
+      const ownMouseUp = options.afterOnCellMouseUp as NestedMouseHook;
+
+      extend(options, userOptions);
+
+      // The pick now spans the press and the release, so a hook the user passes for either must not drop
+      // the editor's half. `afterOnCellMouseDown` keeps replacing the editor's own, as it always did: the
+      // pick is then the user's to make.
+      if (userOptions.beforeOnCellMouseDown) {
+        options.beforeOnCellMouseDown = chainNestedHook(userOptions.beforeOnCellMouseDown, ownBeforeMouseDown);
+      }
+      if (userOptions.afterOnCellMouseUp) {
+        options.afterOnCellMouseUp = chainNestedHook(userOptions.afterOnCellMouseUp, ownMouseUp);
+      }
     }
     this.htOptions = options;
   }
@@ -799,6 +855,8 @@ export class HandsontableEditor extends TextEditor {
    */
   assignHooks(): void {
     this.hot.addHook('afterDestroy', () => {
+      this.#disposePendingPress();
+
       if (this.htEditor) {
         this.htEditor.rootPortalElement = null as unknown as HTMLElement;
         this.htEditor.destroy();
@@ -810,6 +868,163 @@ export class HandsontableEditor extends TextEditor {
         this.close();
       }
     });
+  }
+
+  /**
+   * Reads the selection of the list before a press moves it, so a cancelled press can put it back.
+   * The hook runs before the nested grid selects the pressed cell.
+   */
+  #rememberSelectionBeforePress(): void {
+    const selected = this.htEditor?.getSelectedLast();
+
+    this.#selectionBeforePress = {
+      selected: selected ? [selected[0], selected[1]] : null,
+      origin: this.innerSelectionOrigin,
+    };
+  }
+
+  /**
+   * Starts a press on a list option. The press only highlights the option; the pick waits for the
+   * release of the pointer on the same option (WCAG 2.5.2), so moving off it before the release cancels.
+   *
+   * A touch tap needs no wait: Walkontable replays the tap as a press and a release in one go.
+   *
+   * @param {Event} event The event that started the press.
+   * @param {object} coords The visual coordinates of the pressed option.
+   */
+  #startOptionPress(event: Event, coords: Record<string, number>): void {
+    this.#disposePendingPress();
+
+    if (coords.row < 0 || coords.col < 0) {
+      return;
+    }
+
+    const press: PendingOptionPress = {
+      row: coords.row,
+      col: coords.col,
+      before: this.#selectionBeforePress,
+      dispose: () => {},
+    };
+
+    if (event.type === 'mousedown') {
+      // The commit stays in the nested grid's own `afterOnCellMouseUp`, because the document listener
+      // runs in the capture phase, before the grid's. This only has to cancel a release anywhere else.
+      press.dispose = armPressRelease(this.eventManager, this.hot.rootDocument, event as MouseEvent, {
+        isSame: target => this.#isOptionCell(target, press),
+        // The commit waits for the nested grid's hook, which runs right after this listener. A press that
+        // hook never answers (a listener stopped the event) must not stay armed for a later gesture.
+        onRelease: () => this.hot._registerTimeout(() => {
+          if (this.#pendingPress === press) {
+            this.#disposePendingPress();
+          }
+        }, 0),
+        onCancel: () => this.#cancelOptionPress(press),
+      });
+    }
+
+    this.#pendingPress = press;
+  }
+
+  /**
+   * Picks the pressed option when its press ends on the same option.
+   *
+   * @param {object} coords The visual coordinates of the option the pointer was released on.
+   */
+  #finishOptionPress(coords: Record<string, number>): void {
+    const press = this.#pendingPress;
+
+    if (!press) {
+      return;
+    }
+
+    this.#disposePendingPress();
+
+    if (coords.row !== press.row || coords.col !== press.col) {
+      this.#restoreSelectionBeforePress(press);
+
+      return;
+    }
+
+    const sourceValue = this.htEditor.getDataAtCell(coords.row, coords.col);
+
+    this.innerSelectionOrigin = 'user';
+
+    // if the value is undefined then it means we don't want to set the value
+    if (sourceValue !== undefined) {
+      this.setValue(sourceValue);
+    }
+    this.hot.destroyEditor();
+  }
+
+  /**
+   * Tells whether a release landed on the option the press started on.
+   *
+   * @param {HTMLElement | null} target The element the release landed on.
+   * @param {PendingOptionPress} press The pending press.
+   * @returns {boolean}
+   */
+  #isOptionCell(target: HTMLElement | null, press: PendingOptionPress): boolean {
+    const td = target?.closest('td') ?? null;
+    const coords = this.htEditor.isDestroyed ? null : getCoordsWithinGrid(this.htEditor, td);
+
+    return coords !== null && coords.row === press.row && coords.col === press.col;
+  }
+
+  /**
+   * Cancels a press that ended off its option, or was abandoned.
+   *
+   * @param {PendingOptionPress} press The pending press.
+   */
+  #cancelOptionPress(press: PendingOptionPress): void {
+    if (this.#pendingPress !== press) {
+      return;
+    }
+
+    this.#pendingPress = null;
+    this.#restoreSelectionBeforePress(press);
+
+    // The press moved the keyboard to the list. A pick that did not happen leaves the editor open, so
+    // the keys go back to its text field. Deferred, because a release outside the grid is followed by a
+    // `click` on the page that makes the focus scopes stop the grid listening.
+    this.hot._registerTimeout(() => {
+      if (this._opened) {
+        this.hot.listen();
+        this.TEXTAREA.focus();
+      }
+    }, 0);
+  }
+
+  /**
+   * Puts the list's selection back to what it was before the press. Left on the pressed option, it
+   * would be committed by the next `Enter`.
+   *
+   * @param {PendingOptionPress} press The pending press.
+   */
+  #restoreSelectionBeforePress({ before }: PendingOptionPress): void {
+    const { htEditor } = this;
+
+    if (!htEditor || htEditor.isDestroyed) {
+      return;
+    }
+
+    if (before.selected) {
+      htEditor.selectCell(before.selected[0], before.selected[1], undefined, undefined, false, false);
+    } else {
+      htEditor.deselectCell();
+      // The press named the pressed option through `aria-activedescendant`, and a deselect fires no
+      // `afterSelectionEnd` that could take it back.
+      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
+    }
+
+    this.innerSelectionOrigin = before.origin;
+  }
+
+  /**
+   * Forgets the press that waits for its release, without picking or restoring anything.
+   */
+  #disposePendingPress(): void {
+    this.#pendingPress?.dispose();
+    this.#pendingPress = null;
   }
 
   /**

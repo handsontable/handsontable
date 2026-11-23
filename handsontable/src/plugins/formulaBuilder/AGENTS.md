@@ -72,9 +72,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   guideline, no move, and no stale pressed state after a pick that ended without a `mouseup` (a window
   blur). A veto on `beforeColumnMove`/`beforeRowMove` was tried and is not enough: it lifts when the pick
   ends, so that stale state moved the range on the next `mouseup`.
-  A plugin that acts on a press from that hook (CheckboxHeader's "check all", RowSelection's header and
-  checkbox cells, NestedRows' collapse button, CollapsibleColumns' indicator) would act AND the pick would
-  insert a reference, so a press on such a control is left to its plugin (`HEADER_CONTROL_SELECTOR` and
+  A plugin that claims a press in that hook and acts when it is released (CheckboxHeader's "check all",
+  RowSelection's header and checkbox cells, NestedRows' collapse button, CollapsibleColumns' indicator)
+  would act AND the pick would insert a reference, so a press on such a control is left to its plugin (`HEADER_CONTROL_SELECTOR` and
   `CELL_CONTROL_SELECTOR` in `cellPickController.ts`): no pick starts. Add a new control there; teaching
   the hook runner to skip later callbacks once the flag is set would change every event hook. A checkbox
   cell is different: its renderer toggles the box on the native `click`, after the claimed `mousedown`,

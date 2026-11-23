@@ -154,6 +154,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   before the bar's shortcut sees the key, so it also prevents the key's default, as that shortcut
   does, or the same press closed a modal `<dialog>` the grid sits in. Pinned by
   `tests/e2e/sheets-bar-tab-drag-escape.spec.ts`.
+- **A drag released outside the strip does not switch the sheet (pointer cancellation).** A drag holds the
+  pointer capture, so the browser sends the `click` of its release to the dragged tab wherever the pointer
+  was let go, and `TabStrip#onTabClick` would switch to that sheet from a release far away from the bar.
+  `TabDrag#onPointerUp` therefore sets a one-shot `#suppressClick` when a real drag (past the threshold) is
+  released outside the strip's rect (`#isOutsideHost`); `TabStrip#onTabClick` asks
+  `TabDrag#consumeSuppressedClick()` first and returns when it answers `true`, and `start()` clears the flag so
+  a click that never came cannot swallow a later one. The Escape path does the same: after Escape ends a drag
+  the tab still holds the capture, so `#onKeyDown` arms a one-shot `pointerup` listener
+  (`#onReleaseAfterCancel`) that decides the same way. A release back over the strip keeps reordering and
+  activating, and a press under the threshold, a touch tap and keyboard activation (`activateFocusedTab()`
+  calls the hook directly) are unchanged. Pinned by `__tests__/tabDrag.unit.js` and
+  `tests/e2e/sheets-bar-tab-pointer-cancellation.spec.ts`.
 - **Every tab is its own stacking context (`isolation: isolate`).** The chevron glyph carries
   `z-index: 1` to stay above its `::before` hover surface. Without the isolation that z-index
   competes in the strip at the dragged tab's level (`--dragging` is `z-index: 1` too), so a tab

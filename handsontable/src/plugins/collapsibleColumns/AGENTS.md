@@ -98,6 +98,15 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   collapse hides are in this plugin's hiding maps, which the UndoRedo check of a `columns` settings
   update reads column by column. Without the method a collapse step - and every step older than it -
   dropped on any `columns` update that changed a field.
+- **A press on the indicator is claimed, and the group toggles on the `mouseup` over the same indicator** (WCAG 2.5.2
+  Pointer Cancellation: a pointer moved off it before the release cancels the toggle). `#onBeforeOnCellMouseDown`
+  fires its synthetic `mouseup` on the indicator first (it ends the press for the plugins that wait for one) and
+  only then arms `armPressRelease()` (`helpers/dom/pointerRelease.ts`), so that event is not taken for the
+  release. The press is kept by its header coordinates, the release target is resolved again
+  (`#armIndicatorPress()`), and the direction is read at the release. A tap acts at once: Walkontable replays it at
+  `touchend`, which is already the release. `disablePlugin()` and `destroy()` drop a held press. The collapse and
+  expand hooks (`beforeColumnCollapse`, `afterColumnCollapse`, and the expand pair) fire at the release, and so
+  do the selection hooks a collapse causes. Keyboard paths are untouched.
 - **The indicator press is stopped by setting the grid's `isImmediatePropagationEnabled = false` flag only, never with the `stopImmediatePropagation()` helper from `helpers/dom/event`.** The helper also sets `cancelBubble`, so the press never reaches `document`, where a dropdown menu or context menu listens for the `mousedown` that closes it, and the menu stays open over a group that just collapsed or expanded (DEV-214). The flag alone is enough: `tableView` checks it right after `beforeOnCellMouseDown` and skips selection handling. The helper stays right for callers that really must stop bubbling.
 
 - **`clearButtons()` walks the header rows the table drew, never the level count the settings declare.**

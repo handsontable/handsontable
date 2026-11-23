@@ -9,6 +9,7 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
+import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { canAccessCellContent } from '../../shortcuts/guards';
@@ -200,6 +201,11 @@ export class CheckboxHeader extends BasePlugin {
   #isReadingMeta = false;
 
   /**
+   * Drops the press on a header checkbox that waits for its release (see `#onBeforeOnCellMouseDown`).
+   */
+  #disposePress: (() => void) | null = null;
+
+  /**
    * `true` while the `afterSetSourceDataAtCell` listener is registered (`#syncSourceDataListener()`).
    */
   #hasSourceDataListener = false;
@@ -263,6 +269,9 @@ export class CheckboxHeader extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#disposePress?.();
+    this.#disposePress = null;
+
     super.disablePlugin();
 
     this.hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
@@ -659,11 +668,13 @@ export class CheckboxHeader extends BasePlugin {
   };
 
   /**
-   * Toggles the column on a press on its header checkbox, and keeps the press from selecting the
-   * column or sorting it.
+   * Claims a press on a header checkbox, so it neither selects nor sorts the column, and toggles the
+   * column when the pointer is released over the same checkbox. Moving the pointer off it before letting
+   * go cancels the toggle.
    *
    * On a touch device Walkontable calls this with the `touchend` event, which has no `button`, and
-   * the browser's own `mousedown` that follows a tap never reaches it, so a touch counts as a press.
+   * the browser's own `mousedown` that follows a tap never reaches it, so a touch counts as a press and
+   * acts at once: the tap already is the release.
    *
    * @param {MouseEvent|TouchEvent} event The `mousedown` event, or the `touchend` event of a tap.
    * @param {CellCoords} coords The coordinates of the pressed header.
@@ -675,14 +686,57 @@ export class CheckboxHeader extends BasePlugin {
       return;
     }
 
-    this.toggleColumn(coords.col);
+    const isTouch = isTouchEvent(event);
+
+    if (isTouch) {
+      this.toggleColumn(coords.col);
+    }
 
     // The grid's own flag, not `stopImmediatePropagation()` (DEV-214, see `../collapsibleColumns/`).
     (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
     // Keeps the browser focus off the checkbox, so the keyboard stays with the grid.
     event.preventDefault();
+    // Fired before the press is armed, so it is not taken for the release.
     this.eventManager.fireEvent(target, 'mouseup');
+
+    if (!isTouch) {
+      // The column is kept by its physical index: a render, or a move, can change the visual one.
+      const physicalColumn = this.hot.toPhysicalColumn(coords.col);
+
+      this.#disposePress?.();
+      this.#disposePress = armPressRelease(this.eventManager, this.hot.rootDocument, event, {
+        isSame: releaseTarget => this.#isOnCheckboxOf(releaseTarget, physicalColumn),
+        onRelease: () => {
+          this.#disposePress = null;
+
+          const column = physicalColumn === null ? null : this.hot.toVisualColumn(physicalColumn);
+
+          if (column !== null) {
+            this.toggleColumn(column);
+          }
+        },
+        onCancel: () => {
+          this.#disposePress = null;
+        },
+      });
+    }
   };
+
+  /**
+   * Checks whether the release of a press landed on the header checkbox of a column. The header is
+   * resolved from the release target again, because a render replaces the nodes between the two.
+   *
+   * @param {HTMLElement|null} releaseTarget The element the pointer was released on.
+   * @param {number|null} physicalColumn The pressed column.
+   * @returns {boolean}
+   */
+  #isOnCheckboxOf(releaseTarget: HTMLElement | null, physicalColumn: number | null): boolean {
+    const header = releaseTarget?.closest<HTMLElement>('th') ?? null;
+    const coords = getCoordsWithinGrid(this.hot, header);
+
+    return !!releaseTarget && hasClass(releaseTarget, CHECKBOX_CLASS) && !!coords &&
+      coords.col !== null && coords.col >= 0 && this.hot.toPhysicalColumn(coords.col) === physicalColumn;
+  }
 
   /**
    * Keeps the browser focus off the checkbox on every press. On a touch device Walkontable drops the
@@ -703,7 +757,7 @@ export class CheckboxHeader extends BasePlugin {
 
   /**
    * Keeps a click from flipping the header checkbox on its own: the state was applied on
-   * `mousedown` and rendered.
+   * `mouseup`, which comes before the click, and rendered.
    *
    * @param {MouseEvent} event The `click` event.
    */
@@ -812,6 +866,8 @@ export class CheckboxHeader extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#disposePress?.();
+    this.#disposePress = null;
     this.#summaryCache.clear();
     this.#syncSourceDataListener();
 

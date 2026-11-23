@@ -45,9 +45,17 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
   `span.htCheckboxRendererBox` wrapper. The header checkbox lives in such a wrapper
   (`htCheckboxHeaderBox`), and `syncIcon()` swaps its icon between `checkbox` and `collapseOff` (the
   mixed state's dash). Pinned by `__tests__/checkboxHeader.unit.ts`.
-- **The press is handled on `mousedown` and the `click` is cancelled**, like RowSelection: the
-  header is re-rendered on `mousedown`, and the browser's own toggle on `click` would flip it back.
-  `isImmediatePropagationEnabled = false` keeps the press from selecting or sorting the column.
+- **The press is claimed on `mousedown`, the column toggles on the `mouseup` over the same checkbox, and the
+  `click` is cancelled**, like RowSelection (WCAG 2.5.2 Pointer Cancellation: a pointer moved off the checkbox
+  before the release cancels the toggle). `#onBeforeOnCellMouseDown` sets
+  `isImmediatePropagationEnabled = false` (the press neither selects nor sorts the column), calls
+  `preventDefault()`, fires its synthetic `mouseup` and only then arms `armPressRelease()`
+  (`helpers/dom/pointerRelease.ts`), so the synthetic event is not taken for the release. The press is kept by
+  the column's PHYSICAL index and the release target is resolved again (`#isOnCheckboxOf()`), because a render
+  replaces the nodes between the two. The header re-renders on the `mouseup`, which comes before the `click`, so
+  `#onRootClick` still cancels the browser's own toggle and no opposite state flashes. A tap acts at once: the
+  touch path is already the release. `disablePlugin()` and `destroy()` drop a held press
+  (`#disposePress`). `beforeChange`, `afterChange` and the selection hooks therefore fire at the release.
 - **A tap is a press too: gate on `isLeftClick(event) || isTouchEvent(event)`, never `event.button`.**
   On touch, Walkontable calls `beforeOnCellMouseDown` with the deferred `touchend` (see
   `../../3rdparty/walkontable/src/event.ts`), which has no `button`; the browser's synthesized

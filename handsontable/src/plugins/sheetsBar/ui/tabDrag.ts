@@ -181,6 +181,12 @@ export class TabDrag {
    * Handle of the pending auto-scroll frame, or `0` when none is scheduled.
    */
   #frame = 0;
+  /**
+   * Whether the `click` the browser sends after the release in progress must be ignored. A drag
+   * holds the pointer capture, so the `click` of its release goes to the tab wherever the pointer
+   * was let go. A release outside the strip is a cancel, not a click on the tab.
+   */
+  #suppressClick = false;
 
   /**
    * Binds the controller to a strip.
@@ -225,6 +231,8 @@ export class TabDrag {
       return;
     }
 
+    this.#suppressClick = false;
+    this.#stopWatchingReleaseAfterCancel();
     this.#tab = tab;
     this.#id = id;
     this.#pointerId = event.pointerId;
@@ -292,6 +300,23 @@ export class TabDrag {
   }
 
   /**
+   * Whether the `click` that follows the release of a drag must be ignored, and clears the flag.
+   * Set by a drag released outside the strip, so the pointer capture does not turn that release
+   * into a click on the tab.
+   *
+   * @param {boolean} isKeyboardClick Whether the click comes from the keyboard (Enter or Space on a focused
+   * tab), which is never the click of a pointer capture and must not be swallowed.
+   * @returns {boolean} `true` once per such release.
+   */
+  consumeSuppressedClick(isKeyboardClick = false): boolean {
+    const suppressed = this.#suppressClick;
+
+    this.#suppressClick = false;
+
+    return suppressed && !isKeyboardClick;
+  }
+
+  /**
    * Whether a gesture has passed the threshold and is reordering the strip.
    *
    * @returns {boolean} `true` mid-drag.
@@ -314,6 +339,7 @@ export class TabDrag {
    */
   destroy(): void {
     this.abort();
+    this.#stopWatchingReleaseAfterCancel();
     this.#detach();
     this.#detachTouch();
   }
@@ -560,6 +586,10 @@ export class TabDrag {
 
     this.#finish();
 
+    if (wasDragging && this.#isOutsideHost(event)) {
+      this.#suppressClick = true;
+    }
+
     if (wasDragging && landed !== this.#originIndex) {
       this.#onCommit(id, landed);
     } else if (wasHeld) {
@@ -643,10 +673,59 @@ export class TabDrag {
 
     if (this.#isDragging) {
       event.preventDefault();
+      this.#watchReleaseAfterCancel();
     }
 
     this.#cancel();
   };
+
+  /**
+   * Waits for the release of a drag Escape canceled. The tab still holds the pointer capture, so
+   * the `click` of that release lands on it: when the release is outside the strip, the click is
+   * ignored like the one of a drag released there.
+   *
+   * @param {PointerEvent} event The pointerup or pointercancel event.
+   */
+  #onReleaseAfterCancel = (event: PointerEvent): void => {
+    this.#stopWatchingReleaseAfterCancel();
+
+    if (event.type === 'pointerup' && this.#isOutsideHost(event)) {
+      this.#suppressClick = true;
+    }
+  };
+
+  /**
+   * Starts waiting for the release of a drag that is being canceled.
+   */
+  #watchReleaseAfterCancel(): void {
+    const ownerDocument = this.#host.ownerDocument;
+
+    this.#eventManager.addEventListener(ownerDocument, 'pointerup', this.#onReleaseAfterCancel);
+    this.#eventManager.addEventListener(ownerDocument, 'pointercancel', this.#onReleaseAfterCancel);
+  }
+
+  /**
+   * Stops waiting for the release of a canceled drag.
+   */
+  #stopWatchingReleaseAfterCancel(): void {
+    const ownerDocument = this.#host.ownerDocument;
+
+    this.#eventManager.removeEventListener(ownerDocument, 'pointerup', this.#onReleaseAfterCancel as EventListener);
+    this.#eventManager.removeEventListener(ownerDocument, 'pointercancel', this.#onReleaseAfterCancel as EventListener);
+  }
+
+  /**
+   * Whether the pointer of the event is outside the strip's box.
+   *
+   * @param {PointerEvent} event The pointer event.
+   * @returns {boolean} `true` when the point is outside the strip.
+   */
+  #isOutsideHost(event: PointerEvent): boolean {
+    const rect = this.#host.getBoundingClientRect();
+
+    return event.clientX < rect.left || event.clientX > rect.right ||
+      event.clientY < rect.top || event.clientY > rect.bottom;
+  }
 
   /**
    * Aborts the gesture when the browser takes the pointer away — a `pointercancel`, or the

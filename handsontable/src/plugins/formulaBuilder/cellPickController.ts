@@ -18,10 +18,10 @@ import type { CellAddress, CellRange, HeaderAxis, HeaderPick, PickingEditor } fr
 type CoreModule = typeof import('hyperformula-ui');
 
 /**
- * Header controls that other plugins act on from their own `beforeOnCellMouseDown` listener. Those
- * listeners run after the pick and do not read the claim, so a pick started on one would insert a
- * reference and also run the control (collapse a group, check a column, select a row). A press on
- * one is left to its plugin instead.
+ * Header controls that other plugins claim from their own `beforeOnCellMouseDown` listener and act on
+ * when the press is released. Those listeners run after the pick and do not read the claim, so a pick
+ * started on one would insert a reference and also run the control (collapse a group, check a column,
+ * select a row). A press on one is left to its plugin instead.
  */
 const HEADER_CONTROL_SELECTOR = [
   '.collapsibleIndicator',
@@ -31,7 +31,8 @@ const HEADER_CONTROL_SELECTOR = [
   '.htRowSelectionCheckbox',
 ].join(', ');
 /**
- * Cell controls that another plugin toggles on `mousedown` (see `HEADER_CONTROL_SELECTOR`).
+ * Cell controls that another plugin claims on `mousedown` and toggles on the release (see
+ * `HEADER_CONTROL_SELECTOR`).
  */
 const CELL_CONTROL_SELECTOR = '.htRowSelectionCheckbox';
 /**
