@@ -188,6 +188,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'سطح [level]، [position] از [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'سطح [level]، [position] از [setSize]، باز',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'سطح [level]، [position] از [setSize]، بسته',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'فرمول: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'گروه ستون [label] باز شد',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'گروه ستون [label] بسته شد',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'مرتب‌سازی بر اساس [label]، صعودی',

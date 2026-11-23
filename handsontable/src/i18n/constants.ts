@@ -200,6 +200,9 @@ export const ARMED_PICK_NAMESPACE = 'ArmedPick:';
 export const ARMED_PICK_STARTED = `${ARMED_PICK_NAMESPACE}started`;
 export const ARMED_PICK_CANCELED = `${ARMED_PICK_NAMESPACE}canceled`;
 
+export const FORMULAS_NAMESPACE = 'Formulas:';
+export const FORMULAS_CELL_DESCRIPTION = `${FORMULAS_NAMESPACE}cellDescription`;
+
 export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
 export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
 export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;
