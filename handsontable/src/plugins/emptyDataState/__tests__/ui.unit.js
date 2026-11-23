@@ -87,6 +87,14 @@ describe('EmptyDataStateUI', () => {
       expect(inner().hasAttribute('aria-labelledby')).toBe(false);
     });
 
+    it('should not be an unnamed group when the message has neither a title nor a description', () => {
+      ui.updateContent({ title: 'Title', description: 'Description' });
+      ui.updateContent({ buttons: [] });
+
+      expect(inner().hasAttribute('role')).toBe(false);
+      expect(inner().hasAttribute('aria-labelledby')).toBe(false);
+    });
+
     it('should give two grids ids of their own', () => {
       const otherContainer = document.createElement('div');
 

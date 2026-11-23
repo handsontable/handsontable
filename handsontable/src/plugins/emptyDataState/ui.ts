@@ -410,13 +410,14 @@ export class EmptyDataStateUI {
     const ids = messageIds(this.#idPrefix);
     const labelIds = [content.title ? ids.title : '', content.description ? ids.description : ''].filter(Boolean);
 
-    setAttribute(messageElement, [A11Y_GROUP()]);
+    if (labelIds.length === 0) {
+      // A message with neither a title nor a description has nothing to name the group by.
+      removeAttribute(messageElement, ['role', 'aria-labelledby']);
 
-    if (labelIds.length > 0) {
-      setAttribute(messageElement, [A11Y_LABELED_BY(labelIds.join(' '))]);
-    } else {
-      removeAttribute(messageElement, 'aria-labelledby');
+      return;
     }
+
+    setAttribute(messageElement, [A11Y_GROUP(), A11Y_LABELED_BY(labelIds.join(' '))]);
   }
 
   /**

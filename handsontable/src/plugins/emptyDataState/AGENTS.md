@@ -75,7 +75,7 @@ stop lands on a `div`. A bare `div` has no role in the accessibility tree, and N
 `role="group"` and names it with `aria-labelledby` pointing at the title and the description together.
 Both ids go in the name, not the description in `aria-describedby`: a reader that skips descriptions on
 arrival would speak half the message. The ids are `${hot.guid}-ht-empty-data-state-title` and `-description`,
-so two grids on a page never share one; the reference to a part the message lacks is left out. The role and the name are written only while no button is rendered (`isLoading` or no `buttons`): with buttons, `getFocusableElements()` returns the buttons, the wrapper is plain content, and a name on it would make a reader speak the message twice. The loading
+so two grids on a page never share one; the reference to a part the message lacks is left out. The role and the name are written only while no button is rendered (`isLoading` or no `buttons`) and the message has a title or a description (`buttons: []` with neither leaves plain content, not an unnamed group): with buttons, `getFocusableElements()` returns the buttons, the wrapper is plain content, and a name on it would make a reader speak the message twice. The loading
 message is the same element, so it keeps the role next to `aria-busy`. Pinned by
 `tests/e2e/empty-data-state-focus-role.spec.ts` and `__tests__/ui.unit.js`.
 
