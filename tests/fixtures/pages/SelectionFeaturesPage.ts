@@ -1167,17 +1167,23 @@ export class SelectionFeaturesPage {
     await this.page.mouse.click(box.x + (box.width / 2), box.y + (box.height / 2));
   }
 
-  /** Click the middle of a cell with the real mouse. */
+  /**
+   * Click the middle of a cell with the real mouse.
+   */
   async clickCell(row: number, col: number): Promise<void> {
     await this.cell(row, col).click();
   }
 
-  /** The root while a click on a handle waits for the click that picks the edge. */
+  /**
+   * The root while a click on a handle waits for the click that picks the edge.
+   */
   pickingRoot(): Locator {
     return this.page.locator('[class*="ht__picking-selection--"]');
   }
 
-  /** The polite live region the announcements go to. */
+  /**
+   * The polite live region the announcements go to.
+   */
   politeAnnouncer(): Locator {
     return this.page.locator('[role="status"][aria-live="polite"]');
   }

@@ -1,6 +1,6 @@
 /**
  * The single-pointer alternative to a drag: "click, then click". A click on a grab handle arms the gesture, the
- * next click picks the target, and Escape cancels. The helper owns the listening; the caller owns what the
+ * next click on the grid picks the target, and Escape cancels. The helper owns the listening; the caller owns what the
  * target means and what is committed.
  */
 export interface ArmedPickOptions {
@@ -9,18 +9,24 @@ export interface ArmedPickOptions {
    */
   doc: Document;
   /**
-   * Tells whether a target belongs to the control that armed the gesture. A press on it is left alone, so the
-   * control can end the gesture itself (a second click on it, or a press that starts a drag).
+   * The grid's root element. A press or a click outside it is not for the grid: it ends the gesture and goes on to the
+   * page untouched, so arming by accident never costs the user their next click on a button or a link.
+   */
+  root: Element;
+  /**
+   * Tells whether a target belongs to a control that can arm the gesture. A press on it is left alone, so the control
+   * can end the gesture itself (a second click on it, a press that starts a drag, or a press that arms another one).
    */
   isAnchor: (target: EventTarget | null) => boolean;
   /**
    * Called with the click that picked the target. Anything the browser would do with that click is already
-   * prevented.
+   * prevented. The gesture ends after it returns, or throws.
    */
   onPick: (event: MouseEvent) => void;
   /**
    * Called once when the gesture ends. The reason is `picked` for the click that chose a target, `escape` for the
-   * user cancelling it, and `abandoned` for the caller ending it (`cancel()`), which the user did not ask for.
+   * user cancelling it, and `abandoned` for the caller ending it (`cancel()`) or a press outside the grid, which the
+   * user did not ask to cancel.
    */
   onEnd: (reason: ArmedPickEnd) => void;
 }
@@ -49,15 +55,21 @@ function getOriginTarget(event: Event): EventTarget | null {
  *
  * The press that precedes the click is swallowed (`pointerdown` and `mousedown`), so a pick does not also select a
  * cell, open an editor or start another gesture. The click is the commit, so a press that moves away from the
- * target before the release picks nothing the user did not see.
+ * target before the release picks nothing the user did not see. Only the primary button takes part: a right press
+ * opens the context menu as usual.
  *
  * @param {ArmedPickOptions} options The options.
  * @returns {ArmedPick}
  */
 export function armPick(options: ArmedPickOptions): ArmedPick {
-  const { doc, isAnchor, onPick, onEnd } = options;
+  const { doc, root, isAnchor, onPick, onEnd } = options;
   let ended = false;
 
+  const isInsideRoot = (event: Event) => {
+    const origin = getOriginTarget(event);
+
+    return event.composedPath?.().includes(root) || (origin instanceof Node && root.contains(origin));
+  };
   const end = (reason: ArmedPickEnd) => {
     if (ended) {
       return;
@@ -81,6 +93,16 @@ export function armPick(options: ArmedPickOptions): ArmedPick {
       return;
     }
 
+    if (!isInsideRoot(event)) {
+      end('abandoned');
+
+      return;
+    }
+
+    if ('button' in event && event.button !== 0) {
+      return;
+    }
+
     pressed = true;
     event.preventDefault();
     event.stopPropagation();
@@ -89,7 +111,7 @@ export function armPick(options: ArmedPickOptions): ArmedPick {
   // they must not see the taps that pick. Only propagation is stopped: the default stays, or the tap would not scroll
   // and would not produce the click that picks.
   const onTouch = (event: Event) => {
-    if (!isAnchor(getOriginTarget(event))) {
+    if (!isAnchor(getOriginTarget(event)) && isInsideRoot(event)) {
       event.stopPropagation();
     }
   };
@@ -98,7 +120,17 @@ export function armPick(options: ArmedPickOptions): ArmedPick {
     pressed = false;
   };
   const onClick = (event: MouseEvent) => {
-    if (isAnchor(getOriginTarget(event)) || !pressed) {
+    if (isAnchor(getOriginTarget(event))) {
+      return;
+    }
+
+    if (!isInsideRoot(event)) {
+      end('abandoned');
+
+      return;
+    }
+
+    if (!pressed) {
       return;
     }
 
@@ -106,12 +138,17 @@ export function armPick(options: ArmedPickOptions): ArmedPick {
 
     event.preventDefault();
     event.stopPropagation();
-    onPick(event);
-    end('picked');
+
+    try {
+      onPick(event);
+    } finally {
+      end('picked');
+    }
   };
+  // Escape is not stopped: it may be what closes a dialog or an editor around the grid, and a pick that is cancelled
+  // along with it is not a loss.
   const onKey = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
-      event.stopPropagation();
       end('escape');
     }
   };

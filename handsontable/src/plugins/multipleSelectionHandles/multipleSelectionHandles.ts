@@ -121,6 +121,17 @@ export class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
+   * Destroys the plugin. A pick that waits for a tap listens on the document, so it has to end here too, or it would
+   * outlive the grid and swallow the page's own presses.
+   */
+  destroy() {
+    this.#pick?.cancel();
+    this.#resetDrag();
+
+    super.destroy();
+  }
+
+  /**
    * Bind the touch events.
    *
    * @private
@@ -308,11 +319,23 @@ export class MultipleSelectionHandles extends BasePlugin {
         return;
       }
 
-      this.#presses.forEach((press) => {
-        if (!press.moved && Math.hypot(point.clientX - press.startX, point.clientY - press.startY) >= TAP_THRESHOLD) {
+      // each finger is measured from where it touched down, by its own identifier
+      this.#presses.forEach((press, identifier) => {
+        const touchPoint = getTouchPointById(event, identifier);
+
+        if (!press.moved && touchPoint !== null
+          && Math.hypot(touchPoint.clientX - press.startX, touchPoint.clientY - press.startY) >= TAP_THRESHOLD) {
           press.moved = true;
         }
       });
+
+      // A finger that has not left its tap range has not started a drag: a wobble must not resize the selection
+      // before the release is known to be a tap.
+      if (![...this.#presses.values()].some(press => press.moved)) {
+        event.preventDefault();
+
+        return;
+      }
 
       // Resolving a position walks the visible cells reading their geometry, and a phone can send
       // 120 touchmove/s. Skip that while the finger has barely moved - the cell cannot have changed.
@@ -572,6 +595,7 @@ export class MultipleSelectionHandles extends BasePlugin {
     addClass(root, `ht__picking-selection--${handle}`);
     this.#pick = armPick({
       doc: this.hot.rootDocument,
+      root,
       // a tap on a handle is left to the handle: it ends the pick, and on the other handle it starts that one
       isAnchor: target => target instanceof Element && target.closest(HANDLE_HIT_AREA_SELECTOR) !== null,
       onPick: (event) => {

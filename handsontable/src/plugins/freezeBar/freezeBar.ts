@@ -792,7 +792,10 @@ export class FreezeBar extends BasePlugin {
 
       if (!segment) {
         segment = this.hot.rootDocument.createElement('div');
-        segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment`;
+        // a piece created while a pick waits (a clone that appeared on scroll) is drawn as the rest of the bar is
+        segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment${
+          this.#pickEdge === edge ? ' ht-freeze-bar--armed' : ''
+        }`;
         segment.setAttribute('aria-hidden', 'true');
         segment.addEventListener('wheel', this.#onWheel, { passive: false });
         segment.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
@@ -1224,6 +1227,7 @@ export class FreezeBar extends BasePlugin {
     this.#setHover(edge, true);
     this.#pick = armPick({
       doc: this.hot.rootDocument,
+      root: this.hot.rootElement,
       isAnchor,
       onPick: (event) => {
         const count = this.#getPickedCount(edge, event);

@@ -265,6 +265,7 @@ export class SelectionHandles extends BasePlugin {
     addClass(root, `ht__picking-selection--${session.edge}`);
     this.#pick = armPick({
       doc: this.hot.rootDocument,
+      root,
       // a press on any handle is left to the handle: it ends the pick, and on another handle it starts that one
       isAnchor: target => target instanceof Element && target.closest('.wtSelectionHandle') !== null,
       onPick: (event) => {
@@ -311,6 +312,13 @@ export class SelectionHandles extends BasePlugin {
     }
 
     this.#pointerPosition = { clientX: event.clientX, clientY: event.clientY };
+
+    // A wobble within the threshold is a click, so it must not resize: the handle is a thin strip on a cell border, and
+    // a pointer that slips onto the next cell would change the selection the pick is armed for.
+    if (!this.#pressMoved) {
+      return;
+    }
+
     this.#resizeSelection(event.clientX, event.clientY, this.#drag);
   };
 
@@ -318,7 +326,7 @@ export class SelectionHandles extends BasePlugin {
    * Continues the resize after DragToScroll changes the rendered viewport.
    */
   #onAfterScroll = (): void => {
-    if (this.#drag && this.#pointerPosition) {
+    if (this.#drag && this.#pressMoved && this.#pointerPosition) {
       this.#resizeSelection(this.#pointerPosition.clientX, this.#pointerPosition.clientY, this.#drag);
     }
   };

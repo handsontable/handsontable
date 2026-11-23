@@ -967,7 +967,7 @@ test.describe('selectionHandles hover', { tag: THEMES_TAG }, () => {
       await grid.clickHandle('bottom');
 
       await expect(grid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
-      await expect(grid.politeAnnouncer()).toHaveText('Click the target to finish. Press Escape to cancel.');
+      await expect(grid.politeAnnouncer()).toHaveText('Click or tap the target to finish. Press Escape to cancel.');
       expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 3, end: 3 });
     });
 
@@ -1059,6 +1059,65 @@ test.describe('selectionHandles hover', { tag: THEMES_TAG }, () => {
       await grid.clickCell(4, 5);
 
       expect(await grid.selectedBounds()).toEqual({ top: 4, start: 5, bottom: 4, end: 5 });
+    });
+
+    test('a click outside the grid ends the pick and goes to the page', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await page.locator('#outside').click();
+
+      expect(await page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+      await expect(grid.pickingRoot()).toHaveCount(0);
+    });
+
+    test('destroying the grid while a pick waits leaves the page its clicks', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.destroyGrid();
+      await page.locator('#outside').click();
+
+      expect(await page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+    });
+
+    test('a click on a handle that slips a pixel or two still arms the pick for the selection it was made on', async ({ page }) => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+
+      const box = (await grid.handle('bottom').boundingBox())!;
+      const x = box.x + (box.width / 2);
+      const y = box.y + (box.height / 2);
+
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + 1, y + 2);
+      await page.mouse.up();
+
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 3, end: 3 });
+      await expect(grid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
+
+      await grid.clickCell(5, 2);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 5, end: 3 });
     });
 
     test('turning the plugin off ends the pick', async () => {

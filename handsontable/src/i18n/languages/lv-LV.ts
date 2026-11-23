@@ -177,7 +177,7 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Nofiksētās rindas apakšā',
   [C.FREEZE_BAR_COLUMNS_START]: 'Nofiksētās kolonnas sākumā',
   [C.FREEZE_BAR_COLUMNS_END]: 'Nofiksētās kolonnas beigās',
-  [C.ARMED_PICK_STARTED]: 'Noklikšķiniet uz mērķa, lai pabeigtu. Nospiediet Escape, lai atceltu.',
+  [C.ARMED_PICK_STARTED]: 'Noklikšķiniet vai pieskarieties mērķim, lai pabeigtu. Nospiediet Escape, lai atceltu.',
   [C.ARMED_PICK_CANCELED]: 'Atcelts.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',

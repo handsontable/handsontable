@@ -173,7 +173,7 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Fixierte Zeilen unten',
   [C.FREEZE_BAR_COLUMNS_START]: 'Fixierte Spalten am Anfang',
   [C.FREEZE_BAR_COLUMNS_END]: 'Fixierte Spalten am Ende',
-  [C.ARMED_PICK_STARTED]: 'Klicken Sie auf das Ziel, um den Vorgang abzuschließen. Drücken Sie Escape zum Abbrechen.',
+  [C.ARMED_PICK_STARTED]: 'Klicken oder tippen Sie auf das Ziel, um abzuschließen. Escape bricht ab.',
   [C.ARMED_PICK_CANCELED]: 'Abgebrochen.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Zeile [label] aufgeklappt, angezeigte aufgeklappte Zeilen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zeile [label] zugeklappt',

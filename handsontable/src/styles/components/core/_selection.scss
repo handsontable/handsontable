@@ -124,6 +124,15 @@
       );
     }
 
+    // A ring besides the boosted background, so the armed state does not rest on a subtle color change alone.
+    &.ht__picking-selection--top .wtSelectionHandle--top,
+    &.ht__picking-selection--bottom .wtSelectionHandle--bottom,
+    &.ht__picking-selection--start .wtSelectionHandle--start,
+    &.ht__picking-selection--end .wtSelectionHandle--end {
+      outline: var(--ht-sizing-size-0-5, 2px) solid var(--ht-accent-color);
+      outline-offset: 1px;
+    }
+
     // The `.wtMoveGhost` drop-target preview (moveCells option) has no rule here on purpose: the
     // MoveCells plugin appends it to `document.body` with `position: fixed` so it is never clipped
     // by a host layout's overflow. That places it outside this theme scope, so the

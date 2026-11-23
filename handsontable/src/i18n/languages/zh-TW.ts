@@ -173,7 +173,7 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: '底部凍結的列',
   [C.FREEZE_BAR_COLUMNS_START]: '起始凍結的欄',
   [C.FREEZE_BAR_COLUMNS_END]: '末尾凍結的欄',
-  [C.ARMED_PICK_STARTED]: '按一下目標以完成。按 Esc 鍵取消。',
+  [C.ARMED_PICK_STARTED]: '按一下或點按目標以完成。按 Esc 鍵取消。',
   [C.ARMED_PICK_CANCELED]: '已取消。',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展開列 [label]，顯示的展開列數：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已摺疊列 [label]',

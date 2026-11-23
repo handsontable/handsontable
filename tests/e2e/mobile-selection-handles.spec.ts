@@ -377,7 +377,7 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
       await mobileGrid.bottomHitArea().tap();
 
       await expect(mobileGrid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
-      await expect(mobileGrid.politeAnnouncer()).toHaveText('Click the target to finish. Press Escape to cancel.');
+      await expect(mobileGrid.politeAnnouncer()).toHaveText('Click or tap the target to finish. Press Escape to cancel.');
       expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
     });
 
@@ -425,6 +425,49 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
       await mobileGrid.bottomHitArea().tap();
       await mobileGrid.bottomHitArea().tap();
 
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+    });
+
+    test('destroying the grid while a pick waits leaves the page its taps', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        button.style.cssText = 'position: fixed; bottom: 0; left: 0; width: 120px; height: 48px; z-index: 99999;';
+        (window as any).outsideTaps = 0;
+        button.addEventListener('click', () => { (window as any).outsideTaps += 1; });
+        document.body.append(button);
+      });
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await page.evaluate(() => window.hot.destroy());
+      await page.locator('#outside').tap();
+
+      expect(await page.evaluate(() => (window as any).outsideTaps)).toBe(1);
+    });
+
+    test('a tap outside the grid ends the pick and goes to the page', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        button.style.cssText = 'position: fixed; bottom: 0; left: 0; width: 120px; height: 48px; z-index: 99999;';
+        (window as any).outsideTaps = 0;
+        button.addEventListener('click', () => { (window as any).outsideTaps += 1; });
+        document.body.append(button);
+      });
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await page.locator('#outside').tap();
+
+      expect(await page.evaluate(() => (window as any).outsideTaps)).toBe(1);
       await expect(mobileGrid.pickingRoot()).toHaveCount(0);
       expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
     });

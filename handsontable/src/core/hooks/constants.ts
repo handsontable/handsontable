@@ -3644,7 +3644,8 @@ export const REGISTERED_HOOKS = [
    * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
    * @param {number} newCount The new number of frozen rows or columns on that edge.
    * @param {number} oldCount The current number of frozen rows or columns on that edge.
-   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change. A drag of a bar, and a click on a bar followed
+   * by a click on the grid, both report `drag`.
    * @returns {boolean|undefined} If `false` is returned, the change is canceled.
    */
   'beforeFreezeChange',

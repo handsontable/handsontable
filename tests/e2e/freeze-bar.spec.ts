@@ -739,7 +739,7 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       await grid.clickBar('start');
 
       await expect(grid.bar('start')).toHaveClass(/ht-freeze-bar--armed/);
-      await expect(grid.politeAnnouncer()).toHaveText('Click the target to finish. Press Escape to cancel.');
+      await expect(grid.politeAnnouncer()).toHaveText('Click or tap the target to finish. Press Escape to cancel.');
       expect(await grid.count('start')).toBe(2);
       expect(await grid.log()).toEqual([]);
     });
@@ -783,6 +783,53 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
 
       expect(await grid.count('end')).toBe(2);
       expect(await grid.log()).toEqual([{ edge: 'end', newCount: 2, oldCount: 0, source: 'drag' }]);
+    });
+
+    test('the pick on the bottom edge freezes the rows from the clicked one to the last', async() => {
+      await grid.goto();
+      await grid.scrollTo({ row: 49 });
+      await grid.clickBar('bottom');
+      await grid.clickTrack('bottom', 2);
+
+      expect(await grid.count('bottom')).toBe(2);
+      expect(await grid.log()).toEqual([{ edge: 'bottom', newCount: 2, oldCount: 0, source: 'drag' }]);
+    });
+
+    test('destroying the grid while a pick waits leaves the page its clicks', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.clickBar('start');
+      await grid.page.evaluate(() => window.hot.destroy());
+      await grid.page.locator('#outside').click();
+
+      expect(await grid.page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+    });
+
+    test('a click outside the grid ends the pick and goes to the page', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.clickBar('start');
+      await grid.page.locator('#outside').click();
+
+      expect(await grid.page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+      expect(await grid.count('start')).toBe(2);
     });
 
     test('arming does not scroll the grid', async() => {
