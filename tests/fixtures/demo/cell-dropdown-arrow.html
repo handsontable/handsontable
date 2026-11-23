@@ -164,8 +164,15 @@
     if (layoutDirection === 'rtl') {
       document.documentElement.dir = 'rtl';
     }
+    // `?listHeaders=true` gives the `handsontable` column's list column headers, as the cell type guide's
+    // example does, so a spec can read the header row of the grid popup.
+    const listHeaders = ({ true: true, false: false })[htParams.get('listHeaders') ?? 'false'];
+    if (listHeaders === undefined) {
+      throw new Error('Unknown ?listHeaders= value: ' + JSON.stringify(htParams.get('listHeaders')));
+    }
     const handsontableList = {
       data: CHOICES.map(choice => (listColumns === 2 ? [choice, `${choice} code`] : [choice])),
+      ...(listHeaders ? { colHeaders: listColumns === 2 ? ['Name', 'Code'] : ['Name'] } : {}),
       ...(innerAria ? {} : { ariaTags: false }),
     };
 

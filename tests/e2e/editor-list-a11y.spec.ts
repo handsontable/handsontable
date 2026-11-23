@@ -165,7 +165,9 @@ for (const cellType of CELL_TYPES) {
 
       await expect(grid.combobox('B, row 2')).toBeFocused();
       await expect(grid.listbox('B, row 2')).toBeVisible();
-      expect((await grid.referencedElements()).controls).toEqual({ role: 'listbox', isListRoot: true });
+      // The field names the list only once the list holds a choice, which the deferred first query decides.
+      await expect.poll(async() => (await grid.referencedElements()).controls)
+        .toEqual({ role: 'listbox', isListRoot: true });
 
       // The reused editor names an option of the new list, not one of the list it showed before. The key waits
       // for the list's first query: the list is empty until it answers.

@@ -23,6 +23,7 @@ import {
   A11Y_ROWCOUNT,
 } from '../../helpers/a11y';
 import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
+import { removeOwnCellsTabIndex, removeOwnHoldersTabIndex } from '../../utils/a11yNestedGrid';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
@@ -449,9 +450,10 @@ export class HandsontableEditor extends TextEditor {
    * its scroll holders (see `#keepListOutOfTabOrder()`).
    */
   #removeListTabIndex = (): void => {
-    this.htEditor.rootElement.querySelectorAll<HTMLElement>('td[tabindex], .wtHolder[tabindex]').forEach((element) => {
-      removeAttribute(element, 'tabindex');
-    });
+    // The list's own tables are walked, never a descendant query, which would also reach a grid rendered
+    // inside a list cell.
+    removeOwnCellsTabIndex(this.htEditor);
+    removeOwnHoldersTabIndex(this.htEditor);
   };
 
   /**

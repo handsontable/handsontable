@@ -109,6 +109,7 @@ export class EditorListA11yPage {
    * @param {boolean} [options.contextMenu] Turn the context menu on.
    * @param {boolean} [options.outsideClickDeselects] The grid's `outsideClickDeselects` setting.
    * @param {boolean} [options.twoListColumns] Give the `handsontable` list a second column (`Alpha code`).
+   * @param {boolean} [options.listHeaders] Give the `handsontable` list column headers (`Name`, `Code`).
    * @param {boolean} [options.innerAriaTags] The `ariaTags` setting of the `handsontable` list's own
    * settings; `true` leaves it out.
    * @param {boolean} [options.rtl] Build a right-to-left grid in a right-to-left document.
@@ -120,13 +121,14 @@ export class EditorListA11yPage {
     longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
     heldValidator = false, passValidator = false, rejectValidator = false, contextMenu = false,
     outsideClickDeselects = true,
-    twoListColumns = false, innerAriaTags = true, rtl = false, frozen = false, imeFastEdit = false,
+    twoListColumns = false, listHeaders = false, innerAriaTags = true, rtl = false, frozen = false,
+    imeFastEdit = false,
   }: {
     longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
     enterStays?: boolean, heldValidator?: boolean, passValidator?: boolean, rejectValidator?: boolean,
     contextMenu?: boolean,
-    outsideClickDeselects?: boolean, twoListColumns?: boolean, innerAriaTags?: boolean, rtl?: boolean,
-    frozen?: boolean, imeFastEdit?: boolean,
+    outsideClickDeselects?: boolean, twoListColumns?: boolean, listHeaders?: boolean, innerAriaTags?: boolean,
+    rtl?: boolean, frozen?: boolean, imeFastEdit?: boolean,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
@@ -141,6 +143,7 @@ export class EditorListA11yPage {
       + (contextMenu ? '&contextMenu=true' : '')
       + (outsideClickDeselects ? '' : '&outsideClickDeselects=false')
       + (twoListColumns ? '&columns=2' : '')
+      + (listHeaders ? '&listHeaders=true' : '')
       + (innerAriaTags ? '' : '&innerAria=false')
       + (rtl ? '&dir=rtl' : '')
       + (frozen ? '&frozen=1' : '')

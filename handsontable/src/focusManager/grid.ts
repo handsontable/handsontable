@@ -499,10 +499,8 @@ export class FocusGridManager {
       return;
     }
 
-    if (this.#waitingEditor !== null) {
-      this.#waitingEditor._removeFinishListener?.(this.#onWaitingEditorFinish);
-    }
-
+    // No other wait can be recorded here: a wait ends with its finish listener, and an edit that begins
+    // without it forgets the wait in `#onAfterBeginEditing()` before its editor can start one.
     this.#waitingEditor = editor;
     this.#waitingFocus = getDeepActiveElement(this.#hot.rootDocument);
     editor._addFinishListener(this.#onWaitingEditorFinish);

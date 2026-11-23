@@ -57,6 +57,33 @@ test.describe('handsontable editor grid popup', { tag: [THEMES_TAG, CROSS_BROWSE
     await expect(popup).toHaveAttribute('aria-rowcount', String(await lastRowIndex()));
   });
 
+  test('counts and indexes the header row of a list with column headers', async() => {
+    await grid.goto({ twoListColumns: true, listHeaders: true });
+    await grid.openEditorAt(0, 0);
+
+    const popup = grid.gridPopup('A, row 1');
+
+    await expect(popup.getByRole('columnheader')).toHaveText(['Name', 'Code']);
+
+    const rows = await popup.getByRole('row').evaluateAll(elements => elements.map(row => ({
+      index: Number(row.getAttribute('aria-rowindex')),
+      isHeader: row.querySelector('[role="columnheader"]') !== null,
+    })));
+
+    const byIndex = [...rows].sort((a, b) => a.index - b.index);
+
+    // The header row is drawn by the top overlay clone, after the data rows in the DOM, as in the main grid.
+    // Its `aria-rowindex` is what puts it first, so each index must be exposed once and the header must hold 1.
+    expect(byIndex).toEqual([
+      { index: 1, isHeader: true },
+      { index: 2, isHeader: false },
+      { index: 3, isHeader: false },
+      { index: 4, isHeader: false },
+    ]);
+    await expect(popup).toHaveAttribute('aria-rowcount', '4');
+    await expect(popup).toHaveAttribute('aria-colcount', '2');
+  });
+
   test('renames the grid for the next edited cell', async() => {
     await grid.goto();
     await grid.openEditorAt(0, 0);

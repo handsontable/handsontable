@@ -1,6 +1,8 @@
 import { A11Y_PRESENTATION } from '../helpers/a11y';
-import { setAttribute } from '../helpers/dom/element';
+import { removeAttribute, setAttribute } from '../helpers/dom/element';
 import type { HotInstance } from '../core/types';
+
+type OwnTable = HotInstance['view']['_wt']['wtTable'];
 
 /**
  * Sets `role="presentation"` on a table and on its own `thead` and `tbody` sections. A table rendered inside
@@ -21,6 +23,27 @@ function markTableAsPresentational(table: HTMLTableElement): void {
 }
 
 /**
+ * Collects the tables a nested grid draws itself: its master table and the clone of every overlay. A grid
+ * rendered inside one of its cells has tables of its own, which are not listed.
+ *
+ * @param {HotInstance} hot The nested Handsontable instance.
+ * @returns {OwnTable[]}
+ */
+function getOwnTables(hot: HotInstance): OwnTable[] {
+  const wt = hot.view._wt;
+  const tables: OwnTable[] = [wt.wtTable];
+
+  wt.wtOverlays.getOverlays().forEach((overlay) => {
+    // `getOverlays()` is typed as `Overlay | Table`, only an overlay owns a clone (absent until it is created).
+    if ('clone' in overlay && overlay.clone) {
+      tables.push(overlay.clone.wtTable);
+    }
+  });
+
+  return tables;
+}
+
+/**
  * Hides the table markup of a nested grid from assistive technology: marks the `table`, `thead`, and
  * `tbody` of the master table and of every overlay clone of the grid as presentational. Tables rendered inside
  * a cell of the grid are left untouched.
@@ -28,15 +51,40 @@ function markTableAsPresentational(table: HTMLTableElement): void {
  * @param {HotInstance} hot The nested Handsontable instance.
  */
 export function markOwnTablesAsPresentational(hot: HotInstance): void {
-  const wt = hot.view._wt;
+  getOwnTables(hot).forEach(wtTable => markTableAsPresentational(wtTable.TABLE));
+}
 
-  markTableAsPresentational(wt.wtTable.TABLE);
-
-  wt.wtOverlays.getOverlays().forEach((overlay) => {
-    // `getOverlays()` is typed as `Overlay | Table`, only an overlay owns a clone (absent until it is created).
-    if ('clone' in overlay && overlay.clone) {
-      markTableAsPresentational(overlay.clone.wtTable.TABLE);
+/**
+ * Removes the `tabindex` the rendering engine writes on the scroll holders of a nested grid, in its master
+ * table and in every overlay clone. A focusable holder between a widget role (`menu`, `listbox`, `grid`) and
+ * its items is a child the role does not allow. The holders of a grid rendered inside a cell are left
+ * untouched.
+ *
+ * @param {HotInstance} hot The nested Handsontable instance.
+ */
+export function removeOwnHoldersTabIndex(hot: HotInstance): void {
+  getOwnTables(hot).forEach((wtTable) => {
+    if (wtTable.holder) {
+      removeAttribute(wtTable.holder, 'tabindex');
     }
+  });
+}
+
+/**
+ * Removes the `tabindex` the rendering engine writes on the drawn body cells of a nested grid, in its master
+ * table and in every overlay clone. The cells of a grid rendered inside a cell are left untouched.
+ *
+ * @param {HotInstance} hot The nested Handsontable instance.
+ */
+export function removeOwnCellsTabIndex(hot: HotInstance): void {
+  getOwnTables(hot).forEach((wtTable) => {
+    Array.from(wtTable.TBODY?.children ?? []).forEach((row) => {
+      Array.from(row.children).forEach((cell) => {
+        if (cell.tagName === 'TD' && cell.hasAttribute('tabindex')) {
+          removeAttribute(cell as HTMLElement, 'tabindex');
+        }
+      });
+    });
   });
 }
 
