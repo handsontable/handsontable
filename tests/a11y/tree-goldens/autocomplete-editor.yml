@@ -1,6 +1,6 @@
 # grid
 - treegrid
-  - combobox "A, row 1"
+  - combobox "A, row 1" [expanded]: "Al"
   - listbox
     - strong
     - strong
@@ -27,7 +27,7 @@
   - rowgroup
     - row "1 Al Al"
       - rowheader "1"
-      - gridcell "Al"
+      - gridcell "Al" [selected]
       - gridcell "Al"
     - row "2 Al Al"
       - rowheader "2"

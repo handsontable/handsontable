@@ -9,7 +9,7 @@
   - rowgroup
     - row "1 ORD-01 #1"
       - rowheader "1"
-      - gridcell "ORD-01"
+      - gridcell "ORD-01" [selected]
       - gridcell "#1"
     - row "2 ORD-02 #1"
       - rowheader "2"
@@ -28,22 +28,22 @@
       - gridcell "ORD-05"
       - gridcell "#1"
 - button "Add sheet"
-- button "All sheets"
+- button "All sheets" [expanded=false]
 - group "Sheets"
-  - button "Orders"
+  - button "Orders" [expanded=false]
   - button "Notes"
   - button "Customers"
-- combobox "Page size"
+- combobox "Page size" [expanded=false]: "5"
   - MenuListPopup
     - option "Auto"
-    - option "5"
+    - option "5" [selected]
     - option "10"
     - option "20"
     - option "50"
     - option "100"
 - navigation "Pagination"
-  - button "Go to first page"
-  - button "Go to previous page"
+  - button "Go to first page" [disabled]
+  - button "Go to previous page" [disabled]
   - button "Go to next page"
   - button "Go to last page"
 # portal

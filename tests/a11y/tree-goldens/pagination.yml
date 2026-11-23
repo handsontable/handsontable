@@ -19,7 +19,7 @@
       - gridcell "Classic Vest"
       - gridcell "10/11/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "172"
       - gridcell
       - gridcell "★★"
@@ -31,7 +31,7 @@
       - gridcell "Cycling Cap"
       - gridcell "5/3/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "188"
       - gridcell
       - gridcell "★★"
@@ -43,7 +43,7 @@
       - gridcell "Full-Finger Gloves"
       - gridcell "3/27/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "162"
       - gridcell
       - gridcell "★★★"
@@ -55,7 +55,7 @@
       - gridcell "HL Mountain Frame"
       - gridcell "8/29/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "133"
       - gridcell
       - gridcell "★"
@@ -67,7 +67,7 @@
       - gridcell "Half-Finger Gloves"
       - gridcell "10/2/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "87"
       - gridcell
       - gridcell "★★★"
@@ -103,7 +103,7 @@
       - gridcell "LL Mountain Frame"
       - gridcell "3/13/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "50"
       - gridcell
       - gridcell "★★★★"
@@ -127,26 +127,25 @@
       - gridcell "LL Touring Frame"
       - gridcell "2/1/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "30"
       - gridcell
       - gridcell "★★★★★"
       - gridcell "37-1531629"
       - gridcell "China"
-- combobox "Page size"
+- combobox "Page size" [expanded=false]: "10"
   - MenuListPopup
     - option "Auto"
-    - option "10"
+    - option "10" [selected]
     - option "20"
     - option "30"
     - option "40"
     - option "50"
 - navigation "Pagination"
-  - button "Go to first page"
-  - button "Go to previous page"
+  - button "Go to first page" [disabled]
+  - button "Go to previous page" [disabled]
   - button "Go to next page"
   - button "Go to last page"
 # portal
 - status
-# portal
 - status

@@ -3,11 +3,11 @@
   - group "Select options"
     - textbox "Search options"
     - list
-      - listitem
-        - checkbox "Alpha"
-      - listitem
+      - listitem [level=1]
+        - checkbox "Alpha" [checked]
+      - listitem [level=1]
         - checkbox "Alfa"
-      - listitem
+      - listitem [level=1]
         - checkbox "Alto"
   - rowgroup
     - row "Select whole grid A B"
@@ -17,7 +17,7 @@
   - rowgroup
     - row "1 Alpha Alpha"
       - rowheader "1"
-      - gridcell "Alpha"
+      - gridcell "Alpha" [selected]
       - gridcell "Alpha"
     - row "2 Alpha Alpha"
       - rowheader "2"

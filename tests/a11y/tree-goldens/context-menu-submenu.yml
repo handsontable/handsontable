@@ -20,7 +20,7 @@
     - row "2 A2 B2 C2 D2 E2"
       - rowheader "2"
       - gridcell "A2"
-      - gridcell "B2"
+      - gridcell "B2" [selected]
       - gridcell "C2"
       - gridcell "D2"
       - gridcell "E2"
@@ -56,28 +56,25 @@
   - menuitem "Remove row"
   - menuitem "Remove column"
   - separator
-  - menuitem "Undo"
-  - menuitem "Redo"
+  - menuitem "Undo" [disabled]
+  - menuitem "Redo" [disabled]
   - separator
   - menuitemcheckbox "Read only"
   - separator
-  - menuitem "Alignment"
+  - menuitem "Alignment" [expanded]
   - separator
   - menuitem "Add comment"
-  - menuitem "Delete comment"
-  - menuitemcheckbox "Read-only comment"
+  - menuitem "Delete comment" [disabled]
+  - menuitemcheckbox "Read-only comment" [disabled]
   - separator
   - menuitem "Copy"
   - menuitem "Cut"
   - separator
-  - menuitem "Merge cells"
+  - menuitem "Merge cells" [disabled]
   - separator
-  - menuitem "Borders"
-# portal
+  - menuitem "Borders" [expanded=false]
 - status
-# portal
 - status
-# portal
 - menu "Alignment"
   - menuitem "Left"
   - menuitem "Center"

@@ -3,14 +3,14 @@
   - rowgroup
     - row "Select whole grid Header title I/J"
       - gridcell "Select whole grid"
-      - columnheader "Header title"
-      - columnheader "I/J"
+      - columnheader "Header title" [expanded]
+      - columnheader "I/J" [expanded]
     - row "Select whole grid This is a very long header title B C D/E F G H"
       - gridcell "Select whole grid"
       - columnheader "This is a very long header title"
       - columnheader "B"
       - columnheader "C"
-      - columnheader "D/E"
+      - columnheader "D/E" [expanded]
       - columnheader "F"
       - columnheader "G"
       - columnheader "H"

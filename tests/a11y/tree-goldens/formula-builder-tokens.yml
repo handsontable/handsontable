@@ -1,6 +1,6 @@
 # grid
-- textbox "Cell address"
-- textbox "Formula input"
+- textbox "Cell address": "B2:C3"
+- textbox "Formula input": "=NOPE(A3)// check​"
 - treegrid
   - rowgroup
     - row "Select whole grid A B C"
@@ -17,13 +17,13 @@
     - row "2 3 #DIV/0! 5"
       - rowheader "2"
       - gridcell "3"
-      - gridcell "#DIV/0!"
-      - gridcell "5"
+      - gridcell "#DIV/0!" [selected] [invalid]
+      - gridcell "5" [selected]
     - row "3 5 6 #NAME?"
       - rowheader "3"
       - gridcell "5"
-      - gridcell "6"
-      - gridcell "#NAME?"
+      - gridcell "6" [selected]
+      - gridcell "#NAME?" [selected] [invalid]
     - row "4"
       - rowheader "4"
       - gridcell
@@ -31,7 +31,7 @@
       - gridcell
     - row "5 #NAME?"
       - rowheader "5"
-      - gridcell "#NAME?"
+      - gridcell "#NAME?" [invalid]
       - gridcell
       - gridcell
 # portal

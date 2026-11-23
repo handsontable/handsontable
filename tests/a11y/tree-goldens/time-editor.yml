@@ -1,8 +1,8 @@
 # grid
 - treegrid
-  - InputTime "Time, row 1"
-    - spinbutton "Hours Hours"
-    - spinbutton "Minutes Minutes"
+  - InputTime "Time, row 1": "09:30"
+    - spinbutton "Hours Hours": "9"
+    - spinbutton "Minutes Minutes": "30"
     - button "Show time picker"
   - rowgroup
     - row "Select whole grid Event Start Required Required lenient Time Datetime"
@@ -20,7 +20,7 @@
       - gridcell "6/10/24"
       - gridcell "6/10/24"
       - gridcell "6/10/24"
-      - gridcell "09:30 AM"
+      - gridcell "09:30 AM" [selected]
       - gridcell "06/10/2024, 09:30:00"
     - row "2 Kickoff 1/5/24 1/5/24 1/5/24 10:15 AM 01/05/2024, 10:15:00"
       - rowheader "2"

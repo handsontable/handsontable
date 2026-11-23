@@ -13,44 +13,44 @@
       - rowheader "1"
       - gridcell "Racing Socks"
       - gridcell "Apparel"
-      - gridcell "30"
+      - gridcell "30" [selected]
       - gridcell "120"
     - row "2 Mountain Frame Frames 1890 4"
       - rowheader "2"
       - gridcell "Mountain Frame"
       - gridcell "Frames"
-      - gridcell "1890"
+      - gridcell "1890" [selected]
       - gridcell "4"
     - row "3 Cycling Cap Apparel 130 55"
       - rowheader "3"
       - gridcell "Cycling Cap"
       - gridcell "Apparel"
-      - gridcell "130"
+      - gridcell "130" [selected]
       - gridcell "55"
     - row "4 Road Tire Tube Components 59 310"
       - rowheader "4"
       - gridcell "Road Tire Tube"
       - gridcell "Components"
-      - gridcell "59"
+      - gridcell "59" [selected]
       - gridcell "310"
     - row "5 Water Bottle Accessories 9 900"
       - rowheader "5"
       - gridcell "Water Bottle"
       - gridcell "Accessories"
-      - gridcell "9"
+      - gridcell "9" [selected]
       - gridcell "900"
 # portal
 - menu "Column menu"
-  - menuitem "Insert column left"
-  - menuitem "Insert column right"
+  - menuitem "Insert column left" [disabled]
+  - menuitem "Insert column right" [disabled]
   - separator
-  - menuitem "Remove column"
+  - menuitem "Remove column" [disabled]
   - separator
   - menuitem "Clear column"
   - separator
   - menuitemcheckbox "Read only"
   - separator
-  - menuitem "Alignment"
+  - menuitem "Alignment" [expanded=false]
   - separator
   - menuitem "Filter by condition:"
     - listbox
@@ -64,23 +64,23 @@
           - row "Checked 9"
             - gridcell "Checked 9"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
           - row "Checked 30"
             - gridcell "Checked 30"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
           - row "Checked 59"
             - gridcell "Checked 59"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
           - row "Checked 130"
             - gridcell "Checked 130"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
           - row "Checked 1890"
             - gridcell "Checked 1890"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
   - menuitem "Action bar"
     - button "OK"
     - button "Cancel"

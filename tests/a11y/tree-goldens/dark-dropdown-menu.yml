@@ -10,23 +10,23 @@
     - row "1 Alice Red"
       - rowheader "1"
       - gridcell "Alice"
-      - gridcell "Red"
+      - gridcell "Red" [selected]
     - row "2 Bob Green"
       - rowheader "2"
       - gridcell "Bob"
-      - gridcell "Green"
+      - gridcell "Green" [selected]
     - row "3 Charlie Blue"
       - rowheader "3"
       - gridcell "Charlie"
-      - gridcell "Blue"
+      - gridcell "Blue" [selected]
     - row "4 Dave Green"
       - rowheader "4"
       - gridcell "Dave"
-      - gridcell "Green"
+      - gridcell "Green" [selected]
     - row "5 Eve Red"
       - rowheader "5"
       - gridcell "Eve"
-      - gridcell "Red"
+      - gridcell "Red" [selected]
 # portal
 - menu "Column menu"
   - menuitem "Insert column left"
@@ -38,7 +38,7 @@
   - separator
   - menuitemcheckbox "Read only"
   - separator
-  - menuitem "Alignment"
+  - menuitem "Alignment" [expanded=false]
   - separator
   - menuitem "Filter by condition:"
     - listbox
@@ -52,15 +52,15 @@
           - row "Checked Blue"
             - gridcell "Checked Blue"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
           - row "Checked Green"
             - gridcell "Checked Green"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
           - row "Checked Red"
             - gridcell "Checked Red"
               - LabelText
-                - checkbox "Checked"
+                - checkbox "Checked" [checked]
   - menuitem "Action bar"
     - button "OK"
     - button "Cancel"

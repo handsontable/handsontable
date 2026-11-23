@@ -4,21 +4,21 @@
     - row "Select whole grid A B C"
       - gridcell "Select whole grid"
       - columnheader "A"
-      - columnheader "B"
+      - columnheader "B" [expanded]
       - columnheader "C"
     - row "Select whole grid D E F G"
       - gridcell "Select whole grid"
       - columnheader "D"
-      - columnheader "E"
-      - columnheader "F"
+      - columnheader "E" [expanded]
+      - columnheader "F" [expanded]
       - columnheader "G"
     - row "Select whole grid H I J K L M"
       - gridcell "Select whole grid"
       - columnheader "H"
-      - columnheader "I"
-      - columnheader "J"
-      - columnheader "K"
-      - columnheader "L"
+      - columnheader "I" [expanded]
+      - columnheader "J" [expanded]
+      - columnheader "K" [expanded]
+      - columnheader "L" [expanded]
       - columnheader "M"
     - row "Select whole grid Active Name Password Age Interest Favorite Product Country City Last Login (date) Last Login (time)"
       - gridcell "Select whole grid"
@@ -33,11 +33,11 @@
       - columnheader "Last Login (date)"
       - columnheader "Last Login (time)"
   - rowgroup
-    - row "1 Checked true John Doe **************** 30 Electronics iPhone 13 Pro USA New York 08/25/2023 08:30 AM"
+    - row "1 Checked true John Doe **************** 30 Electronics iPhone 13 Pro USA New York 08/25/2023 08:30 AM" [level=1]
       - rowheader "1"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "John Doe"
       - gridcell "****************"
       - gridcell "30"
@@ -48,7 +48,7 @@
       - gridcell "08/25/2023"
       - gridcell "08:30 AM"
   - rowgroup
-    - row "2 Unchecked false Jane Smith *************** 28 Fashion Canada Toronto 09/01/2023 02:15 PM"
+    - row "2 Unchecked false Jane Smith *************** 28 Fashion Canada Toronto 09/01/2023 02:15 PM" [level=1]
       - rowheader "2"
       - gridcell "Unchecked false"
         - LabelText
@@ -61,11 +61,11 @@
       - gridcell "Toronto"
       - gridcell "09/01/2023"
       - gridcell "02:15 PM"
-    - row "3 Checked true Robert Johnson ********* 35 UK London 08/30/2023 08:45 PM"
+    - row "3 Checked true Robert Johnson ********* 35 UK London 08/30/2023 08:45 PM" [level=1]
       - rowheader "3"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Robert Johnson"
       - gridcell "*********"
       - gridcell "35"
@@ -73,11 +73,11 @@
       - gridcell "London"
       - gridcell "08/30/2023"
       - gridcell "08:45 PM"
-    - row "4 Checked true Emily Wilson *********** 27 Home Decor iPad Pro Australia Sydney 09/02/2023 12:00 PM"
+    - row "4 Checked true Emily Wilson *********** 27 Home Decor iPad Pro Australia Sydney 09/02/2023 12:00 PM" [level=1]
       - rowheader "4"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Emily Wilson"
       - gridcell "***********"
       - gridcell "27"
@@ -87,8 +87,8 @@
       - gridcell "Sydney"
       - gridcell "09/02/2023"
       - gridcell "12:00 PM"
-    - row "5 Unchecked false Michael Brown ********** 42 Sports & Fitness Fitness Tracker USA Los Angeles 08/22/2023 10:20 AM"
-      - rowheader "5"
+    - row "5 Unchecked false Michael Brown ********** 42 Sports & Fitness Fitness Tracker USA Los Angeles 08/22/2023 10:20 AM" [level=1]
+      - rowheader "5" [expanded]
       - gridcell "Unchecked false"
         - LabelText
           - checkbox "Unchecked"
@@ -101,11 +101,11 @@
       - gridcell "Los Angeles"
       - gridcell "08/22/2023"
       - gridcell "10:20 AM"
-    - row "6 Checked true Robert Johnson ********* 35 Tech Gadgets Apple Watch Series 7 UK London 08/30/2023 08:45 PM"
+    - row "6 Checked true Robert Johnson ********* 35 Tech Gadgets Apple Watch Series 7 UK London 08/30/2023 08:45 PM" [level=2]
       - rowheader "6"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Robert Johnson"
       - gridcell "*********"
       - gridcell "35"
@@ -115,11 +115,11 @@
       - gridcell "London"
       - gridcell "08/30/2023"
       - gridcell "08:45 PM"
-    - row "7 Checked true Emily Wilson *********** 27 Home Decor iPad Pro Australia Sydney 09/02/2023 12:00 PM"
+    - row "7 Checked true Emily Wilson *********** 27 Home Decor iPad Pro Australia Sydney 09/02/2023 12:00 PM" [level=2]
       - rowheader "7"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Emily Wilson"
       - gridcell "***********"
       - gridcell "27"
@@ -129,7 +129,7 @@
       - gridcell "Sydney"
       - gridcell "09/02/2023"
       - gridcell "12:00 PM"
-    - row "8 Unchecked false Michael Brown ********** 42 Sports & Fitness Fitness Tracker USA Los Angeles 08/22/2023 10:20 AM"
+    - row "8 Unchecked false Michael Brown ********** 42 Sports & Fitness Fitness Tracker USA Los Angeles 08/22/2023 10:20 AM" [level=2]
       - rowheader "8"
       - gridcell "Unchecked false"
         - LabelText
@@ -143,11 +143,11 @@
       - gridcell "Los Angeles"
       - gridcell "08/22/2023"
       - gridcell "10:20 AM"
-    - row "9 Checked true Maria Garcia ******** 33 Books & Literature Kindle Paperwhite Spain Barcelona 09/05/2023 04:45 PM"
+    - row "9 Checked true Maria Garcia ******** 33 Books & Literature Kindle Paperwhite Spain Barcelona 09/05/2023 04:45 PM" [level=2]
       - rowheader "9"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Maria Garcia"
       - gridcell "********"
       - gridcell "33"
@@ -157,11 +157,11 @@
       - gridcell "Barcelona"
       - gridcell "09/05/2023"
       - gridcell "04:45 PM"
-    - row "10 Checked true Maria Garcia ******** 33 Books & Literature Kindle Paperwhite Spain Barcelona 09/05/2023 04:45 PM"
+    - row "10 Checked true Maria Garcia ******** 33 Books & Literature Kindle Paperwhite Spain Barcelona 09/05/2023 04:45 PM" [level=1]
       - rowheader "10"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Maria Garcia"
       - gridcell "********"
       - gridcell "33"
@@ -171,7 +171,7 @@
       - gridcell "Barcelona"
       - gridcell "09/05/2023"
       - gridcell "04:45 PM"
-    - row "11 Unchecked false Hiroshi Tanaka ********** 29 Tech Gadgets Nintendo Switch Japan Tokyo 08/27/2023 03:10 PM"
+    - row "11 Unchecked false Hiroshi Tanaka ********** 29 Tech Gadgets Nintendo Switch Japan Tokyo 08/27/2023 03:10 PM" [level=1]
       - rowheader "11"
       - gridcell "Unchecked false"
         - LabelText
@@ -185,11 +185,11 @@
       - gridcell "Tokyo"
       - gridcell "08/27/2023"
       - gridcell "03:10 PM"
-    - row "12 Checked true Emma Johnson ******* 24 Beauty & Personal Care Makeup Set UK Manchester 09/03/2023 09:50 AM"
+    - row "12 Checked true Emma Johnson ******* 24 Beauty & Personal Care Makeup Set UK Manchester 09/03/2023 09:50 AM" [level=1]
       - rowheader "12"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Emma Johnson"
       - gridcell "*******"
       - gridcell "24"
@@ -199,11 +199,11 @@
       - gridcell "Manchester"
       - gridcell "09/03/2023"
       - gridcell "09:50 AM"
-    - row "13 Checked true Lucas Oliveira ******** 38 Food & Cooking Chef's Knife Set Brazil Sao Paulo 08/29/2023 01:30 PM"
+    - row "13 Checked true Lucas Oliveira ******** 38 Food & Cooking Chef's Knife Set Brazil Sao Paulo 08/29/2023 01:30 PM" [level=1]
       - rowheader "13"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Lucas Oliveira"
       - gridcell "********"
       - gridcell "38"
@@ -213,7 +213,7 @@
       - gridcell "Sao Paulo"
       - gridcell "08/29/2023"
       - gridcell "01:30 PM"
-    - row "14 Unchecked false Ava Smith ****** 22 Travel & Adventure Travel Backpack USA Miami 09/04/2023 05:55 PM"
+    - row "14 Unchecked false Ava Smith ****** 22 Travel & Adventure Travel Backpack USA Miami 09/04/2023 05:55 PM" [level=1]
       - rowheader "14"
       - gridcell "Unchecked false"
         - LabelText
@@ -227,11 +227,11 @@
       - gridcell "Miami"
       - gridcell "09/04/2023"
       - gridcell "05:55 PM"
-    - row "15 Checked true Miguel Rodriguez ********* 45 Art & Collectibles Oil Painting Spain Madrid 08/28/2023 07:25 PM"
+    - row "15 Checked true Miguel Rodriguez ********* 45 Art & Collectibles Oil Painting Spain Madrid 08/28/2023 07:25 PM" [level=1]
       - rowheader "15"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Miguel Rodriguez"
       - gridcell "*********"
       - gridcell "45"
@@ -241,11 +241,11 @@
       - gridcell "Madrid"
       - gridcell "08/28/2023"
       - gridcell "07:25 PM"
-    - row "16 Checked true Sophia Kim ********* 31 Electronics Smartphone South Korea Seoul 08/26/2023 11:10 AM"
+    - row "16 Checked true Sophia Kim ********* 31 Electronics Smartphone South Korea Seoul 08/26/2023 11:10 AM" [level=1]
       - rowheader "16"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Sophia Kim"
       - gridcell "*********"
       - gridcell "31"
@@ -255,7 +255,7 @@
       - gridcell "Seoul"
       - gridcell "08/26/2023"
       - gridcell "11:10 AM"
-    - row "17 Unchecked false Liam Chen ******* 26 Fashion Designer Handbag Canada Vancouver 08/31/2023 06:40 PM"
+    - row "17 Unchecked false Liam Chen ******* 26 Fashion Designer Handbag Canada Vancouver 08/31/2023 06:40 PM" [level=1]
       - rowheader "17"
       - gridcell "Unchecked false"
         - LabelText
@@ -269,11 +269,11 @@
       - gridcell "Vancouver"
       - gridcell "08/31/2023"
       - gridcell "06:40 PM"
-    - row "18 Checked true Elena Fernandez ******** 29 Tech Gadgets Wireless Earbuds Spain Valencia 09/01/2023 10:15 AM"
+    - row "18 Checked true Elena Fernandez ******** 29 Tech Gadgets Wireless Earbuds Spain Valencia 09/01/2023 10:15 AM" [level=1]
       - rowheader "18"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Elena Fernandez"
       - gridcell "********"
       - gridcell "29"
@@ -283,11 +283,11 @@
       - gridcell "Valencia"
       - gridcell "09/01/2023"
       - gridcell "10:15 AM"
-    - row "19 Checked true Oliver Johnson ********* 34 Home Decor Home Lighting USA Chicago 08/30/2023 03:40 PM"
+    - row "19 Checked true Oliver Johnson ********* 34 Home Decor Home Lighting USA Chicago 08/30/2023 03:40 PM" [level=1]
       - rowheader "19"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Oliver Johnson"
       - gridcell "*********"
       - gridcell "34"
@@ -297,7 +297,7 @@
       - gridcell "Chicago"
       - gridcell "08/30/2023"
       - gridcell "03:40 PM"
-    - row "20 Unchecked false Luna Martinez ******* 23 Sports & Fitness Yoga Mat Mexico Mexico City 09/02/2023 02:05 PM"
+    - row "20 Unchecked false Luna Martinez ******* 23 Sports & Fitness Yoga Mat Mexico Mexico City 09/02/2023 02:05 PM" [level=1]
       - rowheader "20"
       - gridcell "Unchecked false"
         - LabelText
@@ -311,11 +311,11 @@
       - gridcell "Mexico City"
       - gridcell "09/02/2023"
       - gridcell "02:05 PM"
-    - row "21 Checked true Ethan Wang ******** 27 Books & Literature Bestseller Novel Canada Toronto 08/29/2023 12:20 PM"
+    - row "21 Checked true Ethan Wang ******** 27 Books & Literature Bestseller Novel Canada Toronto 08/29/2023 12:20 PM" [level=1]
       - rowheader "21"
       - gridcell "Checked true"
         - LabelText
-          - checkbox "Checked"
+          - checkbox "Checked" [checked]
       - gridcell "Ethan Wang"
       - gridcell "********"
       - gridcell "27"
@@ -326,7 +326,7 @@
       - gridcell "08/29/2023"
       - gridcell "12:20 PM"
   - rowgroup
-    - row "42 Unchecked false Liam Chen ******* 26 Travel & Adventure Travel Backpack Canada Vancouver 08/31/2023 06:40 PM"
+    - row "42 Unchecked false Liam Chen ******* 26 Travel & Adventure Travel Backpack Canada Vancouver 08/31/2023 06:40 PM" [level=1]
       - rowheader "42"
       - gridcell "Unchecked false"
         - LabelText
@@ -342,5 +342,4 @@
       - gridcell "06:40 PM"
 # portal
 - status
-# portal
 - status

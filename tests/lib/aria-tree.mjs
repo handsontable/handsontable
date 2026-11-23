@@ -240,8 +240,9 @@ const TEXT_ROLES = new Set(['StaticText', 'InlineTextBox', 'LineBreak', 'ListMar
  * written from Chromium's own accessibility tree, the tree a screen reader gets, so it shows what
  * `aria-owns` moves and what `aria-hidden` removes; a snapshot computed from the DOM shows neither. A node
  * with no role (a generic container) and a text node are left out, and their children are kept in their
- * place. Each root (the grid, every portal) starts with a header line. A live status region is written
- * without its message, which is transient.
+ * place. Each root (the grid, every portal) starts with a header line. A node's states follow its name
+ * (`[checked]`, `[expanded=false]`, `[level=2]`), and a text field's value follows them. A live status
+ * region is written without its message, which is transient.
  *
  * @param {object[]} nodes The flattened tree, in reading order.
  * @returns {string} The snapshot.
@@ -260,15 +261,24 @@ export function serializeTree(nodes) {
     return depths.get(item.id);
   };
   const lines = [];
+  let previousRoot;
 
   for (const item of nodes) {
-    if (item.parent === null) {
+    // One header per root the tree was read from. A root Chromium ignores (a plain portal container) leaves
+    // each of its children without a parent, so a header per parentless node would depend on that.
+    const root = item.root ?? (item.parent === null ? item.id : previousRoot);
+
+    if (root !== previousRoot) {
       lines.push(`# ${item.region}`);
+      previousRoot = root;
     }
     if (isWritten(item)) {
       const name = item.role === 'status' ? '' : String(item.name ?? '').trim();
+      const states = (item.states ?? []).map(state => ` [${state}]`).join('');
+      const value = String(item.value ?? '').trim();
 
-      lines.push(`${'  '.repeat(depthOf(item))}- ${item.role}${name ? ` ${JSON.stringify(name)}` : ''}`);
+      lines.push(`${'  '.repeat(depthOf(item))}- ${item.role}${name ? ` ${JSON.stringify(name)}` : ''}${states}`
+        + `${value && value !== name ? `: ${JSON.stringify(value)}` : ''}`);
     }
   }
 

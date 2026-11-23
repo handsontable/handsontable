@@ -31,7 +31,7 @@
       - gridcell "Cycling Cap 2"
       - gridcell "2/2/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "47"
       - gridcell "3"
       - gridcell "2"
@@ -43,7 +43,7 @@
       - gridcell "Full-Finger Gloves 3"
       - gridcell "3/3/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "84"
       - gridcell "6"
       - gridcell "3"
@@ -55,7 +55,7 @@
       - gridcell "HL Mountain Frame 4"
       - gridcell "4/4/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "121"
       - gridcell "9"
       - gridcell "4"
@@ -79,7 +79,7 @@
       - gridcell "Classic Vest 6"
       - gridcell "6/6/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "195"
       - gridcell "5"
       - gridcell "1"
@@ -91,7 +91,7 @@
       - gridcell "Cycling Cap 7"
       - gridcell "7/7/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "42"
       - gridcell "8"
       - gridcell "2"
@@ -103,7 +103,7 @@
       - gridcell "Full-Finger Gloves 8"
       - gridcell "8/8/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "79"
       - gridcell "1"
       - gridcell "3"
@@ -127,7 +127,7 @@
       - gridcell "Half-Finger Gloves 10"
       - gridcell "10/10/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "153"
       - gridcell "7"
       - gridcell "5"
@@ -139,7 +139,7 @@
       - gridcell "Classic Vest 11"
       - gridcell "11/11/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "190"
       - gridcell "0"
       - gridcell "1"
@@ -151,7 +151,7 @@
       - gridcell "Cycling Cap 12"
       - gridcell "12/12/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "37"
       - gridcell "3"
       - gridcell "2"
@@ -175,7 +175,7 @@
       - gridcell "HL Mountain Frame 14"
       - gridcell "2/14/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "111"
       - gridcell "9"
       - gridcell "4"
@@ -187,7 +187,7 @@
       - gridcell "Half-Finger Gloves 15"
       - gridcell "3/15/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "148"
       - gridcell "2"
       - gridcell "5"
@@ -199,7 +199,7 @@
       - gridcell "Classic Vest 16"
       - gridcell "4/16/20"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "185"
       - gridcell "5"
       - gridcell "1"
@@ -207,5 +207,4 @@
       - gridcell "Philippines"
 # portal
 - status
-# portal
 - status

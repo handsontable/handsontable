@@ -93,7 +93,7 @@
       - gridcell "Name 13"
       - gridcell "13"
 - alertdialog "Confirm"
-  - heading "Confirm"
+  - heading "Confirm" [level=2]
   - paragraph
   - button "Cancel"
   - button "OK"

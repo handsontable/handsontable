@@ -15,9 +15,9 @@
       - gridcell "A3"
       - gridcell "A4"
 - button "Add sheet"
-- button "All sheets"
+- button "All sheets" [expanded=false]
 - group "Sheets"
-  - button "Alpha"
+  - button "Alpha" [expanded=false]
   - button "Beta"
   - button "Gamma"
 # portal

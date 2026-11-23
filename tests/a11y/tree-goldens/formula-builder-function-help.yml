@@ -1,8 +1,8 @@
 # grid
-- textbox "Cell address"
-- textbox "Formula input"
+- textbox "Cell address": "C1"
+- textbox "Formula input": "=SUM()​"
 - treegrid
-  - combobox "Formula editor"
+  - combobox "Formula editor" [expanded=false]: "=SUM()"
   - rowgroup
     - row "Select whole grid A B C"
       - gridcell "Select whole grid"
@@ -14,7 +14,7 @@
       - rowheader "1"
       - gridcell "1"
       - gridcell "2"
-      - gridcell "3"
+      - gridcell "3" [selected]
     - row "2 3 4 7"
       - rowheader "2"
       - gridcell "3"

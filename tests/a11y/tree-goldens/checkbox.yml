@@ -5,7 +5,7 @@
       - gridcell "Select whole grid"
       - columnheader "Task"
       - columnheader "Check all (1 of 5 checked) Done"
-        - checkbox "Check all (1 of 5 checked)"
+        - checkbox "Check all (1 of 5 checked)" [checked=mixed]
   - rowgroup
     - row "1 Task 0 Unchecked"
       - rowheader "1"
@@ -16,7 +16,7 @@
       - rowheader "2"
       - gridcell "Task 1"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
     - row "3 Task 2 Unchecked"
       - rowheader "3"
       - gridcell "Task 2"

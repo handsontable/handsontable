@@ -147,10 +147,10 @@
       - gridcell "H11"
       - gridcell "I11"
       - gridcell "J11"
-- separator "Frozen columns at the start"
-- separator "Frozen rows at the top"
-- separator "Frozen columns at the end"
-- separator "Frozen rows at the bottom"
+- separator "Frozen columns at the start": "2"
+- separator "Frozen rows at the top": "2"
+- separator "Frozen columns at the end": "0"
+- separator "Frozen rows at the bottom": "0"
 # portal
 - status
 - status

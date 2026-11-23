@@ -351,6 +351,46 @@ test('a node owned by another one is written under its owner, where the tree hol
     '# grid\n- treegrid\n  - row\n    - rowheader "1"\n    - gridcell "A1"\n');
 });
 
+test('a node\'s states and a field\'s value follow its name, as a screen reader announces them', () => {
+  // NestedRows moves the tree attributes onto the one row the grid exposes: the golden has to show them.
+  const grid = node('treegrid');
+  const tr = node('row', { name: '1 Root A', parent: grid.id, states: ['expanded', 'level=1'] });
+  const child = node('row', { name: '2 Leaf', parent: grid.id, states: ['expanded=false', 'level=2'] });
+  const box = node('checkbox', { name: 'In stock', parent: grid.id, states: ['checked=mixed'] });
+  const field = node('textbox', { name: 'Search', parent: grid.id, value: 'abc' });
+  const same = node('textbox', { name: 'abc', parent: grid.id, value: 'abc' });
+
+  assert.equal(serializeTree([grid, tr, child, box, field, same]), [
+    '# grid',
+    '- treegrid',
+    '  - row "1 Root A" [expanded] [level=1]',
+    '  - row "2 Leaf" [expanded=false] [level=2]',
+    '  - checkbox "In stock" [checked=mixed]',
+    '  - textbox "Search": "abc"',
+    '  - textbox "abc"',
+    '',
+  ].join('\n'));
+});
+
+test('each root the tree was read from gets one header, whatever Chromium ignores in it', () => {
+  // A portal container Chromium ignores leaves each of its children without a parent.
+  const grid = node('treegrid', { root: 'g' });
+  const menu = node('menu', { name: 'Menu', region: 'portal', root: 'p1' });
+  const list = node('listbox', { name: 'List', region: 'portal', root: 'p1' });
+  const other = node('dialog', { name: 'Dialog', region: 'portal', root: 'p2' });
+
+  assert.equal(serializeTree([grid, menu, list, other]), [
+    '# grid',
+    '- treegrid',
+    '# portal',
+    '- menu "Menu"',
+    '- listbox "List"',
+    '# portal',
+    '- dialog "Dialog"',
+    '',
+  ].join('\n'));
+});
+
 test('a snapshot that differs from its golden names its first differing line', () => {
   assert.equal(diffSnapshot('- treegrid:\n  - row "A1"', '- treegrid:\n  - row "A1"'), null);
   assert.deepEqual(diffSnapshot('- treegrid:\n  - row "A1"\n  - row "A2"', '- treegrid:\n  - row "A1 changed"\n  - row "A2"'),

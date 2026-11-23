@@ -1,14 +1,14 @@
 # grid
 - treegrid
   - InputTime "C, row 1"
-    - spinbutton "Hours Hours"
-    - spinbutton "Minutes Minutes"
+    - spinbutton "Hours Hours": "0"
+    - spinbutton "Minutes Minutes": "0"
     - button "Show time picker"
   - rowgroup
     - row "#bad-value# two"
       - gridcell "#bad-value#"
       - gridcell "two"
-      - gridcell
+      - gridcell [selected]
     - row "#bad-value# four"
       - gridcell "#bad-value#"
       - gridcell "four"

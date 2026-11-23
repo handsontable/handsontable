@@ -20,7 +20,7 @@
     - row "2 A2 B2 C2 D2 E2"
       - rowheader "2"
       - gridcell "A2"
-      - gridcell "B2"
+      - gridcell "B2" [selected]
       - gridcell "C2"
       - gridcell "D2"
       - gridcell "E2"

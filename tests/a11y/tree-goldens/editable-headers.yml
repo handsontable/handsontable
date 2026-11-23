@@ -1,11 +1,11 @@
 # grid
 - treegrid
-  - textbox "Header name"
+  - textbox "Header name": "Price"
   - rowgroup
     - row "Select whole grid Name Price Stock"
       - gridcell "Select whole grid"
       - columnheader "Name"
-      - columnheader "Price"
+      - columnheader "Price" [selected]
       - columnheader "Stock"
   - rowgroup
     - row "1 A0 B0 C0"

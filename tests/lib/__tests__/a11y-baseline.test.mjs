@@ -19,6 +19,7 @@ import {
   renderAnnotations,
   representativeScans,
   renderSummary,
+  restoreShortenedClass,
   targetFingerprint,
   validateBaseline,
   verdictCounts,
@@ -553,4 +554,16 @@ test('findingsByRule counts every reproduced finding per rule, most first, with 
     { rule: 'label', findings: 1, nodes: 1, impact: 'serious', new: 1, grown: 0, improved: 0 },
   ]);
   assert.deepEqual(findingsByRule(compare([entry()], [])), [], 'a stale entry is not a reproduced finding');
+});
+
+test('restoreShortenedClass puts back the class a long start tag lost, so the key stays the same', () => {
+  const shortened = '<div class="htUIMultipleSelectHo..." id="ht_1" role="treegrid" aria-owns="ht_1-row-group-th...">';
+  const restored = restoreShortenedClass(shortened, 'htUIMultipleSelectHot handsontable');
+
+  assert.equal(restored, '<div class="htUIMultipleSelectHot handsontable" id="ht_1" role="treegrid" aria-owns="ht_1-row-group-th...">');
+  assert.equal(targetFingerprint(['#ht_1'], restored), 'div.htUIMultipleSelectHot[role="treegrid"]');
+  assert.equal(restoreShortenedClass('<td class="current" role="menuitem">', 'other'), '<td class="current" role="menuitem">',
+    'a start tag axe did not shorten is kept');
+  assert.equal(restoreShortenedClass(shortened, null), shortened, 'a node the page no longer holds is kept');
+  assert.equal(restoreShortenedClass(undefined, 'x'), undefined);
 });

@@ -1,6 +1,6 @@
 # grid
 - treegrid
-  - textbox "A, row 1"
+  - textbox "A, row 1": "Al"
   - table
     - row
       - cell "Alpha"
@@ -30,7 +30,7 @@
   - rowgroup
     - row "1 Al Al"
       - rowheader "1"
-      - gridcell "Al"
+      - gridcell "Al" [selected]
       - gridcell "Al"
     - row "2 Al Al"
       - rowheader "2"

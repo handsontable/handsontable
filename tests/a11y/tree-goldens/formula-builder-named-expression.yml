@@ -1,8 +1,8 @@
 # grid
-- textbox "Cell address"
-- textbox "Formula input"
+- textbox "Cell address": "B4"
+- textbox "Formula input": "=SUMM​"
 - treegrid
-  - combobox "Formula editor"
+  - combobox "Formula editor" [expanded]: "=SUMM"
   - rowgroup
     - row "Select whole grid A B C"
       - gridcell "Select whole grid"
@@ -18,21 +18,21 @@
     - row "2 3 #DIV/0! 5"
       - rowheader "2"
       - gridcell "3"
-      - gridcell "#DIV/0!"
+      - gridcell "#DIV/0!" [invalid]
       - gridcell "5"
     - row "3 5 6 #NAME?"
       - rowheader "3"
       - gridcell "5"
       - gridcell "6"
-      - gridcell "#NAME?"
+      - gridcell "#NAME?" [invalid]
     - row "4"
       - rowheader "4"
       - gridcell
-      - gridcell
+      - gridcell [selected]
       - gridcell
     - row "5 #NAME?"
       - rowheader "5"
-      - gridcell "#NAME?"
+      - gridcell "#NAME?" [invalid]
       - gridcell
       - gridcell
 # portal
@@ -40,5 +40,5 @@
 - status
 # portal
 - listbox "Formula suggestions"
-  - option "SUMMARY"
+  - option "SUMMARY" [selected]
     - image

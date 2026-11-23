@@ -11,7 +11,7 @@
       - rowheader "1"
       - gridcell "Update API docs"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "In progress"
     - row "2 Deploy hotfix Unchecked Blocked"
       - rowheader "2"
@@ -23,7 +23,7 @@
       - rowheader "3"
       - gridcell "Review pull request"
       - gridcell "Checked"
-        - checkbox "Checked"
+        - checkbox "Checked" [checked]
       - gridcell "Done"
     - row "4 Plan release Unchecked In progress"
       - rowheader "4"

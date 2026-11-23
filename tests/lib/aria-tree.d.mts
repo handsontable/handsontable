@@ -10,6 +10,12 @@ export interface TreeNode {
   tag: string;
   attrs: Record<string, string>;
   focusable: boolean;
+  /** The states written after the name (`checked`, `expanded=false`, `level=2`). */
+  states?: string[];
+  /** The value of a text field or a range. */
+  value?: string;
+  /** The root the node was read from (the grid or one portal), so the snapshot writes one header per root. */
+  root?: string;
 }
 
 type TreeFinding = {

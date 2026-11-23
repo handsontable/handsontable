@@ -94,7 +94,7 @@
       - gridcell "13"
 - alertdialog "Loading..."
   - image
-  - heading "Loading..."
+  - heading "Loading..." [level=2]
 # portal
 - status
 - status

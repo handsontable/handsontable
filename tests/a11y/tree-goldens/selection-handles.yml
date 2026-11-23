@@ -28,9 +28,9 @@
     - row "2 R2C1 R2C2 R2C3 R2C4 R2C5 R2C6 R2C7 R2C8 R2C9"
       - rowheader "2"
       - gridcell "R2C1"
-      - gridcell "R2C2"
-      - gridcell "R2C3"
-      - gridcell "R2C4"
+      - gridcell "R2C2" [selected]
+      - gridcell "R2C3" [selected]
+      - gridcell "R2C4" [selected]
       - gridcell "R2C5"
       - gridcell "R2C6"
       - gridcell "R2C7"
@@ -39,9 +39,9 @@
     - row "3 R3C1 R3C2 R3C3 R3C4 R3C5 R3C6 R3C7 R3C8 R3C9"
       - rowheader "3"
       - gridcell "R3C1"
-      - gridcell "R3C2"
-      - gridcell "R3C3"
-      - gridcell "R3C4"
+      - gridcell "R3C2" [selected]
+      - gridcell "R3C3" [selected]
+      - gridcell "R3C4" [selected]
       - gridcell "R3C5"
       - gridcell "R3C6"
       - gridcell "R3C7"
@@ -50,9 +50,9 @@
     - row "4 R4C1 R4C2 R4C3 R4C4 R4C5 R4C6 R4C7 R4C8 R4C9"
       - rowheader "4"
       - gridcell "R4C1"
-      - gridcell "R4C2"
-      - gridcell "R4C3"
-      - gridcell "R4C4"
+      - gridcell "R4C2" [selected]
+      - gridcell "R4C3" [selected]
+      - gridcell "R4C4" [selected]
       - gridcell "R4C5"
       - gridcell "R4C6"
       - gridcell "R4C7"

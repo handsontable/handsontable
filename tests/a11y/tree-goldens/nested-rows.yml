@@ -6,39 +6,39 @@
       - columnheader "Name"
       - columnheader "Copy"
   - rowgroup
-    - row "1 Root A Root A"
-      - rowheader "1"
+    - row "1 Root A Root A" [level=1]
+      - rowheader "1" [expanded]
       - gridcell "Root A"
       - gridcell "Root A"
-    - row "2 A-1 A-1"
+    - row "2 A-1 A-1" [level=2]
       - rowheader "2"
       - gridcell "A-1"
       - gridcell "A-1"
-    - row "3 A-2 A-2"
-      - rowheader "3"
+    - row "3 A-2 A-2" [level=2]
+      - rowheader "3" [expanded]
       - gridcell "A-2"
       - gridcell "A-2"
-    - row "4 A-2-a A-2-a"
+    - row "4 A-2-a A-2-a" [level=3]
       - rowheader "4"
       - gridcell "A-2-a"
       - gridcell "A-2-a"
-    - row "5 A-2-b A-2-b"
+    - row "5 A-2-b A-2-b" [level=3]
       - rowheader "5"
       - gridcell "A-2-b"
       - gridcell "A-2-b"
-    - row "6 A-3 A-3"
+    - row "6 A-3 A-3" [level=2]
       - rowheader "6"
       - gridcell "A-3"
       - gridcell "A-3"
-    - row "7 Root B Root B"
-      - rowheader "7"
+    - row "7 Root B Root B" [level=1]
+      - rowheader "7" [expanded]
       - gridcell "Root B"
       - gridcell "Root B"
-    - row "8 B-1 B-1"
+    - row "8 B-1 B-1" [level=2]
       - rowheader "8"
       - gridcell "B-1"
       - gridcell "B-1"
-    - row "9 B-2 B-2"
+    - row "9 B-2 B-2" [level=2]
       - rowheader "9"
       - gridcell "B-2"
       - gridcell "B-2"

@@ -1,6 +1,6 @@
 # grid
 - treegrid
-  - combobox "D, row 1"
+  - combobox "D, row 1" [expanded=false]
     - MenuListPopup
       - option "Option A"
       - option "Option B"
@@ -18,7 +18,7 @@
         - checkbox "Unchecked"
       - gridcell "B1"
       - gridcell "C1"
-      - gridcell "D1"
+      - gridcell "D1" [selected]
     - row "2 Unchecked B2 C2 D2"
       - rowheader "2"
       - gridcell "Unchecked"
@@ -26,17 +26,17 @@
       - gridcell "B2"
       - gridcell "C2"
       - gridcell "D2"
-- combobox "Page size"
+- combobox "Page size" [expanded=false]: "Auto"
   - MenuListPopup
-    - option "Auto"
+    - option "Auto" [selected]
     - option "5"
     - option "10"
     - option "20"
     - option "50"
     - option "100"
 - navigation "Pagination"
-  - button "Go to first page"
-  - button "Go to previous page"
+  - button "Go to first page" [disabled]
+  - button "Go to previous page" [disabled]
   - button "Go to next page"
   - button "Go to last page"
 # portal

@@ -16,7 +16,7 @@
     - row "2 A2 B2 C2"
       - rowheader "2"
       - gridcell "A2"
-      - gridcell "B2"
+      - gridcell "B2" [selected]
       - gridcell "C2"
     - row "3 A3 B3 C3"
       - rowheader "3"
@@ -44,12 +44,12 @@
   - menuitem "Remove row"
   - menuitem "Remove column"
   - separator
-  - menuitem "Undo"
-  - menuitem "Redo"
+  - menuitem "Undo" [disabled]
+  - menuitem "Redo" [disabled]
   - separator
   - menuitemcheckbox "Read only"
   - separator
-  - menuitem "Alignment"
+  - menuitem "Alignment" [expanded=false]
   - separator
   - menuitem "Copy"
   - menuitem "Cut"

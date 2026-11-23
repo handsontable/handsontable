@@ -91,6 +91,9 @@ test('a source index is mapped through the rendered window before it indexes the
   assert.match(finder, /aria-rowindex/, 'the row mapping must read the rows\' absolute aria-rowindex');
   assert.match(finder, /\.ht_master tbody tr/,
     'the mapping must read the master overlay, which carries the same window as the header overlays');
+  assert.match(finder, /\.ht_clone_inline_start tbody tr/,
+    'the row mapping must read the rows that hold the row headers: the grid gives each row one copy with '
+    + 'a row role and its aria-rowindex, and with row headers on that copy is not the master\'s');
   assert.doesNotMatch(finder, /thead tr:last-child/,
     'the mapping must not be read off the header row — a header\'s aria-colindex restarts at the '
     + 'window, which is the very thing being corrected for');

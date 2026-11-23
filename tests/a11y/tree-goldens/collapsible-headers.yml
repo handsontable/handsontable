@@ -3,7 +3,7 @@
   - rowgroup
     - row "A B F"
       - columnheader "A"
-      - columnheader "B"
+      - columnheader "B" [expanded]
       - columnheader "F"
     - row "a b c d e f"
       - columnheader "a"
@@ -50,5 +50,4 @@
       - gridcell "F5"
 # portal
 - status
-# portal
 - status

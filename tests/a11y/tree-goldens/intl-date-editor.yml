@@ -1,13 +1,13 @@
 # grid
 - treegrid
   - Date "A, row 1"
-    - spinbutton "Day Day"
-    - spinbutton "Month Month"
-    - spinbutton "Year Year"
+    - spinbutton "Day Day": "0"
+    - spinbutton "Month Month": "0"
+    - spinbutton "Year Year": "0"
     - button "Show date picker"
   - rowgroup
     - row "#bad-value# two"
-      - gridcell "#bad-value#"
+      - gridcell "#bad-value#" [selected]
       - gridcell "two"
       - gridcell
     - row "#bad-value# four"

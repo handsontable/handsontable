@@ -574,7 +574,9 @@ does for you):
   scroll start — measured on `large-dataset-demo`, whose first leaf header is column 0 at rest and
   column 22 after a 1200px scroll. The headers cannot correct for it themselves: a header's
   `aria-colindex` is `visibleColumnIndex + 1` and restarts at the window, while a DATA cell's is the
-  absolute `sourceColumnIndex` and a body row's `aria-rowindex` is absolute too. `headerCellAt()` maps
+  absolute `sourceColumnIndex` and a body row's `aria-rowindex` is absolute too (read off the inline-start overlay's
+  rows, which hold the row headers: the grid gives each row one copy with the `row` role, and with row
+  headers that copy is not the master's). `headerCellAt()` maps
   a source index through the master overlay's cells for that reason, and refuses a target outside the
   window instead of clicking the nearest header. `helpers.findCell()` and
   `helpers.findDropdownMenuExpander()` are still plain `nth-of-type` and carry the same limit — right
