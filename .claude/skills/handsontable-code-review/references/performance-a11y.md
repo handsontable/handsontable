@@ -19,8 +19,9 @@ class) and its class table (`references/classes.md`), which names the check that
 where it runs. A change to rendering, selection, headers or frozen areas meets the rule that the grid
 keeps its own ARIA (`role`, `aria-rowcount`, `aria-colcount`, `aria-rowindex`, `aria-colindex`,
 `aria-selected`). The short suite of the checks beyond axe reports on the pull request, but the
-forced-colors, docs, website and screen reader checks run only in the weekly audit, so for a rule
-they enforce this review is the only gate before it. On top of that, what only a reviewer can judge:
+forced-colors, axe discovery, docs, website and screen reader checks run only in the weekly audit,
+so for a rule they enforce this review is the only gate before it. On top of that, what only a
+reviewer can judge:
 
 1. **Keyboard navigation, both modes:** spreadsheet mode (`navigableHeaders: false`, `tabNavigation: true`) and data grid mode (`navigableHeaders: true`, `tabNavigation: false`). A new interactive element is reachable and operable by keyboard alone in both.
 2. **A name that means something:** the scan sees that a name exists, not what it says. Read each new name as a screen reader user hears it, out of context, and in another language file.

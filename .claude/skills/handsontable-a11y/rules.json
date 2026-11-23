@@ -43,6 +43,7 @@
         { "check": "tree-snapshots", "runs": "pull-request" },
         { "check": "docs-axe", "runs": "weekly" },
         { "check": "website-axe", "runs": "weekly" },
+        { "check": "docs-keyboard", "runs": "weekly" },
         { "check": "readers", "runs": "weekly" }
       ],
       "strikes": []

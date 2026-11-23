@@ -1,10 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { repoRoot } from '../../.github/scripts/lib/repo-root.mjs';
 import { EVIDENCE_CHECKS } from '../../tests/lib/a11y-evidence.mjs';
+import { SITE_CHECK_KINDS } from '../../tests/lib/a11y-site-checks.mjs';
 import {
-  BUDGET, CLASSES_FILE, HOME_FILES, POINTER_FILES, SKILL_FILE, classRow, classTags, collectSkillProblems, knownChecks,
-  lineCount, readSkillInputs, sectionBullets,
+  BUDGET, CLASSES_FILE, HOME_FILES, POINTER_FILES, SITE_FINDING_KINDS, SKILL_FILE, classRow, classTags,
+  collectSkillProblems, knownChecks, lineCount, readSkillInputs, sectionBullets,
 } from '../a11y-skill-rules.mjs';
 
 // The accessibility skill binds its rules to defect classes (`.claude/skills/handsontable-a11y/rules.json`), and every
@@ -63,6 +66,13 @@ test('SKILL.md stays within its line budget and its build-rule budget, and rules
 
     inputs.skill = inputs.skill.replace('\n## Fixing a finding', `${extra}\n\n## Fixing a finding`);
   }, /SKILL\.md has \d+ build rules, over the budget of 20/);
+
+  // A rule written with another list marker would escape the budget and the tags, so the marker itself is refused.
+  for (const rule of ['* Untagged star rule.', '+ Untagged plus rule.', '1. Untagged numbered rule.']) {
+    assertPlanted((inputs) => {
+      inputs.skill = inputs.skill.replace('\n## Fixing a finding', `${rule}\n\n## Fixing a finding`);
+    }, new RegExp(`the build rule "${escapeRegExp(rule)}…" starts with another list marker`));
+  }
   // The routine may edit rules.json, never this test's module: a raised budget there is refused.
   assertPlanted((inputs) => {
     inputs.rules.budget.skillLines = 200;
@@ -237,6 +247,21 @@ test('the classes account for the catalog: every check a cluster is found by, an
   assertPlanted((inputs) => {
     inputs.rules.notPreventable.push({ cluster: 'no-such-cluster', reason: 'Planted.' });
   }, /notPreventable 1 names "no-such-cluster", which tests\/a11y\/issues\.json does not hold/);
+  // A site match that names its finding kinds and no check holds its class to the site check that writes them.
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C08').enforcedBy = classOf(inputs, 'C08').enforcedBy
+      .filter(item => !item.check.endsWith('-focus-contrast'));
+  }, /class C08: its cluster "docs-focus-indicator-contrast" is found by docs-focus-contrast/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C10').enforcedBy = classOf(inputs, 'C10').enforcedBy.filter(item => item.check !== 'docs-reflow');
+  }, /class C10: its cluster "docs-content-reflow" is found by docs-reflow/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C15').enforcedBy = [{ check: 'none', runs: 'none' }];
+  }, /class C15: its cluster "website-newsletter-label" is found by website-forms/);
+  // A finding kind the map does not know would let its cluster's class off, so the catalog may not name one.
+  assertPlanted((inputs) => {
+    cluster(inputs, 'docs-heading-skips').match[0].kinds = ['heading-order-planted'];
+  }, /cluster "docs-heading-skips" matches the site finding kind "heading-order-planted", which SITE_FINDING_KINDS/);
   // A cluster moved to another class carries its checks' demands with it.
   assertPlanted((inputs) => {
     cluster(inputs, 'drag-and-press-activation').defectClass = 'C14';
@@ -268,4 +293,30 @@ test('every pointer line still points, and a build rule it quotes exists', () =>
 
     inputs.pointers[file] = inputs.pointers[file].replace('"Accessible pages"', '"Accessibility"');
   }, /writing-docs-pages\/SKILL\.md does not point at `docs\/AGENTS\.md`, "Accessible pages"/);
+});
+
+test('every site finding kind maps to a site check whose spec can write it', () => {
+  const root = repoRoot();
+  const read = file => readFileSync(path.join(root, file), 'utf8');
+  // A spec writes a kind itself or through a `tests/lib` module it imports; a kind several specs can reach (the shared
+  // contrast and layout modules) is mapped to the check whose criteria it evidences.
+  const reachable = (spec) => {
+    const text = read(`tests/a11y/sites/${spec}`);
+    const modules = [...text.matchAll(/from '\.\.\/\.\.\/lib\/([^']+)'/g)].map(([, file]) => read(`tests/lib/${file}`));
+
+    return [text, ...modules].join('\n');
+  };
+
+  for (const [kind, siteKind] of Object.entries(SITE_FINDING_KINDS)) {
+    assert.ok(Object.hasOwn(SITE_CHECK_KINDS, siteKind), `${kind} maps to "${siteKind}", not a site check kind`);
+    assert.ok(reachable(SITE_CHECK_KINDS[siteKind].spec).includes(`'${kind}'`),
+      `${kind}: ${SITE_CHECK_KINDS[siteKind].spec} and the modules it imports never write it`);
+  }
+
+  const { catalog } = committed();
+  const siteKinds = catalog.clusters.flatMap(entry => entry.match)
+    .filter(match => ['docs-checks', 'website-checks'].includes(match.source)).flatMap(match => match.kinds ?? []);
+
+  assert.ok(siteKinds.length > 30, 'the catalog matches site findings by kind');
+  assert.deepEqual(siteKinds.filter(kind => !Object.hasOwn(SITE_FINDING_KINDS, kind)), []);
 });

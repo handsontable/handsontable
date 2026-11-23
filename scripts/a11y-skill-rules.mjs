@@ -23,7 +23,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { EVIDENCE_CHECKS, WCAG_CRITERIA } from '../tests/lib/a11y-evidence.mjs';
-import { SITE_CHECKS } from '../tests/lib/a11y-site-checks.mjs';
+import { SITE_CHECKS, siteCheckId } from '../tests/lib/a11y-site-checks.mjs';
 import { AXE_SCAN_CHECK, DOCS_SCAN_CHECK, WEBSITE_SCAN_CHECK } from '../tests/lib/a11y-issues.mjs';
 
 export const SKILL_DIR = '.claude/skills/handsontable-a11y';
@@ -70,6 +70,46 @@ const POINTER_TARGETS = Object.freeze({
 });
 const QUOTED_RULE = /`handsontable-a11y` skill, "([^"]+)"/g;
 const RULE_LEAD = /^- \*\*([^*]+?)\.?\*\*/;
+// A list item that does not start with `- `: the build rules count and tag only those, so any other marker is refused.
+const OTHER_LIST_MARKER = /^(?:[*+]|\d+[.)]) /;
+
+/**
+ * The site check kind (a key of `SITE_CHECK_KINDS`) that writes each kind of finding a site check reports, for a match
+ * of the catalog that names its finding kinds and no check (`{ "source": "docs-checks", "kinds": [...] }`). The finding
+ * kinds live in the site specs and the modules they import, not in a registry, so this map is kept by hand: the test
+ * holds every entry to a spec that can write it, and every kind a site match of the catalog names to an entry here.
+ */
+export const SITE_FINDING_KINDS = Object.freeze({
+  'heading-level-skipped': 'structure',
+  'help-order-differs': 'structure',
+  'landmark-name-repeated': 'structure',
+  'link-name-generic': 'structure',
+  'page-title-differs-from-heading': 'structure',
+  'page-title-duplicate': 'structure',
+  'single-way': 'structure',
+  'context-change-on-input': 'keyboard',
+  'focus-not-returned': 'keyboard',
+  'focus-stop-aria-hidden': 'keyboard',
+  'focus-stop-hidden': 'keyboard',
+  'focus-stop-without-role': 'keyboard',
+  'grid-holds-focus': 'keyboard',
+  'single-key-shortcut': 'keyboard',
+  'control-boundary-contrast': 'focus-contrast',
+  'focus-indicator-contrast': 'focus-contrast',
+  'focus-not-visible': 'focus-contrast',
+  'focus-obscured': 'focus-contrast',
+  'controls-overlap': 'reflow',
+  'outside-viewport': 'reflow',
+  'page-scrolls-sideways': 'reflow',
+  'text-clipped': 'reflow',
+  'text-truncated': 'reflow',
+  'focus-lost-in-forced-colors': 'forced-colors-motion',
+  'state-lost-in-forced-colors': 'forced-colors-motion',
+  'entry-not-kept': 'forms',
+  'label-not-visible': 'forms',
+  'success-not-announced': 'forms',
+});
+const SITE_MATCH_SOURCES = Object.freeze({ 'docs-checks': 'docs', 'website-checks': 'website' });
 const RUNS_TEXT = Object.freeze({ 'pull-request': 'pull request', weekly: 'weekly', none: 'nowhere yet' });
 const TOP_FIELDS = ['schema', 'about', 'budget', 'classes', 'notPreventable'];
 const CLASS_FIELDS = ['id', 'name', 'wcag', 'home', 'rule', 'enforcedBy', 'strikes'];
@@ -443,6 +483,15 @@ export function skillProblems(skill, classes) {
   const problems = [];
   const lines = lineCount(skill);
   const bullets = sectionBullets(skill, '## Build rules');
+  const sectionLines = skill.split('\n');
+  const start = sectionLines.findIndex(line => line.trim() === '## Build rules');
+  const end = sectionLines.findIndex((line, index) => index > start && /^#{1,2} /.test(line));
+
+  sectionLines.slice(start + 1, end === -1 ? undefined : end).filter(line => OTHER_LIST_MARKER.test(line))
+    .forEach((line) => {
+      problems.push(`${SKILL_FILE}: the build rule "${line.slice(0, 60)}…" starts with another list marker: write `
+        + 'every build rule as "- ", which the budget and the tags count');
+    });
 
   if (lines > BUDGET.skillLines) {
     problems.push(`${SKILL_FILE} has ${lines} lines, over the budget of ${BUDGET.skillLines}: shorten a rule, or move `
@@ -550,8 +599,9 @@ export function catalogProblems(catalog, classes) {
 
 /**
  * The check a cluster's match is found by, as a class names it: the grid's axe scan, the docs or website axe scan, the
- * screen reader lanes, or the checks it lists (any one of them will do). `null` when the match names no check this
- * module can tell: a site check matched by its kind alone, or the triage run, which enforces nothing.
+ * screen reader lanes, the checks it lists, or, for a site match that lists none, the site checks that write its
+ * finding kinds (`SITE_FINDING_KINDS`). Any one of them will do. `null` when the match names no check: the triage run
+ * alone, which enforces nothing, or a site match with neither checks nor kinds.
  *
  * @param {object} match One entry of a cluster's `match`.
  * @returns {string[]|null} The checks, any of which the class must list.
@@ -567,8 +617,31 @@ function checksOfMatch(match) {
   }
 
   const named = (match.checks ?? []).filter(id => EVIDENCE_CHECKS[id]?.triage !== true);
+  const site = SITE_MATCH_SOURCES[match.source];
+
+  if (named.length === 0 && site) {
+    const fromKinds = (match.kinds ?? []).filter(kind => Object.hasOwn(SITE_FINDING_KINDS, kind))
+      .map(kind => siteCheckId(site, SITE_FINDING_KINDS[kind]));
+
+    return fromKinds.length > 0 ? [...new Set(fromKinds)] : null;
+  }
 
   return named.length > 0 ? named : null;
+}
+
+/**
+ * The finding kinds of a site match that lists no check and that `SITE_FINDING_KINDS` does not map, so no class could
+ * be held to the check that finds them.
+ *
+ * @param {object} match One entry of a cluster's `match`.
+ * @returns {string[]} The kinds.
+ */
+function unmappedSiteKinds(match) {
+  if (!Object.hasOwn(SITE_MATCH_SOURCES, match.source) || (match.checks ?? []).length > 0) {
+    return [];
+  }
+
+  return (match.kinds ?? []).filter(kind => !Object.hasOwn(SITE_FINDING_KINDS, kind));
 }
 
 /**
@@ -586,6 +659,11 @@ export function catalogReferenceProblems(catalog, classes, notPreventable) {
   const problems = [];
 
   for (const cluster of clusters.values()) {
+    for (const kind of new Set((cluster.match ?? []).flatMap(unmappedSiteKinds))) {
+      problems.push(`${CATALOG_FILE}: cluster "${cluster.id}" matches the site finding kind "${kind}", which `
+        + 'SITE_FINDING_KINDS (scripts/a11y-skill-rules.mjs) does not map to a site check');
+    }
+
     const entry = byId.get(cluster.defectClass);
 
     if (!entry || entry.home === 'record-only') {

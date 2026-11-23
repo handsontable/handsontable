@@ -26,7 +26,10 @@ contract and the leg tags). The accessibility part of a spec:
   `announce()` writes to the assertive one unless the caller passes `'polite'`. Wait on the region
   the code under test uses, for example
   `page.locator('.ht-portal [role="status"][aria-live="polite"]')`, then `toHaveText(message)`.
-  Assert the text the user hears, not that `announce()` was called.
+  Assert the text the user hears, not that `announce()` was called. Core's selection announcer
+  (`src/core/selectionAnnouncer/`) writes the polite region too, 200 ms after a keyboard or mouse
+  selection of more than one cell, unless another announcement came for the same action: wait for
+  your own message, and never assert that the region holds nothing else.
 - **Declare the legs.** A flow whose keys or focus an engine could get wrong carries
   `CROSS_BROWSER_TAG`; one whose result depends on the theme (a focus ring, a target size) carries
   `THEMES_TAG`.
@@ -93,18 +96,42 @@ the check that proves each class and where it runs. The criteria of each check a
 | `forced-colors-motion` | what forced colors no longer draw, motion that runs on | weekly only |
 | `axe-discovery` | axe's wider rules and its needs-review results, for triage | weekly only |
 
-- **Run one locally**, after `build:umd`, `build:styles.min` and `build:themes-css.min`:
-  `A11Y_CHECKS=<check> npm --prefix tests run test:a11y-checks` (the short suite of the fast ones:
-  `HOT_A11Y_CHECKS_SUITE=pull-request`, what a pull request runs). Each writes
+- **Run one of the grid's checks locally**, after `build:umd`, `build:styles.min` and
+  `build:themes-css.min`: `A11Y_CHECKS=<check> npm --prefix tests run test:a11y-checks` (the short
+  suite of the fast ones: `HOT_A11Y_CHECKS_SUITE=pull-request`, what a pull request runs). Each writes
   `tests/test-results/a11y-checks/<check>.json`; a critical or serious finding there is what the pull
-  request or the audit will report.
+  request or the audit will report. This config knows the checks of `EVIDENCE_CHECKS` only: a
+  `docs-*` or `website-*` check runs from the site config ("A docs or website check" below).
 - **A proof run on CI** dispatches the nightly from your branch:
   `gh workflow run a11y-nightly.yml --ref <branch> -f checks=<check>`. It costs runner minutes, and
   develop refuses a subset, so run locally first.
 - **Goldens move with the change.** `HOT_A11Y_UPDATE_GOLDENS=1` records the tab-order and tree
   goldens; read the diff before committing. A change to the rendered structure updates the tree
   golden in the same pull request, or the audit reports it as drift.
+- **A docs or website check reads a deploy, never a build**, so run it against one that holds your
+  change: the pull request's docs preview (`https://pr-<number>.handsontable-docs-staging.pages.dev/docs`)
+  or a local `npm --prefix docs run preview` (`http://localhost:4321/docs`). Locally,
+  `DOCS_A11Y_BASE_URL=<deploy> npm --prefix tests run test:a11y-sites -- --project=<check>` runs a
+  `docs-*` check, and `DOCS_A11Y_BASE_URL=<deploy> npm --prefix tests run test:a11y-docs` the docs
+  axe scan (`docs-axe`). For the website, `HOT_A11Y_SITE=website WEBSITE_A11Y_BASE_URL=<origin> npm
+  --prefix tests run test:a11y-sites -- --project=<check>`, and `test:a11y-website` for its scan. On
+  CI: `gh workflow run docs-a11y.yml --ref <branch> -f base-url=<deploy> -f checks=<check>`
+  (`website-a11y.yml` with an origin for the website). With no `base-url` both read the develop
+  staging deploy (production for the website), which does not hold your change. A pull request runs
+  neither, except that one changing a site scan's own files runs that axe scan.
 - **The screen reader lanes** (`tests/screenreader/`) run on macOS and Windows runners, one run at a
-  time; their scenarios and goldens are in `tests/AGENTS.md`. **The docs and website checks**
-  (`docs-*`, `website-*`) read a deployed site, from `docs-a11y.yml` and `website-a11y.yml`, weekly
-  only: a pull request that changes a site scan's own files runs that axe scan, never the checks.
+  time: check for one in flight first, the Monday audit included. Their scenarios and rules are
+  `tests/AGENTS.md`, "Screen readers: the NVDA and VoiceOver lanes". A proof run dispatches the subset
+  that changed: `gh workflow run screenreader-nightly.yml --ref <branch> -f projects=<project>
+  -f groups=<group>` (whole names, comma-separated, no spaces; the projects are `nvda-chromium`,
+  `nvda-firefox`, `vo-webkit` and `vo-chromium`, the groups `keyboard`, `reading`, `menus`,
+  `editors`, `selection`, `structure`, `status` and `formulas`).
+- **A change to what a screen reader says records the goldens of its scenarios in the same pull
+  request.** That is a role, a name, a description, an announcement or the reading order, the rules
+  of the classes whose row in `references/classes.md` lists `readers`. One recording run of the
+  changed groups is enough: `gh workflow run screenreader-nightly.yml --ref <branch>
+  -f update-goldens=true -f groups=<group>[,<group>]` (add `-f projects=<project>` to record one
+  reader only). Download the `screenreader-goldens-<project>-<group>` artifacts, read the diff, and
+  commit the scenarios the change is about under `tests/screenreader/goldens/<project>/`. Without
+  them the next audit reports every changed step as a golden difference against the old wording, and
+  that drift buries the real findings.
