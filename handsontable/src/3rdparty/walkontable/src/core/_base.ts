@@ -17,36 +17,7 @@ import CellRange from '../cell/range';
 import { LiveGeometryReader } from '../domMeasure/liveGeometryReader';
 import type { GeometryReader } from '../domMeasure/geometryReader';
 import { buildContext, type EngineContext } from '../wire';
-import {
-  CLONE_BOTTOM_INLINE_END_CORNER,
-  CLONE_BOTTOM_INLINE_START_CORNER,
-  CLONE_INLINE_END,
-  CLONE_INLINE_START,
-  CLONE_TOP,
-  CLONE_TOP_INLINE_END_CORNER,
-  CLONE_TOP_INLINE_START_CORNER,
-} from '../overlay/constants';
-import { MASTER_TABLE, resolveOwningOverlay } from '../overlay/overlayOwnership';
-
-/**
- * Returns the overlay of the given clone type.
- *
- * @param {Overlays} overlays The overlays.
- * @param {string} cloneType The clone type (a `CLONE_*` constant).
- * @returns {Overlay | undefined}
- */
-function getOverlayOfType(overlays: Overlays, cloneType: string) {
-  switch (cloneType) {
-    case CLONE_TOP_INLINE_START_CORNER: return overlays.topInlineStartCornerOverlay;
-    case CLONE_TOP_INLINE_END_CORNER: return overlays.topInlineEndCornerOverlay;
-    case CLONE_TOP: return overlays.topOverlay;
-    case CLONE_BOTTOM_INLINE_START_CORNER: return overlays.bottomInlineStartCornerOverlay;
-    case CLONE_BOTTOM_INLINE_END_CORNER: return overlays.bottomInlineEndCornerOverlay;
-    case CLONE_INLINE_START: return overlays.inlineStartOverlay;
-    case CLONE_INLINE_END: return overlays.inlineEndOverlay;
-    default: return overlays.bottomOverlay;
-  }
-}
+import { MASTER_TABLE, getOverlayOfType, resolveOwningOverlay } from '../overlay/overlayOwnership';
 
 /**
  * @abstract
@@ -318,13 +289,15 @@ export default class CoreAbstract {
       return this.wtTable.getCell(coords);
     }
 
+    const fixedColumnsEnd = this.wtSettings.getSetting<number>('fixedColumnsEnd');
     const owner = resolveOwningOverlay({
       totalRows: this.wtSettings.getSetting<number>('totalRows'),
-      totalColumns: this.wtSettings.getSetting<number>('totalColumns'),
+      // Read only for a grid with frozen end columns: nothing else compares against it.
+      totalColumns: fixedColumnsEnd > 0 ? this.wtSettings.getSetting<number>('totalColumns') : 0,
       fixedRowsTop: this.wtSettings.getSetting<number>('fixedRowsTop'),
       fixedRowsBottom: this.wtSettings.getSetting<number>('fixedRowsBottom'),
       fixedColumnsStart: this.wtSettings.getSetting<number>('fixedColumnsStart'),
-      fixedColumnsEnd: this.wtSettings.getSetting<number>('fixedColumnsEnd'),
+      fixedColumnsEnd,
     }, coords.row, coords.col);
 
     if (owner === MASTER_TABLE) {

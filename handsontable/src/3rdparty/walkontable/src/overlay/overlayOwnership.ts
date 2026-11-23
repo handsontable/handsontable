@@ -84,3 +84,38 @@ function resolveTopOwner(isInStartColumns: boolean, isInEndColumns: boolean): st
 
   return isInEndColumns ? CLONE_TOP_INLINE_END_CORNER : CLONE_TOP;
 }
+
+/**
+ * The overlays a clone type is looked up in, by the name each one has on `Overlays`.
+ */
+export interface OverlaysByType<T> {
+  topOverlay?: T;
+  bottomOverlay?: T;
+  inlineStartOverlay?: T;
+  inlineEndOverlay?: T;
+  topInlineStartCornerOverlay?: T;
+  topInlineEndCornerOverlay?: T;
+  bottomInlineStartCornerOverlay?: T;
+  bottomInlineEndCornerOverlay?: T;
+}
+
+/**
+ * Returns the overlay of the given clone type.
+ *
+ * @param {OverlaysByType} overlays The overlays.
+ * @param {string} cloneType The clone type (a `CLONE_*` constant).
+ * @returns {*} The overlay, or `undefined` for a name that is no clone type or an overlay that does not exist.
+ */
+export function getOverlayOfType<T>(overlays: OverlaysByType<T>, cloneType: string): T | undefined {
+  switch (cloneType) {
+    case CLONE_TOP_INLINE_START_CORNER: return overlays.topInlineStartCornerOverlay;
+    case CLONE_TOP_INLINE_END_CORNER: return overlays.topInlineEndCornerOverlay;
+    case CLONE_TOP: return overlays.topOverlay;
+    case CLONE_BOTTOM_INLINE_START_CORNER: return overlays.bottomInlineStartCornerOverlay;
+    case CLONE_BOTTOM_INLINE_END_CORNER: return overlays.bottomInlineEndCornerOverlay;
+    case CLONE_INLINE_START: return overlays.inlineStartOverlay;
+    case CLONE_INLINE_END: return overlays.inlineEndOverlay;
+    case CLONE_BOTTOM: return overlays.bottomOverlay;
+    default: return undefined;
+  }
+}

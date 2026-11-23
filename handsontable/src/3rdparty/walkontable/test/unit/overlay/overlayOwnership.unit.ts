@@ -1,4 +1,4 @@
-import { MASTER_TABLE, resolveOwningOverlay } from 'walkontable/overlay/overlayOwnership';
+import { MASTER_TABLE, getOverlayOfType, resolveOwningOverlay } from 'walkontable/overlay/overlayOwnership';
 import type { OverlayOwnershipLayout } from 'walkontable/overlay/overlayOwnership';
 
 /**
@@ -128,5 +128,31 @@ describe('resolveOwningOverlay', () => {
     });
 
     expect(compared).toBeGreaterThan(10000);
+  });
+});
+
+describe('getOverlayOfType', () => {
+  const overlays = {
+    topOverlay: 'the top overlay',
+    bottomOverlay: 'the bottom overlay',
+    inlineStartOverlay: 'the inline start overlay',
+    inlineEndOverlay: 'the inline end overlay',
+    topInlineStartCornerOverlay: 'the top inline start corner overlay',
+    topInlineEndCornerOverlay: 'the top inline end corner overlay',
+    bottomInlineStartCornerOverlay: 'the bottom inline start corner overlay',
+    bottomInlineEndCornerOverlay: 'the bottom inline end corner overlay',
+  };
+
+  it.each([
+    'top', 'bottom', 'inline_start', 'inline_end', 'top_inline_start_corner', 'top_inline_end_corner',
+    'bottom_inline_start_corner', 'bottom_inline_end_corner',
+  ])('returns the overlay of the "%s" clone type', (cloneType) => {
+    expect(getOverlayOfType(overlays, cloneType)).toBe(`the ${cloneType.replace(/_/g, ' ')} overlay`);
+  });
+
+  it('returns nothing for the master table, an unknown name, and an overlay that does not exist', () => {
+    expect(getOverlayOfType(overlays, MASTER_TABLE)).toBeUndefined();
+    expect(getOverlayOfType(overlays, 'left')).toBeUndefined();
+    expect(getOverlayOfType({}, 'bottom')).toBeUndefined();
   });
 });

@@ -92,6 +92,21 @@ describe('stampRowGroupsInReadingOrder', () => {
     expect(top.TBODY!.id).toBe('');
   });
 
+  it('takes its id back from a section that stopped being a row group, and leaves a foreign id alone', () => {
+    const top = table('top', true, true);
+
+    stampRowGroupsInReadingOrder([top], GUID);
+    expect(top.TBODY!.id).toBe(getRowGroupId(GUID, 'top', 'body'));
+
+    top.TBODY!.removeAttribute('role');
+    expect(short(stampRowGroupsInReadingOrder([top], GUID))).toEqual(['top-head']);
+    expect(top.TBODY!.hasAttribute('id')).toBe(false);
+
+    top.TBODY!.id = 'someone-elses';
+    stampRowGroupsInReadingOrder([top], GUID);
+    expect(top.TBODY!.id).toBe('someone-elses');
+  });
+
   it('writes the id on each listed section, unique per grid', () => {
     const master = table('master', false, true);
 

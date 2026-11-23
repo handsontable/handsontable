@@ -2153,7 +2153,9 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   frozen top rows, rows between, frozen bottom rows, and writes the list on the root when it changed. The
   order is a fixed list of table and section, so the pass reads no row index and no layout. Three rules. The
   head sections of the master and of the two side clones are left out, because the stylesheet hides them. A
-  root that is not a `treegrid` gets no list: a menu takes the grid's root for its own role. And Playwright's
+  grid built with `ariaTags: false` (every menu, and the handsontable editor's list) writes no list, and only
+  a list the method wrote is removed, so an `aria-owns` an application put on its own container stays. And
+  Playwright's
   `ariaSnapshot()` does not apply `aria-owns`, so the tree goldens do not show the order; read it from
   Chromium's tree (`FrozenEdgesPage#accessibilityTree`, the tree check's `headers-after-data` finding).
   axe keeps reporting `aria-required-children` on the root: its reason is the holders' `tabindex`, which the

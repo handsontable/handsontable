@@ -64,9 +64,9 @@ export function getRowGroupId(guid: string, tableName: string, section: SectionN
 
 /**
  * Gives every row group of the grid an id and returns the ids in reading order, for the `aria-owns` of the
- * grid's root. A section that is not a row group in this draw (it holds no rows, or another module took its
- * role) is left out. An id is written only when it differs, and an id set by someone else is replaced: the
- * list has to name the section.
+ * grid's root. A section that is not a row group in this draw (its rows hold no cells, or another module took
+ * its role) is left out, and loses the id an earlier draw gave it. An id is written only when it differs, and
+ * an id set by someone else is replaced: the list has to name the section.
  *
  * @param {AriaTreeTable[]} tables The master table and the overlay clones' tables, in any order.
  * @param {string} guid The grid's instance id, which makes the ids unique on a page with several grids.
@@ -81,13 +81,17 @@ export function stampRowGroupsInReadingOrder(tables: AriaTreeTable[], guid: stri
     const table = byName.get(tableName);
     const element = section === HEAD ? table?.THEAD : table?.TBODY;
 
-    if (element && element.getAttribute(ROLE) === ROWGROUP) {
-      const id = getRowGroupId(guid, tableName, section);
+    const id = getRowGroupId(guid, tableName, section);
 
+    if (element && element.getAttribute(ROLE) === ROWGROUP) {
       if (element.id !== id) {
         element.id = id;
       }
       ids.push(id);
+
+    } else if (element && element.id === id) {
+      // The section was listed by an earlier draw and is no row group in this one.
+      element.removeAttribute('id');
     }
   }
 

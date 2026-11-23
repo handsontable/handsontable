@@ -40,13 +40,16 @@ test.describe('the reading order of the grid\'s row groups', () => {
 
       const tree = await grid.accessibilityTree();
 
-      // What a screen reader gets: the column headers before any row header or data row. The corner
-      // clone's own head row, the corner cell alone, may come first.
+      // What a screen reader gets: the column headers before any data row. In the DOM the master table,
+      // which holds the data rows, comes first. A data row holds grid cells and no column header; the
+      // corner clone's own head row, the corner cell alone, is no data row.
       const firstHeaderRow = tree.rows.findIndex(row => row.includes('columnheader'));
-      const firstBodyRow = tree.rows.findIndex(row => row.includes('rowheader'));
+      const firstDataRow = tree.rows.findIndex(
+        row => !row.includes('columnheader') && row.filter(role => role === 'gridcell').length > 1
+      );
 
       expect(firstHeaderRow).toBeGreaterThan(-1);
-      expect(firstBodyRow).toBeGreaterThan(firstHeaderRow);
+      expect(firstDataRow).toBeGreaterThan(firstHeaderRow);
       expect(tree.findings).not.toContain('headers-after-data');
     });
   }
@@ -79,6 +82,20 @@ test.describe('the reading order of the grid\'s row groups', () => {
 
     // No row group at all: the attribute goes.
     await expect.poll(() => grid.rootOwns()).toBeNull();
+  });
+
+  test('a side clone that is turned off leaves the list', async() => {
+    await grid.goto('all');
+    await grid.updateSettings({ rowHeaders: false, fixedColumnsStart: 0, fixedColumnsEnd: 0 });
+
+    // The start and end clones keep their rows, now without cells: they are no row groups any more.
+    await expect.poll(async() => (await grid.ownedRowGroups()).map(item => item.name))
+      .toEqual([HEADS[1], TOP[1], MIDDLE[1], BOTTOM[1]]);
+
+    const tree = await grid.accessibilityTree();
+
+    expect(tree.rows.filter(row => row.length === 0)).toEqual([]);
+    expect(tree.findings).not.toContain('headers-after-data');
   });
 
   test('a grid that writes no accessibility attributes lists nothing', async() => {

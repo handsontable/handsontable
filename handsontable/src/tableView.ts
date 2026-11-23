@@ -316,6 +316,10 @@ class TableView {
    */
   #sizesMeasuredWithoutStylesPending = false;
   /**
+   * The row groups the grid last listed on its root (`aria-owns`), empty when it wrote none.
+   */
+  #ariaOwnedRowGroups = '';
+  /**
    * Whether the last `_wt.draw()` of `render()` reached the cells. The engine reports it through `onDraw`, which a draw
    * that a `beforeViewRender` listener cancelled (`skipRender`) never fires.
    *
@@ -3205,17 +3209,17 @@ class TableView {
    * drawn by overlay clones that follow the master table in the DOM, so without the list a screen reader
    * reads the data before the headers that label it.
    *
-   * The list is rebuilt after each draw that rendered cells, because a section is a row group only while it
-   * holds rows, and written only when it changed. A root that is not a `treegrid` (a menu takes the grid's
-   * root for its own role) gets no list.
+   * The list is rebuilt after each draw that rendered cells, because a section is a row group only while its
+   * rows hold cells, and written only when it changed. A grid that writes no accessibility attributes
+   * (`ariaTags: false`, which the menus and the editors' lists are built with) writes no list, and only a
+   * list this method wrote is ever removed.
    */
   #syncAriaRowGroupOrder() {
     const { rootElement, guid } = this.hot;
     const [ownsAttribute] = A11Y_OWNS('');
-    const isGrid = this.settings.ariaTags && rootElement.getAttribute('role') === A11Y_TREEGRID()[1];
     let owned = '';
 
-    if (isGrid && guid) {
+    if (this.settings.ariaTags && guid) {
       const tables: AriaTreeTable[] = [];
 
       this._wt.wtOverlays.getOverlays(true).forEach((overlay) => {
@@ -3229,14 +3233,17 @@ class TableView {
       owned = stampRowGroupsInReadingOrder(tables, guid).join(' ');
     }
 
-    if (owned === '') {
-      if (rootElement.hasAttribute(ownsAttribute)) {
-        rootElement.removeAttribute(ownsAttribute);
-      }
+    if (owned === this.#ariaOwnedRowGroups) {
+      return;
+    }
 
-    } else if (rootElement.getAttribute(ownsAttribute) !== owned) {
+    if (owned === '') {
+      rootElement.removeAttribute(ownsAttribute);
+    } else {
       rootElement.setAttribute(ownsAttribute, owned);
     }
+
+    this.#ariaOwnedRowGroups = owned;
   }
 
   /**
