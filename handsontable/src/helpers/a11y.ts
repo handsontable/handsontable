@@ -121,9 +121,10 @@ export function readCellAnnouncementSignature(cell: HTMLElement): string {
 
 /**
  * The cell that holds the focus and what a screen reader last had to say about it. The focus is on one
- * element, so one slot is enough, and a cell that takes the focus overwrites it.
+ * element, so one slot is enough, and a cell that takes the focus overwrites it. The cell is held weakly, so
+ * a destroyed grid's DOM is not kept reachable by a record nobody clears.
  */
-let announcedCell: { cell: HTMLElement; signature: string; colIndex: string | null } | null = null;
+let announcedCell: { cell: WeakRef<HTMLElement>; signature: string; colIndex: string | null } | null = null;
 
 /**
  * Records what a cell shows now as what the screen reader knows about it. Called when the cell takes the focus.
@@ -133,12 +134,12 @@ let announcedCell: { cell: HTMLElement; signature: string; colIndex: string | nu
  * focuses a cell that is pressed before the grid selects it, and the record may be older than that.
  */
 export function rememberAnnouncedCell(cell: HTMLElement, keepExisting = false): void {
-  if (keepExisting && announcedCell?.cell === cell) {
+  if (keepExisting && announcedCell?.cell.deref() === cell) {
     return;
   }
 
   announcedCell = {
-    cell,
+    cell: new WeakRef(cell),
     signature: readCellAnnouncementSignature(cell),
     colIndex: cell.getAttribute('aria-colindex'),
   };
@@ -154,11 +155,11 @@ export function rememberAnnouncedCell(cell: HTMLElement, keepExisting = false): 
  * @returns {boolean}
  */
 export function hasCellChangedSinceAnnounced(cell: HTMLElement): boolean {
-  const previous = announcedCell?.cell === cell ? announcedCell : null;
+  const previous = announcedCell?.cell.deref() === cell ? announcedCell : null;
   const colIndex = cell.getAttribute('aria-colindex');
   const signature = readCellAnnouncementSignature(cell);
 
-  announcedCell = { cell, signature, colIndex };
+  announcedCell = { cell: new WeakRef(cell), signature, colIndex };
 
   return previous !== null && previous.colIndex === colIndex && previous.signature !== signature;
 }
