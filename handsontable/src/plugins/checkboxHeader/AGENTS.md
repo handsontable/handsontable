@@ -54,7 +54,9 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
   the column's PHYSICAL index and the release target is resolved again (`#isOnCheckboxOf()`), because a render
   replaces the nodes between the two. The header re-renders on the `mouseup`, which comes before the `click`, so
   `#onRootClick` still cancels the browser's own toggle and no opposite state flashes. A tap acts at once: the
-  touch path is already the release. `disablePlugin()` and `destroy()` drop a held press
+  touch path is already the release. A long press does not: Walkontable replays it with the finger still down,
+  marks it (`markLongPressReplay()`), and the hook skips the toggle for `isLongPressReplay(event)` while still
+  claiming the press. `disablePlugin()` and `destroy()` drop a held press
   (`#disposePress`). `beforeChange`, `afterChange` and the selection hooks therefore fire at the release.
 - **A tap is a press too: gate on `isLeftClick(event) || isTouchEvent(event)`, never `event.button`.**
   On touch, Walkontable calls `beforeOnCellMouseDown` with the deferred `touchend` (see

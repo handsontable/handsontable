@@ -12,6 +12,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { isTouchEvent } from '../../helpers/dom/event';
+import { isLongPressReplay } from '../../helpers/dom/longPress';
 import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { throwWithCause } from '../../helpers/errors';
 import { isPlainObject } from '../../helpers/object';
@@ -1469,7 +1470,10 @@ export class CollapsibleColumns extends BasePlugin {
         this.eventManager.fireEvent(target, 'mouseup');
 
         if (isTouchEvent(event)) {
-          this.#toggleSectionByUser(coords, hasClass(target, 'expanded') ? 'collapse' : 'expand');
+          // A tap acts at once. A long press is replayed with the finger still down and acts on nothing.
+          if (!isLongPressReplay(event)) {
+            this.#toggleSectionByUser(coords, hasClass(target, 'expanded') ? 'collapse' : 'expand');
+          }
 
         } else {
           this.#armIndicatorPress(event, coords);

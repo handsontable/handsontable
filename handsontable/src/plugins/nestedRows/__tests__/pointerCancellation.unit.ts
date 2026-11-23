@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, NestedRows } from 'handsontable/plugins';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
+import { markLongPressReplay } from 'handsontable/helpers/dom/longPress';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(NestedRows);
@@ -139,5 +140,18 @@ describe('NestedRows pointer cancellation', () => {
       { row: false, column: false, cell: false });
 
     expect(collapsed()).toEqual([0]);
+  });
+
+  it('should claim a long press and not toggle the parent: it is replayed while the finger is down', () => {
+    const target = button(0);
+    const longPress = new TouchEvent('nested-rows-test-long-press', { bubbles: true, cancelable: true });
+
+    target.dispatchEvent(longPress);
+    markLongPressReplay(longPress);
+    hot.runHooks('beforeOnCellMouseDown', longPress, hot.getCoords(target.closest('th')!), target.closest('th'),
+      { row: false, column: false, cell: false });
+
+    expect(collapsed()).toEqual([]);
+    expect(longPress.cancelBubble).toBe(true);
   });
 });

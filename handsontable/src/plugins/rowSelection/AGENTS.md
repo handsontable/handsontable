@@ -76,8 +76,9 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   control is the one the press gate accepts (`#isControl()`: the checkbox, or the whole header cell with the row
   header location). The state is rendered on the `mouseup`, which comes before the `click`, so `#onRootClick`
   still cancels the browser's own toggle and no opposite state flashes. A tap acts at once (the touch path is
-  already the release), and a press of another button than the main one is ignored. `disablePlugin()` drops a
-  held press (`#disposePress`). `beforeRowSelectionChange`, `afterRowSelectionChange`, `afterChange` of a bound
+  already the release), but a long press does not: Walkontable replays it with the finger still down and marks it
+  (`markLongPressReplay()`), so the hook claims the press and skips the write for `isLongPressReplay(event)`; a press of another button than the main one is ignored.
+  `disablePlugin()` drops a held press (`#disposePress`). `beforeRowSelectionChange`, `afterRowSelectionChange`, `afterChange` of a bound
   column and the announcement fire at the release.
 - **`headerCheckbox: false` and `'singleRow'` turn the corner off completely** (`#hasHeaderCheckbox()`).
   No checkbox, no `htRowSelectionHeader` class (the pointer cursor and the hit area key on it), no

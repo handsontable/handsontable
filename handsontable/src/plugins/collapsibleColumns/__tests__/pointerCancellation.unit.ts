@@ -4,6 +4,7 @@ import {
   CollapsibleColumns,
   NestedHeaders,
 } from 'handsontable/plugins';
+import { markLongPressReplay } from 'handsontable/helpers/dom/longPress';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(CollapsibleColumns);
@@ -140,5 +141,19 @@ describe('CollapsibleColumns pointer cancellation', () => {
       { row: false, column: false, cell: false });
 
     expect(collapsed()).toEqual([1]);
+  });
+
+  it('should claim a long press and not toggle the group: it is replayed while the finger is down', () => {
+    const target = indicator(0);
+    const longPress = new TouchEvent('collapsible-columns-test-long-press', { bubbles: true, cancelable: true });
+
+    target.dispatchEvent(longPress);
+    markLongPressReplay(longPress);
+    hot.runHooks('beforeOnCellMouseDown', longPress, hot.getCoords(target.closest('th')!), target.closest('th'),
+      { row: false, column: false, cell: false });
+
+    expect(collapsed()).toEqual([]);
+    expect((longPress as unknown as { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled)
+      .toBe(false);
   });
 });

@@ -1,4 +1,31 @@
 /**
+ * The touch events a long press replayed as a press, while the finger is still down.
+ */
+const longPressReplays = new WeakSet<Event>();
+
+/**
+ * Marks a touch event that Walkontable replays as a press because the finger was held long enough. A tap
+ * replays the same `touchstart` at `touchend`, when the finger is already up, so only this mark tells the
+ * two apart.
+ *
+ * @param {Event} event The replayed `touchstart` event.
+ */
+export function markLongPressReplay(event: Event): void {
+  longPressReplays.add(event);
+}
+
+/**
+ * Tells whether a touch event is a press replayed for a long press, with the finger still down. A control
+ * that acts on release must not act on it: a long press opens the context menu instead.
+ *
+ * @param {Event} event The event a `beforeOnCellMouseDown` listener received.
+ * @returns {boolean}
+ */
+export function isLongPressReplay(event: Event): boolean {
+  return longPressReplays.has(event);
+}
+
+/**
  * How long, in milliseconds, a finger has to rest on a point before the press counts as a long
  * press.
  */

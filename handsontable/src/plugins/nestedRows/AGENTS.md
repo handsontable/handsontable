@@ -434,7 +434,8 @@ They are written in different places and can drift. Keep this in mind:
   (`helpers/dom/pointerRelease.ts`) and runs `NestedRows#toggleParentByUser()` from the release. The press is kept
   by the PHYSICAL row, and the release target is resolved again (`#armPress()`: its header's coordinates,
   translated), because a render replaces the nodes between the two. A tap acts at once: Walkontable replays it at
-  `touchend`, which is already the release. `disablePlugin()` and `destroy()` drop a held press
+  `touchend`, which is already the release. A long press is replayed with the finger still down and is marked
+  (`markLongPressReplay()`), so `toggleState()` claims it and skips the toggle for `isLongPressReplay(event)`. `disablePlugin()` and `destroy()` drop a held press
   (`CollapsingUI#disposePress()`). `beforeRowCollapse`, `afterRowCollapse` and the expand pair, and the
   selection hooks a collapse causes, fire at the release. The keyboard paths are untouched. Pinned by
   `__tests__/pointerCancellation.unit.ts` and `tests/e2e/pointer-cancellation-toggles.spec.ts`.

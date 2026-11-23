@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
+import { markLongPressReplay } from 'handsontable/helpers/dom/longPress';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
@@ -938,6 +939,40 @@ describe('RowSelection', () => {
 
       destroy();
     });
+  });
+
+  it.each([
+    ['a row', 1],
+    ['"select all"', -1],
+  ])('should claim a long press on %s and not toggle: it is replayed while the finger is down', (_, row) => {
+    const { hot, plugin, destroy } = createGrid();
+    const header = hot.getCell(row, -1, true) as HTMLElement;
+    const checkbox = header.querySelector('.htRowSelectionCheckbox')!;
+    const longPress = new TouchEvent('touchstart', { bubbles: true, cancelable: true });
+
+    Object.defineProperty(longPress, 'target', { value: checkbox });
+    markLongPressReplay(longPress);
+    hot.runHooks('beforeOnCellMouseDown', longPress, { row, col: -1 }, header);
+
+    expect(plugin.getSelectedRows()).toEqual([]);
+    expect(longPress.defaultPrevented).toBe(true);
+    expect((longPress as unknown as { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled)
+      .toBe(false);
+
+    destroy();
+  });
+
+  it('should still toggle a row at once on a tap that is not a long press', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const header = hot.getCell(1, -1, true) as HTMLElement;
+    const touchEvent = new TouchEvent('touchstart', { bubbles: true, cancelable: true });
+
+    Object.defineProperty(touchEvent, 'target', { value: header.querySelector('.htRowSelectionCheckbox') });
+    hot.runHooks('beforeOnCellMouseDown', touchEvent, { row: 1, col: -1 }, header);
+
+    expect(plugin.getSelectedRows()).toEqual([1]);
+
+    destroy();
   });
 
   it('should toggle a row on a tap: the deferred `touchstart` Walkontable passes has no mouse button', () => {

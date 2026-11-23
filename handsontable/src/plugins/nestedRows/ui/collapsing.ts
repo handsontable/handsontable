@@ -4,6 +4,7 @@ import type { SelectionState } from '../../../selection/types';
 import type { NestedRows } from '../nestedRows';
 import { isTouchEvent, stopImmediatePropagation } from '../../../helpers/dom/event';
 import { armPressRelease, getCoordsWithinGrid } from '../../../helpers/dom/pointerRelease';
+import { isLongPressReplay } from '../../../helpers/dom/longPress';
 import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
@@ -1115,7 +1116,10 @@ class CollapsingUI extends BaseUI {
     // markup a theme `icons` renderer may extend, and the press may then target that markup.
     if (eventTargetEl(event)!.closest(`.${HeadersUI.CSS_CLASSES.button}`) !== null) {
       if (isTouchEvent(event)) {
-        this.#toggleByUser(row);
+        // A tap acts at once. A long press is replayed with the finger still down and acts on nothing.
+        if (!isLongPressReplay(event)) {
+          this.#toggleByUser(row);
+        }
 
       } else {
         this.#armPress(event as MouseEvent, row);

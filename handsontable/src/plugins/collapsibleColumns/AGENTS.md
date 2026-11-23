@@ -104,7 +104,8 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   only then arms `armPressRelease()` (`helpers/dom/pointerRelease.ts`), so that event is not taken for the
   release. The press is kept by its header coordinates, the release target is resolved again
   (`#armIndicatorPress()`), and the direction is read at the release. A tap acts at once: Walkontable replays it at
-  `touchend`, which is already the release. `disablePlugin()` and `destroy()` drop a held press. The collapse and
+  `touchend`, which is already the release. A long press is replayed with the finger still down and is marked
+  (`markLongPressReplay()`), so the hook claims it and skips the toggle for `isLongPressReplay(event)`. `disablePlugin()` and `destroy()` drop a held press. The collapse and
   expand hooks (`beforeColumnCollapse`, `afterColumnCollapse`, and the expand pair) fire at the release, and so
   do the selection hooks a collapse causes. Keyboard paths are untouched.
 - **The indicator press is stopped by setting the grid's `isImmediatePropagationEnabled = false` flag only, never with the `stopImmediatePropagation()` helper from `helpers/dom/event`.** The helper also sets `cancelBubble`, so the press never reaches `document`, where a dropdown menu or context menu listens for the `mousedown` that closes it, and the menu stays open over a group that just collapsed or expanded (DEV-214). The flag alone is enough: `tableView` checks it right after `beforeOnCellMouseDown` and skips selection handling. The helper stays right for callers that really must stop bubbling.

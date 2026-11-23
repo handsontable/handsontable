@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { markLongPressReplay } from 'handsontable/helpers/dom/longPress';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
@@ -378,6 +379,23 @@ describe('CheckboxHeader', () => {
 
       expect(data.map(row => row.done)).toEqual([false, true, false, true, false, false]);
     });
+  });
+
+  it('should claim a long press and not toggle the column: it is replayed while the finger is down', () => {
+    const { hot, done, destroy } = createGrid();
+    const input = hot.rootElement.querySelector('.htCheckboxHeaderInput')!;
+    const longPress = new TouchEvent('checkbox-header-test-long-press', { bubbles: true, cancelable: true });
+
+    input.dispatchEvent(longPress);
+    markLongPressReplay(longPress);
+    hot.runHooks('beforeOnCellMouseDown', longPress, hot._createCellCoords(-1, 1), input.closest('th'));
+
+    expect(done()).toEqual([false, true, false, true, false, false]);
+    expect(longPress.defaultPrevented).toBe(true);
+    expect((longPress as unknown as { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled)
+      .toBe(false);
+
+    destroy();
   });
 
   it('should ignore a press with a button other than the main one', () => {

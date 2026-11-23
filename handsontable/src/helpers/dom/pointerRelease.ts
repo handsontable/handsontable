@@ -51,7 +51,10 @@ export function getCoordsWithinGrid(hot: Pick<HotInstance, 'rootElement' | 'getC
  * the same control calls `onRelease`; any other release, Escape, a browser drag start, or the window
  * losing the focus calls `onCancel`. Whichever comes first wins, and the listeners are gone after it.
  *
- * Touch needs none of this: Walkontable replays a tap at `touchend`, which already is the release.
+ * A tap needs none of this: Walkontable replays it at `touchend`, which already is the release. A long press
+ * is the exception: Walkontable replays it while the finger is still down, with no release behind it yet. It
+ * marks that replay (`markLongPressReplay()`, `helpers/dom/longPress.ts`), and a caller that acts on a touch
+ * press skips the action when `isLongPressReplay(event)` is true. It still claims the press.
  *
  * @param eventManager The event manager the listeners belong to, so the owner's teardown removes them.
  * @param rootDocument The document of the grid.

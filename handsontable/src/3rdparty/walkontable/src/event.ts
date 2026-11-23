@@ -22,7 +22,7 @@ import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
 import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from '../../../helpers/dom/inputOrigin';
-import { LongPressDetector, type LongPressTimers } from '../../../helpers/dom/longPress';
+import { LongPressDetector, markLongPressReplay, type LongPressTimers } from '../../../helpers/dom/longPress';
 
 /**
  * How long (ms) after a mousedown the double-click detector keeps waiting for the matching
@@ -842,7 +842,9 @@ class Event {
 
     // Select the long-pressed cell so context-menu commands (e.g. "Insert row above")
     // operate on it. With the deferred-mousedown flow, touchend skips onMouseDown
-    // when the long press fired, so we fire it here before opening the menu.
+    // when the long press fired, so we fire it here before opening the menu. The mark tells a control that
+    // acts on release that this press has no release behind it yet.
+    markLongPressReplay(event);
     this.onMouseDown(event);
 
     this.#dblClickOrigin[0] = null;

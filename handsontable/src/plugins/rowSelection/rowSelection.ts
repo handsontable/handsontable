@@ -14,6 +14,7 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
+import { isLongPressReplay } from '../../helpers/dom/longPress';
 import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { canAccessCellContent } from '../../shortcuts/guards';
@@ -2543,7 +2544,9 @@ export class RowSelection extends BasePlugin {
       }
     };
 
-    if (isTouch) {
+    // A tap acts at once (it already is the release). A long press opens the context menu, so it acts on
+    // nothing: its finger is still down.
+    if (isTouch && !isLongPressReplay(event)) {
       act();
     }
 

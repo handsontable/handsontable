@@ -1,4 +1,4 @@
-import { type Locator, type Page } from '@playwright/test';
+import { type Locator, type Page, type CDPSession } from '@playwright/test';
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CollapsibleColumnsA11yPage } from '../fixtures/pages/CollapsibleColumnsA11yPage';
 import { NestedRowsPage } from '../fixtures/pages/NestedRowsPage';
@@ -165,6 +165,27 @@ const CONTROLS: Control[] = [
 ];
 
 /**
+ * The clock the long-press cases start from. The grid's timers run on it, so the 500 ms hold is driven by
+ * `page.clock` instead of waited out.
+ */
+const CLOCK_START = new Date('2026-08-28T10:00:00Z');
+/**
+ * Longer than the grid's long-press delay, so the hold has run out.
+ */
+const LONG_PRESS_HOLD_MS = 700;
+
+/**
+ * Puts a finger down, or lifts it, through the Chrome DevTools Protocol, which `page.touchscreen` cannot do
+ * (it only taps).
+ */
+async function touch(cdp: CDPSession, type: 'touchStart' | 'touchEnd', point?: { x: number; y: number }) {
+  await cdp.send('Input.dispatchTouchEvent', {
+    type,
+    touchPoints: point ? [{ x: point.x, y: point.y, radiusX: 4, radiusY: 4, force: 1, id: 1 }] : [],
+  });
+}
+
+/**
  * The center of a locator's box.
  */
 async function centerOf(locator: Locator): Promise<{ x: number; y: number }> {
@@ -305,6 +326,47 @@ test.describe('Toggle controls and pointer cancellation', { tag: THEMES_TAG }, (
 
           await expect.poll(state).toEqual(toggled);
         });
+
+        // The long press is replayed as a press while the finger is still down, so a control that acts on the
+        // release must ignore it. The tap above is the positive control: the same control does toggle.
+        test('a long press toggles nothing, while the finger is down or after it is lifted',
+          async({ page, theme, bundle }) => {
+            await page.clock.install({ time: CLOCK_START });
+
+            const { control, state, selection } = await open(page, theme, bundle);
+
+            await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
+
+            const initial = await state();
+            const initialSelection = await selection();
+            const point = await centerOf(control);
+            const cdp = await page.context().newCDPSession(page);
+
+            // The positive control: the hold did replay the press to the plugins, which then left it alone.
+            await page.evaluate(() => {
+              const win = window as unknown as { hot: { addHook(name: string, callback: () => void): void } };
+
+              (window as unknown as { replayedPresses: number }).replayedPresses = 0;
+              win.hot.addHook('beforeOnCellMouseDown', () => {
+                (window as unknown as { replayedPresses: number }).replayedPresses += 1;
+              });
+            });
+            await touch(cdp, 'touchStart', point);
+            await page.clock.runFor(LONG_PRESS_HOLD_MS);
+
+            expect(await page.evaluate(() => (window as unknown as { replayedPresses: number }).replayedPresses))
+              .toBe(1);
+            expect(await state()).toEqual(initial);
+            expect(await selection()).toEqual(initialSelection);
+
+            await touch(cdp, 'touchEnd');
+            await page.clock.runFor(LONG_PRESS_HOLD_MS);
+
+            expect(await state()).toEqual(initial);
+            expect(await selection()).toEqual(initialSelection);
+
+            await cdp.detach();
+          });
       });
     });
   }

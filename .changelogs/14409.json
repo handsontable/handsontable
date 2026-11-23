@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed sortable headers, sheet tabs, collapse buttons, checkboxes, and autocomplete or dropdown list options acting on the mouse press or after the pointer left them, so releasing elsewhere now cancels the action.",
+  "title": "Fixed sortable headers, sheet tabs, collapse buttons, checkboxes, and autocomplete or dropdown list options acting on the mouse press, after the pointer left them, or during a touch long press, so releasing elsewhere now cancels the action.",
   "type": "fixed",
   "issueOrPR": 14409,
   "breaking": false,
