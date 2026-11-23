@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed focus stops with no role: the focus catchers are skipped while a menu holds the focus, a sheet tab being renamed holds no Tab stop, the empty data state message is a named group, and the default loading spinner is hidden from assistive technology.",
+  "type": "fixed",
+  "issueOrPR": 14408,
+  "breaking": false,
+  "framework": "none"
+}
