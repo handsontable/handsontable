@@ -64,8 +64,11 @@ const HIDDEN_HEADS: ReadonlySet<string> = new Set([MASTER_TABLE, CLONE_INLINE_ST
  * cell renderer wrote itself is neither kept across a repaint nor removed by the pass.
  */
 const hiddenCells = new WeakSet<Element>();
-// The `aria-owns` each row was last given, so an unchanged list costs no DOM write.
-const ownedByRow = new WeakMap<Element, string>();
+// The cells each row was last given (`aria-owns`) with the ids they were listed under, so an unchanged list
+// costs no id lookup, no string and no DOM write.
+const ownedByRow = new WeakMap<Element, OwnedCells>();
+// A row slice of a table whose cells no row lists (the leading table's own cells) shares one empty list.
+const NO_CELLS: Element[] = [];
 // The ids this module gave to cells, per element: a cell keeps its id while its element lives.
 const cellIds = new WeakMap<Element, string>();
 let cellIdSequence = 0;
@@ -191,16 +194,32 @@ function syncHidden(cell: Element, isCovered: boolean): void {
 }
 
 /**
- * Returns the id of a cell, giving it one when it has none. An id a renderer wrote is kept and used.
+ * Checks whether an id a renderer wrote names this cell: a renderer paints every copy of a cell, so the
+ * copies share the id, and a reference by id (`aria-owns`) resolves to the first of them in the document,
+ * which can be a copy the pass hid.
+ *
+ * @param {Element} cell The cell or header.
+ * @returns {boolean}
+ */
+function isFirstWithItsId(cell: Element): boolean {
+  const root = cell.getRootNode() as Partial<Pick<Document, 'getElementById'>>;
+
+  // A cell outside a document or a shadow root has no other copy to be mistaken for.
+  return typeof root.getElementById !== 'function' || root.getElementById(cell.id) === cell;
+}
+
+/**
+ * Returns the id of a cell, giving it one when it has none. An id a renderer wrote is kept and used while it
+ * names this copy of the cell; a copy that shares its id with an earlier one gets the pass's own id.
  *
  * @param {Element} cell The cell or header.
  * @param {string} guid The grid's instance id.
  * @returns {string}
  */
 function ensureCellId(cell: Element, guid: string): string {
-  if (cell.id === '') {
-    let id = cellIds.get(cell);
+  let id = cellIds.get(cell);
 
+  if (cell.id === '' || (cell.id !== id && !isFirstWithItsId(cell))) {
     if (id === undefined) {
       cellIdSequence += 1;
       id = `${guid}-cell-${cellIdSequence}`;
@@ -213,22 +232,21 @@ function ensureCellId(cell: Element, guid: string): string {
 }
 
 /**
- * Writes the list of cells a row takes from the other tables, or removes a list the pass wrote.
+ * The cells a row takes from the other tables, in column order, with the id each was listed under.
+ */
+interface OwnedCells {
+  cells: Element[];
+  ids: string[];
+}
+
+/**
+ * Removes the list of cells the pass gave to a row.
  *
  * @param {Element} row The row.
- * @param {string} owned The ids, space separated; empty for none.
  */
-function syncOwned(row: Element, owned: string): void {
-  if ((ownedByRow.get(row) ?? '') === owned) {
-    return;
-  }
-
-  if (owned === '') {
-    ownedByRow.delete(row);
+function dropOwned(row: Element): void {
+  if (ownedByRow.delete(row)) {
     row.removeAttribute(OWNS);
-  } else {
-    ownedByRow.set(row, owned);
-    row.setAttribute(OWNS, owned);
   }
 }
 
@@ -241,38 +259,121 @@ interface RowSlice {
 }
 
 /**
- * Answers where the block a cell belongs to starts: the coordinates of the block's first cell, or `null` for
- * a cell that belongs to none. The host knows (merged cells); the engine only sees that some cell spans.
+ * The block a cell belongs to: the coordinates of its first and of its last cell.
  */
-export type BlockOriginResolver = (row: number, column: number) => [number, number] | null;
+export type CellBlock = [row: number, column: number, lastRow: number, lastColumn: number];
+
+/**
+ * Answers which block a cell belongs to, or `null` for a cell that belongs to none. The host knows (merged
+ * cells); the engine only sees that some cell spans.
+ */
+export type BlockResolver = (row: number, column: number) => CellBlock | null;
+
+/**
+ * The rows and columns a table drew, as grid indexes.
+ */
+interface DrawnRange {
+  firstRow: number;
+  lastRow: number;
+  firstColumn: number;
+  lastColumn: number;
+}
 
 /**
  * What a section is reconciled with: the layout and, for a grid that draws a spanning cell, the host's
- * answer for the blocks.
+ * answer for the blocks and what each table drew.
  */
 interface ReconcileContext {
   layout: AriaTreeLayout;
-  getBlockOrigin: BlockOriginResolver | null;
+  getBlock: BlockResolver | null;
+  drawnRanges: Map<string, DrawnRange | null>;
+  tables: Map<string, AriaCellsTable>;
+}
+
+/**
+ * Returns the rows and columns a table drew, or `null` for a table that drew no cell.
+ *
+ * @param {AriaCellsTable | undefined} table The table.
+ * @param {number} rowHeadersCount The number of row header columns.
+ * @returns {DrawnRange | null}
+ */
+function readDrawnRange(table: AriaCellsTable | undefined, rowHeadersCount: number): DrawnRange | null {
+  const rows = table?.TBODY?.children;
+
+  if (!table || !rows || rows.length === 0 || table.rowFilter === null || table.columnFilter === null) {
+    return null;
+  }
+
+  const headers = COLUMN_SEGMENTS[table.name] === 'end' ? 0 : rowHeadersCount;
+  const columns = rows[0].children.length - headers;
+
+  if (columns <= 0) {
+    return null;
+  }
+
+  return {
+    firstRow: table.rowFilter.renderedToSource(0),
+    lastRow: table.rowFilter.renderedToSource(rows.length - 1),
+    firstColumn: table.columnFilter.renderedToSource(0),
+    lastColumn: table.columnFilter.renderedToSource(columns - 1),
+  };
+}
+
+/**
+ * Checks whether a table drew any cell of a block.
+ *
+ * @param {string} tableName The table's name.
+ * @param {CellBlock} block The block.
+ * @param {ReconcileContext} context The layout, the block resolver, and what each table drew.
+ * @returns {boolean}
+ */
+function drawsPartOfBlock(tableName: string, block: CellBlock, context: ReconcileContext): boolean {
+  let range = context.drawnRanges.get(tableName);
+
+  if (range === undefined) {
+    range = readDrawnRange(context.tables.get(tableName), context.layout.rowHeadersCount);
+    context.drawnRanges.set(tableName, range);
+  }
+
+  return range !== null &&
+    block[0] <= range.lastRow && block[2] >= range.firstRow &&
+    block[1] <= range.lastColumn && block[3] >= range.firstColumn;
 }
 
 /**
  * Checks whether a table's copy of a cell is covered: another table owns the cell. A cell of a block (merged
  * cells) is judged by the block's first cell, because a block that crosses a freeze line is drawn in slices:
  * the table that holds the block's first cell owns the whole block, and a slice another table draws (the
- * frozen bottom rows' part of it, which can be a plain 1 by 1 cell) is a copy of the same cell.
+ * frozen bottom rows' part of it, which can be a plain 1 by 1 cell) is a copy of the same cell. That holds
+ * while the owning table draws some part of the block. When it draws none (the block starts in rows scrolled
+ * out of the master, and reaches into the frozen bottom rows), the slice is the only copy on screen and is
+ * judged as a cell of its own.
  *
  * @param {string} tableName The table's name.
  * @param {number} gridRow The cell's grid row.
  * @param {number} gridColumn The cell's grid column.
- * @param {ReconcileContext} context The layout and the block resolver.
+ * @param {ReconcileContext} context The layout, the block resolver, and what each table drew.
  * @returns {boolean}
  */
 function isCoveredCopy(tableName: string, gridRow: number, gridColumn: number, context: ReconcileContext): boolean {
-  const origin = context.getBlockOrigin !== null && gridRow >= 0 && gridColumn >= 0
-    ? context.getBlockOrigin(gridRow, gridColumn)
+  const { layout } = context;
+  const block = context.getBlock !== null && gridRow >= 0 && gridColumn >= 0
+    ? context.getBlock(gridRow, gridColumn)
     : null;
 
-  return resolveOwningOverlay(context.layout, origin?.[0] ?? gridRow, origin?.[1] ?? gridColumn) !== tableName;
+  if (block !== null) {
+    const blockOwner = resolveOwningOverlay(layout, block[0], block[1]);
+
+    if (blockOwner === tableName) {
+      return false;
+    }
+
+    if (drawsPartOfBlock(blockOwner, block, context)) {
+      return true;
+    }
+  }
+
+  return resolveOwningOverlay(layout, gridRow, gridColumn) !== tableName;
 }
 
 /**
@@ -281,12 +382,15 @@ function isCoveredCopy(tableName: string, gridRow: number, gridColumn: number, c
  *
  * @param {AriaCellsTable} table The table.
  * @param {HTMLElement} section The THEAD or TBODY element.
- * @param {ReconcileContext} context The layout and the block resolver.
+ * @param {ReconcileContext} context The layout, the block resolver, and what each table drew.
  * @param {Function} toGridRow Maps a row's index in the section to the grid row index.
+ * @param {boolean} listsCells Whether a row of another table lists this table's cells. The leading table's
+ * cells are its rows' own children, so nothing collects them.
  * @returns {Map<number, RowSlice>}
  */
 function reconcileSection(
   table: AriaCellsTable, section: HTMLElement, context: ReconcileContext, toGridRow: (index: number) => number,
+  listsCells: boolean,
 ): Map<number, RowSlice> {
   const { layout } = context;
   const slices = new Map<number, RowSlice>();
@@ -299,7 +403,7 @@ function reconcileSection(
     const gridRow = toGridRow(rowIndex);
     const cells = row.children;
     const headers = hasRowHeaders ? Math.min(rowHeadersCount, cells.length) : 0;
-    const ownCells: Element[] = [];
+    const ownCells: Element[] = listsCells ? [] : NO_CELLS;
 
     for (let cellIndex = 0; cellIndex < cells.length; cellIndex++) {
       const cell = cells[cellIndex] as HTMLTableCellElement;
@@ -314,8 +418,10 @@ function reconcileSection(
 
         syncHidden(cell, isCovered);
 
-        // A cell a block covers is not displayed (`display: none`), so no row lists it.
-        if (!isCovered && cell.style.display !== 'none') {
+        // A cell a block covers is not displayed (`display: none`), so no row lists it. Only such a cell
+        // carries an inline style here, and reading `style` on a cell without one makes the browser create
+        // a style declaration that lives as long as the pooled element.
+        if (listsCells && !isCovered && (!cell.hasAttribute('style') || cell.style.display !== 'none')) {
           ownCells.push(cell);
         }
       }
@@ -340,25 +446,90 @@ function joinBandRows(tables: Array<Map<number, RowSlice> | undefined>, leading:
   tables.forEach((rows, index) => {
     if (index !== leading) {
       // A row that does not stand for a grid row takes no cells.
-      rows?.forEach(slice => syncOwned(slice.row, ''));
+      rows?.forEach(slice => dropOwned(slice.row));
     }
   });
 
   leadingRows?.forEach((slice, gridRow) => {
-    const ids: string[] = [];
+    const others: Element[][] = [];
 
     for (let index = 0; index < tables.length; index++) {
       const other = index === leading ? undefined : tables[index]?.get(gridRow);
 
-      if (other) {
-        for (let cellIndex = 0; cellIndex < other.ownCells.length; cellIndex++) {
-          ids.push(ensureCellId(other.ownCells[cellIndex], guid));
-        }
+      if (other && other.ownCells.length > 0) {
+        others.push(other.ownCells);
       }
     }
 
-    syncOwned(slice.row, ids.join(' '));
+    if (!isOwnedListCurrent(slice.row, others)) {
+      writeOwned(slice.row, others, guid);
+    }
   });
+}
+
+/**
+ * Checks whether a row already lists exactly the given cells, each under the id it still carries. On a draw
+ * that changed nothing (the common one) this is all the pass does for a row: no id is looked up and no
+ * string is built.
+ *
+ * @param {Element} row The row.
+ * @param {Element[][]} others The cells the row takes, per table, in reading order.
+ * @returns {boolean}
+ */
+function isOwnedListCurrent(row: Element, others: Element[][]): boolean {
+  const previous = ownedByRow.get(row);
+  let count = 0;
+
+  for (let index = 0; index < others.length; index++) {
+    const cells = others[index];
+
+    if (previous === undefined) {
+      return false;
+    }
+
+    for (let cellIndex = 0; cellIndex < cells.length; cellIndex++) {
+      const cell = cells[cellIndex];
+
+      if (previous.cells[count] !== cell || previous.ids[count] !== cell.id) {
+        return false;
+      }
+      // An id a renderer wrote can be taken by a copy drawn earlier in the document after the list was
+      // written (the master renders the row again on a scroll back), and the reference then resolves there.
+      if (cellIds.get(cell) !== cell.id && !isFirstWithItsId(cell)) {
+        return false;
+      }
+      count += 1;
+    }
+  }
+
+  return previous === undefined || previous.cells.length === count;
+}
+
+/**
+ * Writes the list of cells a row takes from the other tables, or removes a list the pass wrote.
+ *
+ * @param {Element} row The row.
+ * @param {Element[][]} others The cells the row takes, per table, in reading order.
+ * @param {string} guid The grid's instance id.
+ */
+function writeOwned(row: Element, others: Element[][], guid: string): void {
+  const cells = others.flat();
+
+  if (cells.length === 0) {
+    dropOwned(row);
+
+    return;
+  }
+
+  const ids = cells.map(cell => ensureCellId(cell, guid));
+  const owned = ids.join(' ');
+
+  ownedByRow.set(row, { cells, ids });
+
+  // A renderer that writes its own id on every paint changes the ids back and forth, not the list.
+  if (row.getAttribute(OWNS) !== owned) {
+    row.setAttribute(OWNS, owned);
+  }
 }
 
 /**
@@ -379,33 +550,40 @@ function joinBandRows(tables: Array<Map<number, RowSlice> | undefined>, leading:
  * @param {AriaTreeLayout} layout The layout.
  * @param {number} columnHeadersCount The number of column header rows.
  * @param {string} guid The grid's instance id, which makes the cells' ids unique on a page.
- * @param {BlockOriginResolver} [getBlockOrigin] Answers where the block of a cell starts.
+ * @param {BlockResolver} [getBlock] Answers which block a cell belongs to.
  */
 export function reconcileAriaCells(
   tables: AriaCellsTable[], layout: AriaTreeLayout, columnHeadersCount: number, guid: string,
-  getBlockOrigin: BlockOriginResolver | null = null,
+  getBlock: BlockResolver | null = null,
 ): void {
   // The host is asked about blocks only when a body draws a spanning cell: one question per cell per draw is
   // a cost a grid without merged cells should not pay.
-  const drawsBlocks = getBlockOrigin !== null &&
+  const drawsBlocks = getBlock !== null &&
     tables.some(table => table.TBODY?.querySelector('td[rowspan], td[colspan]'));
-  const context: ReconcileContext = { layout, getBlockOrigin: drawsBlocks ? getBlockOrigin : null };
   const byName = new Map(tables.map(table => [table.name, table]));
+  const context: ReconcileContext = {
+    layout,
+    getBlock: drawsBlocks ? getBlock : null,
+    drawnRanges: new Map(),
+    tables: byName,
+  };
   const leading = ['start', 'main', 'end'].indexOf(getLeadingSegment(layout));
 
   (Object.keys(BAND_TABLES) as RowBand[]).forEach((band) => {
     const heads: Array<Map<number, RowSlice> | undefined> = [];
     const bodies: Array<Map<number, RowSlice> | undefined> = [];
 
-    BAND_TABLES[band].forEach((tableName) => {
+    BAND_TABLES[band].forEach((tableName, tableIndex) => {
       const table = byName.get(tableName);
       const isDrawn = table !== undefined && table.columnFilter !== null && table.rowFilter !== null;
+      const listsCells = tableIndex !== leading;
 
       heads.push(isDrawn && table.THEAD && !HIDDEN_HEADS.has(tableName)
-        ? reconcileSection(table, table.THEAD, context, index => index - columnHeadersCount)
+        ? reconcileSection(table, table.THEAD, context, index => index - columnHeadersCount, listsCells)
         : undefined);
       bodies.push(isDrawn && table.TBODY
-        ? reconcileSection(table, table.TBODY, context, index => table.rowFilter!.renderedToSource(index))
+        ? reconcileSection(
+          table, table.TBODY, context, index => table.rowFilter!.renderedToSource(index), listsCells)
         : undefined);
     });
 
@@ -446,14 +624,16 @@ export function readAriaTreeLayout(wtSettings: AriaTreeSettings): AriaTreeLayout
 }
 
 /**
- * Runs the pass for a grid: reads the layout and hands the tables over (`reconcileAriaCells`).
+ * Runs the pass for a grid with the layout its tables were drawn with (`reconcileAriaCells`).
  *
  * @param {AriaTreeSettings} wtSettings The settings.
  * @param {AriaCellsTable[]} tables The master table and the overlay clones' tables.
+ * @param {AriaTreeLayout | null} layout The layout of this draw (`readAriaTreeLayout`), or `null` for a grid
+ * that keeps the tables apart.
  */
-export function reconcileAriaTree(wtSettings: AriaTreeSettings, tables: AriaCellsTable[]): void {
-  const layout = readAriaTreeLayout(wtSettings);
-
+export function reconcileAriaTree(
+  wtSettings: AriaTreeSettings, tables: AriaCellsTable[], layout: AriaTreeLayout | null,
+): void {
   if (layout) {
     reconcileAriaCells(
       tables,
@@ -464,9 +644,17 @@ export function reconcileAriaTree(wtSettings: AriaTreeSettings, tables: AriaCell
         // The `meta` source answers with the whole block, whatever part of it the tables render.
         const block = wtSettings.getSetting('onModifyGetCellCoords', row, column, false, 'meta');
 
-        return Array.isArray(block) && Number.isInteger(block[0]) && Number.isInteger(block[1])
-          ? [block[0], block[1]]
-          : null;
+        if (!Array.isArray(block) || !Number.isInteger(block[0]) || !Number.isInteger(block[1])) {
+          return null;
+        }
+
+        // A host that answers with the first cell only names a block of one cell.
+        return [
+          block[0],
+          block[1],
+          Number.isInteger(block[2]) ? block[2] : block[0],
+          Number.isInteger(block[3]) ? block[3] : block[1],
+        ];
       },
     );
   }

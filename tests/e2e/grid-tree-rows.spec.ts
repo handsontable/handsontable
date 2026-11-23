@@ -61,9 +61,10 @@ test.describe('the grid as one tree of rows', () => {
     // The row headers go: the master's rows lead, and take the frozen end columns.
     await grid.updateSettings({ rowHeaders: false });
 
+    await expect.poll(async() => (await grid.accessibilityTree()).names).toEqual(FULL_GRID.map(row => row.slice(1)));
+
     const tree = await grid.accessibilityTree();
 
-    expect(tree.names).toEqual(FULL_GRID.map(row => row.slice(1)));
     expect(tree.orphanCells).toBe(0);
     expect(tree.findings).toEqual([]);
   });
@@ -78,9 +79,10 @@ test.describe('the grid as one tree of rows', () => {
 
     await grid.updateSettings({ fixedRowsBottom: 0, fixedColumnsStart: 2 });
 
+    await expect.poll(async() => (await grid.accessibilityTree()).names).toEqual(FULL_GRID);
+
     const tree = await grid.accessibilityTree();
 
-    expect(tree.names).toEqual(FULL_GRID);
     expect(tree.orphanCells).toBe(0);
     expect(tree.findings).toEqual([]);
   });
@@ -116,9 +118,7 @@ test.describe('the grid as one tree of rows', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }, { row: 3, col: 3, rowspan: 3, colspan: 2 }],
     });
 
-    const tree = await grid.accessibilityTree();
-
-    expect(tree.names).toEqual([
+    await expect.poll(async() => (await grid.accessibilityTree()).names).toEqual([
       ['Select whole grid', ...COLUMNS],
       ['1', 'A1', 'C1', 'D1', 'E1'],
       ['2', 'C2', 'D2', 'E2'],
@@ -127,7 +127,7 @@ test.describe('the grid as one tree of rows', () => {
       ['5', 'A5', 'B5', 'C5'],
       ['6', 'A6', 'B6', 'C6'],
     ]);
-    expect(tree.orphanCells).toBe(0);
+    expect((await grid.accessibilityTree()).orphanCells).toBe(0);
   });
 
   test('the keyboard never puts the focus on a hidden copy of a cell', async({ page }) => {
@@ -151,5 +151,18 @@ test.describe('the grid as one tree of rows', () => {
     }
 
     expect(visited).toEqual(['B1', 'C1', 'D1', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'D6', 'C6', 'B6', 'A6', 'A5']);
+  });
+
+  test('a focused cell that another table takes over moves the focus to its exposed copy', async() => {
+    await grid.goto('none');
+    await grid.selectCell(1, 1);
+
+    await expect.poll(() => grid.focused()).toEqual({ text: 'B2', hidden: false });
+
+    // Row 2 becomes a frozen row: the top clone owns it, and the master's copy that holds the focus is hidden.
+    await grid.updateSettings({ fixedRowsTop: 2 });
+
+    await expect.poll(() => grid.focused()).toEqual({ text: 'B2', hidden: false });
+    expect(await grid.focusedTable()).toBe('ht_clone_top');
   });
 });

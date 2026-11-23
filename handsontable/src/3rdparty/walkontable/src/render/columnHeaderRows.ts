@@ -62,7 +62,7 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
     // As in the body (`RowsRenderer`): a head row is a `row` only while it holds a cell, and, in a grid that
     // joins its tables into one tree, only in the table that holds the head rows' first cells.
     const ariaEnabled = this.table.isAriaEnabled();
-    const treeLayout = ariaEnabled ? this.table.getAriaTreeLayout() : null;
+    const treeLayout = ariaEnabled && columnHeadersCount > 0 ? this.table.getAriaTreeLayout() : null;
     const areGridRows = this.table.columnsToRender + this.table.rowHeadersCount > 0 && (
       treeLayout === null || isGridRowOfTable(this.table.activeOverlayName, treeLayout, -1)
     );

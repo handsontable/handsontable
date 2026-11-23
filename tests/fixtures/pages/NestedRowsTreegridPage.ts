@@ -92,6 +92,42 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * The treegrid attributes of every grid row, in grid order, each read from the one copy of the row that
+   * carries the `row` role, wherever it is drawn: the inline-start clone for the rows between the freeze lines,
+   * the top or bottom inline-start corner for a frozen row. Also counts the copies that carry a tree attribute
+   * without being that row, which must be none. Read in one evaluation.
+   */
+  gridRowAttributes(): Promise<{ rows: TreegridRowAttributes[], strayCopies: number }> {
+    return this.page.evaluate(() => {
+      const grid = document.querySelector('[data-testid="grid"]')!;
+      const rows = Array.from(grid.querySelectorAll('tbody tr[role="row"]'))
+        .sort((a, b) => Number(a.getAttribute('aria-rowindex')) - Number(b.getAttribute('aria-rowindex')))
+        .map(TR => ({
+          level: TR.getAttribute('aria-level'),
+          posinset: TR.getAttribute('aria-posinset'),
+          setsize: TR.getAttribute('aria-setsize'),
+          expanded: TR.querySelector('th')?.getAttribute('aria-expanded') ?? null,
+        }));
+      const strayCopies = grid.querySelectorAll(
+        'tbody tr:not([role="row"]):is([aria-level], [aria-posinset], [aria-setsize])'
+      ).length;
+
+      return { rows, strayCopies };
+    });
+  }
+
+  /**
+   * Pushes settings to the grid.
+   *
+   * @param settings The settings.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((value) => {
+      (window as unknown as { hot: { updateSettings(settings: object): void } }).hot.updateSettings(value);
+    }, settings);
+  }
+
+  /**
    * The position attributes of every visual row, keyed by the row's name, read in one evaluation.
    * Every row of the fixture is rendered, so the rendered rows and the visual rows line up.
    */

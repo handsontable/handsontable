@@ -2140,7 +2140,9 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   rows, a corner's body, a bottom clone's head. A `rowgroup` with no `row` is an invalid structure, read as an
   empty group and reported by axe as "needs review" (DEV-3652). The sections are reused across draws, so the
   role is removed when a section is drawn with no rows, and only a `rowgroup` role is removed: a role another
-  module wrote on such a section stays. "Holds rows" means rows with a cell. A side clone that is turned off
+  module wrote on such a section stays. "Holds rows" means rows with a cell that stand for grid rows: in a grid
+  that joins its tables into one tree, only the rows `isGridRowOfTable` names (see "The grid is one tree of
+  rows" below), so with row headers the master's TBODY holds rows with cells and is still no `rowgroup`. A side clone that is turned off
   (`rowHeaders: false`, `fixedColumnsStart` or `fixedColumnsEnd` back to 0) is drawn one last time with the
   master's rows and none of its columns, and is never drawn again, so its rows stayed in the tree as rows with
   nothing in them; both renderers therefore key the section's role and each row's `row` role and
@@ -2189,10 +2191,24 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   - **A cell's id belongs to the element.** A cell another table's row lists gets `${guid}-cell-<n>` once and
     keeps it while the element lives, so a recycled element reaches its renderer with that id and a new one
     without: the one exception to "a new and a recycled element start equal". An id a renderer wrote is kept
-    and used. Row elements that rotate together keep their pairing, so a vertical scroll rewrites no list.
+    and used only while it names that copy (`getElementById` on the copy's root returns it): a renderer paints
+    every copy of a cell, the copies share its id, and `aria-owns` would resolve it to the first in the
+    document, the master's hidden copy. A later copy gets the pass's own id instead. Row elements that rotate
+    together keep their pairing, so a vertical scroll rewrites no list.
+  - **A draw that changed nothing costs a compare per row.** Each row keeps the cells it was given and the ids
+    they were listed under (`ownedByRow`), so the pass compares elements and ids and builds a list only on a
+    mismatch; the leading table's own cells are never collected, and a cell's `style` is read only when it has
+    a `style` attribute (reading `style` on a pooled cell creates a declaration that lives with it). The layout
+    (`readAriaTreeLayout`, which runs hooks and walks the index mappers in core) is read once per master draw
+    that renders cells, into `Overlays#ariaTreeLayout`, and the master's and the clones' row renderers and the
+    pass all read that copy (`TableRenderer#setAriaTreeLayout`). The host reads the same tables the pass joins
+    through `Overlays#getTables()`.
   - **Merged cells**: a block that crosses a freeze line is drawn in slices, and a slice can be a plain 1 by 1
-    cell. The pass asks the host for the block's first cell (`onModifyGetCellCoords`, source `meta`) and
-    judges every cell of the block by it, so the block is one cell in the row it starts in. The host is asked
+    cell. The pass asks the host for the block (`onModifyGetCellCoords`, source `meta`) and judges every cell of
+    the block by its first cell, so the block is one cell in the row it starts in, as long as the table that
+    owns the first cell draws some part of the block. When it draws none (a block that starts in rows scrolled
+    out of the master and reaches into the frozen bottom rows), the slice on screen is the only copy, and it is
+    judged as a cell of its own. The host is asked
     only when a body draws a spanning cell (`td[rowspan], td[colspan]`): one question per cell per draw is a
     cost a grid without merged cells does not pay.
   - **Hidden by the stylesheet, not by the pass**: the master's head, the side clones' heads and the master's

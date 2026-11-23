@@ -820,7 +820,8 @@ row semantics. Six things look simpler than they are.
   header paint, in every overlay copy, and a same-value `setAttribute()` is still a DOM mutation
   that assistive technologies re-read on each scroll. **Only the copy that carries `role="row"` gets
   the attributes** (DEV-3652): the grid is one tree of rows, a grid row is a `row` in one table only
-  (the inline-start clone, which holds the row header; Walkontable's `isGridRowOfTable`), and the
+  (the table that holds the row header in the row's band: the inline-start clone, or the top or bottom
+  inline-start corner for a frozen row; Walkontable's `isGridRowOfTable`), and the
   master's copy of the row carries no role, where axe reports all three as not allowed
   (`aria-allowed-attr`, critical). `updateRowAttributes()` clears a copy that is no `row`. The row
   renderer runs before the row header renderer, so the role is final when the hook reads it. Two cleanups exist because the writer is a header hook. `disablePlugin()` walks

@@ -133,8 +133,9 @@ async function expectBatchLeavesEditorWaiting(grid: EditorValidationWaitPage): P
   expect(await grid.releaseNextValidation()).toMatchObject({ row: 1 });
 
   await expect.poll(() => grid.editorOpened()).toBe(false);
-  // The cell's test id names its row and column. (The master's row carries no `aria-rowindex`: a grid row is
-  // a `row` in one table only, the one that holds its row header.)
+  // The selected row is still announced as row 3 (one head row, then rows 1 and 2): a grid row is a `row`
+  // in one table only, the one that holds its row header.
+  await expect.poll(() => grid.selectedGridRowIndex()).toBe('3');
   await expect(grid.selectedRow.locator('td.current')).toHaveAttribute('data-testid', 'cell-2-1');
 }
 

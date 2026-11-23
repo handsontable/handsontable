@@ -13,7 +13,6 @@ import { applyRowHeight } from './exactRowHeight';
 import { firstRowDrawsTopBorder, firstRowTopBorderOutsideHeight } from '../axisSizing/boxModel';
 import { CLONE_INLINE_END, CLONE_INLINE_START, INLINE_END_CLONE_TYPES } from '../overlay/constants';
 import { getFreezeLineOverlap } from '../settings/fixedColumnsEnd';
-import { readAriaTreeLayout } from '../overlay/ariaCells';
 import type { AriaTreeLayout } from '../overlay/ariaCells';
 
 /**
@@ -238,6 +237,12 @@ export class TableRenderer {
    */
   #rowRecyclingAllowed: boolean = false;
   /**
+   * The layout of the grid's single accessibility tree for this draw, set by the draw cycle.
+   *
+   * @type {AriaTreeLayout | null}
+   */
+  #ariaTreeLayout: AriaTreeLayout | null = null;
+  /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
    *
    * @type {boolean}
@@ -365,6 +370,16 @@ export class TableRenderer {
    */
   setRowRecyclingAllowed(allowed: boolean) {
     this.#rowRecyclingAllowed = allowed;
+  }
+
+  /**
+   * Records the layout of the grid's single accessibility tree for this draw (`Overlays#ariaTreeLayout`,
+   * read once per master draw).
+   *
+   * @param {AriaTreeLayout | null} layout The layout, or `null` for a grid that keeps its tables apart.
+   */
+  setAriaTreeLayout(layout: AriaTreeLayout | null) {
+    this.#ariaTreeLayout = layout;
   }
 
   /**
@@ -504,13 +519,13 @@ export class TableRenderer {
 
   /**
    * Returns the layout the grid's single accessibility tree is built from (`overlay/ariaCells.ts`), or `null`
-   * for a grid that keeps its tables apart. The settings behind it walk the index mapper in core, so a
-   * renderer reads it once per render.
+   * for a grid that keeps its tables apart. The draw cycle reads it once per master draw
+   * (`setAriaTreeLayout`), because the settings behind it run hooks and walk the index mappers in core.
    *
    * @returns {AriaTreeLayout | null}
    */
   getAriaTreeLayout(): AriaTreeLayout | null {
-    return readAriaTreeLayout(this.rowUtils!.wtSettings);
+    return this.#ariaTreeLayout;
   }
 
   /**

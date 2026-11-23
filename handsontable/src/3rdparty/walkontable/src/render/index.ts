@@ -11,6 +11,7 @@ import type ColumnFilter from '../filter/column';
 import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
+import type { AriaTreeLayout } from '../overlay/ariaCells';
 
 interface RendererOptions {
   TABLE?: HTMLTableElement;
@@ -170,6 +171,18 @@ class Renderer {
    */
   setRowRecyclingAllowed(allowed: boolean) {
     this.renderer.setRowRecyclingAllowed(allowed);
+
+    return this;
+  }
+
+  /**
+   * Sets the layout of the grid's single accessibility tree for this draw (`Overlays#ariaTreeLayout`).
+   *
+   * @param {AriaTreeLayout | null} layout The layout, or `null` for a grid that keeps its tables apart.
+   * @returns {Renderer}
+   */
+  setAriaTreeLayout(layout: AriaTreeLayout | null) {
+    this.renderer.setAriaTreeLayout(layout);
 
     return this;
   }

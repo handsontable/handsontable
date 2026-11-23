@@ -37,6 +37,33 @@ function row(level: number, posinset: number, setsize: number, expanded: boolean
 }
 
 test.describe('NestedRows treegrid accessibility', () => {
+  test('a frozen row carries its tree attributes on the copy that is its row, in the corner overlay',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+      const expected = [
+        row(1, 1, 2, true),
+        row(2, 1, 3),
+        row(2, 2, 3, true),
+        row(3, 1, 2),
+        row(3, 2, 2),
+        row(2, 3, 3),
+        row(1, 2, 2, true),
+        row(2, 1, 2),
+        row(2, 2, 2),
+      ];
+
+      await nestedRows.goto();
+      await nestedRows.updateSettings({ fixedRowsTop: 1, fixedRowsBottom: 1 });
+
+      // The first and the last row are frozen: the top and the bottom inline-start corners hold their row.
+      await expect.poll(() => nestedRows.gridRowAttributes()).toEqual({ rows: expected, strayCopies: 0 });
+      expect(await page.evaluate(() => [
+        document.querySelector('.ht_clone_top_inline_start_corner tbody tr')?.getAttribute('aria-level'),
+        document.querySelector('.ht_clone_bottom_inline_start_corner tbody tr')?.getAttribute('aria-level'),
+        document.querySelector('.ht_clone_inline_start tbody tr')?.getAttribute('aria-level') ?? null,
+      ])).toEqual(['1', '2', null]);
+    });
+
   test('every row carries its level, position and set size, and a parent header its expanded state',
     async({ page, theme, bundle }) => {
       const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);

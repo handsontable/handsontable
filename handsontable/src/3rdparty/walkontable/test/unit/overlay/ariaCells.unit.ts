@@ -6,8 +6,9 @@ import {
   isHiddenByAriaTree,
   readAriaTreeLayout,
   reconcileAriaCells,
+  reconcileAriaTree,
 } from 'walkontable/overlay/ariaCells';
-import type { AriaCellsTable, AriaTreeLayout } from 'walkontable/overlay/ariaCells';
+import type { AriaCellsTable, AriaTreeLayout, CellBlock } from 'walkontable/overlay/ariaCells';
 
 const GUID = 'ht_1';
 
@@ -343,11 +344,11 @@ describe('reconcileAriaCells', () => {
     // Row 1: the block starts at the frozen column 0 and reaches column 1, which the master draws as a slice.
     masterCells(1)[1].style.display = '';
 
-    const origins = new Map([['0:1', [0, 1]], ['0:2', [0, 1]], ['1:0', [1, 0]], ['1:1', [1, 0]]]);
+    const blocks = new Map<string, CellBlock>([
+      ['0:1', [0, 1, 0, 2]], ['0:2', [0, 1, 0, 2]], ['1:0', [1, 0, 1, 1]], ['1:1', [1, 0, 1, 1]],
+    ]);
 
-    const getOrigin = (row: number, column: number) => (origins.get(`${row}:${column}`) as [number, number]) ?? null;
-
-    reconcileAriaCells(tables, grid, 0, GUID, getOrigin);
+    reconcileAriaCells(tables, grid, 0, GUID, (row, column) => blocks.get(`${row}:${column}`) ?? null);
 
     expect(owned(start.TBODY!.children[0], tables)).toEqual(['0:1', '0:3']);
     // The master's slice of the block that starts in the frozen column is a copy of the start clone's cell.
@@ -361,5 +362,252 @@ describe('reconcileAriaCells', () => {
 
     expect(() => reconcileAriaCells([drawn, never], layout({ rowHeadersCount: 0 }), 0, GUID)).not.toThrow();
     expect(exposed(drawn.TBODY)).toEqual([['0:0']]);
+  });
+
+  it('exposes the only slice on screen of a block whose first cell\'s table draws none of it', () => {
+    // A block over rows 95-99 reaches into the three frozen bottom rows. Scrolled to the top, the master draws
+    // rows 0-2, so the bottom clone's slice (rows 97-99, one spanning cell) is the only copy of the block.
+    const grid = layout({ totalRows: 100, fixedRowsBottom: 3, rowHeadersCount: 0 });
+    const build = (masterRows: number[]) => {
+      const tables = [
+        table('master', { rows: masterRows, columns: [0, 1] }),
+        table('bottom', { rows: [97, 98, 99], columns: [0, 1] }),
+      ];
+      const slices = Array.from(tables[1].TBODY!.children, row => row.children[1] as HTMLTableCellElement);
+
+      slices[0].rowSpan = 3;
+      slices[1].style.display = 'none';
+      slices[2].style.display = 'none';
+
+      return { tables, slice: slices[0] };
+    };
+    const getBlock = (row: number, column: number): CellBlock | null => (
+      column === 1 && row >= 95 ? [95, 1, 99, 1] : null
+    );
+    const atTop = build([0, 1, 2]);
+
+    reconcileAriaCells(atTop.tables, grid, 0, GUID, getBlock);
+
+    expect(isHiddenByAriaTree(atTop.slice)).toBe(false);
+    expect(exposed(atTop.tables[1].TBODY)[0]).toEqual(['97:0', '97:1']);
+
+    // Scrolled so the master draws the block's first rows, the master's copy owns the block again.
+    const scrolled = build([94, 95, 96]);
+
+    reconcileAriaCells(scrolled.tables, grid, 0, GUID, getBlock);
+
+    expect(isHiddenByAriaTree(scrolled.slice)).toBe(true);
+  });
+
+  it('gives its own id to a copy that shares a renderer\'s id with a copy earlier in the document', () => {
+    // A renderer paints every copy of a cell, so the master's (hidden) copy and the top clone's share the id.
+    const grid = layout({ fixedRowsTop: 1 });
+    const tables = [
+      table('master', { rows: [0, 1], columns: [0, 1], rowHeaders: 1 }),
+      table('top', { rows: [0], columns: [0, 1], rowHeaders: 1 }),
+      table('inline_start', { rows: [0, 1], columns: [], rowHeaders: 1 }),
+      table('top_inline_start_corner', { rows: [0], columns: [], rowHeaders: 1 }),
+    ];
+    const container = document.body.appendChild(document.createElement('div'));
+
+    tables.forEach((item) => {
+      container.appendChild(document.createElement('table')).appendChild(item.TBODY!);
+    });
+
+    const [masterCopy, topCopy] = [tables[0], tables[1]].map(item => item.TBODY!.querySelectorAll('td')[1]);
+
+    masterCopy.id = 'cell-0-1';
+    topCopy.id = 'cell-0-1';
+    reconcileAriaCells(tables, grid, 0, GUID);
+
+    const listed = tables[3].TBODY!.children[0].getAttribute('aria-owns')!.split(' ')
+      .map(id => document.getElementById(id));
+
+    expect(listed).toEqual([tables[1].TBODY!.querySelectorAll('td')[0], topCopy]);
+    expect(topCopy.id).not.toBe('cell-0-1');
+    expect(masterCopy.id).toBe('cell-0-1');
+    container.remove();
+  });
+
+  it('notices a copy that takes a renderer\'s id earlier in the document after the list was written', () => {
+    const grid = layout({ fixedRowsTop: 1 });
+    const tables = [
+      table('master', { rows: [0, 1], columns: [0, 1], rowHeaders: 1 }),
+      table('top', { rows: [0], columns: [0, 1], rowHeaders: 1 }),
+      table('inline_start', { rows: [0, 1], columns: [], rowHeaders: 1 }),
+      table('top_inline_start_corner', { rows: [0], columns: [], rowHeaders: 1 }),
+    ];
+    const container = document.body.appendChild(document.createElement('div'));
+
+    tables.forEach((item) => {
+      container.appendChild(document.createElement('table')).appendChild(item.TBODY!);
+    });
+
+    const [masterCopy, topCopy] = [tables[0], tables[1]].map(item => item.TBODY!.querySelectorAll('td')[1]);
+
+    // Scrolled away, the master's copy does not carry the id yet: the top clone's copy is listed under it.
+    topCopy.id = 'cell-0-1';
+    reconcileAriaCells(tables, grid, 0, GUID);
+    expect(tables[3].TBODY!.children[0].getAttribute('aria-owns')).toContain('cell-0-1');
+
+    // Scrolled back, the renderer paints the master's copy with the same id, earlier in the document, and
+    // paints the top clone's copy again after it (jsdom resolves an id to the element that took it first).
+    masterCopy.id = 'cell-0-1';
+    topCopy.removeAttribute('id');
+    topCopy.id = 'cell-0-1';
+    expect(document.getElementById('cell-0-1')).toBe(masterCopy);
+    reconcileAriaCells(tables, grid, 0, GUID);
+
+    const listed = tables[3].TBODY!.children[0].getAttribute('aria-owns')!.split(' ')
+      .map(id => document.getElementById(id));
+
+    expect(listed[1]).toBe(topCopy);
+    container.remove();
+  });
+
+  it('keeps the pairing of rows that rotate together on a vertical scroll and writes nothing', () => {
+    const tables = [
+      table('master', { rows: [0, 1, 2], columns: [0, 1], rowHeaders: 1 }),
+      table('inline_start', { rows: [0, 1, 2], columns: [], rowHeaders: 1 }),
+    ];
+    const grid = layout();
+
+    reconcileAriaCells(tables, grid, 0, GUID);
+
+    // The first row element of every table is reused for the next row below the band.
+    tables.forEach((item) => {
+      item.TBODY!.appendChild(item.TBODY!.children[0]);
+      item.rowFilter = { renderedToSource: (index: number) => index + 1 };
+    });
+
+    const setAttribute = jest.spyOn(Element.prototype, 'setAttribute');
+    const removeAttribute = jest.spyOn(Element.prototype, 'removeAttribute');
+
+    reconcileAriaCells(tables, grid, 0, GUID);
+
+    expect(setAttribute).not.toHaveBeenCalled();
+    expect(removeAttribute).not.toHaveBeenCalled();
+    setAttribute.mockRestore();
+    removeAttribute.mockRestore();
+    expect(owned(tables[1].TBODY!.children[2], tables)).toEqual(['0:0', '0:1']);
+  });
+
+  it('gives a recycled cell whose renderer cleared its id the same id back', () => {
+    const tables = [
+      table('master', { rows: [0], columns: [0, 1], rowHeaders: 1 }),
+      table('inline_start', { rows: [0], columns: [], rowHeaders: 1 }),
+    ];
+    const cell = tables[0].TBODY!.querySelector('td')!;
+
+    reconcileAriaCells(tables, layout(), 0, GUID);
+
+    const id = cell.id;
+
+    cell.removeAttribute('id');
+    reconcileAriaCells(tables, layout(), 0, GUID);
+
+    expect(cell.id).toBe(id);
+    expect(tables[1].TBODY!.children[0].getAttribute('aria-owns')).toContain(id);
+  });
+
+  it('tells the pass\'s id of a header from an id a renderer wrote over it', () => {
+    const tables = [
+      table('top', { rows: [], columns: [0, 1], rowHeaders: 1, head: true }),
+      table('top_inline_start_corner', { rows: [], columns: [], rowHeaders: 1, head: true }),
+    ];
+    const header = tables[0].THEAD!.querySelectorAll('th')[1];
+
+    reconcileAriaCells(tables, layout(), 1, GUID);
+    expect(hasAriaTreeId(header)).toBe(true);
+
+    header.id = 'my-header';
+    expect(hasAriaTreeId(header)).toBe(false);
+    reconcileAriaCells(tables, layout(), 1, GUID);
+    expect(header.id).toBe('my-header');
+
+    header.removeAttribute('id');
+    reconcileAriaCells(tables, layout(), 1, GUID);
+    expect(hasAriaTreeId(header)).toBe(true);
+  });
+
+  it('asks the host about blocks only when a body draws a spanning cell', () => {
+    const tables = [
+      table('master', { rows: [0, 1], columns: [0, 1], rowHeaders: 1 }),
+      table('inline_start', { rows: [0, 1], columns: [], rowHeaders: 1 }),
+    ];
+    const getBlock = jest.fn(() => null);
+
+    reconcileAriaCells(tables, layout(), 0, GUID, getBlock);
+    expect(getBlock).not.toHaveBeenCalled();
+
+    tables[0].TBODY!.querySelector('td')!.colSpan = 2;
+    reconcileAriaCells(tables, layout(), 0, GUID, getBlock);
+    expect(getBlock).toHaveBeenCalled();
+  });
+
+  it('leads the rows with the end tables when every column is frozen at the end', () => {
+    const grid = layout({ rowHeadersCount: 0, fixedColumnsEnd: 5 });
+    const all = [0, 1, 2, 3, 4];
+    const tables = [
+      table('master', { rows: [0, 1], columns: all }),
+      table('inline_end', { rows: [0, 1], columns: all }),
+    ];
+
+    reconcileAriaCells(tables, grid, 0, GUID);
+
+    expect(exposed(tables[0].TBODY)).toEqual([[], []]);
+    expect(exposed(tables[1].TBODY)[0]).toEqual(['0:0', '0:1', '0:2', '0:3', '0:4']);
+    expect(tables[1].TBODY!.children[0].hasAttribute('aria-owns')).toBe(false);
+    expect(tables[0].TBODY!.children[0].hasAttribute('aria-owns')).toBe(false);
+  });
+});
+
+describe('reconcileAriaTree', () => {
+  const settings = (values: Record<string, unknown>) => ({
+    getSetting: jest.fn((key: string, ...args: unknown[]) => {
+      const value = ({ columnHeaders: [], guid: GUID, ...values } as Record<string, unknown>)[key];
+
+      return typeof value === 'function' ? value(...args) : value;
+    }),
+  });
+
+  it('does nothing for a grid that keeps its tables apart', () => {
+    const tables = [table('master', { rows: [0], columns: [0, 1], rowHeaders: 1 })];
+    const wtSettings = settings({});
+
+    reconcileAriaTree(wtSettings, tables, null);
+
+    expect(tables[0].TBODY!.querySelectorAll('[aria-hidden]').length).toBe(0);
+    expect(wtSettings.getSetting).not.toHaveBeenCalled();
+  });
+
+  it('reads a host answer naming only the first cell as a block of one cell', () => {
+    // Columns 0 and 1 of row 0 are one block that starts in the frozen column. A host that answers with
+    // the first cell only (`[row, column]`) still names where the block starts.
+    const grid = layout({ fixedColumnsStart: 1 });
+    const build = () => {
+      const tables = [
+        table('master', { rows: [0], columns: [0, 1, 2], rowHeaders: 1 }),
+        table('inline_start', { rows: [0], columns: [0], rowHeaders: 1 }),
+      ];
+
+      tables[1].TBODY!.querySelector('td')!.colSpan = 2;
+
+      return tables;
+    };
+    const short = build();
+    const full = build();
+
+    reconcileAriaTree(settings({ onModifyGetCellCoords: (row: number, column: number) => (
+      column <= 1 ? [0, 0] : [row, column]
+    ) }), short, grid);
+    reconcileAriaTree(settings({ onModifyGetCellCoords: (row: number, column: number) => (
+      column <= 1 ? [0, 0, 0, 1] : [row, column, row, column]
+    ) }), full, grid);
+
+    // The master's slice of column 1 is a copy of the start clone's block either way.
+    expect(isHiddenByAriaTree(short[0].TBODY!.querySelectorAll('td')[1])).toBe(true);
+    expect(isHiddenByAriaTree(full[0].TBODY!.querySelectorAll('td')[1])).toBe(true);
+    expect(owned(short[1].TBODY!.children[0], short)).toEqual(['0:2']);
   });
 });

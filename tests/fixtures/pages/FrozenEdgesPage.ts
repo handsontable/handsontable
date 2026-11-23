@@ -250,6 +250,20 @@ export class FrozenEdgesPage {
   }
 
   /**
+   * The overlay table that holds the browser focus, by its first class (`ht_master`, `ht_clone_top`), or
+   * `null` when the focus is outside the grid.
+   *
+   * @returns The class name.
+   */
+  async focusedTable(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const overlay = document.activeElement?.closest('.ht_master, [class*="ht_clone_"]');
+
+      return overlay ? [...overlay.classList].find(name => name.startsWith('ht_')) ?? null : null;
+    });
+  }
+
+  /**
    * The accessibility snapshot of the grid, as Playwright writes it.
    *
    * @returns The snapshot.

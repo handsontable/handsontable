@@ -55,7 +55,6 @@ import {
   A11Y_TREEGRID
 } from './helpers/a11y';
 import { stampRowGroupsInReadingOrder } from './3rdparty/walkontable/src/overlay/ariaTree';
-import type { AriaTreeTable } from './3rdparty/walkontable/src/overlay/ariaTree';
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
 import { isPageTextSelectionKept } from './utils/pageTextSelection';
@@ -3220,17 +3219,8 @@ class TableView {
     let owned = '';
 
     if (this.settings.ariaTags && guid) {
-      const tables: AriaTreeTable[] = [];
-
-      this._wt.wtOverlays.getOverlays(true).forEach((overlay) => {
-        const wtTable = 'clone' in overlay ? overlay.clone?.wtTable : overlay;
-
-        if (wtTable) {
-          tables.push(wtTable);
-        }
-      });
-
-      owned = stampRowGroupsInReadingOrder(tables, guid).join(' ');
+      // The same tables the engine's pass joins into rows (`Overlays#getTables`).
+      owned = stampRowGroupsInReadingOrder(this._wt.wtOverlays.getTables(), guid).join(' ');
     }
 
     if (owned === this.#ariaOwnedRowGroups) {

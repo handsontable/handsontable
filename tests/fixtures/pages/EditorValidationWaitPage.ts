@@ -78,6 +78,25 @@ export class EditorValidationWaitPage {
   }
 
   /**
+   * The `aria-rowindex` of the grid row that holds the highlighted cell, read from the copy of the row that
+   * carries the `row` role: with row headers that is the row header's row (the inline-start clone's), not the
+   * master's. Read in one evaluation, so a re-render cannot swap the rows between the two reads.
+   *
+   * @returns {Promise<string | null>} The index, or `null` when no row holds the highlighted cell.
+   */
+  async selectedGridRowIndex(): Promise<string | null> {
+    return this.grid.evaluate((root) => {
+      const masterRows = Array.from(root.querySelectorAll('.ht_master tbody tr'));
+      const position = masterRows.findIndex(row => row.querySelector(':scope > td.current') !== null);
+      const gridRow = root.querySelectorAll('.ht_clone_inline_start tbody tr')[position];
+
+      return position < 0 || !gridRow || gridRow.getAttribute('role') !== 'row'
+        ? null
+        : gridRow.getAttribute('aria-rowindex');
+    });
+  }
+
+  /**
    * Opens the fixture and waits for the grid. `awaitFixtureBuilt()` rethrows a failed
    * `hyperformula-ui` import or a constructor throw the fixture captured.
    */
