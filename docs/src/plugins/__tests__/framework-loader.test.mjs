@@ -845,9 +845,18 @@ test('a fenced code block inside an aside stays a markdown fence between its par
   assert.ok(html.includes('<p>First paragraph with <code>code</code>.</p>'), 'first paragraph is its own <p>');
   assert.ok(html.includes('<p>Second paragraph, <strong>bold</strong>:</p>'), 'second paragraph is its own <p>');
   assert.ok(html.includes('<p>Closing paragraph.</p>'), 'text after the fence is its own <p>');
-  assert.ok(html.indexOf('</aside>') > close, 'the aside closes after the fence');
-  assert.equal(html.match(/<aside /g).length, 1, 'one aside');
-  assert.equal(html.match(/<\/aside>/g).length, 1, 'aside closed once');
+  assert.ok(html.indexOf('</div>\n</div>') > close, 'the aside closes after the fence');
+  assert.equal(html.match(/<div role="note" /g).length, 1, 'one callout');
+  assert.ok(!html.includes('<aside'), 'no aside element');
+});
+
+test('a callout is a note named by its title, not a complementary landmark', async () => {
+  const html = await loadPageWithBody('::: warning Source data format\nKeep one object per row.\n:::\n\n::: tip\nShort.\n:::');
+
+  assert.ok(html.includes('<div role="note" class="starlight-aside starlight-aside--caution" aria-label="Source data format">'));
+  assert.ok(html.includes('<div role="note" class="starlight-aside starlight-aside--tip" aria-label="Tip">'));
+  assert.ok(html.includes('<p class="starlight-aside__title" aria-hidden="true">Source data format</p>'));
+  assert.ok(!html.includes('<aside'), 'no aside element, so no complementary landmark');
 });
 
 test('an aside without a fence keeps its single-paragraph HTML', async () => {
@@ -877,7 +886,7 @@ test('a longer fence in an aside is not closed by a shorter fence line inside it
 
   assert.ok(open > 0 && close > open, 'outer four-backtick fence is kept whole');
   assert.deepEqual(lines.slice(open + 1, close), ['```js', 'inner();', '```'], 'inner fence lines stay inside');
-  assert.ok(html.indexOf('</aside>') > close, 'the aside closes after the outer fence');
+  assert.ok(html.indexOf('</div>\n</div>') > close, 'the aside closes after the outer fence');
 });
 
 test('a fenced block that is the whole aside body keeps the aside well formed', async () => {
@@ -885,8 +894,8 @@ test('a fenced block that is the whole aside body keeps the aside well formed', 
   const lines = html.split('\n');
 
   assert.ok(lines.includes('~~~js') && lines.includes('hot.render();'), 'tilde fence is kept as markdown');
-  assert.equal(html.match(/<aside /g).length, 1);
-  assert.equal(html.match(/<\/aside>/g).length, 1);
+  assert.equal(html.match(/<div role="note" /g).length, 1);
+  assert.ok(html.trimEnd().endsWith('</div>\n</div>'), 'the callout closes after the content');
   assert.ok(!html.includes('<p></p>'), 'no empty paragraph for a body that is only a fence');
 });
 
@@ -896,7 +905,7 @@ test('an unclosed fence in an aside is closed before the aside ends', async () =
   const open = lines.indexOf('```js');
 
   assert.deepEqual(lines.slice(open, open + 3), ['```js', 'hot.render();', '```'], 'the fence gets its closing line');
-  assert.ok(html.indexOf('</aside>') > html.lastIndexOf('```'), 'the aside closes after the fence');
+  assert.ok(html.indexOf('</div>\n</div>') > html.lastIndexOf('```'), 'the aside closes after the fence');
   assert.ok(html.includes('After the aside.'), 'text after the aside is kept outside the fence');
 });
 
@@ -937,12 +946,12 @@ test('the real markdown renderer highlights an aside fence and keeps the aside m
     'After the aside.',
   ].join('\n'));
   const { code } = await (await createMarkdownProcessor({})).render(markdown);
-  const aside = code.match(/<aside[\s\S]*<\/aside>/)[0];
+  const aside = code.match(/<div role="note"[\s\S]*?<\/div>\s*<\/div>\s*(?=<p>After the aside)/)[0];
 
   assert.match(aside, /<p>Before the code:<\/p>\s*<pre[^>]*data-language="js"/, 'paragraph, then a highlighted block');
   assert.ok(!aside.includes('```'), 'no literal fence markers in the aside');
-  assert.ok(!/<pre[\s\S]*<\/aside>[\s\S]*<\/pre>/.test(code), 'the aside markup is not inside the code block');
-  assert.match(code, /<\/aside>\s*<p>After the aside\.<\/p>/, 'the page continues after the aside');
+  assert.ok(!/<pre[\s\S]*<\/div>\s*<\/div>[\s\S]*<\/pre>/.test(code), 'the aside markup is not inside the code block');
+  assert.match(code, /<\/div>\s*<\/div>\s*<p>After the aside\.<\/p>/, 'the page continues after the aside');
 });
 
 /**
@@ -961,7 +970,7 @@ async function renderAsidePage(body) {
 test('a fence closed by a line indented up to three spaces keeps the aside and the page intact', async () => {
   const code = await renderAsidePage(['::: tip', 'Text.', '```js', 'a();', '  ```', ':::', '', 'After the aside.'].join('\n'));
 
-  assert.match(code, /<\/pre>\s*<\/div>\s*<\/aside>\s*<p>After the aside\.<\/p>/, 'the aside closes after the code block');
+  assert.match(code, /<\/pre>\s*<\/div>\s*<\/div>\s*<p>After the aside\.<\/p>/, 'the aside closes after the code block');
   assert.equal(code.match(/<pre/g).length, 1, 'one code block, no second fence');
 });
 
@@ -969,7 +978,7 @@ test('a fence opened by a line indented up to three spaces keeps the aside and t
   const code = await renderAsidePage(['::: tip', 'Text.', '  ```js', 'a();', '```', 'Tail.', ':::', '', 'After the aside.'].join('\n'));
 
   assert.match(code, /<pre[^>]*data-language="js"/, 'the indented opener is a highlighted block');
-  assert.match(code, /<p>Tail\.<\/p>\s*<\/div>\s*<\/aside>\s*<p>After the aside\.<\/p>/, 'text after the fence stays prose');
+  assert.match(code, /<p>Tail\.<\/p>\s*<\/div>\s*<\/div>\s*<p>After the aside\.<\/p>/, 'text after the fence stays prose');
   assert.equal(code.match(/<pre/g).length, 1, 'the closer does not open a second fence');
 });
 

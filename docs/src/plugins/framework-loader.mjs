@@ -457,7 +457,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v44';
+const LOADER_VERSION = 'v45';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -969,8 +969,10 @@ function buildAsideContent(bodyLines) {
 }
 
 /**
- * Transforms `<div class="boxes-list">` blocks with markdown lists into
- * Starlight-styled card grid HTML.
+ * Converts `::: tip|warning|danger|note` containers into callouts styled as
+ * Starlight asides. A callout is a `role="note"` element named by its title,
+ * never an `<aside>`: an `<aside>` is a complementary landmark, so a page with
+ * several callouts would list "Tip" in its landmarks once per callout.
  *
  * @param {string} content
  * @returns {string}
@@ -999,10 +1001,10 @@ function convertAsideBlocks(content) {
     } else if (/^:::\s*$/.test(line)) {
       // Convert markdown syntax to HTML since the body is injected as raw
       // HTML and won't be processed by remark. Fenced code blocks stay markdown.
-      result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
+      result.push(`<div role="note" class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
       result.push(`<p class="starlight-aside__title" aria-hidden="true">${asideTitle}</p>`);
       result.push(...buildAsideContent(asideBody));
-      result.push('</aside>');
+      result.push('</div>');
       asideType = null;
       asideTitle = null;
       asideBody = [];
