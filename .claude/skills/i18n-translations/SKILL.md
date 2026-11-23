@@ -34,7 +34,7 @@ import * as C from '../../i18n/constants';
 const label = this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
 ```
 
-Accessible names, descriptions, `aria-valuetext` and announcements are phrases too: a name contains its control's visible text, and a phrase that needs plural forms has them in every language file (the `handsontable-a11y` skill, its build rules).
+Accessible names, descriptions, `aria-valuetext` and announcements are phrases too, and a name contains its control's visible text (the `handsontable-a11y` skill, "Native element first, and every control has a name"). A phrase with a count is a plural array, as above, in every language file.
 
 ## RTL
 

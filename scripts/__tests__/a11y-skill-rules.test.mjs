@@ -1,14 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { repoRoot } from '../../.github/scripts/lib/repo-root.mjs';
+import { EVIDENCE_CHECKS } from '../../tests/lib/a11y-evidence.mjs';
 import {
-  BUDGET, CLASSES_FILE, HOME_FILES, SKILL_FILE, classRow, classTags, collectSkillProblems, knownChecks, lineCount,
-  readSkillInputs, sectionBullets,
+  BUDGET, CLASSES_FILE, HOME_FILES, POINTER_FILES, SKILL_FILE, classRow, classTags, collectSkillProblems, knownChecks,
+  lineCount, readSkillInputs, sectionBullets,
 } from '../a11y-skill-rules.mjs';
 
 // The accessibility skill binds its rules to defect classes (`.claude/skills/handsontable-a11y/rules.json`), and every
-// cluster of the findings catalog names one (`defectClass` in tests/a11y/issues.json). This test keeps the five places
-// that name a class in step, and keeps SKILL.md within its budget, so the learning routine and a person editing by hand
+// cluster of the findings catalog names one (`defectClass` in tests/a11y/issues.json). This test keeps the places
+// that name a class or point at a rule in step, and keeps SKILL.md within its budget, so the learning routine and a person editing by hand
 // meet the same gate: the committed tree first, then one planted failure per rule on a copy of the real inputs, so a
 // check that stops firing fails here rather than passing everything.
 
@@ -86,13 +87,25 @@ test('every enforcing check is a known check id, and runs where the class says i
   assert.ok(checks.has('keyboard-walker') && checks.has('docs-structure') && checks.has('axe') && checks.has('none'),
     'the known checks hold the evidence checks, the site checks, the scans and the tiers');
 
+  // The short suite's flag decides where a check beyond axe runs, so a check that joins or leaves it moves its classes.
+  for (const [id, check] of Object.entries(EVIDENCE_CHECKS)) {
+    assert.deepEqual(checks.get(id), check.pullRequest === true ? ['pull-request'] : ['weekly', 'none'], id);
+  }
+
+  assert.ok(checks.get('pointer').includes('pull-request') && checks.get('forced-colors-motion').includes('weekly'),
+    'the registry has a check in the short suite and one outside it');
+
   assertPlanted((inputs) => {
     classOf(inputs, 'C09').enforcedBy[0].check = 'pointr';
   }, /class C09, enforcedBy 1 names "pointr", which is not a known check/);
-  // The checks beyond axe run in the weekly audit only: a class that says one runs on the pull request misleads a fix.
+  // A check of the short suite reports on the pull request: a class that calls it weekly sends a fix to the audit.
   assertPlanted((inputs) => {
-    classOf(inputs, 'C09').enforcedBy[0].runs = 'pull-request';
-  }, /class C09, enforcedBy 1: "pointer" runs weekly or none, not "pull-request"/);
+    classOf(inputs, 'C09').enforcedBy[0].runs = 'weekly';
+  }, /class C09, enforcedBy 1: "pointer" runs pull-request, not "weekly"/);
+  // A check outside the short suite runs in the weekly audit only: a class that says the pull request misleads a fix.
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C11').enforcedBy[0].runs = 'pull-request';
+  }, /class C11, enforcedBy 1: "forced-colors-motion" runs weekly or none, not "pull-request"/);
   assertPlanted((inputs) => {
     classOf(inputs, 'C09').enforcedBy.push({ check: 'none', runs: 'none' });
   }, /class C09: "none" says no check enforces the rule, so it stands alone/);
@@ -112,6 +125,10 @@ test('classes.md and rules.json list the same classes, row for row', () => {
   assertPlanted((inputs) => {
     inputs.classesDoc += '| C99 | Planted | none | skill | A rule. | none | 0 |\n';
   }, /classes\.md has a row for C99, which .*rules\.json does not list/);
+  // A second row for a class: a map keyed by id keeps the last, so a stale copy below the right one would read as the row.
+  assertPlanted((inputs) => {
+    inputs.classesDoc += `${classRow(classOf(inputs, 'C09'))}\n`;
+  }, /classes\.md has more than one row for C09/);
   // A rule edited in rules.json alone: the table shows the old text, and the message prints the row to copy.
   assertPlanted((inputs) => {
     classOf(inputs, 'C09').rule = 'A control acts on release.';
@@ -140,7 +157,7 @@ test('every build rule names its classes, and every class names the file that ho
 
   assert.deepEqual(classTags('Acts on release. [C06, C09] and [C03]'), ['C06', 'C09', 'C03']);
   assert.ok(sectionBullets(skill, '## Build rules').every(rule => classTags(rule).length > 0));
-  assert.deepEqual(Object.keys(HOME_FILES), ['skill', 'renderer', 'docs']);
+  assert.deepEqual(Object.keys(HOME_FILES), ['skill', 'docs']);
 
   assertPlanted((inputs) => {
     inputs.skill = inputs.skill.replace('`aria-hidden="true"`. [C03]', '`aria-hidden="true"`.');
@@ -150,11 +167,8 @@ test('every build rule names its classes, and every class names the file that ho
   }, /the build rule "\*\*A control acts on release.*names C14, which is not a class whose home is the skill/);
   // C11 is tagged by one rule only: untagging it leaves the class without a rule in the skill.
   assertPlanted((inputs) => {
-    inputs.skill = inputs.skill.replace('keeps. [C11]', 'keeps. [C08]');
+    inputs.skill = inputs.skill.replace('(1.4.1). [C11]', '(1.4.1). [C08]');
   }, /no build rule names C11, a class whose home is the skill/);
-  assertPlanted((inputs) => {
-    inputs.homes.renderer = inputs.homes.renderer.replace('[C01]', '');
-  }, /walkontable-dev\/SKILL\.md does not name C01, a class whose home is "renderer"/);
   assertPlanted((inputs) => {
     inputs.homes.docs = inputs.homes.docs.replace('[C14]', '');
   }, /docs\/AGENTS\.md does not name C14, a class whose home is "docs"/);
@@ -172,7 +186,7 @@ test('the skill and its class table hold rules, not records: no task id and no d
 test('rules.json keeps its shape: ids, homes, criteria, strikes and the not-preventable list', () => {
   assertPlanted((inputs) => {
     classOf(inputs, 'C09').home = 'grid';
-  }, /class C09: "home" must be one of skill, renderer, docs, website, record-only/);
+  }, /class C09: "home" must be one of skill, docs, website, record-only/);
   assertPlanted((inputs) => {
     classOf(inputs, 'C09').wcag.push('4.1.1');
   }, /class C09: "wcag" must list WCAG 2\.2 criteria/);
@@ -200,4 +214,58 @@ test('rules.json keeps its shape: ids, homes, criteria, strikes and the not-prev
       extra: true,
     });
   }, /class C18 has an unknown field "extra"/);
+});
+
+test('the classes account for the catalog: every check a cluster is found by, and every cluster a record names', () => {
+  const cluster = (inputs, id) => inputs.catalog.clusters.find(entry => entry.id === id);
+
+  // `grid-roles` is found by the grid's axe scan and by the docs and website scans of the pages that embed a grid.
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C02').enforcedBy = classOf(inputs, 'C02').enforcedBy.filter(item => item.check !== 'docs-axe');
+  }, /class C02: its cluster "grid-roles" is found by docs-axe, which its "enforcedBy" does not list/);
+  // A match that lists several checks is satisfied by any one of them, and the triage run counts for none.
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C06').enforcedBy = classOf(inputs, 'C06').enforcedBy
+      .filter(item => item.check !== 'keyboard-walker');
+  }, /class C06: its cluster "formula-help-panel-focus-stop" is found by tree-snapshots or keyboard-walker/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').strikes.push({ cluster: 'no-such-cluster', audit: '2026-11-23', pullRequest: 1 });
+  }, /class C09, strike 1 names "no-such-cluster", which tests\/a11y\/issues\.json does not hold/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').strikes.push({ cluster: 'menu-semantics', audit: '2026-11-23', pullRequest: 1 });
+  }, /class C09, strike 1 names "menu-semantics", a cluster of C02/);
+  assertPlanted((inputs) => {
+    inputs.rules.notPreventable.push({ cluster: 'no-such-cluster', reason: 'Planted.' });
+  }, /notPreventable 1 names "no-such-cluster", which tests\/a11y\/issues\.json does not hold/);
+  // A cluster moved to another class carries its checks' demands with it.
+  assertPlanted((inputs) => {
+    cluster(inputs, 'drag-and-press-activation').defectClass = 'C14';
+  }, /class C14: its cluster "drag-and-press-activation" is found by pointer/);
+});
+
+test('every pointer line still points, and a build rule it quotes exists', () => {
+  const { pointers } = committed();
+
+  assert.equal(Object.keys(POINTER_FILES).length, 10, 'the pointer files: eight point at the skill, two at the docs');
+  assert.ok(Object.values(pointers).every(text => text.length > 0), 'read every pointer file');
+
+  assertPlanted((inputs) => {
+    const file = '.claude/skills/react-wrapper-dev/SKILL.md';
+
+    inputs.pointers[file] = inputs.pointers[file].replace('"Only the user moves focus"', '"Never move the focus"');
+  }, /react-wrapper-dev\/SKILL\.md quotes the build rule "Never move the focus", which .*SKILL\.md does not have/);
+  // A rule renamed in the skill orphans every quote of its old lead.
+  assertPlanted((inputs) => {
+    inputs.skill = inputs.skill.replace('**Only the user moves focus.**', '**Focus moves only for the user.**');
+  }, /vue-wrapper-dev\/SKILL\.md quotes the build rule "Only the user moves focus"/);
+  assertPlanted((inputs) => {
+    const file = '.claude/skills/visual-testing/SKILL.md';
+
+    inputs.pointers[file] = inputs.pointers[file].replaceAll('`handsontable-a11y` skill', 'accessibility skill');
+  }, /visual-testing\/SKILL\.md does not point at the `handsontable-a11y` skill/);
+  assertPlanted((inputs) => {
+    const file = '.claude/skills/writing-docs-pages/SKILL.md';
+
+    inputs.pointers[file] = inputs.pointers[file].replace('"Accessible pages"', '"Accessibility"');
+  }, /writing-docs-pages\/SKILL\.md does not point at `docs\/AGENTS\.md`, "Accessible pages"/);
 });

@@ -188,7 +188,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 ## Accessibility
 
-The bar is WCAG 2.2 Level A and AA, the target level (the published conformance report states conformance per criterion), and the `handsontable-a11y` skill is the workflow and owns the rule text: an accessibility plan before the code, the build rules (each tagged with its defect class, `references/classes.md`), the proof, and the fix loops for a scan finding and a weekly-audit finding. Read its build rules before a change anyone can see or operate. Below are only the rules that name core code:
+The bar is WCAG 2.2 Level A and AA, the target level (the published conformance report states conformance per criterion), and the `handsontable-a11y` skill is the workflow and owns the rule text: an accessibility plan before the code, the build rules (each tagged with its defect class, `references/classes.md`), the proof, and the fix loops for a finding of the axe scan and of the checks beyond axe. Read its build rules before a change anyone can see or operate. Below are only the rules that name core code:
 
 - **Roles and ARIA attributes go through `src/helpers/a11y.ts`**, written with `setAttribute(element, [A11Y_…()])` from `helpers/dom/element`. A missing attribute gets a helper there, not a string literal at the call site.
 - **A role keeps its required parents and children.** Menus and lists are Handsontable grids, so a widget role on a `td` needs `role="presentation"` on the `table`, `tbody` and `tr` around it; the menus are the model (`src/utils/menu/AGENTS.md`), and the baseline's `filters-listbox` issue is what skipping it looks like.

@@ -3,7 +3,8 @@
 Three kinds of proof on the pull request, and a UI change ships the ones that apply. The axe scan
 finds missing structure, names and contrast on a resting page. Only a test can show that a keyboard
 user reaches the control, operates it and gets focus back, and that a screen reader hears what
-changed. The weekly checks (section 4) measure the rest after the merge.
+changed. The checks beyond axe (section 4) measure the rest: their short suite on the pull request
+too, the others in the weekly audit after the merge.
 
 ## 1. A keyboard-only Playwright flow (`tests/e2e/`)
 
@@ -62,36 +63,41 @@ stands in for the flow: it cannot see focus.
 ## 3. What the scan and the flow do not cover
 
 The axe scan checks that a name exists, not that it means anything, and it never presses a key,
-follows focus, hears an announcement, drags, or zooms. The weekly checks of section 4 do all of
-that, but after the merge: run the one your change needs before you push. The flow in section 1
+follows focus, hears an announcement, drags, or zooms. The checks of section 4 do: the short suite
+on the pull request, the others after the merge, so run the one your change needs before you push.
+The flow in section 1
 covers keys, focus and announcements on the pull request itself. A new widget pattern, or a change
 to how one is announced, also gets a pass with a real screen reader from the tested matrix in
 `docs/content/data/accessibility.json` (VoiceOver on macOS or iOS, NVDA on Windows with Chrome or
 Firefox): say what to listen for on the PR template's `MANUAL QA NEEDED` line.
 
-## 4. The weekly checks and where they run
+## 4. The checks beyond axe and where they run
 
-The checks beyond axe (`tests/a11y/checks/`), the screen reader lanes and the docs and website
-checks run in the Monday audit on develop, never on a pull request, which runs the axe scan and the
-functional tier only. What they find lands in the findings ledger (the test-health page) under its
-cluster, and `references/classes.md` names the check that proves each class. The criteria of each
-check are its entry in `EVIDENCE_CHECKS` (`tests/lib/a11y-evidence.mjs`); the rules are
-`tests/AGENTS.md`, "A11y: the checks beyond axe".
+Every check beyond axe (`tests/a11y/checks/`), the screen reader lanes and the docs and website
+checks run in the Monday audit on develop. A pull request runs the short suite beside the axe scan,
+the checks with `pullRequest: true` in `EVIDENCE_CHECKS` (`tests/lib/a11y-evidence.mjs`), report-only:
+the findings ledger is its baseline, so a finding whose row is open is known and does not count, and a
+regression (a resolved row) or a new finding counts by the severity rule in its
+`A11y / <check> report` check run, which can turn red while the job stays green. What the audit
+finds lands in the ledger (the test-health page) under its cluster, and `references/classes.md` names
+the check that proves each class and where it runs. The criteria of each check are its entry in
+`EVIDENCE_CHECKS`; the rules are `tests/AGENTS.md`, "A11y: the checks beyond axe".
 
-| Check | Measures |
-|---|---|
-| `keyboard-walker` | Tab walks, traps and modal exits, focus after Escape, stops with no role or name, the APG grid keys, every documented shortcut |
-| `tree-snapshots` | the accessibility tree's order, roles and names, against a golden per page |
-| `focus-contrast` | focus indicators and non-text contrast, in pixels, every theme light and dark |
-| `reflow` | 320 CSS px, 200% zoom, text spacing, hover content |
-| `pointer` | an action on press, a drag with no alternative |
-| `forced-colors-motion` | what forced colors no longer draw, motion that runs on |
-| `axe-discovery` | axe's wider rules and its needs-review results, for triage |
+| Check | Measures | On a pull request |
+|---|---|---|
+| `keyboard-walker` | Tab walks, traps and modal exits, focus after Escape, stops with no role or name, the APG grid keys, every documented shortcut | yes |
+| `tree-snapshots` | the accessibility tree's order, roles and names, against a golden per page | yes |
+| `focus-contrast` | focus indicators and non-text contrast, in pixels, every theme light and dark | yes |
+| `reflow` | 320 CSS px, 200% zoom, text spacing, hover content | yes |
+| `pointer` | an action on press, a drag with no alternative | yes |
+| `forced-colors-motion` | what forced colors no longer draw, motion that runs on | weekly only |
+| `axe-discovery` | axe's wider rules and its needs-review results, for triage | weekly only |
 
 - **Run one locally**, after `build:umd`, `build:styles.min` and `build:themes-css.min`:
   `A11Y_CHECKS=<check> npm --prefix tests run test:a11y-checks` (the short suite of the fast ones:
-  `HOT_A11Y_CHECKS_SUITE=pull-request`). Each writes `tests/test-results/a11y-checks/<check>.json`;
-  a critical or serious finding there is what the audit will report.
+  `HOT_A11Y_CHECKS_SUITE=pull-request`, what a pull request runs). Each writes
+  `tests/test-results/a11y-checks/<check>.json`; a critical or serious finding there is what the pull
+  request or the audit will report.
 - **A proof run on CI** dispatches the nightly from your branch:
   `gh workflow run a11y-nightly.yml --ref <branch> -f checks=<check>`. It costs runner minutes, and
   develop refuses a subset, so run locally first.
@@ -100,4 +106,5 @@ check are its entry in `EVIDENCE_CHECKS` (`tests/lib/a11y-evidence.mjs`); the ru
   golden in the same pull request, or the audit reports it as drift.
 - **The screen reader lanes** (`tests/screenreader/`) run on macOS and Windows runners, one run at a
   time; their scenarios and goldens are in `tests/AGENTS.md`. **The docs and website checks**
-  (`docs-*`, `website-*`) read a deployed site, from `docs-a11y.yml` and `website-a11y.yml`.
+  (`docs-*`, `website-*`) read a deployed site, from `docs-a11y.yml` and `website-a11y.yml`, weekly
+  only: a pull request that changes a site scan's own files runs that axe scan, never the checks.

@@ -65,7 +65,7 @@
     {
       "id": "grid-roles",
       "title": "The grid is built from divs with ARIA roles, and its treegrid root holds children the role does not allow",
-      "defectClass": "C01",
+      "defectClass": "C02",
       "tracker": "DEV-2964",
       "match": [
         { "source": "axe", "axeIssues": ["grid-roles"] },
@@ -626,7 +626,7 @@
     {
       "id": "docs-link-color-only",
       "title": "Links in the docs prose are told apart from the surrounding text by color alone",
-      "defectClass": "C13",
+      "defectClass": "C11",
       "tracker": "DEV-4017",
       "match": [
         { "source": "docs", "rules": ["link-in-text-block"], "where": ["^a$"] }
@@ -1008,7 +1008,7 @@
     {
       "id": "website-newsletter-label",
       "title": "The footer newsletter's email field has no drawn label, only a placeholder",
-      "defectClass": "C03",
+      "defectClass": "C15",
       "tracker": "DEV-4080",
       "match": [
         { "source": "website-checks", "kinds": ["label-not-visible"] }

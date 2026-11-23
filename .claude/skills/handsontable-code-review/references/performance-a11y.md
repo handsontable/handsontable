@@ -16,13 +16,16 @@ The bar is WCAG 2.2 Level A and AA, the target level; the published conformance 
 conformance per criterion. The rule text lives once, in the `handsontable-a11y` skill: check the diff
 against its build rules (`.claude/skills/handsontable-a11y/SKILL.md`, each tagged with its defect
 class) and its class table (`references/classes.md`), which names the check that proves each rule and
-where it runs. A rule whose check runs weekly is invisible to the pull request's own checks, so this
-review is its only gate before the audit. On top of that, what only a reviewer can judge:
+where it runs. A change to rendering, selection, headers or frozen areas meets the rule that the grid
+keeps its own ARIA (`role`, `aria-rowcount`, `aria-colcount`, `aria-rowindex`, `aria-colindex`,
+`aria-selected`). The short suite of the checks beyond axe reports on the pull request, but the
+forced-colors, docs, website and screen reader checks run only in the weekly audit, so for a rule
+they enforce this review is the only gate before it. On top of that, what only a reviewer can judge:
 
 1. **Keyboard navigation, both modes:** spreadsheet mode (`navigableHeaders: false`, `tabNavigation: true`) and data grid mode (`navigableHeaders: true`, `tabNavigation: false`). A new interactive element is reachable and operable by keyboard alone in both.
 2. **A name that means something:** the scan sees that a name exists, not what it says. Read each new name as a screen reader user hears it, out of context, and in another language file.
 3. **A focus order that makes sense:** where focus lands on open, where it returns on close, and the order Tab walks fit the task, not only exist.
-4. **The plan and the proof:** the pull request carries the skill's accessibility plan and the proofs it names (`references/proving.md`): a keyboard-only Playwright flow for what a user operates, the axe scan in all three themes for a color or size, and the weekly check of each class the change touched, run on the branch. The `A11y / axe report` check shows no new or grown finding, and a finding the change caused is fixed, not added to `tests/a11y/axe-baseline.json`.
+4. **The plan and the proof:** the pull request carries the skill's accessibility plan and the proofs it names (`references/proving.md`): a keyboard-only Playwright flow for what a user operates, the axe scan in all three themes for a color or size, and, for a class whose check runs weekly only, that check run on the branch. The `A11y / axe report` check shows no new or grown finding and the `A11y / <check> report` check runs no regression or new finding the change caused; such a finding is fixed, not added to `tests/a11y/axe-baseline.json`.
 
 ## References
 

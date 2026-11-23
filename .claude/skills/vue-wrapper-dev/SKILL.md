@@ -31,4 +31,4 @@ Build: Rollup 4. Tests: Jest with `@vue/test-utils`; `npm run test --prefix wrap
 
 - All data transformation and validation lives in `handsontable/src/`.
 - npm scripts use Node.js `.mjs` helpers.
-- A prop or settings update never moves the focus, and a component renderer or editor gets the names and the focus return a core one has (the `handsontable-a11y` skill, "Only the user moves focus").
+- A prop or settings update moves the focus only when the grid held it as the update began, and a component renderer or editor gets the names and the focus return a core one has (the `handsontable-a11y` skill, "Only the user moves focus").

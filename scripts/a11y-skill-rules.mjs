@@ -2,13 +2,18 @@
  * The accessibility skill's defect classes, checked against everything that names them.
  *
  * `.claude/skills/handsontable-a11y/rules.json` lists the defect classes: the mechanism behind a kind of finding, the
- * rule against it, and the check that enforces the rule and where that check runs. Four other places depend on it,
+ * rule against it, and the check that enforces the rule and where that check runs. Five other places depend on it,
  * and each can drift on its own:
  *
  * - `references/classes.md`, the same table for a reader, row for row;
  * - the build rules of `SKILL.md`, each tagged with the classes it carries (`[C09]`), within a size budget;
- * - the file that holds the rule of a class whose home is not the skill (`renderer`, `docs`);
- * - `tests/a11y/issues.json`, whose every cluster names its class in `defectClass`.
+ * - the file that holds the rule of a class whose home is not the skill (`docs`);
+ * - `tests/a11y/issues.json`, whose every cluster names its class in `defectClass`, and which the strikes and the
+ *   `notPreventable` list name clusters of;
+ * - the pointer lines other skills carry (`POINTER_FILES`), which must still point, and name a build rule that exists.
+ *
+ * What it leaves to review: whether a rule's text is right, whether a pointer line says what the rule says, and whether
+ * a cluster's class is the one whose rule would have prevented it.
  *
  * Everything here is pure: `collectSkillProblems()` takes the texts and the parsed documents, so a test can plant a
  * failure in a copy, and `readSkillInputs()` is the one reader of the files. The learning routine reads the same
@@ -33,16 +38,38 @@ export const RULES_SCHEMA = 1;
  * may not touch.
  */
 export const BUDGET = Object.freeze({ skillLines: 120, buildRules: 20 });
-export const HOMES = ['skill', 'renderer', 'docs', 'website', 'record-only'];
+export const HOMES = ['skill', 'docs', 'website', 'record-only'];
 /**
  * The file that holds the rule text of each home. The website's rules live in its own repository, and a record-only
  * class has none.
  */
 export const HOME_FILES = Object.freeze({
   skill: SKILL_FILE,
-  renderer: '.claude/skills/walkontable-dev/SKILL.md',
   docs: 'docs/AGENTS.md',
 });
+/**
+ * The skills that point at the accessibility rules instead of restating them, each with what its pointer names: the
+ * skill itself, or the docs section of the `docs` home. A pointer that quotes a build rule by its bold lead
+ * (`the \`handsontable-a11y\` skill, "Only the user moves focus"`) must quote one `SKILL.md` has.
+ */
+export const POINTER_FILES = Object.freeze({
+  '.claude/skills/handsontable-celltype-dev/SKILL.md': 'skill',
+  '.claude/skills/i18n-translations/SKILL.md': 'skill',
+  '.claude/skills/refactoring/SKILL.md': 'skill',
+  '.claude/skills/react-wrapper-dev/SKILL.md': 'skill',
+  '.claude/skills/vue-wrapper-dev/SKILL.md': 'skill',
+  '.claude/skills/angular-wrapper-dev/SKILL.md': 'skill',
+  '.claude/skills/walkontable-dev/SKILL.md': 'skill',
+  '.claude/skills/visual-testing/SKILL.md': 'skill',
+  '.claude/skills/creating-docs-examples/SKILL.md': 'docs',
+  '.claude/skills/writing-docs-pages/SKILL.md': 'docs',
+});
+const POINTER_TARGETS = Object.freeze({
+  skill: { text: '`handsontable-a11y` skill', says: 'the `handsontable-a11y` skill' },
+  docs: { text: '`docs/AGENTS.md`, "Accessible pages"', says: '`docs/AGENTS.md`, "Accessible pages"' },
+});
+const QUOTED_RULE = /`handsontable-a11y` skill, "([^"]+)"/g;
+const RULE_LEAD = /^- \*\*([^*]+?)\.?\*\*/;
 const RUNS_TEXT = Object.freeze({ 'pull-request': 'pull request', weekly: 'weekly', none: 'nowhere yet' });
 const TOP_FIELDS = ['schema', 'about', 'budget', 'classes', 'notPreventable'];
 const CLASS_FIELDS = ['id', 'name', 'wcag', 'home', 'rule', 'enforcedBy', 'strikes'];
@@ -57,19 +84,21 @@ const DATE_IN_TEXT = /\b\d{4}-\d{2}-\d{2}\b/;
 const WHY = 'a rule says what to do and why';
 
 /**
- * Every check a class may name, with where it can run. The checks beyond axe and the site checks run in the weekly
- * audit only: `a11y.yml` runs its `checks` job when the caller sets the input, which the pull request pipeline does
- * not, and a site check reads a deployed site. The axe scan gates every pull request that builds the product; the
- * docs and website scans run on a pull request only for their tooling. Move a check to `pull-request` here in the
- * change that runs it there.
+ * Every check a class may name, with where it can run. A pull request runs the axe scan and the short suite of the
+ * checks beyond axe, the ones with `pullRequest: true` in `EVIDENCE_CHECKS`, both report-only (the short suite
+ * against the findings ledger), and the functional tier; the other checks beyond axe run in the weekly audit only.
+ * The flag decides, so a check that joins or leaves the short suite changes what its classes must say, and this test
+ * fails until `rules.json` follows. A site check reads a deployed site, and the docs and website scans run on a pull
+ * request only for their own tooling, so both are weekly.
  *
  * @returns {Map<string, string[]>} The check ids, each with the values of `runs` it allows.
  */
 export function knownChecks() {
   const weekly = ['weekly', 'none'];
+  const evidenceRuns = check => (check.pullRequest === true ? ['pull-request'] : weekly);
 
   return new Map([
-    ...Object.keys(EVIDENCE_CHECKS).map(id => [id, weekly]),
+    ...Object.entries(EVIDENCE_CHECKS).map(([id, check]) => [id, evidenceRuns(check)]),
     ...Object.keys(SITE_CHECKS).map(id => [id, weekly]),
     [AXE_SCAN_CHECK, ['pull-request']],
     [DOCS_SCAN_CHECK, weekly],
@@ -431,7 +460,7 @@ export function skillProblems(skill, classes) {
 }
 
 /**
- * Why a class whose rule lives outside the skill (`renderer`, `docs`) is not named in the file that holds it.
+ * Why a class whose rule lives outside the skill (`docs`) is not named in the file that holds it.
  *
  * @param {Record<string, string>} texts The text of each home file, by home.
  * @param {object[]} classes The classes of `rules.json`.
@@ -446,17 +475,19 @@ export function homeProblems(texts, classes) {
 }
 
 /**
- * Why `references/classes.md` is not the twin of `rules.json`: a class missing from either, or a row that differs.
+ * Why `references/classes.md` is not the twin of `rules.json`: a class missing from either, a class with two rows, or a
+ * row that differs.
  *
  * @param {string} doc The text of `references/classes.md`.
  * @param {object[]} classes The classes of `rules.json`.
  * @returns {string[]} The problems.
  */
 export function classesDocProblems(doc, classes) {
-  const rows = new Map(doc.split('\n')
-    .filter(line => /^\| C\d{2} \|/.test(line))
-    .map(line => [line.slice(2, 5), line]));
-  const problems = [];
+  const lines = doc.split('\n').filter(line => /^\| C\d{2} \|/.test(line));
+  const rows = new Map(lines.map(line => [line.slice(2, 5), line]));
+  const problems = [...rows.keys()]
+    .filter(id => lines.filter(line => line.slice(2, 5) === id).length > 1)
+    .map(id => `${CLASSES_FILE} has more than one row for ${id}: keep the one ${RULES_FILE} gives`);
 
   for (const entry of classes) {
     const expected = classRow(entry);
@@ -518,6 +549,111 @@ export function catalogProblems(catalog, classes) {
 }
 
 /**
+ * The check a cluster's match is found by, as a class names it: the grid's axe scan, the docs or website axe scan, the
+ * screen reader lanes, or the checks it lists (any one of them will do). `null` when the match names no check this
+ * module can tell: a site check matched by its kind alone, or the triage run, which enforces nothing.
+ *
+ * @param {object} match One entry of a cluster's `match`.
+ * @returns {string[]|null} The checks, any of which the class must list.
+ */
+function checksOfMatch(match) {
+  const scans = { axe: AXE_SCAN_CHECK, docs: DOCS_SCAN_CHECK, website: WEBSITE_SCAN_CHECK };
+
+  if (Object.hasOwn(scans, match.source)) {
+    return [scans[match.source]];
+  }
+  if (match.source === 'reader') {
+    return ['readers'];
+  }
+
+  const named = (match.checks ?? []).filter(id => EVIDENCE_CHECKS[id]?.triage !== true);
+
+  return named.length > 0 ? named : null;
+}
+
+/**
+ * Why the classes do not account for the catalog: a class that leaves out a check one of its clusters is found by, a
+ * strike or a `notPreventable` entry that names no cluster of the catalog, or a strike on a cluster of another class.
+ *
+ * @param {{clusters?: object[]}} catalog The parsed `tests/a11y/issues.json`.
+ * @param {object[]} classes The classes of `rules.json`.
+ * @param {unknown} notPreventable The `notPreventable` list of `rules.json`.
+ * @returns {string[]} The problems.
+ */
+export function catalogReferenceProblems(catalog, classes, notPreventable) {
+  const clusters = new Map((catalog.clusters ?? []).map(cluster => [cluster.id, cluster]));
+  const byId = new Map(classes.map(entry => [entry.id, entry]));
+  const problems = [];
+
+  for (const cluster of clusters.values()) {
+    const entry = byId.get(cluster.defectClass);
+
+    if (!entry || entry.home === 'record-only') {
+      continue;
+    }
+
+    const listed = new Set(entry.enforcedBy.map(item => item?.check));
+    const missing = new Set((cluster.match ?? []).map(checksOfMatch)
+      .filter(checks => checks && !checks.some(id => listed.has(id))).map(checks => checks.join(' or ')));
+
+    for (const checks of missing) {
+      problems.push(`class ${entry.id}: its cluster "${cluster.id}" is found by ${checks}, which its "enforcedBy" `
+        + 'does not list');
+    }
+  }
+  for (const entry of classes) {
+    entry.strikes.forEach((strike, index) => {
+      const cluster = clusters.get(strike?.cluster);
+
+      if (isClusterId(strike?.cluster) && !cluster) {
+        problems.push(`class ${entry.id}, strike ${index + 1} names "${strike.cluster}", which ${CATALOG_FILE} does `
+          + 'not hold');
+      } else if (cluster && cluster.defectClass !== entry.id) {
+        problems.push(`class ${entry.id}, strike ${index + 1} names "${strike.cluster}", a cluster of `
+          + `${cluster.defectClass}: a strike counts against the class of its cluster`);
+      }
+    });
+  }
+  (Array.isArray(notPreventable) ? notPreventable : []).forEach((item, index) => {
+    if (isClusterId(item?.cluster) && !clusters.has(item.cluster)) {
+      problems.push(`notPreventable ${index + 1} names "${item.cluster}", which ${CATALOG_FILE} does not hold`);
+    }
+  });
+
+  return problems;
+}
+
+/**
+ * Why a pointer line no longer points: a pointer file that names neither the skill nor the docs section it should, or
+ * a quoted build rule `SKILL.md` does not have.
+ *
+ * @param {Record<string, string>} pointers The text of each pointer file, by path.
+ * @param {string} skill The text of `SKILL.md`.
+ * @returns {string[]} The problems.
+ */
+export function pointerProblems(pointers, skill) {
+  const leads = (sectionBullets(skill, '## Build rules') ?? [])
+    .map(bullet => bullet.match(RULE_LEAD)?.[1]).filter(Boolean);
+  const problems = [];
+
+  for (const [file, target] of Object.entries(POINTER_FILES)) {
+    const text = pointers[file] ?? '';
+
+    if (!text.includes(POINTER_TARGETS[target].text)) {
+      problems.push(`${file} does not point at ${POINTER_TARGETS[target].says}: keep its one pointer line`);
+    }
+    for (const [, quoted] of text.matchAll(QUOTED_RULE)) {
+      if (!leads.includes(quoted)) {
+        problems.push(`${file} quotes the build rule "${quoted}", which ${SKILL_FILE} does not have: quote a rule's `
+          + 'bold lead as it reads');
+      }
+    }
+  }
+
+  return problems;
+}
+
+/**
  * Why a text the learning routine may write holds a record rather than a rule: a task id or a date. Counts and ids
  * belong in the pull request that changes the rule.
  *
@@ -546,9 +682,10 @@ export function recordInTextProblems(text, file) {
  * @param {string} inputs.classesDoc The text of `references/classes.md`.
  * @param {Record<string, string>} inputs.homes The text of each home file, by home.
  * @param {object} inputs.catalog The parsed `tests/a11y/issues.json`.
+ * @param {Record<string, string>} inputs.pointers The text of each pointer file, by path.
  * @returns {string[]} The problems.
  */
-export function collectSkillProblems({ rules, skill, classesDoc, homes, catalog }) {
+export function collectSkillProblems({ rules, skill, classesDoc, homes, catalog, pointers }) {
   // The checks after the first read only the classes whose lists are lists, so a malformed class is reported once.
   const classes = (Array.isArray(rules?.classes) ? rules.classes : [])
     .filter(entry => entry && typeof entry === 'object' && Array.isArray(entry.wcag)
@@ -560,6 +697,8 @@ export function collectSkillProblems({ rules, skill, classesDoc, homes, catalog 
     ...homeProblems(homes, classes),
     ...classesDocProblems(classesDoc, classes),
     ...catalogProblems(catalog, classes),
+    ...catalogReferenceProblems(catalog, classes, rules?.notPreventable),
+    ...pointerProblems(pointers ?? {}, skill),
     ...recordInTextProblems(skill, SKILL_FILE),
     ...recordInTextProblems(classesDoc, CLASSES_FILE),
   ];
@@ -569,7 +708,7 @@ export function collectSkillProblems({ rules, skill, classesDoc, homes, catalog 
  * Reads the inputs of `collectSkillProblems()` from a checkout.
  *
  * @param {string} root The repository root.
- * @returns {object} The inputs: `rules`, `skill`, `classesDoc`, `homes` and `catalog`.
+ * @returns {object} The inputs: `rules`, `skill`, `classesDoc`, `homes`, `catalog` and `pointers`.
  */
 export function readSkillInputs(root) {
   const read = file => readFileSync(path.join(root, file), 'utf8');
@@ -580,5 +719,6 @@ export function readSkillInputs(root) {
     classesDoc: read(CLASSES_FILE),
     homes: Object.fromEntries(Object.entries(HOME_FILES).map(([home, file]) => [home, read(file)])),
     catalog: JSON.parse(read(CATALOG_FILE)),
+    pointers: Object.fromEntries(Object.keys(POINTER_FILES).map(file => [file, read(file)])),
   };
 }

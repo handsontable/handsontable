@@ -1,17 +1,16 @@
 {
   "schema": 1,
-  "about": "The defect classes of the accessibility skill, for scripts: references/classes.md is the same table for a reader, row for row. Every cluster of tests/a11y/issues.json names one class in defectClass. A class has id, name, wcag (WCAG 2.2 criteria), home (where its rule text lives: skill, renderer, docs, website, or record-only for a class no rule can prevent), rule (null for record-only), enforcedBy (check: an id of EVIDENCE_CHECKS or SITE_CHECKS in tests/lib, axe, docs-axe, website-axe, unit, e2e, readers, or none; runs: pull-request, weekly or none; an optional note) and strikes (a finding of the weekly audit that broke the rule: { cluster, audit, pullRequest }). notPreventable lists the clusters no rule can prevent, as { cluster, reason }. budget caps SKILL.md. scripts/__tests__/a11y-skill-rules.test.mjs enforces all of it.",
+  "about": "The defect classes of the accessibility skill, for scripts: references/classes.md is the same table for a reader, row for row. Every cluster of tests/a11y/issues.json names one class in defectClass. A class has id, name, wcag (WCAG 2.2 criteria), home (where its rule text lives: skill, docs, website, or record-only for a class no rule can prevent), rule (null for record-only), enforcedBy (check: an id of EVIDENCE_CHECKS or SITE_CHECKS in tests/lib, axe, docs-axe, website-axe, unit, e2e, readers, or none; runs: pull-request (it reports on the pull request; knownChecks() says which checks do), weekly or none; an optional note) and strikes (a finding of the weekly audit that broke the rule: { cluster, audit, pullRequest }). notPreventable lists the clusters no rule can prevent, as { cluster, reason }. budget caps SKILL.md. scripts/__tests__/a11y-skill-rules.test.mjs enforces all of it.",
   "budget": { "skillLines": 120, "buildRules": 20 },
   "classes": [
     {
       "id": "C01",
       "name": "One grid tree: overlay copies and the rendered band",
       "wcag": ["1.3.1", "1.3.2", "4.1.2"],
-      "home": "renderer",
-      "rule": "A layer that repeats cells, headers or rows says which copy assistive technology reads and hides the others. A change to the rendered structure updates the tree golden in the same pull request.",
+      "home": "skill",
+      "rule": "The grid keeps `role`, `aria-rowcount`, `aria-colcount`, `aria-rowindex`, `aria-colindex` and `aria-selected` through a change to rendering, selection, headers, frozen areas or merged cells. A layer that repeats cells, headers or rows says which copy assistive technology reads and hides the others, and a change to the rendered structure updates the tree golden in the same pull request.",
       "enforcedBy": [
-        { "check": "tree-snapshots", "runs": "weekly" },
-        { "check": "axe", "runs": "pull-request" },
+        { "check": "tree-snapshots", "runs": "pull-request" },
         { "check": "readers", "runs": "weekly" }
       ],
       "strikes": []
@@ -24,8 +23,11 @@
       "rule": "Every role has the parents and children the ARIA spec requires, with `presentation` on the table markup in between, one role per interactive element, and states only on roles that support them. `combobox` never goes on a `textarea`.",
       "enforcedBy": [
         { "check": "axe", "runs": "pull-request" },
-        { "check": "tree-snapshots", "runs": "weekly" },
-        { "check": "axe-discovery", "runs": "weekly", "note": "the only run of aria-allowed-role, the rule that refuses a combobox on a textarea" }
+        { "check": "tree-snapshots", "runs": "pull-request" },
+        { "check": "axe-discovery", "runs": "weekly", "note": "the only run of aria-allowed-role, the rule that refuses a combobox on a textarea" },
+        { "check": "docs-axe", "runs": "weekly" },
+        { "check": "website-axe", "runs": "weekly" },
+        { "check": "readers", "runs": "weekly" }
       ],
       "strikes": []
     },
@@ -37,8 +39,11 @@
       "rule": "Every control has a name from an i18n phrase that contains its visible text, and anything that takes focus has a role and a name. A message that needs no focus is a live region, never a tab stop.",
       "enforcedBy": [
         { "check": "axe", "runs": "pull-request" },
-        { "check": "keyboard-walker", "runs": "weekly" },
-        { "check": "tree-snapshots", "runs": "weekly" }
+        { "check": "keyboard-walker", "runs": "pull-request" },
+        { "check": "tree-snapshots", "runs": "pull-request" },
+        { "check": "docs-axe", "runs": "weekly" },
+        { "check": "website-axe", "runs": "weekly" },
+        { "check": "readers", "runs": "weekly" }
       ],
       "strikes": []
     },
@@ -50,8 +55,10 @@
       "rule": "Closing a surface by Escape, Enter, Tab or a shortcut returns focus to the cell or the opener. Closed or hidden UI holds no tab stop: `hidden` or `inert`, never `aria-hidden` alone.",
       "enforcedBy": [
         { "check": "axe", "runs": "pull-request", "note": "aria-hidden-focus only" },
-        { "check": "keyboard-walker", "runs": "weekly" },
-        { "check": "docs-keyboard", "runs": "weekly" }
+        { "check": "keyboard-walker", "runs": "pull-request" },
+        { "check": "docs-keyboard", "runs": "weekly" },
+        { "check": "docs-axe", "runs": "weekly" },
+        { "check": "readers", "runs": "weekly" }
       ],
       "strikes": []
     },
@@ -63,7 +70,7 @@
       "rule": "Only the user moves focus: `updateSettings()`, `render()` and enabling or disabling a plugin call `focus()` only if the grid held the focus when the call began. Focus arriving on a control changes no context.",
       "enforcedBy": [
         { "check": "docs-keyboard", "runs": "weekly", "note": "the docs examples are the only pages that change a setting while a control outside the grid holds the focus" },
-        { "check": "keyboard-walker", "runs": "weekly", "note": "a change of context on focus or on input; no catalog page updates settings" }
+        { "check": "keyboard-walker", "runs": "pull-request", "note": "a change of context on focus or on input; no catalog page updates settings" }
       ],
       "strikes": []
     },
@@ -74,9 +81,11 @@
       "home": "skill",
       "rule": "Every pointer action has a keyboard path through a shortcut context. Tab can leave every surface Tab can enter, and only a modal dialog holds the focus. A shortcut of one character with no modifier works only while its surface has the focus.",
       "enforcedBy": [
-        { "check": "keyboard-walker", "runs": "weekly" },
+        { "check": "keyboard-walker", "runs": "pull-request" },
         { "check": "docs-keyboard", "runs": "weekly" },
-        { "check": "website-keyboard", "runs": "weekly" }
+        { "check": "website-keyboard", "runs": "weekly" },
+        { "check": "docs-axe", "runs": "weekly" },
+        { "check": "readers", "runs": "weekly" }
       ],
       "strikes": []
     },
@@ -87,9 +96,10 @@
       "home": "skill",
       "rule": "An outline is never removed without a replacement at 3:1, a control hidden until hover also shows on `:focus-visible`, and no sticky bar or overlay fully hides the focused element.",
       "enforcedBy": [
-        { "check": "focus-contrast", "runs": "weekly" },
+        { "check": "focus-contrast", "runs": "pull-request" },
         { "check": "docs-focus-contrast", "runs": "weekly" },
-        { "check": "website-focus-contrast", "runs": "weekly" }
+        { "check": "website-focus-contrast", "runs": "weekly" },
+        { "check": "docs-keyboard", "runs": "weekly", "note": "a control shown only on hover" }
       ],
       "strikes": []
     },
@@ -101,7 +111,11 @@
       "rule": "Colors and sizes come from theme tokens, and every pair clears its ratio in `main`, `horizon` and `classic`, light and dark: text 4.5:1, icons, borders and focus rings 3:1, pointer targets 24 by 24 CSS pixels.",
       "enforcedBy": [
         { "check": "axe", "runs": "pull-request" },
-        { "check": "focus-contrast", "runs": "weekly" }
+        { "check": "focus-contrast", "runs": "pull-request" },
+        { "check": "docs-axe", "runs": "weekly" },
+        { "check": "website-axe", "runs": "weekly" },
+        { "check": "docs-focus-contrast", "runs": "weekly" },
+        { "check": "website-focus-contrast", "runs": "weekly" }
       ],
       "strikes": []
     },
@@ -112,18 +126,18 @@
       "home": "skill",
       "rule": "A control acts on release, never on press. A press that starts a drag or a selection is the exception, and every drag also has a single-pointer way that needs no dragging.",
       "enforcedBy": [
-        { "check": "pointer", "runs": "weekly" }
+        { "check": "pointer", "runs": "pull-request" }
       ],
       "strikes": []
     },
     {
       "id": "C10",
       "name": "Reflow, zoom, text spacing, hover content and motion",
-      "wcag": ["1.4.4", "1.4.10", "1.4.12", "1.4.13", "2.2.2", "2.3.3"],
+      "wcag": ["1.4.4", "1.4.10", "1.4.12", "1.4.13", "2.2.2"],
       "home": "skill",
-      "rule": "Surfaces around the grid reflow at 320 CSS px and 200% zoom with no sideways scroll and no clipped text, and survive the text-spacing overrides. Hover and focus content can be dismissed and hovered, and motion stops under the reduced-motion preference.",
+      "rule": "Surfaces around the grid reflow at 320 CSS px and 200% zoom with no sideways scroll and no clipped text, and survive the text-spacing overrides. Hover and focus content can be dismissed and hovered, nothing moves on its own for more than five seconds without a way to stop it, and, as a house rule beyond the AA bar, motion stops under the reduced-motion preference.",
       "enforcedBy": [
-        { "check": "reflow", "runs": "weekly" },
+        { "check": "reflow", "runs": "pull-request" },
         { "check": "forced-colors-motion", "runs": "weekly", "note": "motion" },
         { "check": "docs-reflow", "runs": "weekly" },
         { "check": "website-reflow", "runs": "weekly" }
@@ -132,14 +146,15 @@
     },
     {
       "id": "C11",
-      "name": "Forced colors: a state or indicator not drawn",
+      "name": "Color alone: a state, an indicator or a link",
       "wcag": ["1.4.1", "1.4.11"],
       "home": "skill",
-      "rule": "A state a color draws (current, selected, highlighted, focused) also draws a border, an outline or text, so it survives `forced-colors: active`.",
+      "rule": "A state a color draws (current, selected, highlighted, focused) also draws a border, an outline or text, so it survives `forced-colors: active`, and a link in text is underlined, never told apart by its color alone.",
       "enforcedBy": [
         { "check": "forced-colors-motion", "runs": "weekly" },
         { "check": "docs-forced-colors-motion", "runs": "weekly" },
-        { "check": "website-forced-colors-motion", "runs": "weekly" }
+        { "check": "website-forced-colors-motion", "runs": "weekly" },
+        { "check": "docs-axe", "runs": "weekly", "note": "link-in-text-block" }
       ],
       "strikes": []
     },
@@ -159,11 +174,11 @@
     {
       "id": "C13",
       "name": "State or annotation not exposed",
-      "wcag": ["1.3.1", "1.4.1", "4.1.2"],
+      "wcag": ["1.3.1", "4.1.2"],
       "home": "skill",
       "rule": "A state a class draws (invalid, read only, commented, merged, a link or a formula in a cell) is also an ARIA attribute or hidden text a screen reader gets. A slider or splitter has `aria-valuetext` in words, from an i18n phrase.",
       "enforcedBy": [
-        { "check": "tree-snapshots", "runs": "weekly" },
+        { "check": "tree-snapshots", "runs": "pull-request" },
         { "check": "readers", "runs": "weekly" },
         { "check": "axe", "runs": "pull-request", "note": "an attribute value axe refuses" }
       ],
@@ -186,7 +201,7 @@
       "name": "Forms: redundant entry and drawn labels",
       "wcag": ["3.3.2", "3.3.7"],
       "home": "website",
-      "rule": "A form keeps what the visitor typed when they switch tabs or steps, and a field's label stays drawn while they type.",
+      "rule": "A form keeps what the visitor typed when they switch tabs or steps, and a field has a drawn label, never a placeholder alone, that stays while they type.",
       "enforcedBy": [
         { "check": "website-forms", "runs": "weekly" }
       ],
