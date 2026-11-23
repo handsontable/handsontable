@@ -3,16 +3,16 @@
   "scenario": "handsontable-editor",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-04T14:19:39.251Z"
+    "at": "2026-11-23T07:34:55.244Z"
   },
   "steps": {
-    "open-editor": "al",
-    "arrow-down-first": "",
-    "arrow-down-second": "",
-    "arrow-down-third": "",
+    "open-editor": "expanded table a row 1 5 items level 2",
+    "arrow-down-first": "alpha a row 1 level 2 table 2 columns 3 rows",
+    "arrow-down-second": "alfa a row 1 level 2 table 2 columns 3 rows",
+    "arrow-down-third": "alto a row 1 level 2 table 2 columns 3 rows",
     "commit-row": "a al",
     "back-to-committed": "a alto"
   }

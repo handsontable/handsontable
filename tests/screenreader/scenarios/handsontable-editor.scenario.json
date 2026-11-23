@@ -11,14 +11,14 @@
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["al"], ["edit", "text entry area"]],
-      "note": "Enter opens the editor on the cell holding `Al`: a text field over a one-column grid of Alpha, Alfa and Alto. The editor moves through that grid with ArrowUp and ArrowDown only; ArrowLeft and ArrowRight move the caret in the text field, so no key crosses the inner grid's columns. Required: the text and the field's role (NVDA `edit`, VoiceOver with Chromium `text entry area`). VoiceOver with WebKit names no role for an editor (grid-core)."
+      "expect": [["al"], ["combo box"]],
+      "note": "Enter opens the editor on the cell holding `Al`: a text field with the combobox role (`aria-haspopup=\"grid\"`) over a one-column grid of Alpha, Alfa and Alto. The editor moves through that grid with ArrowUp and ArrowDown only; ArrowLeft and ArrowRight move the caret in the text field, so no key crosses the inner grid's columns. Required: the text and the field's role. NVDA reads `combo box, expanded, editable, opens grid, Al`. Finding: VoiceOver reads the grid that opens instead of the field (`expanded table A, row 1 5 items level 2`), so it says neither the text nor the role."
     },
     {
       "id": "arrow-down-first",
       "action": {"press": "ArrowDown"},
       "expect": [["alpha"]],
-      "note": "ArrowDown highlights the inner grid's first row while the focus stays in the text field. Finding: nothing is said on any reader, on this step or the next two: the editor sets no aria-activedescendant and the inner grid is built with ariaTags off, so the highlighted row is never exposed."
+      "note": "ArrowDown highlights the inner grid's first row while the focus stays in the text field; aria-activedescendant names the highlighted cell, and every reader reads it: NVDA `table. Alpha, row 1, column 1`, VoiceOver `Alpha` with the inner table. The same on this step and the next two."
     },
     {
       "id": "arrow-down-second",

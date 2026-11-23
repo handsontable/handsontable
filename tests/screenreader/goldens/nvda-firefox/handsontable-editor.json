@@ -6,13 +6,13 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T14:04:22.117Z"
+    "at": "2026-11-23T07:26:58.740Z"
   },
   "steps": {
-    "open-editor": "edit multi line al",
-    "arrow-down-first": "",
-    "arrow-down-second": "",
-    "arrow-down-third": "",
+    "open-editor": "a row 1 combo box expanded editable opens grid al",
+    "arrow-down-first": "a row 1 table alpha row 1 column 1",
+    "arrow-down-second": "alfa row 2 column 1",
+    "arrow-down-third": "alto row 3 column 1",
     "commit-row": "al a row 3 column 2",
     "back-to-committed": "alto a row 2 column 2"
   }

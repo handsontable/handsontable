@@ -6,13 +6,13 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-12T09:19:04.973Z"
+    "at": "2026-11-23T07:30:34.150Z"
   },
   "steps": {
-    "open-editor": "list box pop up expanded text entry area al insertion at end of text",
-    "arrow-down-second": "al and 1 more item group",
-    "arrow-down-third": "al and 1 more item group",
-    "commit-choice": "list box pop up collapsed text entry area al insertion at end of text",
+    "open-editor": "al a row 1 list box pop up expanded combo box expanded list box a row 1 1 item",
+    "arrow-down-second": "menu item 1 of 3 alpha menu item group 1 of 3",
+    "arrow-down-third": "alfa menu item group 2 of 3 al strong fa 2 of 3",
+    "commit-choice": "a al column 1 row al al",
     "back-to-committed": "a alfa column 1 row alfa al"
   }
 }
