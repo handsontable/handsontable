@@ -19,7 +19,7 @@
       "id": "read-next-item",
       "action": {"read": "next"},
       "expect": [["insert row below"]],
-      "note": "The reader's own cursor (NVDA's browse mode, VoiceOver's VO+Right) moves from the highlighted item to the next one in the menu; NVDA reads `menu item, Insert row below`. Finding: VoiceOver's next item does not reach it. The menu is a one-column table, and VO+Right moves along a table row, so it leaves the menu: with WebKit it reads the grid's B1 cell, with Chromium nothing."
+      "note": "The reader's own cursor (NVDA's browse mode, VoiceOver's VO+Right) moves from the highlighted item to the next one in the menu; NVDA reads `menu item, Insert row below`, and VoiceOver, now that the menu is a menu and no longer a one-column table, reads it on both browsers."
     },
     {
       "id": "read-next-separator",

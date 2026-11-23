@@ -43,7 +43,7 @@
       "action": {"press": "Escape"},
       "after": {"hidden": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["red"]],
-      "note": "Escape closes the menu and the focus should return to the grid. Opening the menu from the keyboard selects the whole column and clamps the focus cell to row 0 (filters-menu-focus-order.spec.ts), so the cell that holds the focus is Alice's Color, `Red`, not Bob's `Green` the scenario selected. Finding: NVDA and VoiceOver announce the document on every browser (the recording), as after the context menu: the focus leaves the grid."
+      "note": "Escape closes the menu and the focus returns to the grid. Opening the menu from the keyboard selects the whole column and clamps the focus cell to row 0 (filters-menu-focus-order.spec.ts), so the cell that holds the focus is Alice's Color, `Red`, not Bob's `Green` the scenario selected. Every reader says the cell."
     },
     {
       "id": "arrow-down-in-grid",
