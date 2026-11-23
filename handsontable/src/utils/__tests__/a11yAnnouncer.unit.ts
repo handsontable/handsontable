@@ -2,6 +2,7 @@ import {
   install,
   uninstall,
   announce,
+  getAnnouncementCount,
 } from '../a11yAnnouncer';
 
 describe('a11yAnnouncer', () => {
@@ -188,5 +189,29 @@ describe('a11yAnnouncer', () => {
     expect(politeRegion.textContent).toBe('');
 
     portalElement.remove();
+  });
+
+  it('should count every announcement made into an installed region, in either politeness', () => {
+    const portalElement = document.createElement('div');
+
+    install(portalElement);
+
+    const countBefore = getAnnouncementCount();
+
+    announce('First');
+    announce('Second', 'polite');
+
+    expect(getAnnouncementCount()).toBe(countBefore + 2);
+
+    uninstall();
+    portalElement.remove();
+  });
+
+  it('should not count an announcement made while no region is installed', () => {
+    const countBefore = getAnnouncementCount();
+
+    announce('Nobody hears this', 'polite');
+
+    expect(getAnnouncementCount()).toBe(countBefore);
   });
 });

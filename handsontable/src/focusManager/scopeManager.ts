@@ -49,6 +49,27 @@ export interface FocusScopeManager {
  */
 
 /**
+ * The catcher refresh of each instance's scope manager. A module-level map, not a method of the manager, so
+ * the refresh stays off the public `getFocusScopeManager()` type.
+ */
+const catcherRefreshers: WeakMap<object, () => void> = new WeakMap();
+
+/**
+ * Brings the focus catchers of an instance in line with where the focus is now. A menu calls it after it
+ * closed: the manager disarms the catchers while a menu holds the focus, and a menu can close without a
+ * `focusin` or a click for the manager to hear, so nothing else would arm them again.
+ *
+ * @param {Handsontable} hot The Handsontable instance. An instance with no scope manager is left alone.
+ */
+export function refreshFocusCatchers(hot: HotInstance): void {
+  const refresh = catcherRefreshers.get(hot);
+
+  if (refresh) {
+    refresh();
+  }
+}
+
+/**
  * Creates a focus scope manager for a Handsontable instance. The manager handles focus
  * scopes by listening to keydown, focusin, and click events on the document. Based on
  * the currently focused element, it activates or deactivates the appropriate scope.
@@ -421,6 +442,14 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function updateScopesFocusVisibilityState(): void {
     const scopes = SCOPES.getValues() as ReturnType<typeof createFocusScope>[];
+    const focusedElement = getDeepActiveElement(hotInstance.rootDocument);
+    // The menu of THIS instance only: its menus render into its own portal, and another grid's menu says
+    // nothing about where a Tab from this grid goes.
+    // A closed menu hides its container and keeps it in the document, and the browser takes the focus off a
+    // hidden element only at the next rendering update, so a hidden menu does not hold the focus.
+    const focusedMenu = isHTMLElement(focusedElement) && hotInstance.rootPortalElement?.contains(focusedElement) ?
+      focusedElement.closest<HTMLElement>('.htMenu') : null;
+    const isFocusInMenu = focusedMenu !== null && isVisible(focusedMenu);
     const modalScopes = scopes.filter(
       (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf() && scope.getType() === 'modal');
 
@@ -435,8 +464,14 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
         scope.disable();
       }
 
-      if (scope === activeScope) {
-        if (scopeContains(scope, getDeepActiveElement(hotInstance.rootDocument))) {
+      if (isFocusInMenu) {
+        // A menu answers Tab itself (it moves the selection and closes, or moves the focus within the menu),
+        // so the keystroke never reaches a catcher, and an armed one would only be a tab stop with no role
+        // that nobody can land on.
+        scope.deactivateFocusCatchers();
+
+      } else if (scope === activeScope) {
+        if (scopeContains(scope, focusedElement)) {
           scope.deactivateFocusCatchers();
         } else {
           scope.activateFocusCatchers();
@@ -505,6 +540,12 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     if (!hasActiveScope && activeScope) {
       deactivateScope(activeScope, false);
       hotInstance.unlisten();
+
+    } else if (!hasActiveScope) {
+      // No scope held the focus to begin with (a menu took it, then closed), so no deactivation will refresh
+      // the catchers. Without this, a focus that ends outside every scope leaves them in the state the menu
+      // put them in, and a Tab from the browser UI, which sends no keydown to the page, skips the grid.
+      updateScopesFocusVisibilityState();
     }
   }
 
@@ -526,6 +567,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
   );
 
   eventListener.mount();
+  catcherRefreshers.set(hotInstance, updateScopesFocusVisibilityState);
 
   return {
     getActiveScopeId,
@@ -534,6 +576,9 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     unregisterScope,
     activateScope: (scopeId: string, focusSource?: string) => activateScopeById(scopeId, focusSource),
     deactivateScope: scopeId => deactivateScopeById(scopeId),
-    destroy: () => eventListener.unmount(),
+    destroy: () => {
+      catcherRefreshers.delete(hotInstance);
+      eventListener.unmount();
+    },
   };
 }

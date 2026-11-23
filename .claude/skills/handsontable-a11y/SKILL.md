@@ -79,7 +79,8 @@ Each rule ends with its defect classes (`references/classes.md`: criteria, check
 - **A change without a focus move is announced** through `announce()` (`src/utils/a11yAnnouncer.ts`). It
   defaults to `'assertive'`, so a status message passes `'polite'`; `assertive` is for errors only, and
   one user action makes one announcement. The live region exists before its text changes, and hidden
-  status text is its own element, apart from the value. [C12]
+  status text is its own element, apart from the value. Core announces every selection politely
+  (`src/core/selectionAnnouncer/`), so a plugin never announces one again. [C12]
 - **Colors and sizes come from theme tokens** (the `handsontable-css-dev` skill), and each pair clears its
   ratio in `main`, `horizon` and `classic`, light and dark: text 4.5:1 (3:1 from 24px, or 18.66px bold),
   icons, borders and focus rings 3:1 (1.4.11), pointer targets 24 by 24 CSS pixels (2.5.8). [C08]

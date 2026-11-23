@@ -881,6 +881,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the user arrows to another tab, and the stop returns to the active tab when the focus leaves the
   strip (`focusin`/`focusout` on the host). `#sheets` is filled before the tabs are built, or a tab
   built early reads a partial map and two tabs take the stop.
+  **A tab being renamed holds no stop** (DEV-4001): it has dropped its `button` role, so a stop on it would
+  be a focus stop with no role beside the name field, which is the one stop there. **Two places carry it, and
+  both are needed.** `#holdsTabStop()` keeps the stop off on every repaint: `#buildTab()`, `#updateTab()` and
+  `#moveTabStop()` rewrite every tab's `tabIndex`, and a repaint lands mid-rename (a host `renameSheet()` on
+  another sheet). The rename start also writes `tab.tabIndex = -1`, because no repaint has to follow it: after
+  the first click of a double-click the tab is already the roving stop, `#onTabFocusIn` skips `#moveTabStop()`,
+  and `#holdsTabStop()` would not run until the next repaint. Pinned by
+  `tests/e2e/sheets-bar-rename-tab-stop.spec.ts`.
 - **The grid takes its accessible name from the active tab's label** (`aria-labelledby` on
   `hot.rootElement`, `#syncGridName`), and follows a rename and a switch. A name the host set
   (`aria-label` or its own `aria-labelledby`) wins: the bar then removes only its own id, and

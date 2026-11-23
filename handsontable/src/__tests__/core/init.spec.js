@@ -45,7 +45,7 @@ describe('Core_init', () => {
     const container = $('<div/>').appendTo(doc.body);
 
     expect(() => {
-      container.handsontable({});
+      container.handsontable({ licenseKey: TEST_LICENSE_KEY });
       container.handsontable('destroy');
     }).not.toThrow();
   });

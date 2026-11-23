@@ -161,10 +161,10 @@ describe('Core.listen', () => {
   });
 
   it('when second instance is created, first should unlisten automatically', async() => {
-    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({ licenseKey: TEST_LICENSE_KEY });
 
     $container1.handsontable('selectCell', 0, 0);
-    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({ licenseKey: TEST_LICENSE_KEY });
 
     $container2.handsontable('selectCell', 0, 0);
 
@@ -178,10 +178,10 @@ describe('Core.listen', () => {
   });
 
   it('when listen is called on first instance, second should unlisten automatically', async() => {
-    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({ licenseKey: TEST_LICENSE_KEY });
 
     $container1.handsontable('selectCell', 0, 0);
-    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({ licenseKey: TEST_LICENSE_KEY });
 
     $container2.handsontable('selectCell', 0, 0);
 
@@ -213,6 +213,7 @@ describe('Core.listen', () => {
     const afterUnlisten = jasmine.createSpy('afterUnlisten');
 
     $iframeContainer.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       afterUnlisten,
     });
 

@@ -269,6 +269,16 @@ covering only one leaves the contract true on some grid sizes and false on other
 queue is held back, overlapping `clearCache` calls would otherwise pile the same row up and measure it once
 per copy.
 
+## The sweep reaches the last row
+
+`calculateAllRowsHeight()`'s `length` is the index of the LAST row, not the row count, so both checks that
+decide whether another chunk runs are `current <= length`. With `<`, a last row that a chunk would start on
+(`(countRows() - 1) % (CALCULATION_STEP + 1) === 0` from row 0, or the row right after `syncLimit`) was never
+measured by the sweep. That stayed hidden while the sweep only filled in empty heights, which a render fills
+too, and showed once a sweep had to overwrite a stale one (the measure owed to AutoColumnSize's sweep, below):
+the last of 256 rows kept 149 px against 49 px. Pinned by "measures the last row again when it starts a chunk
+of the row sweep" in `tests/e2e/auto-row-size-column-sweep.spec.ts`.
+
 ## One sweep at a time
 
 `calculateAllRowsHeight()` cancels any sweep still in flight before starting its own, through the
@@ -279,18 +289,43 @@ to decide whether the refresh queue is safe to drain. Entry points that can over
 `#onAfterLoadData`, the column-resize gesture, an explicit `recalculateAllRowsHeight()`, and now a
 `clearCache()` that schedules one.
 
-## A web font re-measures the rows twice when the columns are still widening (DEV-199)
+## The rows are measured again when AutoColumnSize's idle sweep ends
 
-`#onAfterFontsLoad` runs `recalculateAllRowsHeight()` right away, after AutoColumnSize's listener (both register
-`afterFontsLoad` with the same order index, and AutoColumnSize enables first). That listener measures one chunk of
-columns and leaves the rest to idle tasks, so the rows are measured against columns still at their fallback-font
-widths: text wraps more in them, and the rows outside the rendered band keep the extra height, since a render
-measures only the band. When AutoColumnSize's sweep is still running, `#rowsOwedToColumnSweep` is set, and the first
-`#onBeforeRender` of a visible grid that finds the sweep over schedules a full recalculation. AutoColumnSize draws
-once when its sweep ends, so that render comes by itself. The check reads `getPlugin('autoColumnSize').inProgress`,
-the plugin's public field, and a sweep AutoColumnSize restarts in the same render reads as still running, because
-its `beforeRender` listener runs first. Pinned by "measures the rows again once the column re-measure ends" in
-`tests/e2e/web-font-load.spec.ts`.
+AutoColumnSize measures some columns before its listener returns and leaves the rest to idle tasks, and this
+plugin measures every row right after, against the widths those columns have then. Text wraps more in a
+column that has not been measured yet, so a row is stored taller than it is, and the rows outside the rendered
+band keep the extra height for good, since a render measures only the band. Three entry points hit it, and all
+three go through `#recalculateAllRowsOwingColumnSweep()`:
+
+- **`init` and `loadData()`** (`#onInit`, `#onAfterLoadData`). On a grid with this plugin, AutoColumnSize keeps
+  its exact path, which still measures only `syncLimit` columns and one chunk (about 102 columns by default) and
+  sends the rest to idle tasks at the default width. A row with a long text in column 120 stayed 149 px tall
+  against 49 px on the exact path, after both sweeps ended and after any later render.
+- **A web font** (`#onAfterFontsLoad`, DEV-199), after AutoColumnSize's listener (both register `afterFontsLoad`
+  with the same order index, and AutoColumnSize enables first). That listener measures one chunk of columns and
+  leaves the rest at their fallback-font widths.
+
+The helper measures the rows at once and sets `#rowsOwedToColumnSweep` while AutoColumnSize's sweep is still
+running; the first `#onBeforeRender` of a visible grid (with rows and columns) that finds the sweep over measures
+every row again from idle tasks only (`#recalculateAllRowsInIdleTasks()`, `#measureRowsInIdleTasksOnly`). The
+band on screen is measured just before, by `calculateVisibleRowsHeight()`, against the final widths, so the
+render draws it right; the idle sweep starts at row 0 and measures the band once more. Do not route it through
+`#fullRecalculationScheduled`: that sweep measures `syncLimit` rows and one chunk synchronously, a task as long
+as the init measure, inside the render that ends AutoColumnSize's sweep (about 0.9 s on a 10k × 150 grid of
+varied text, measured by hand for this change). The idle sweep renders once when it ends: it overwrote heights
+the engine had drawn and sized the scroll range from, and without that render the scroll height stayed at the
+old heights (14390 px against 10050 px with 10 long rows in 300) until the next `render()`. An idle chunk that
+finds the grid hidden abandons the sweep (`#abandonSweep()`, which owes a full recalculation), as does one that
+throws: measured in a hidden root, every row was stored at 0 px. That check covers every sweep's idle chunks,
+not only this one. The render that starts it comes by itself: AutoColumnSize draws when a re-measure sweep ends (the font path),
+and when any other sweep ends in an idle task, with or without this plugin (a fill-only render, see "A grid
+with AutoRowSize enabled keeps the exact path" in `../autoColumnSize/AGENTS.md`). Both halves are needed: without
+the flag the render measures only the band, and without the render the flag waits for one that may never
+come. The check reads `isReMeasurePending()` (the public `inProgress` field, or a re-measure AutoColumnSize owes
+its next render), and a sweep AutoColumnSize restarts in the same render reads as still running, because its
+`beforeRender` listener runs first. Pinned by `tests/e2e/auto-row-size-column-sweep.spec.ts`, which compares
+the heights with a grid that measures every column before `init` returns, and by "measures the rows again once
+the column re-measure ends" in `tests/e2e/web-font-load.spec.ts`.
 
 ## Listeners stay bound while disabled — deliberately
 

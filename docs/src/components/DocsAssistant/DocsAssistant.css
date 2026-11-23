@@ -377,12 +377,12 @@
 /* Links — match .sl-markdown-content link style */
 .da-assistant-body a {
   color: var(--sl-color-white);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: var(--sl-color-gray-3);
   text-underline-offset: 0.2em;
 }
 .da-assistant-body a:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--sl-color-gray-3);
+  text-decoration-color: currentColor;
 }
 
 /* Blockquote */

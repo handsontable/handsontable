@@ -27,7 +27,10 @@ describe('HotTableComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HotTableModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      // Every grid of this file gets the test key, including the ones built with `settings = {}`
+      // or no settings at all: without a valid key the grid sits behind the license lock.
+      providers: [{ provide: HOT_GLOBAL_CONFIG, useValue: { license: TEST_LICENSE_KEY } }],
     }).compileComponents();
 
   });

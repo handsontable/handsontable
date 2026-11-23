@@ -13,6 +13,7 @@ import {
 } from '../../../../helpers/a11y';
 import {
   isClearedAriaAttribute,
+  isKeptDescribedBy,
   setAttributeIfChanged,
   setAttributeIfMissing,
 } from './ariaAttributes';
@@ -31,8 +32,8 @@ const DESCRIBED_BY = A11Y_DESCRIBED_BY('')[0];
  * @param {string} columnHeaderId The id of the cell's column header, empty when the cell has none.
  * @returns {boolean}
  */
-function isOwnCellAriaAttribute(name: string, columnHeaderId: string): boolean {
-  return name === ROLE || name === COLINDEX || (name === DESCRIBED_BY && columnHeaderId !== '');
+function isOwnCellAriaAttribute(name: string, columnHeaderId: string, describedByKept: boolean): boolean {
+  return name === ROLE || name === COLINDEX || (name === DESCRIBED_BY && (columnHeaderId !== '' || describedByKept));
 }
 
 /**
@@ -56,11 +57,17 @@ function prepareCellAriaAttributes(
   columnHeaderId: string,
 ): void {
   const attributeNames = TD.getAttributeNames();
+  // A description reference the cell painter wrote on the previous paint stays: resetting it to the column header
+  // here would make the painter write it again after the renderer, two DOM writes on every repaint of the cell.
+  const describedByKept = ariaEnabled && isKeptDescribedBy(TD.getAttribute(DESCRIBED_BY), columnHeaderId);
 
   for (let i = 0; i < attributeNames.length; i++) {
     const name = attributeNames[i];
 
-    if (isClearedAriaAttribute(name) && !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId))) {
+    if (
+      isClearedAriaAttribute(name) &&
+      !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId, describedByKept))
+    ) {
       TD.removeAttribute(name);
     }
   }
@@ -70,7 +77,7 @@ function prepareCellAriaAttributes(
     setAttributeIfChanged(TD, TABINDEX, TABINDEX_VALUE);
     setAttributeIfChanged(TD, COLINDEX, ariaColIndex);
 
-    if (columnHeaderId) {
+    if (columnHeaderId && !describedByKept) {
       setAttributeIfChanged(TD, DESCRIBED_BY, columnHeaderId);
     }
   }

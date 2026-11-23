@@ -1889,7 +1889,6 @@ To use filtering, you need only the following modules:
 - The [`Filters`](@/api/filters.md) module
 - The [`DropdownMenu`](@/api/dropdownMenu.md) module
 - The [`HiddenRows`](@/api/hiddenRows.md) module
-- The [`AutoColumnSize`](@/api/autoColumnSize.md) module
 - The [`CheckboxCellType`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) module
 
 ```js
@@ -1902,7 +1901,6 @@ import {
   Filters,
   DropdownMenu,
   HiddenRows,
-  AutoColumnSize,
 } from 'handsontable/plugins';
 
 // import the checkbox cell type
@@ -1912,7 +1910,6 @@ import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 registerPlugin(Filters);
 registerPlugin(DropdownMenu);
 registerPlugin(HiddenRows);
-registerPlugin(AutoColumnSize);
 
 // register the checkbox cell type
 registerCellType(CheckboxCellType);

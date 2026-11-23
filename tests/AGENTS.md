@@ -369,6 +369,15 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
 
 ## Fixture contract (never get these wrong)
 
+- **Every grid takes the internal test key, and a lock fails the test.** A fixture loads
+  `/tests/fixtures/demo/test-license-key.js` before the grid and passes `licenseKey: window.htTestLicenseKey`,
+  and so does a grid a spec builds in `page.evaluate`. Since 19.0 a grid without a valid key mounts behind
+  the license lock: API reads pass while clicks, focus, screenshots and axe scans meet the lock. The `page`
+  fixture in `fixtures/test.ts` fails a test that passed with a `.ht-license-lock` on its page, in any frame.
+  A page asks for a license state on purpose in one of two ways: it is one of the license pages
+  (`license-branding`, `license-bar`, `license-capabilities`, `xlsx-license`), or it is opened with a
+  `?license=` value other than `test` (`side-layout-slots.html?license=trial`,
+  `trusted-types.html?license=invalid`). A new page that needs a lock takes the second way.
 - Fixtures are standalone HTML under `fixtures/demo/`, served statically. Every
   fixture MUST copy the fail-loud param block from `demo/grid.html`:
   `?theme=`/`?bundle=` map through fixed allowlists to LITERALS (no XSS); an
@@ -516,6 +525,22 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `LICENSE` getter so its `tiers` also list the presets that include it. A case
   no tier can express (a plugin without what it requires, which the generator
   refuses) belongs in a unit test, not here; no license spec is skipped.
+- **`e2e/license-built-bundle.spec.ts` is the one plugin spec on the build's real tiers, on purpose.**
+  Every other license spec either redefines the plugins' tiers or runs in jsdom on the
+  sources, so only it can see what the shipped bundle does: the static `LICENSE` of each
+  sold plugin against the manifest (`soldPluginLicenses()`), a key naming each real tier
+  (`manifestTiers()`, `featureTiers()`, never a name written out), a perpetual key against
+  the release date the build inlined (`releaseKeyUntil()`, with the date read from
+  `hot.config.js`, never from the bundle, so a build that inlined no date fails), and the
+  `*.handsontable.com` bypass (`LicenseBuildPage.goto({ host })` serves the fixture under
+  another host through `page.route()`, so the core reads that host from `location.host`).
+  A host with more than one label before `handsontable.com` is left unpinned until the
+  product decides whether it is bypassed. It declares `BUNDLES_TAG`, because minification
+  is what could drop a token or inline the date wrong. Both page objects of
+  `demo/license-capabilities.html` (`LicenseCapabilitiesPage`, `LicenseBuildPage`) extend
+  `fixtures/pages/LicenseFixturePage.ts`, which owns the fixture URL, the waits, the license surfaces,
+  the console capture and the host routing: a change to the fixture's contract goes there once, or one of
+  the two specs keeps passing on a stale wait or locator.
 
 ## Two clicks on the same cell are a double click
 
@@ -1439,7 +1464,8 @@ criterion.
   load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
   it finds listed in its pull request's description, read from a nightly dispatch from its branch (a
-  pull request's own pipeline runs the axe scan alone); the product tasks are filed apart, and a fix
+  pull request's own pipeline runs the short suite alone, and a new check has no ledger rows yet); the
+  product tasks are filed apart, and a fix
   later clears the finding. A finding the check gets wrong is fixed in the check.
 - **Every report value is escaped.** The summary and the check run render values from the fixture DOM
   (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
@@ -1462,23 +1488,21 @@ or posts one check run per check with `--check-run` (`--dry-run` prints the payl
 suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
 left no document gets a red tooling check run instead of none.
 
-- **Where they run: the nightly, never a pull request.** `a11y.yml` has a second job, `checks`, beside
-  `axe`: the same Playwright container and UMD artifact, `continue-on-error` on the job only (a tooling
-  failure turns the job red, as it does the axe job, and never the Tests pipeline), and one
-  `A11y / <check> report` check run per check on the run's head commit (behind the canonical fork
-  guard). The job runs only when the caller sets the `checks` input: the `A11y nightly`
-  (`a11y-nightly.yml`: its weekly schedule and a dispatch on develop are the audit, and a dispatch from
-  any branch is a proof run; "A11y: the audit and the proof runs" below) does, and the pull-request
-  Tests pipeline (`test.yml`) does not, so a pull request runs the axe scan, its baseline ratchet and
-  the sticky comment alone. The reason is what a pull request gets out of them: the checks are
-  report-only and the accessibility program is still building its picture, so a pull request learned
-  nothing from them it could act on, and paid a job for it. A skipped job runs no step, so it posts no
-  check run, stale or otherwise. `HOT_A11Y_CHECKS_SUITE` picks the checks, from the `nightly` input:
-  `nightly` runs every one, and the short suite, `pull-request`, keeps the ones with
-  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), for a
-  developer to run locally or through a dispatch of the nightly that asks for it
-  (`gh workflow run a11y-nightly.yml --ref <branch> -f suite=pull-request`; a plain dispatch runs every
-  check). The `checks` input runs the named checks instead of the suite
+- **Where they run: the short suite on a pull request, every check on the nightly.** `a11y.yml` has a
+  second job, `checks`, beside `axe`: the same Playwright container and UMD artifact,
+  `continue-on-error` on the job only (a tooling failure turns the job red, as it does the axe job, and
+  never the Tests pipeline), and one `A11y / <check> report` check run per check on the run's head
+  commit (behind the canonical fork guard). The job runs only when the caller sets the `checks` input:
+  the `A11y nightly` (`a11y-nightly.yml`: its weekly schedule and a dispatch on develop are the audit,
+  and a dispatch from any branch is a proof run; "A11y: the audit and the proof runs" below) does, and
+  the pull-request Tests pipeline (`test.yml`) does on a pull request (`checks: github.event_name ==
+  'pull_request'`), so a master push and the release candidate path run the axe scan alone. A skipped
+  job runs no step, so it posts no check run, stale or otherwise. `HOT_A11Y_CHECKS_SUITE` picks the
+  checks, from the `nightly` input: `nightly` runs every one, and the short suite, `pull-request`, keeps
+  the ones with `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two
+  minutes), which a pull request runs, and a developer locally or through a dispatch of the nightly that
+  asks for it (`gh workflow run a11y-nightly.yml --ref <branch> -f suite=pull-request`; a plain dispatch
+  runs every check). The `checks` input runs the named checks instead of the suite
   (`-f checks=<id>[,<id>]`, comma-separated, no spaces, the proof run of a change to one check): it
   reaches the job as `A11Y_CHECKS`, the config builds the named projects only (`checksForRun()`, which
   refuses an entry that is no check id before a test runs, as the nightly's `check-inputs` job did
@@ -1493,6 +1517,41 @@ left no document gets a red tooling check run instead of none.
   `HOT_A11Y_CHECKS_SUITE=pull-request npm --prefix tests run test:a11y-checks` the short suite, and
   `-- --project=<check>` or `A11Y_CHECKS=<check>` one check; the reporter writes the documents only when
   the config's reporters run, so do not pass `--reporter` on the command line.
+- **On a pull request the findings ledger is the baseline, and the checks only report.** Every page
+  carries findings the weekly audit already knows, so counted as they stand they would turn every pull
+  request's check runs red. The report script (`scripts/a11y-evidence-report.mjs`) reads the ledger
+  (`test-health/a11y.json` on `gh-pages`, "A11y: the findings ledger and the cluster catalog") on a
+  `pull_request` event and looks each finding up by the key the ledger gives its row (`ledgerKey()` in
+  `lib/a11y-pr-ledger.mjs`): **known** when the row is open (new, persisting or flapping), which does
+  not count; **regression** when the row is resolved; **new** when there is none. A regression and a
+  new finding count by the severity rule ("A11y: the verdict of a check run"), so a check run can still
+  turn red, and the job never does. The title carries the three counts, and the summary and the job
+  summary list the regressions and new findings, so a fork's pull request, which posts no check run,
+  still sees them. Two limits, stated in the report: the ledger is as old as the latest audit, so a
+  defect merged to develop since then reads as new on the next pull request; and a row is keyed by the
+  element's selector, so a renamed class makes a known finding read as new. A new finding on a catalog
+  page whose sources the pull request does not touch is marked *on a page you did not change* and counts
+  as a warning at most. A page's sources (`pagesTouched()`) are its fixture and the plugin and editor
+  folders `a11y/coverage.mjs` lists it under. **Every doubt goes toward counting**, because the mark
+  softens a verdict: every page is touched by any other `handsontable/src/` file, by a plugin or editor
+  folder with no `pages` there (no entry, `none` or `gap`), by one another folder of its kind imports
+  (`sharedSourceFolders()` reads that from the source tree: `baseEditor`, `textEditor`, `dropdownMenu`
+  under `filters`), by the checks' own code (`tests/a11y/`, `tests/lib/`, `tests/reporters/`,
+  `tests/support/`, the Playwright configs, `tests/package.json`) and by any fixture file that is not a
+  page's `.html`. A regression is never marked: a resolved row is the audit's own evidence that the
+  finding was gone. A page outside the catalog (the pointer check's drag pages, the keyboard walker's
+  shortcut page) is never marked, since no map knows its sources, and neither is anything when the
+  changed files were not read (an API refusal, or a list at the API's 3,000-file limit). The mark is a
+  hint, not a scope: the run measures every page. A ledger that does not load leaves every finding
+  counted, with a note, never a green run. `ledgerKey()` is written in `tests/lib` rather than imported
+  from `.github/scripts/lib/a11y-ledger.mjs`, so `tests/` does not depend on `.github/scripts/`.
+  `a11y-pr-ledger.mjs` reaches `tests/a11y` through `a11y-issues.mjs`, and the verdict and input-guard
+  jobs load `a11y-evidence.mjs` from a sparse checkout of `tests/lib` and `tests/scripts`, so
+  `a11y-evidence.mjs` must never import it: it takes the classifier as an input (`prLedgerOf()`), which
+  the report script builds. `.github/scripts/__tests__/a11y-pr-ledger.test.mjs` holds `ledgerKey()` to
+  the ledger's `findingKey()`. Gating on a pull request waits for two clean weeks of report-only runs.
+  Locally: `A11Y_LEDGER_FILE=<saved a11y.json> A11Y_CHANGED_FILES=<paths file>
+  node scripts/a11y-evidence-report.mjs --dry-run`.
 
 ### The keyboard walker
 
@@ -1526,9 +1585,15 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   `focus-leaves-modal` finding.
 - **A popup is judged by Escape.** On a menu, an editor, the comment editor or the formula editor's popups
   (`POPUP_STATES`), Escape (pressed up to three times: a submenu takes two, and so does a formula popup,
-  which closes before the edit does) must close it and give the focus back to the cell it opened on: to
-  that cell's own element, or, on a grid in mixed focus mode (`imeFastEdit`), to the editor input that
-  mode keeps the focus on by design. Another element of the grid (a header, a button, the hidden editor
+  which closes before the edit does) must close it and give the focus back to the expected cell
+  (`escapeVerdict()`, unit-tested in `lib/keyboard-walker.mjs`): to that cell's own element, or, on a grid
+  in mixed focus mode (`imeFastEdit`), to the editor input that mode keeps the focus on by design. The
+  expected cell is the one the popup opened on, except on the column menu, which selects its column as it
+  opens: there it is what the selection highlighted in that column while the menu was open, the first
+  row, or the header row nearest the data on a grid with `navigableHeaders`, which keeps the highlight
+  there (`escapeExpectedCell()`). A popup that moves the selection anywhere else as it opens (another row
+  or column, any other state) is still judged against its opener. Another element of the grid (a header
+  that is not the expected cell, a button, the hidden editor
   input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
   popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
   suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
@@ -1970,8 +2035,8 @@ twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a p
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
 removes a focus ring or a name), shown in the check run of a dispatch from its branch
 (`gh workflow run a11y-nightly.yml --ref <branch> -f checks=<id>`, which runs that check alone and posts
-on the branch's head commit, so the check run shows on the pull request, whose own pipeline runs the
-axe scan alone), then reverted. Document
+on the branch's head commit, so the check run shows on the pull request; a check outside the short suite
+never runs in the pull request's own pipeline), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
 ## A11y: the docs site scan
@@ -2339,7 +2404,9 @@ follows its worst check run.
   run) counts what the change can act on. The axe scan counts only a finding new or grown against the
   baseline, and every check counts a finding whose cluster in `a11y/issues.json` (`clusterOf()`) has a
   tracker as a warning at most (`trackedBy()`, which reads a finding the way the ledger does, through
-  `catalogFinding()`), so owned debt never turns a pull request's check red. A finding in `needs-triage`, or
+  `catalogFinding()`), so owned debt never turns a pull request's check red. On a pull request a check
+  also leaves out a finding the findings ledger holds as open ("A11y: the checks beyond axe", the ledger
+  as the baseline), so the pages' standing debt does not count either. A finding in `needs-triage`, or
   in a cluster without a tracker, counts at its severity. A catalog that does not load tracks nothing and
   says so (`lib/a11y-verdict-inputs.mjs`): it can make a check red, never green.
 - **Below the target level is a warning at most.** A finding of a check beyond axe that names no WCAG 2.2
@@ -2700,7 +2767,7 @@ shows what each fix cleared, and when, only as finely as the audits are spaced. 
 week is fine enough while the accessibility debt is being fixed, and a run every night would spend a
 headed Windows and macOS runner per browser seven times as often. The schedule ends when the
 accessibility debt epic closes. The tiers then decide the cadence: a pull request runs the axe scan
-(today's `test.yml`), a nightly runs a semi-lite set chosen then, and a release candidate and a stable
+and the short suite (today's `test.yml`), a nightly runs a semi-lite set chosen then, and a release candidate and a stable
 release run the full set. The names stay: the ledger, the Slack text and this file know the two product
 workflows as nightlies. The CI mechanics are in `.ai/CI.md`; this section is the procedure.
 

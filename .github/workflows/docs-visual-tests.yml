@@ -83,6 +83,9 @@ jobs:
         working-directory: ./docs
         run: npm run build
         env:
+          # Authenticates the release-list request behind data/common.json
+          # (docs/src/lib/docs-versions.mjs).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # The same key as the staging deploys the baseline is seeded from
           # (docs-staging.yml), so the local build renders the same grids. A
           # release branch's baseline comes from RC staging, which builds in

@@ -59,7 +59,13 @@ jobs:
         run: |
           npm run measure:module-sizes --prefix handsontable
 
+      # GITHUB_TOKEN authenticates the release-list request that writes
+      # data/common.json (docs/src/lib/docs-versions.mjs). Without it the call
+      # is anonymous and shares the runner IP's rate limit, and the build fails
+      # when GitHub refuses it (DEV-4146).
       - name: Docker build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm run docs:docker:build:production
 
@@ -84,11 +90,12 @@ jobs:
       # the GHCR Docker images) into docs/deploy/docs, which is deployed to
       # Cloudflare Pages below.
       #
-      # GITHUB_TOKEN is required: build_current_version.sh runs
-      # getListOrPreviousVersions.mjs, which authenticates its GitHub GraphQL
-      # query with it. The GraphQL API rejects unauthenticated requests
-      # outright, so without this the script's retries all fail and the
-      # deploy aborts (fail-closed) on every run.
+      # GITHUB_TOKEN authenticates the release-list request that
+      # build_current_version.sh makes through getListOrPreviousVersions.mjs
+      # (docs/src/lib/docs-versions.mjs). Without it the request is anonymous:
+      # it shares the runner IP's rate limit and reads one page only. The
+      # script exits non-zero when it cannot read the list, so the deploy
+      # aborts (fail-closed).
       - name: Assemble production docs (all versions)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

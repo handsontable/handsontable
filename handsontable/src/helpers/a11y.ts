@@ -51,3 +51,10 @@ export const A11Y_SETSIZE = (val: number): [string, number] => ['aria-setsize', 
 export const A11Y_POSINSET = (val: number): [string, number] => ['aria-posinset', val];
 export const A11Y_MODAL = (): [string, string] => ['aria-modal', 'true'];
 export const A11Y_BUSY = (): [string, string] => ['aria-busy', 'true'];
+
+/**
+ * The prefix of the ids of the hidden elements that hold the descriptions of a grid's cells (`utils/cellDescription`).
+ * Walkontable keeps a reference with this prefix on a recycled cell, so it does not reset the cell's
+ * `aria-describedby` to the column header and write the description again on every paint.
+ */
+export const CELL_DESCRIPTION_ID_PREFIX = 'ht-description-';

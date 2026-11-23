@@ -152,17 +152,7 @@
       "defectClass": "C03",
       "tracker": "DEV-4001",
       "match": [
-        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-without-role"], "where": ["ht-empty-data-state"] },
         { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["empty-data", "data-provider-sheets-bar"], "where": ["^(tab-empty-message|shift-tab-empty-message|tab-loading-overlay)$"] }
-      ]
-    },
-    {
-      "id": "sheet-tab-rename-tab-stop",
-      "title": "A sheet tab being renamed keeps its tab stop after it drops its button role, so the focus order holds a div with no role beside the name field",
-      "defectClass": "C04",
-      "tracker": "DEV-4001",
-      "match": [
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["ht-sheets-bar__tab--renaming"] }
       ]
     },
     {
@@ -639,7 +629,7 @@
       "defectClass": "C13",
       "tracker": "DEV-4017",
       "match": [
-        { "source": "docs", "axeIssues": ["prose-link-color-only"] }
+        { "source": "docs", "rules": ["link-in-text-block"], "where": ["^a$"] }
       ]
     },
     {

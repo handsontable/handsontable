@@ -40,13 +40,15 @@ name: A11y
 # `A11y / <check> report` check run, whose verdict follows the same severity rule, and the job carries
 # `continue-on-error`, so a tooling failure turns the job red, as it does the axe job, and never the
 # calling pipeline.
-# The job runs only when the caller sets `checks: true`: the A11y nightly (a11y-nightly.yml) does, the
-# pull-request Tests pipeline (test.yml) does not, so a pull request runs the axe scan alone. The checks
-# are report-only and the accessibility program is still building its picture, so a pull request learned
-# nothing from them it could act on; the nightly on develop keeps every check and its evidence. `nightly`
-# picks the suite: every check, or the short suite a check earns by finishing in under two minutes
-# (`pullRequest` in EVIDENCE_CHECKS, tests/lib/a11y-evidence.mjs), which a developer runs locally or
-# through a dispatch of the nightly that asks for it. `check-ids` names the checks to run instead of the
+# The job runs only when the caller sets `checks: true`: the A11y nightly (a11y-nightly.yml) does, with
+# every check, and the pull-request Tests pipeline (test.yml) does on a pull request, with the short suite
+# a check earns by finishing in under two minutes (`pullRequest` in EVIDENCE_CHECKS,
+# tests/lib/a11y-evidence.mjs), as a second job beside the axe scan. On a pull request the findings ledger
+# (test-health/a11y.json on gh-pages, from the weekly audit) is the checks' baseline: a finding whose
+# ledger row is open is known and does not count, a resolved row is a regression, a missing one is new
+# (tests/lib/a11y-pr-ledger.mjs), and a new finding on a page the pull request did not change is a warning
+# at most. Report-only: no finding fails the job. `nightly` picks the suite: every check, or the short
+# suite. `check-ids` names the checks to run instead of the
 # suite (the nightly's `checks` input, the proof run of one check): it reaches the config and the report
 # script as `A11Y_CHECKS`, so the run builds the named projects only and the summary names them.
 # The policy is tests/AGENTS.md, "A11y: the checks beyond axe".
@@ -54,7 +56,7 @@ on:
   workflow_call:
     inputs:
       checks:
-        description: Run the checks beyond axe. Off by default, so a pull request runs the axe scan only; the A11y nightly turns it on.
+        description: Run the checks beyond axe. Off by default; test.yml turns it on for a pull request (the short suite), the A11y nightly for every check.
         type: boolean
         default: false
       nightly:
@@ -161,8 +163,9 @@ jobs:
 
   checks:
     name: checks
-    # Only when the caller asks (the A11y nightly does, test.yml does not). A skipped job runs no step,
-    # so a pull request gets no `A11y / <check> report` check run, stale or otherwise.
+    # Only when the caller asks: the A11y nightly does, and test.yml does on a pull request (a master push
+    # and the rc/stable path do not). A skipped job runs no step, so it posts no `A11y / <check> report`
+    # check run, stale or otherwise.
     if: ${{ inputs.checks }}
     runs-on: ubuntu-26.04
     container:
@@ -173,9 +176,12 @@ jobs:
     continue-on-error: true
     timeout-minutes: 30
     # Job-level, like the axe job's: `checks: write` posts the evidence check runs. No comment here.
+    # `pull-requests: read` lists a pull request's changed files, so the report marks a new finding on a
+    # page the pull request did not change.
     permissions:
       contents: read
       checks: write
+      pull-requests: read
     env:
       A11Y_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       HOT_A11Y_CHECKS_SUITE: ${{ inputs.nightly && 'nightly' || 'pull-request' }}
@@ -218,9 +224,14 @@ jobs:
           if-no-files-found: warn
           retention-days: ${{ inputs.nightly && inputs.check-ids == '' && 30 || 7 }}
           overwrite: true
+      # On a pull request the summary tells new findings from known ones by the findings ledger, as the check
+      # runs do: a fork's or Dependabot's pull request posts no check run, so its summary carries the result.
+      # Their read-only token still lists the pull request's files.
       - name: Write the job summary
         if: ${{ !cancelled() }}
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          A11Y_PR_NUMBER: ${{ github.event.pull_request.number }}
           A11Y_EVIDENCE_URL: ${{ steps.evidence.outputs.artifact-url }}
         run: node tests/scripts/a11y-evidence-report.mjs
       # One `A11y / <check> report` check run per check (tests/lib/a11y-evidence.mjs), on the pull
@@ -232,5 +243,6 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          A11Y_PR_NUMBER: ${{ github.event.pull_request.number }}
           A11Y_EVIDENCE_URL: ${{ steps.evidence.outputs.artifact-url }}
         run: node tests/scripts/a11y-evidence-report.mjs --check-run
