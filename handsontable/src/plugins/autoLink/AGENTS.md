@@ -125,3 +125,8 @@ shares with `Formulas`.
   decides). `HOT_E2E_FULL_MATRIX=1` runs both on all six. The `umd` legs load HyperFormula as an external script for
   the both-features cases.
 - Rebuild `dist/` (`npm --prefix handsontable run build`) before Playwright; the legs load the bundle, not the source.
+- **A cell that holds a grid-made anchor is described as `link`** (an accessible description through `aria-describedby`, not part of the name). `#onAfterRenderer` calls `describeLink()` when `linkifyCell()`
+  returns `true` (it made an anchor in the cell), which adds the link part to the cell's description (the anchor is out of
+  the tab order and the focus stays on the cell, so a screen reader reads the URL and never says it is a link). The Formulas `HYPERLINK`
+  pass reports the same part, and a rank holds one part, so the two never say it twice. Rules:
+  `../../utils/cellDescription/AGENTS.md`. Disabling the plugin already marks every cell changed, which drops the part. VoiceOver with WebKit says `link` twice for such a cell (the description and the anchor); NVDA says it once, and without the description it said it not at all, which is the ticket's finding. The repeat is accepted.

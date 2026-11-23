@@ -186,6 +186,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'レベル [level]、[setSize] 件中 [position] 件目、折りたたみ',
 
   [C.FORMULAS_CELL_DESCRIPTION]: '数式: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: '読み取り専用',
+  [C.CELL_DESCRIPTION_LINK]: 'リンク',
+  [C.CELL_DESCRIPTION_MERGED]: '行 [row] 列 [column] まで結合',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '列グループ [label] を展開しました',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '列グループ [label] を折りたたみました',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] で昇順に並べ替えました',

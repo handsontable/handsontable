@@ -16,3 +16,4 @@ export {
   type LinkElementOptions,
   type LinkTarget,
 } from './linkElement';
+export { describeLink } from './describeLink';

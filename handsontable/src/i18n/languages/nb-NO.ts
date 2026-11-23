@@ -180,6 +180,9 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Nivå [level], [position] av [setSize], slått sammen',
 
   [C.FORMULAS_CELL_DESCRIPTION]: 'Formel: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'skrivebeskyttet',
+  [C.CELL_DESCRIPTION_LINK]: 'lenke',
+  [C.CELL_DESCRIPTION_MERGED]: 'slått sammen til rad [row] kolonne [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Utvidet kolonnegruppe [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen kolonnegruppe [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortert etter [label], stigende',
