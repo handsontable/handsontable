@@ -525,6 +525,22 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `LICENSE` getter so its `tiers` also list the presets that include it. A case
   no tier can express (a plugin without what it requires, which the generator
   refuses) belongs in a unit test, not here; no license spec is skipped.
+- **`e2e/license-built-bundle.spec.ts` is the one plugin spec on the build's real tiers, on purpose.**
+  Every other license spec either redefines the plugins' tiers or runs in jsdom on the
+  sources, so only it can see what the shipped bundle does: the static `LICENSE` of each
+  sold plugin against the manifest (`soldPluginLicenses()`), a key naming each real tier
+  (`manifestTiers()`, `featureTiers()`, never a name written out), a perpetual key against
+  the release date the build inlined (`releaseKeyUntil()`, with the date read from
+  `hot.config.js`, never from the bundle, so a build that inlined no date fails), and the
+  `*.handsontable.com` bypass (`LicenseBuildPage.goto({ host })` serves the fixture under
+  another host through `page.route()`, so the core reads that host from `location.host`).
+  A host with more than one label before `handsontable.com` is left unpinned until the
+  product decides whether it is bypassed. It declares `BUNDLES_TAG`, because minification
+  is what could drop a token or inline the date wrong. Both page objects of
+  `demo/license-capabilities.html` (`LicenseCapabilitiesPage`, `LicenseBuildPage`) extend
+  `fixtures/pages/LicenseFixturePage.ts`, which owns the fixture URL, the waits, the license surfaces,
+  the console capture and the host routing: a change to the fixture's contract goes there once, or one of
+  the two specs keeps passing on a stale wait or locator.
 
 ## Two clicks on the same cell are a double click
 
