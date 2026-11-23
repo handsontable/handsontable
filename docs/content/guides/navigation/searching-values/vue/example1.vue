@@ -46,6 +46,7 @@ function onSearchKeyUp(event: KeyboardEvent): void {
           id="search_field"
           type="search"
           placeholder="Search"
+          aria-label="Search"
           @keyup="onSearchKeyUp"
         >
       </div>

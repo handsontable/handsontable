@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuler',
 
+  [C.CONTEXTMENU_LABEL]: 'Menu contextuel',
+  [C.DROPDOWNMENU_LABEL]: 'Menu de la colonne',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insérer une ligne en haut',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Insérer une ligne en bas',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Insérer une colonne à gauche',
@@ -176,6 +178,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] sur [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Niveau [level], [position] sur [setSize], développé',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Niveau [level], [position] sur [setSize], réduit',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formule : [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Groupe de colonnes [label] développé',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Groupe de colonnes [label] réduit',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Trié par [label], ordre croissant',

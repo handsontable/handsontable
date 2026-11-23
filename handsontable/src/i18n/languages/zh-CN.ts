@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: '确认',
   [C.CANCEL]: '取消',
 
+  [C.CONTEXTMENU_LABEL]: '上下文菜单',
+  [C.DROPDOWNMENU_LABEL]: '列菜单',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入行',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '下方插入行',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '左方插入列',
@@ -179,6 +181,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '第 [level] 级，第 [position] 项，共 [setSize] 项',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: '第 [level] 级，第 [position] 项，共 [setSize] 项，已展开',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: '第 [level] 级，第 [position] 项，共 [setSize] 项，已折叠',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: '公式: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '已展开列组 [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '已折叠列组 [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已按 [label] 升序排序',

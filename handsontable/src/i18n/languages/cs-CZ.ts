@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Storno',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Žádné volby nejsou dostupné',
+  [C.CONTEXTMENU_LABEL]: 'Kontextová nabídka',
+  [C.DROPDOWNMENU_LABEL]: 'Nabídka sloupce',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Vložit řádek nad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Vložit řádek pod',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Vložit sloupec vlevo',
@@ -177,6 +179,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Úroveň [level], [position] z [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Úroveň [level], [position] z [setSize], rozbaleno',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Úroveň [level], [position] z [setSize], sbaleno',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Vzorec: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Rozbalena skupina sloupců [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sbalena skupina sloupců [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Seřazeno podle [label], vzestupně',

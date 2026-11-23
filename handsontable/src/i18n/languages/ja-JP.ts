@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'キャンセル',
 
+  [C.CONTEXTMENU_LABEL]: 'コンテキストメニュー',
+  [C.DROPDOWNMENU_LABEL]: '列メニュー',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '行を上に挿入',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '行を下に挿入',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '列を左に挿入',
@@ -182,6 +184,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'レベル [level]、[setSize] 件中 [position] 件目',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'レベル [level]、[setSize] 件中 [position] 件目、展開',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'レベル [level]、[setSize] 件中 [position] 件目、折りたたみ',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: '数式: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '列グループ [label] を展開しました',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '列グループ [label] を折りたたみました',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] で昇順に並べ替えました',

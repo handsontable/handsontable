@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuleren',
 
+  [C.CONTEXTMENU_LABEL]: 'Contextmenu',
+  [C.DROPDOWNMENU_LABEL]: 'Kolommenu',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Rij boven invoegen',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Rij onder invoegen',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Kolom links invoegen',
@@ -182,6 +184,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] van [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Niveau [level], [position] van [setSize], uitgevouwen',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Niveau [level], [position] van [setSize], samengevouwen',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formule: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Kolomgroep [label] uitgevouwen',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Kolomgroep [label] samengevouwen',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Gesorteerd op [label], oplopend',

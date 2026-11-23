@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Avbryt',
 
+  [C.CONTEXTMENU_LABEL]: 'Kontekstmeny',
+  [C.DROPDOWNMENU_LABEL]: 'Kolonnemeny',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Sett inn over',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Sett inn under',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Sett inn til venstre',
@@ -176,6 +178,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivå [level], [position] av [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Nivå [level], [position] av [setSize], utvidet',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Nivå [level], [position] av [setSize], slått sammen',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formel: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Utvidet kolonnegruppe [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen kolonnegruppe [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortert etter [label], stigende',

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the pagination and sheets bar buttons in the classic theme to meet the 24 by 24 px minimum target size.",
+  "type": "fixed",
+  "issueOrPR": 14381,
+  "breaking": false,
+  "framework": "none"
+}

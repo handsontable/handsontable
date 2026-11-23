@@ -124,6 +124,10 @@
           background-color: var(--ht-pagination-button-background-color);
           border-radius: var(--ht-icon-button-large-border-radius);
           padding: var(--ht-icon-button-large-padding);
+          // The icon, padding and border can add up to less than a pointer target needs (22px with
+          // the classic theme's 12px icon), so the hit-area token sets the floor.
+          min-width: var(--ht-icon-button-hit-area-size);
+          min-height: var(--ht-icon-button-hit-area-size);
           cursor: pointer;
 
           // A block icon makes the button's content box exactly the icon's box - the size the
@@ -134,6 +138,8 @@
           // pagination plugin's AGENTS.md).
           .ht-icon {
             display: block;
+            // Centers the icon when the button is wider than its content (the min-width floor).
+            margin-inline: auto;
           }
 
           &--disabled {

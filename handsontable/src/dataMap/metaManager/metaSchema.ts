@@ -807,8 +807,22 @@ export default (): Record<string, unknown> => {
      *
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
+     * On a tall grid, the first measure measures only the columns on screen (and the columns their merged cells
+     * span) before the first paint, and the other columns in the background. That happens at initialization and
+     * on [`loadData()`](@/api/core.md#loaddata), when all of these are true:
+     * - You don't set `syncLimit` in an object (with `autoColumnSize: true`, or unset, the plugin measures 51 columns).
+     * - [`autoRowSize`](#autorowsize) is off.
+     * - The measured columns times the rows exceed 1,000,000 cells (with 51 columns, from 19,608 rows).
+     *
+     * Until the background work ends, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for
+     * an off-screen column. A [`selectCell()`](@/api/core.md#selectcell) or
+     * [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made then measures the columns up to its
+     * target first, so it scrolls by the real widths. Set `syncLimit` to keep its columns measured before the
+     * first paint, whatever the number of rows.
+     *
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
+     * - [Performance](@/guides/optimization/performance/performance.md)
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.

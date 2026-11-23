@@ -26,6 +26,16 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
+## 18.1.3
+
+Released on November 20th, 2026
+
+For more information about this release, see:
+- [Documentation (18.1)](https://handsontable.com/docs/18.1)
+
+#### Fixed
+- Fixed slow scrolling of grids with many custom borders. [#13908](https://github.com/handsontable/handsontable/pull/13908)
+
 ## 18.1.2
 
 Released on October 7th, 2026

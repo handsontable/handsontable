@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of opening and searching the Filter by value list on a column with many distinct values: the list no longer reads the cell metadata and data of every value to size itself.",
+  "type": "changed",
+  "issueOrPR": 14397,
+  "breaking": false,
+  "framework": "none"
+}

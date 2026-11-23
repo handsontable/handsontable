@@ -201,7 +201,7 @@ Style the cell and editor so the star rating fits and matches the grid.
 
 .star-rating .star {
   font-size: 18px;
-  color: #d3d3d3;
+  color: light-dark(#8c8c8c, #6b6b6b);
   line-height: 1;
   cursor: default;
   user-select: none;
@@ -213,7 +213,7 @@ Style the cell and editor so the star rating fits and matches the grid.
 }
 
 .star-rating .star.filled {
-  color: #ffb400;
+  color: light-dark(#b45309, #ffb400);
 }
 
 .rating-cell {
@@ -369,11 +369,11 @@ Customize the appearance:
 
 ```css
 .star-rating .star {
-  color: #e0e0e0;
+  color: light-dark(#8c8c8c, #6b6b6b);
 }
 
 .star-rating .star.filled {
-  color: #ffd700;
+  color: light-dark(#b45309, #ffb400);
 }
 ```
 
@@ -390,7 +390,7 @@ const starRenderer = rendererFactory(({ td, value }) => {
   td.innerHTML = `
     <div style="
       font-size: 1.2em;
-      color: #ffb400;
+      color: light-dark(#b45309, #ffb400);
       letter-spacing: 2px;
     ">${stars}</div>
   `;

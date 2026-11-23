@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 
 @Component({
   standalone: true,
@@ -11,8 +12,8 @@ import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
 
-    <ng-template #myCellTpl let-value let-row="row" let-col="col">
-      <img [src]="value" (mousedown)="$event.preventDefault()"/>
+    <ng-template #myCellTpl let-value let-row="row" let-col="col" let-instance="instance">
+      <img [src]="value" [alt]="coverAlt(instance, row)" (mousedown)="$event.preventDefault()"/>
     </ng-template>
   `,
 })
@@ -59,6 +60,12 @@ export class AppComponent implements OnInit {
       autoWrapRow: true,
       autoWrapCol: true,
     };
+  }
+
+  coverAlt(instance: Handsontable, row: number): string {
+    const html = String(instance.getDataAtRowProp(row, 'title'));
+
+    return new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
   }
 }
 /* end-file */

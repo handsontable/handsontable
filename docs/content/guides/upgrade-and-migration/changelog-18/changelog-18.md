@@ -32,6 +32,21 @@ link is not parsed and the @/ path is not resolved per framework. -->
 
 </div>
 
+## 18.1.3
+
+Released on November 20th, 2026
+
+For more information about this release, see:
+
+<div class="boxes-list gray">
+
+- [Documentation (18.1)](https://handsontable.com/docs/18.1)
+
+</div>
+
+#### Fixed
+- Fixed slow scrolling of grids with many custom borders. [#13908](https://github.com/handsontable/handsontable/pull/13908)
+
 ## 18.1.2
 
 Released on October 7th, 2026

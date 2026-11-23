@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Odustani',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih mogućnosti',
+  [C.CONTEXTMENU_LABEL]: 'Kontekstni izbornik',
+  [C.DROPDOWNMENU_LABEL]: 'Izbornik stupca',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umetni redak iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Umetni redak ispod',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Umetni stupac lijevo',
@@ -192,6 +194,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Razina [level], [position] od [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Razina [level], [position] od [setSize], prošireno',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Razina [level], [position] od [setSize], sažeto',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Proširena grupa stupaca [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sažeta grupa stupaca [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortirano po [label], uzlazno',

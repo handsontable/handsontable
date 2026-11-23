@@ -11,6 +11,9 @@ export const CONTEXT_MENU_ITEMS_NAMESPACE = 'ContextMenu:items';
 
 const CM_ALIAS = CONTEXT_MENU_ITEMS_NAMESPACE;
 
+export const CONTEXTMENU_LABEL = 'ContextMenu:label';
+export const DROPDOWNMENU_LABEL = 'DropdownMenu:label';
+
 export const CONTEXTMENU_ITEMS_NO_ITEMS = `${CM_ALIAS}.noItems`;
 export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_ALIAS}.insertRowAbove`;
 export const CONTEXTMENU_ITEMS_ROW_BELOW = `${CM_ALIAS}.insertRowBelow`;
@@ -192,6 +195,9 @@ export const FREEZE_BAR_ROWS_TOP = `${FREEZE_BAR_NAMESPACE}rows.top`;
 export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
 export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
 export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
+
+export const FORMULAS_NAMESPACE = 'Formulas:';
+export const FORMULAS_CELL_DESCRIPTION = `${FORMULAS_NAMESPACE}cellDescription`;
 
 export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
 export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;

@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Atcelt',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nav pieejamu opciju',
+  [C.CONTEXTMENU_LABEL]: 'Konteksta izvēlne',
+  [C.DROPDOWNMENU_LABEL]: 'Kolonnas izvēlne',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Ievietot rindu augšā',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Ievietot rindu apakšā',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Ievietot kolonnu pa kreisi',
@@ -180,6 +182,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Līmenis [level], [position] no [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Līmenis [level], [position] no [setSize], izvērsts',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Līmenis [level], [position] no [setSize], sakļauts',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta kolonnu grupa [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta kolonnu grupa [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Kārtots pēc [label], augošā secībā',

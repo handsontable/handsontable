@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Cancel',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'No available options',
+  [C.CONTEXTMENU_LABEL]: 'Context menu',
+  [C.DROPDOWNMENU_LABEL]: 'Column menu',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Insert row below',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Insert column left',
@@ -183,6 +185,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Level [level], [position] of [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Level [level], [position] of [setSize], expanded',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Level [level], [position] of [setSize], collapsed',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Expanded column group [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed column group [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sorted by [label], ascending',

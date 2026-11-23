@@ -15,6 +15,8 @@ const dictionary = {
   [C.CANCEL]: 'إلغاء',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'لا توجد خيارات متوفرة',
+  [C.CONTEXTMENU_LABEL]: 'قائمة السياق',
+  [C.DROPDOWNMENU_LABEL]: 'قائمة العمود',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'إدراج صف للأعلى',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'إدراج صف للأسفل',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'إدراج عمود لليسار',
@@ -178,6 +180,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'المستوى [level]، [position] من [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'المستوى [level]، [position] من [setSize]، موسّع',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'المستوى [level]، [position] من [setSize]، مطوي',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'الصيغة: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع مجموعة الأعمدة [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'تم طي مجموعة الأعمدة [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'تم الفرز حسب [label]، تصاعديًا',

@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Abbrechen',
 
+  [C.CONTEXTMENU_LABEL]: 'Kontextmenü',
+  [C.DROPDOWNMENU_LABEL]: 'Spaltenmenü',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Zeile einfügen oberhalb',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Zeile einfügen unterhalb',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Spalte einfügen links',
@@ -176,6 +178,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Ebene [level], [position] von [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Ebene [level], [position] von [setSize], aufgeklappt',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Ebene [level], [position] von [setSize], zugeklappt',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formel: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Spaltengruppe [label] aufgeklappt',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Spaltengruppe [label] zugeklappt',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortiert nach [label], aufsteigend',

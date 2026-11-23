@@ -15,6 +15,8 @@ const dictionary = {
   [C.CANCEL]: 'لغو',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'هیچ گزینه ای در دسترس نیست',
+  [C.CONTEXTMENU_LABEL]: 'منوی زمینه',
+  [C.DROPDOWNMENU_LABEL]: 'منوی ستون',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'درج ردیف در بالا',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'درج ردیف در پایین',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'درج ستون در چپ',
@@ -184,6 +186,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'سطح [level]، [position] از [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'سطح [level]، [position] از [setSize]، باز',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'سطح [level]، [position] از [setSize]، بسته',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'فرمول: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'گروه ستون [label] باز شد',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'گروه ستون [label] بسته شد',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'مرتب‌سازی بر اساس [label]، صعودی',

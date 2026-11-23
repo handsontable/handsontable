@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: '확인',
   [C.CANCEL]: '취소',
 
+  [C.CONTEXTMENU_LABEL]: '컨텍스트 메뉴',
+  [C.DROPDOWNMENU_LABEL]: '열 메뉴',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '위쪽에 행 삽입',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '아래쪽에 행 삽입',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '왼쪽에 열 삽입',
@@ -176,6 +178,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '수준 [level], [setSize]개 중 [position]번째',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: '수준 [level], [setSize]개 중 [position]번째, 펼쳐짐',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: '수준 [level], [setSize]개 중 [position]번째, 접힘',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: '수식: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: '[label] 열 그룹 펼침',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: '[label] 열 그룹 접음',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] 기준 오름차순 정렬',

@@ -468,6 +468,19 @@ class Highlight {
   }
 
   /**
+   * Replaces the attributes written on every selected cell (`cellAttributes`). Walkontable's selection
+   * manager reads them from the `options` object of this instance on each draw, so the new list applies
+   * from the next draw on. A grid whose cells carry a role that does not support the default
+   * `aria-selected` (a menu's `menuitem`) passes an empty list.
+   *
+   * @private
+   * @param {Array<Array<string|number|boolean>>} attributes The attributes, as `[name, value]` pairs.
+   */
+  setCellAttributes(attributes: Array<[string, string | number | boolean]>) {
+    this.options.cellAttributes = attributes;
+  }
+
+  /**
    * Perform cleaning visual highlights for the whole table.
    */
   clear() {

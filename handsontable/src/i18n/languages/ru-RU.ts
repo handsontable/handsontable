@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Отмена',
 
+  [C.CONTEXTMENU_LABEL]: 'Контекстное меню',
+  [C.DROPDOWNMENU_LABEL]: 'Меню столбца',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Вставить строку ниже',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Вставить столбец слева',
@@ -176,6 +178,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Уровень [level], [position] из [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Уровень [level], [position] из [setSize], развёрнуто',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Уровень [level], [position] из [setSize], свёрнуто',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Формула: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута группа столбцов [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута группа столбцов [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Сортировка по [label], по возрастанию',
