@@ -12,13 +12,13 @@
       "id": "tab-into-grid",
       "action": {"press": "Tab"},
       "expect": [["a1", "a 1"], ["alpha"], ["row 2"], ["column 2"]],
-      "note": "Tab from the page's control before the grid enters the grid on its first cell: its value, its column header and its place. The headers are named so a header is a fact of its own (the grid page's letters A, B and C would also match a cell reference NVDA spells A 1). VoiceOver names no row on a cell move: its behavior on a well-formed grid too. Finding (the grid's): VoiceOver with Chromium says column 1 here and counts 13 rows in this grid of five, because the overlay clones add rows of their own to Chromium's accessibility tree."
+      "note": "Tab from the page's control before the grid enters the grid on its first cell: its value, its column header and its place. The headers are named so a header is a fact of its own (the grid page's letters A, B and C would also match a cell reference NVDA spells A 1). VoiceOver names no row on a cell move: its behavior on a well-formed grid too. With Chromium it says `column 2` (the row header is column 1) and counts six rows: the five of this grid and the header row."
     },
     {
       "id": "arrow-right",
       "action": {"press": "ArrowRight"},
       "expect": [["b1", "b 1"], ["bravo"], ["row 2"], ["column 3"]],
-      "note": "The cell to the right, which the column header names: with headers not navigable, a reader hears the header only through the cell. Finding (the grid's): NVDA with Chromium also names the previous column's header after the row (B 1, B, row 2, A, column 3 on the recording), the overlay clones' wrong header."
+      "note": "The cell to the right, which the column header names: with headers not navigable, a reader hears the header only through the cell."
     },
     {
       "id": "arrow-down",

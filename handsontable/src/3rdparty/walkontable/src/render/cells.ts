@@ -14,6 +14,7 @@ import {
 import {
   isClearedAriaAttribute,
   isKeptDescribedBy,
+  isKeptForAriaTree,
   setAttributeIfChanged,
   setAttributeIfMissing,
 } from './ariaAttributes';
@@ -66,7 +67,8 @@ function prepareCellAriaAttributes(
 
     if (
       isClearedAriaAttribute(name) &&
-      !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId, describedByKept))
+      !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId, describedByKept)) &&
+      !isKeptForAriaTree(TD, name)
     ) {
       TD.removeAttribute(name);
     }

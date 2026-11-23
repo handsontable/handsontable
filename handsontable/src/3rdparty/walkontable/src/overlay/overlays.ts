@@ -4,6 +4,7 @@ import type Settings from '../settings';
 import type Table from '../table/baseTable';
 import type { Overlay } from './regions/_base';
 import type { AxisVisibleRange } from '../selection/border/adjustHandlesOwnership';
+import type { AriaTreeLayout } from './ariaCells';
 import type EventManager from '../../../../eventManager';
 import { debounce } from '../../../../helpers/function';
 import { arrayEach } from '../../../../helpers/array';
@@ -166,6 +167,15 @@ class Overlays {
    * @type {boolean}
    */
   rowRecyclingAllowed: boolean = false;
+  /**
+   * The layout the grid's single accessibility tree is built from (`overlay/ariaCells.ts`), read once per
+   * master draw that renders the cells, or `null` for a grid that keeps its tables apart. The row renderers
+   * of the master and of every clone (through the clone source) and the pass that joins the rows afterwards
+   * all read this copy: the settings behind it run hooks and walk the index mappers in core.
+   *
+   * @type {AriaTreeLayout | null}
+   */
+  ariaTreeLayout: AriaTreeLayout | null = null;
   /**
    * The master's visible rows and columns, snapshotted by the master draw cycle right before the
    * overlays render (`snapshotSelectionVisibleRange` in `table/drawCycle.ts`). The selection handles
@@ -468,6 +478,27 @@ class Overlays {
     this.destroyed = false;
 
     this.registerListeners();
+  }
+
+  /**
+   * Returns the tables the grid draws: the overlay clones' tables, then the master table. The accessibility
+   * tree is built over this list by the engine (`overlay/ariaCells.ts`) and by the host (the root's list of
+   * row groups), so both read the same tables.
+   *
+   * @returns {Table[]}
+   */
+  getTables(): Table[] {
+    const tables: Table[] = [];
+
+    this.getOverlays(true).forEach((overlay) => {
+      const wtTable = 'clone' in overlay ? overlay.clone?.wtTable : overlay;
+
+      if (wtTable) {
+        tables.push(wtTable);
+      }
+    });
+
+    return tables;
   }
 
   /**

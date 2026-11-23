@@ -1692,9 +1692,12 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
 - **Structure** (`structureFindings()`): the column headers read after the data rows
   (`headers-after-data`, 1.3.2), data rows without their row header while the row headers sit in rows of
   their own (`row-headers-apart`, 1.3.1), one row index exposed by several rows (`row-exposed-twice`,
-  1.3.1), cells or rows read out of their index order (1.3.2), a grid role with no row (1.3.1). Today the
-  first three show on every grid with headers: the overlay clones put the header row after the master
-  table and repeat each row in the row-header clone. They are one root cause, reported per page and
+  1.3.1), one row and column index exposed by several cells (`cell-exposed-twice`, 1.3.1, with the number of
+  such cells and the most copies of one), cells or rows read out of their index order (1.3.2), a grid role
+  with no row (1.3.1). Today the first three show on every grid with headers: the overlay clones put the
+  header row after the master table and repeat each row in the row-header clone. `cell-exposed-twice` shows
+  there too (the corner cell is drawn by the top clone and by the corner), and counts every cell a frozen
+  pane repeats; it is the number that stays meaningful once rows are joined and no row index repeats. They are one root cause, reported per page and
   theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
   nearest grid, treegrid or table ancestor). A list inside the page (the handsontable editor's list, the
   filters' value list) therefore neither adds rows without a header to the grid nor shares its row
@@ -1710,8 +1713,11 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   no class there, because its classes are rendering state (the selection, the last visible header) and
   would split one finding across themes and runs. A closed cell editor stays in the DOM and in the tree,
   so its input is judged on every page.
-- **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds Playwright's
-  `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
+- **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds the flattened tree
+  written as text (`serializeTree()` in `lib/aria-tree.mjs`): Chromium's own tree of the grid and of each
+  portal, one node per line, without generic containers and text nodes. It is not Playwright's
+  `ariaSnapshot()`, which is computed from the DOM and shows neither what `aria-owns` moves nor the row a
+  cell ends up in, and the grid joins its tables with `aria-owns`. The theme changes which rows are drawn, not the roles or
   names, so one theme keeps the goldens and every theme is judged. A difference is
   `tree-snapshot-changed`, with the first line that differs. What the run decides, not the page, is
   masked before the comparison (`maskSnapshot()`): the server's origin reads `<origin>`, the installed

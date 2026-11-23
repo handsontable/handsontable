@@ -17,6 +17,7 @@ import CellRange from '../cell/range';
 import { LiveGeometryReader } from '../domMeasure/liveGeometryReader';
 import type { GeometryReader } from '../domMeasure/geometryReader';
 import { buildContext, type EngineContext } from '../wire';
+import { MASTER_TABLE, getOverlayOfType, resolveOwningOverlay } from '../overlay/overlayOwnership';
 
 /**
  * @abstract
@@ -288,41 +289,22 @@ export default class CoreAbstract {
       return this.wtTable.getCell(coords);
     }
 
-    const totalRows = this.wtSettings.getSetting<number>('totalRows');
-    const fixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
-    const fixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
-    const fixedColumnsStart = this.wtSettings.getSetting<number>('fixedColumnsStart');
     const fixedColumnsEnd = this.wtSettings.getSetting<number>('fixedColumnsEnd');
-    const isInEndColumns = fixedColumnsEnd > 0 &&
-      coords.col >= this.wtSettings.getSetting<number>('totalColumns') - fixedColumnsEnd;
+    const owner = resolveOwningOverlay({
+      totalRows: this.wtSettings.getSetting<number>('totalRows'),
+      // Read only for a grid with frozen end columns: nothing else compares against it.
+      totalColumns: fixedColumnsEnd > 0 ? this.wtSettings.getSetting<number>('totalColumns') : 0,
+      fixedRowsTop: this.wtSettings.getSetting<number>('fixedRowsTop'),
+      fixedRowsBottom: this.wtSettings.getSetting<number>('fixedRowsBottom'),
+      fixedColumnsStart: this.wtSettings.getSetting<number>('fixedColumnsStart'),
+      fixedColumnsEnd,
+    }, coords.row, coords.col);
 
-    if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
-      return this.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.getCell(coords);
-
-    } else if (coords.row < fixedRowsTop && isInEndColumns) {
-      return this.wtOverlays.topInlineEndCornerOverlay.clone?.wtTable.getCell(coords);
-
-    } else if (coords.row < fixedRowsTop) {
-      return this.wtOverlays.topOverlay.clone?.wtTable.getCell(coords);
-
-    } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable.getCell(coords);
-
-    } else if (isInEndColumns && coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomInlineEndCornerOverlay.clone?.wtTable.getCell(coords);
-
-    } else if (coords.col < fixedColumnsStart) {
-      return this.wtOverlays.inlineStartOverlay.clone?.wtTable.getCell(coords);
-
-    } else if (isInEndColumns) {
-      return this.wtOverlays.inlineEndOverlay.clone?.wtTable.getCell(coords);
-
-    } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomOverlay?.clone?.wtTable.getCell(coords);
-
+    if (owner === MASTER_TABLE) {
+      return this.wtTable.getCell(coords);
     }
 
-    return this.wtTable.getCell(coords);
+    return getOverlayOfType(this.wtOverlays, owner)?.clone?.wtTable.getCell(coords);
   }
 
   /**

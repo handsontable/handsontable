@@ -49,6 +49,26 @@ export class CellDescriptionPage {
   }
 
   /**
+   * The `aria-rowindex` of the grid row a visual row is drawn in, read from the copy of the row that carries
+   * the `row` role. With row headers that is the row header's row (the inline-start clone's), not the
+   * master's: the grid gives each row one copy with the role. Both copies render the same rows, so the
+   * master row's position names the other one. Read in one evaluation.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Promise<string | null>} The index, or `null` when the row is not rendered.
+   */
+  async gridRowIndex(row: number): Promise<string | null> {
+    return this.cell(row, 0).evaluate((cell) => {
+      const masterRow = cell.closest('tr');
+      const root = cell.closest('.ht_master')?.parentElement;
+      const position = masterRow ? Array.from(masterRow.parentElement?.children ?? []).indexOf(masterRow) : -1;
+      const copies = [masterRow, root?.querySelectorAll('.ht_clone_inline_start tbody tr')[position] ?? null];
+
+      return copies.find(copy => copy?.getAttribute('role') === 'row')?.getAttribute('aria-rowindex') ?? null;
+    });
+  }
+
+  /**
    * The name and the description Chromium's own accessibility tree gives a cell, which is what a screen reader on
    * Chromium reads from it (Playwright's `toHaveAccessibleName()` computes them from the DOM and the styles instead).
    */

@@ -19,6 +19,7 @@ import {
   syncOversizedRowsWithFrozenOverlays,
 } from '../axisSizing/oversizedRows';
 import { measureHolderInlineStartMargin } from './holderInlineStartMargin';
+import { readAriaTreeLayout, reconcileAriaTree } from '../overlay/ariaCells';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
 import type Viewport from '../viewport/viewport';
@@ -217,6 +218,10 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // incidental.
       wtOverlays.adjustElementsSize();
     } else {
+      // Read once for the master's render, the clones' renders and the pass that joins the rows below: the
+      // settings behind it run hooks and walk the index mappers in core.
+      wtOverlays.ariaTreeLayout = readAriaTreeLayout(wtSettings);
+
       const columnHeadersRenderSkippable = isPureVerticalScrollDraw(wtOverlays);
       const rowHeightsChanged = renderCellBand(
         table,
@@ -305,6 +310,9 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       wtViewport.syncVisibleCalculatorsToHolderScrollbars();
 
       wtOverlays.applyToDOM();
+
+      // Every table has rendered: leave one copy of each cell exposed and join each grid row into one row.
+      reconcileAriaTree(wtSettings, wtOverlays.getTables(), wtOverlays.ariaTreeLayout);
 
       wtSettings.getSetting('onDraw', true);
     }
@@ -546,6 +554,9 @@ function renderCellBand(
   table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
   table.tableRenderer.setRowRecyclingAllowed(rowRecyclingAllowed);
   table.tableRenderer.setRenderEpoch(ctx.renderEpochAtDrawStart);
+  table.tableRenderer.setAriaTreeLayout(table.isMaster
+    ? table.deps.getWtOverlays().ariaTreeLayout
+    : table.deps.getCloneSource().wtOverlays.ariaTreeLayout);
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER) ||

@@ -1,8 +1,7 @@
 # grid
-- treegrid:
+- treegrid
   - rowgroup
-  - rowgroup:
-    - row "Select whole grid Company name Country Name Sell date Order ID In stock Qty":
+    - row "Select whole grid Company name Country Name Sell date Order ID In stock Qty"
       - gridcell "Select whole grid"
       - columnheader "Company name"
       - columnheader "Country"
@@ -11,15 +10,9 @@
       - columnheader "Order ID"
       - columnheader "In stock"
       - columnheader "Qty"
-  - rowgroup
-  - rowgroup
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
-- group "No data available There’s nothing to display yet.":
+- group "No data available There’s nothing to display yet."
   - heading "No data available" [level=2]
-  - paragraph: There’s nothing to display yet.
+  - paragraph
 # portal
 - status
 - status

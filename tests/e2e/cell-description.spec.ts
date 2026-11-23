@@ -76,7 +76,7 @@ test.describe('cell description: what a cell holds beyond its text', { tag: [THE
     // The block ends in the cell B3. That cell is row 4 and column 3 for a screen reader: one header row and one
     // row header column come before the data.
     await expect(grid.cell(2, 1)).toHaveAttribute('aria-colindex', '3');
-    await expect(grid.cell(2, 1).locator('xpath=..')).toHaveAttribute('aria-rowindex', '4');
+    await expect.poll(() => grid.gridRowIndex(2)).toBe('4');
 
     const { name, description } = await grid.chromiumAccessibility(1, 0);
 

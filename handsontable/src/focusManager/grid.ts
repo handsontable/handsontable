@@ -657,12 +657,39 @@ export class FocusGridManager {
 
     // A listener from the settings runs before this one, and the hook run keeps walking its listeners
     // after such a listener destroyed the grid.
-    if (suspended === null || this.#hot.isDestroyed) {
+    if (this.#hot.isDestroyed) {
+      return;
+    }
+
+    if (suspended === null) {
+      this.#refocusHiddenCopy();
+
       return;
     }
 
     this.#pendingFocus = null;
     this.#focusCell(suspended);
+  }
+
+  /**
+   * Moves the browser focus off a copy of a cell the render hid from assistive technology. A cell can be
+   * drawn by up to four tables, and only the copy in the table that owns it stays exposed; a change of the
+   * frozen layout (`fixedRowsTop` raised while a cell holds the focus) gives the cell to another table, so
+   * the focused copy turns `aria-hidden` while the selection stays where it was. The focus goes to the copy
+   * the selection names now, the same one a new selection would focus.
+   */
+  #refocusHiddenCopy() {
+    const activeElement = getDeepActiveElement(this.#hot.rootDocument);
+
+    if (
+      isHTMLElement(activeElement) &&
+      (activeElement.nodeName === 'TD' || activeElement.nodeName === 'TH') &&
+      activeElement.getAttribute('aria-hidden') === 'true' &&
+      // A cell of this grid's own tables, not of a grid rendered inside one of its cells.
+      isInternalElement(activeElement, this.#hot.rootElement)
+    ) {
+      this.focusOnHighlightedCell();
+    }
   }
 
   /**

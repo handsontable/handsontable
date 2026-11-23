@@ -1,51 +1,40 @@
 # grid
-- textbox "Cell address": C1
-- textbox "Formula input"
-- treegrid:
-  - rowgroup:
-    - row "1 2 3":
-      - gridcell "1"
-      - gridcell "2"
-      - gridcell "3" [selected]
-    - row "3 4 7":
-      - gridcell "3"
-      - gridcell "4"
-      - gridcell "7"
-    - row "5 6 10":
-      - gridcell "5"
-      - gridcell "6"
-      - gridcell "10"
-    - row:
-      - gridcell
-      - gridcell
-      - gridcell
-    - row "yes":
-      - gridcell
-      - gridcell
-      - gridcell "yes"
-  - rowgroup:
-    - row "Select whole grid A B C":
+- textbox "Cell address": "C1"
+- textbox "Formula input": "=A1+B1​"
+- treegrid
+  - combobox "Formula editor" [expanded=false]: "=A1+B1"
+  - rowgroup
+    - row "Select whole grid A B C"
       - gridcell "Select whole grid"
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
   - rowgroup
-  - rowgroup:
-    - row "1":
+    - row "1 1 2 3  Formula: =A1+B1"
       - rowheader "1"
-    - row "2":
+      - gridcell "1"
+      - gridcell "2"
+      - gridcell "3  Formula: =A1+B1" [selected]
+    - row "2 3 4 7  Formula: =A2+B2"
       - rowheader "2"
-    - row "3":
+      - gridcell "3"
+      - gridcell "4"
+      - gridcell "7  Formula: =A2+B2"
+    - row "3 5 6 10  Formula: =SUM(C1:C2)"
       - rowheader "3"
-    - row "4":
+      - gridcell "5"
+      - gridcell "6"
+      - gridcell "10  Formula: =SUM(C1:C2)"
+    - row "4"
       - rowheader "4"
-    - row "5":
+      - gridcell
+      - gridcell
+      - gridcell
+    - row "5 yes  Formula: =IF( A1>0, \"yes\", \"no\" )"
       - rowheader "5"
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
-  - combobox "Formula editor": =A1+B1
+      - gridcell
+      - gridcell
+      - gridcell "yes  Formula: =IF( A1>0, \"yes\", \"no\" )"
 # portal
 - status
 - status

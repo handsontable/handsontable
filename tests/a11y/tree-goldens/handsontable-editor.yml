@@ -1,63 +1,45 @@
 # grid
-- treegrid:
-  - rowgroup:
-    - row "Al Al":
-      - gridcell "Al" [selected]
-      - gridcell "Al"
-    - row "Al Al":
-      - gridcell "Al"
-      - gridcell "Al"
-    - row:
-      - gridcell
-      - gridcell
-  - rowgroup:
-    - row "Select whole grid A B":
+- treegrid
+  - textbox "A, row 1": "Al"
+  - table
+    - row
+      - cell "Alpha"
+    - row
+      - cell "Alfa"
+    - row
+      - cell "Alto"
+  - table
+    - rowgroup
+  - table
+    - rowgroup
+  - table
+  - table
+    - rowgroup
+  - table
+    - rowgroup
+  - table
+  - table
+    - rowgroup
+  - table
+    - rowgroup
+  - rowgroup
+    - row "Select whole grid A B"
       - gridcell "Select whole grid"
       - columnheader "A"
       - columnheader "B"
   - rowgroup
-  - rowgroup:
-    - row "1":
+    - row "1 Al Al"
       - rowheader "1"
-    - row "2":
+      - gridcell "Al" [selected]
+      - gridcell "Al"
+    - row "2 Al Al"
       - rowheader "2"
-    - row "3":
+      - gridcell "Al"
+      - gridcell "Al"
+    - row "3"
       - rowheader "3"
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
-  - textbox "A, row 1": Al
-  - table:
-    - rowgroup:
-      - row "Alpha":
-        - cell "Alpha"
-      - row "Alfa":
-        - cell "Alfa"
-      - row "Alto":
-        - cell "Alto"
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
+      - gridcell
+      - gridcell
 # portal
 - status
 - status

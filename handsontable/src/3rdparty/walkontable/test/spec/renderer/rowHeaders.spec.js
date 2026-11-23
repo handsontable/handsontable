@@ -27,6 +27,11 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
       return true;
     }
 
+    getAriaTreeLayout() {
+      // A table drawn on its own keeps its rows to itself (no instance id).
+      return null;
+    }
+
     hasColumnHeaders() {
       return false;
     }

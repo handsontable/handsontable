@@ -49,10 +49,12 @@ import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
+  A11Y_OWNS,
   A11Y_PRESENTATION,
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { stampRowGroupsInReadingOrder } from './3rdparty/walkontable/src/overlay/ariaTree';
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
 import { isPageTextSelectionKept } from './utils/pageTextSelection';
@@ -312,6 +314,10 @@ class TableView {
    * @type {boolean}
    */
   #sizesMeasuredWithoutStylesPending = false;
+  /**
+   * The row groups the grid last listed on its root (`aria-owns`), empty when it wrote none.
+   */
+  #ariaOwnedRowGroups = '';
   /**
    * Whether the last `_wt.draw()` of `render()` reached the cells. The engine reports it through `onDraw`, which a draw
    * that a `beforeViewRender` listener cancelled (`skipRender`) never fires.
@@ -3197,6 +3203,40 @@ class TableView {
   }
 
   /**
+   * Lists the grid's row groups on its root in reading order (`aria-owns`): the column headers first, then
+   * the frozen top rows, the rows between, and the frozen bottom rows. The headers and the frozen rows are
+   * drawn by overlay clones that follow the master table in the DOM, so without the list a screen reader
+   * reads the data before the headers that label it.
+   *
+   * The list is rebuilt after each draw that rendered cells, because a section is a row group only while its
+   * rows hold cells, and written only when it changed. A grid that writes no accessibility attributes
+   * (`ariaTags: false`, which the menus and the editors' lists are built with) writes no list, and only a
+   * list this method wrote is ever removed.
+   */
+  #syncAriaRowGroupOrder() {
+    const { rootElement, guid } = this.hot;
+    const [ownsAttribute] = A11Y_OWNS('');
+    let owned = '';
+
+    if (this.settings.ariaTags && guid) {
+      // The same tables the engine's pass joins into rows (`Overlays#getTables`).
+      owned = stampRowGroupsInReadingOrder(this._wt.wtOverlays.getTables(), guid).join(' ');
+    }
+
+    if (owned === this.#ariaOwnedRowGroups) {
+      return;
+    }
+
+    if (owned === '') {
+      rootElement.removeAttribute(ownsAttribute);
+    } else {
+      rootElement.setAttribute(ownsAttribute, owned);
+    }
+
+    this.#ariaOwnedRowGroups = owned;
+  }
+
+  /**
    * `afterRender` callback.
    *
    * The engine fires `onDraw` only from a draw that rendered the cell band, which is what spends the
@@ -3210,6 +3250,7 @@ class TableView {
   afterRender(force: boolean) {
     this.#sizesMeasuredWithoutStylesPending = false;
     this.#drawRenderedCells = true;
+    this.#syncAriaRowGroupOrder();
 
     if (force) {
       // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners

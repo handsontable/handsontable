@@ -1,31 +1,23 @@
 # grid
-- treegrid "Alpha":
-  - rowgroup:
-    - row "A1 A2":
-      - gridcell "A1"
-      - gridcell "A2"
-    - row "A3 A4":
-      - gridcell "A3"
-      - gridcell "A4"
-  - rowgroup:
-    - row "Select whole grid A B":
+- treegrid "Alpha"
+  - rowgroup
+    - row "Select whole grid A B"
       - gridcell "Select whole grid"
       - columnheader "A"
       - columnheader "B"
   - rowgroup
-  - rowgroup:
-    - row "1":
+    - row "1 A1 A2"
       - rowheader "1"
-    - row "2":
+      - gridcell "A1"
+      - gridcell "A2"
+    - row "2 A3 A4"
       - rowheader "2"
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+      - gridcell "A3"
+      - gridcell "A4"
 - button "Add sheet"
-- button "All sheets"
-- group "Sheets":
-  - button "Alpha"
+- button "All sheets" [expanded=false]
+- group "Sheets"
+  - button "Alpha" [expanded=false]
   - button "Beta"
   - button "Gamma"
 # portal

@@ -1,46 +1,36 @@
 # grid
-- treegrid:
-  - rowgroup:
-    - row "Update API docs Checked In progress":
-      - gridcell "Update API docs"
-      - gridcell "Checked":
-        - checkbox "Checked" [checked]
-      - gridcell "In progress"
-    - row "Deploy hotfix Unchecked Blocked":
-      - gridcell "Deploy hotfix"
-      - gridcell "Unchecked":
-        - checkbox "Unchecked"
-      - gridcell "Blocked"
-    - row "Review pull request Checked Done":
-      - gridcell "Review pull request"
-      - gridcell "Checked":
-        - checkbox "Checked" [checked]
-      - gridcell "Done"
-    - row "Plan release Unchecked In progress":
-      - gridcell "Plan release"
-      - gridcell "Unchecked":
-        - checkbox "Unchecked"
-      - gridcell "In progress"
-  - rowgroup:
-    - row "Select whole grid Task Reviewed Status":
+- treegrid
+  - rowgroup
+    - row "Select whole grid Task Reviewed Status"
       - gridcell "Select whole grid"
       - columnheader "Task"
       - columnheader "Reviewed"
       - columnheader "Status"
   - rowgroup
-  - rowgroup:
-    - row "1":
+    - row "1 Update API docs Checked In progress"
       - rowheader "1"
-    - row "2":
+      - gridcell "Update API docs"
+      - gridcell "Checked"
+        - checkbox "Checked" [checked]
+      - gridcell "In progress"
+    - row "2 Deploy hotfix Unchecked Blocked"
       - rowheader "2"
-    - row "3":
+      - gridcell "Deploy hotfix"
+      - gridcell "Unchecked"
+        - checkbox "Unchecked"
+      - gridcell "Blocked"
+    - row "3 Review pull request Checked Done"
       - rowheader "3"
-    - row "4":
+      - gridcell "Review pull request"
+      - gridcell "Checked"
+        - checkbox "Checked" [checked]
+      - gridcell "Done"
+    - row "4 Plan release Unchecked In progress"
       - rowheader "4"
-  - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+      - gridcell "Plan release"
+      - gridcell "Unchecked"
+        - checkbox "Unchecked"
+      - gridcell "In progress"
 # portal
 - status
 - status

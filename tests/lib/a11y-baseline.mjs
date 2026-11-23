@@ -915,3 +915,20 @@ function escapeData(value) {
 function escapeProperty(value) {
   return escapeData(value).replace(/:/g, '%3A').replace(/,/g, '%2C');
 }
+
+/**
+ * Puts a node's whole `class` attribute back into a start tag axe shortened. axe cuts every attribute of a
+ * start tag longer than 300 characters to 20 and ends it with `...`, so a grid root whose `aria-owns` lists
+ * its row groups loses the class that describes it, and the baseline key with it.
+ *
+ * @param {string|undefined} html The node's markup, as axe gave it.
+ * @param {string|null} className The node's `class` attribute, read from the page.
+ * @returns {string|undefined} The markup.
+ */
+export function restoreShortenedClass(html, className) {
+  if (html === undefined || className === null || !/\sclass="[^"]*\.\.\."/.test(html)) {
+    return html;
+  }
+
+  return html.replace(/(\sclass=")[^"]*\.\.\."/, (_, start) => `${start}${className.replace(/"/g, '&quot;')}"`);
+}

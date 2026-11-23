@@ -15,6 +15,48 @@ export interface FlatAxNode {
   tag: string;
   attrs: Record<string, string>;
   focusable: boolean;
+  states: string[];
+  value: string;
+  root: string;
+}
+
+// The states the snapshot writes after a node's name, in this order: what a screen reader announces with
+// the role (a checked box, a selected cell, an expanded row and its level in a tree).
+const STATE_PROPERTIES = ['checked', 'selected', 'expanded', 'level', 'disabled', 'pressed', 'invalid'];
+
+interface AxProperty {
+  name: string;
+  value?: { value?: unknown };
+}
+
+/**
+ * The states of one node, as the snapshot writes them: `checked`, `checked=mixed`, `expanded=false`,
+ * `level=2`. A boolean state that is off is left out, except `expanded`, whose `false` is announced
+ * (a collapsed row); an `invalid` of `false` is the default and left out too.
+ *
+ * @param properties The node's accessibility properties.
+ * @returns The states.
+ */
+function readStates(properties: AxProperty[]): string[] {
+  const states: string[] = [];
+
+  for (const name of STATE_PROPERTIES) {
+    const value = properties.find(property => property.name === name)?.value?.value;
+
+    if (value === undefined || value === null || value === 'false' || value === '') {
+      continue; // eslint-disable-line no-continue
+    }
+    if (value === false) {
+      if (name === 'expanded') {
+        states.push('expanded=false');
+      }
+      continue; // eslint-disable-line no-continue
+    }
+
+    states.push(value === true || value === 'true' ? name : `${name}=${String(value)}`);
+  }
+
+  return states;
 }
 
 /**
@@ -79,7 +121,7 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
   const byId = new Map(nodes.map(item => [item.nodeId, item]));
   const byBackend = new Map(nodes.filter(item => item.backendDOMNodeId !== undefined).map(item => [item.backendDOMNodeId!, item]));
   const flat: FlatAxNode[] = [];
-  const visit = (nodeId: string, parent: string | null, region: 'grid' | 'portal') => {
+  const visit = (nodeId: string, parent: string | null, region: 'grid' | 'portal', root: string) => {
     const item = byId.get(nodeId);
 
     if (!item) {
@@ -90,7 +132,8 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
 
     if (!item.ignored) {
       const element = item.backendDOMNodeId !== undefined ? dom.get(item.backendDOMNodeId) : undefined;
-      const focusable = (item.properties ?? []).find(property => property.name === 'focusable')?.value?.value === true;
+      const properties = (item.properties ?? []) as AxProperty[];
+      const focusable = properties.find(property => property.name === 'focusable')?.value?.value === true;
 
       flat.push({
         id: item.nodeId,
@@ -101,11 +144,14 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
         tag: element?.tag ?? '',
         attrs: element?.attrs ?? {},
         focusable,
+        states: readStates(properties),
+        value: String(item.value?.value ?? ''),
+        root,
       });
       next = item.nodeId;
     }
     for (const child of item.childIds ?? []) {
-      visit(child, next, region);
+      visit(child, next, region, root);
     }
   };
 
@@ -121,27 +167,11 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
       const start = byBackend.get(backend);
 
       if (start) {
-        visit(start.nodeId, null, region);
+        visit(start.nodeId, null, region, String(backend));
       }
     }
   }
   await cdp.send('Runtime.releaseObjectGroup', { objectGroup: 'a11y-tree' });
 
   return flat;
-}
-
-/**
- * The accessibility snapshot of the grid and of every marked portal, as Playwright writes it
- * (`ariaSnapshot()`), in one text: what the goldens keep. Each portal has a header of its own, so a page
- * with one portal reads as before.
- *
- * @param page The page.
- * @param root The root container selector.
- * @returns The snapshot.
- */
-export async function treeSnapshot(page: Page, root: string): Promise<string> {
-  const grid = await page.locator(root).first().ariaSnapshot();
-  const portals = await Promise.all((await page.locator(PORTAL).all()).map(portal => portal.ariaSnapshot()));
-
-  return `# grid\n${grid.trim()}\n${portals.map(portal => `# portal\n${portal.trim()}`).join('\n')}\n`;
 }

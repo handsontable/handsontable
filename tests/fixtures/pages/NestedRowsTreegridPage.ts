@@ -56,9 +56,10 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
 
   /**
    * The treegrid attributes of every rendered row, top to bottom, read in one evaluation so a
-   * re-render between two reads cannot mix two layouts. Throws when the master copy of a row and
-   * its inline-start copy disagree, and when a row element carries `aria-expanded`, which belongs to
-   * the row header.
+   * re-render between two reads cannot mix two layouts. A grid row is a `row` in one table only, the
+   * inline-start clone, which holds its row header; the master's copy carries no role, and none of the
+   * attributes is allowed on it. Throws when the master copy of a row carries one, when a clone row is
+   * no `row`, and when a row element carries `aria-expanded`, which belongs to the row header.
    */
   rowAttributes(): Promise<TreegridRowAttributes[]> {
     return this.page.evaluate(() => {
@@ -77,13 +78,53 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
         });
       const master = read('.ht_master');
       const clone = read('.ht_clone_inline_start');
+      const cloneRoles = Array.from(document.querySelectorAll('.ht_clone_inline_start tbody tr'), TR => TR.getAttribute('role'));
 
-      if (JSON.stringify(master) !== JSON.stringify(clone)) {
-        throw new Error(`Row copies disagree: ${JSON.stringify({ master, clone })}`);
+      if (master.some(item => item.level !== null || item.posinset !== null || item.setsize !== null)) {
+        throw new Error(`A master row, which is no row for assistive technology, carries a tree attribute: ${JSON.stringify(master)}`);
+      }
+      if (cloneRoles.some(role => role !== 'row')) {
+        throw new Error(`A row of the inline-start clone is no row: ${JSON.stringify(cloneRoles)}`);
       }
 
-      return master;
+      return clone;
     });
+  }
+
+  /**
+   * The treegrid attributes of every grid row, in grid order, each read from the one copy of the row that
+   * carries the `row` role, wherever it is drawn: the inline-start clone for the rows between the freeze lines,
+   * the top or bottom inline-start corner for a frozen row. Also counts the copies that carry a tree attribute
+   * without being that row, which must be none. Read in one evaluation.
+   */
+  gridRowAttributes(): Promise<{ rows: TreegridRowAttributes[], strayCopies: number }> {
+    return this.page.evaluate(() => {
+      const grid = document.querySelector('[data-testid="grid"]')!;
+      const rows = Array.from(grid.querySelectorAll('tbody tr[role="row"]'))
+        .sort((a, b) => Number(a.getAttribute('aria-rowindex')) - Number(b.getAttribute('aria-rowindex')))
+        .map(TR => ({
+          level: TR.getAttribute('aria-level'),
+          posinset: TR.getAttribute('aria-posinset'),
+          setsize: TR.getAttribute('aria-setsize'),
+          expanded: TR.querySelector('th')?.getAttribute('aria-expanded') ?? null,
+        }));
+      const strayCopies = grid.querySelectorAll(
+        'tbody tr:not([role="row"]):is([aria-level], [aria-posinset], [aria-setsize])'
+      ).length;
+
+      return { rows, strayCopies };
+    });
+  }
+
+  /**
+   * Pushes settings to the grid.
+   *
+   * @param settings The settings.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((value) => {
+      (window as unknown as { hot: { updateSettings(settings: object): void } }).hot.updateSettings(value);
+    }, settings);
   }
 
   /**
@@ -100,7 +141,8 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
-   * How many rendered rows carry any of the treegrid row attributes, across every copy.
+   * How many rendered rows carry any of the treegrid row attributes, across every copy. One copy of each
+   * row carries them: the one that is the grid row's `row`.
    */
   countRowsWithTreegridAttributes(): Promise<number> {
     return this.page.evaluate(() => document.querySelectorAll(

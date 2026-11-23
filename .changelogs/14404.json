@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grid's structure for screen readers: the column headers now come before the data, each row holds its row header and all of its cells, and cells of frozen rows and columns are no longer read more than once. One `tr` per grid row now carries `role=\"row\"`, `aria-rowindex`, and the NestedRows tree attributes, and every other copy of a cell gets `aria-hidden`.",
+  "type": "fixed",
+  "issueOrPR": 14404,
+  "breaking": true,
+  "framework": "none"
+}

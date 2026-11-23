@@ -754,7 +754,13 @@ function domEchoReader(page: Page): Reader {
       const name = element.getAttribute('aria-label') ?? (value || element.textContent?.trim() || '');
       const rawRole = element.getAttribute('role') ?? element.tagName.toLowerCase();
       const role = Object.hasOwn(roles, rawRole) ? roles[rawRole] : rawRole;
-      const row = element.closest('tr')?.getAttribute('aria-rowindex');
+      // A cell is read in the row that holds it for assistive technology: its own `tr`, or the row that lists
+      // it in `aria-owns` (with row headers, a data cell's own row is a hidden copy with no index).
+      const ownRow = element.closest('tr');
+      const owner = ownRow?.hasAttribute('aria-rowindex') || !element.id
+        ? ownRow
+        : document.querySelector(`tr[aria-owns~="${CSS.escape(element.id)}"]`) ?? ownRow;
+      const row = owner?.getAttribute('aria-rowindex');
       const col = element.getAttribute('aria-colindex');
       const described = element.getAttribute('aria-describedby')?.split(' ').map(id => document.getElementById(id)?.textContent?.trim()).filter(Boolean).join(' ');
       const states = ['aria-sort', 'aria-expanded', 'aria-selected', 'aria-checked'].map(attr => (element.hasAttribute(attr) ? `${attr.slice(5)} ${element.getAttribute(attr)}` : null)).filter(Boolean);

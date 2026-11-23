@@ -12,9 +12,10 @@ import {
 } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
-  A11Y_ROWGROUP,
   A11Y_ROWINDEX
 } from '../../../../helpers/a11y';
+import { dropRowGroupRole, dropRowRole, giveRowGroupRole } from './ariaAttributes';
+import { isGridRowOfTable } from '../overlay/ariaCells';
 
 const ROW_CLASSNAMES = {
   rowEven: 'ht__row_even',
@@ -98,11 +99,14 @@ export class RowsRenderer extends BaseRenderer {
         turning off the "renderAllRows" option.`);
     }
 
-    if (this.table.isAriaEnabled()) {
-      setAttribute(this.rootNode as HTMLElement, [
-        A11Y_ROWGROUP()
-      ]);
-    }
+    // A row is a `row`, and its section a `rowgroup`, only while the row holds a cell: a side clone that was
+    // turned off is drawn one last time with the master's rows and none of its columns.
+    const rowsHoldCells = this.table.columnsToRender + this.table.rowHeadersCount > 0;
+    const ariaEnabled = this.table.isAriaEnabled();
+    // In a grid that joins its tables into one tree, a grid row is a `row` in one table only: the one that
+    // draws the row's band and holds the row's first cells (`isGridRowOfTable`).
+    const treeLayout = ariaEnabled ? this.table.getAriaTreeLayout() : null;
+    let gridRows = 0;
 
     const nextOffset = rowsToRender > 0 ? this.table.renderedRowToSource(0) : 0;
     const focusedElement = this.#recycleRows(nextOffset, rowsToRender);
@@ -129,14 +133,13 @@ export class RowsRenderer extends BaseRenderer {
         continue; // eslint-disable-line no-continue
       }
 
-      if (this.table.isAriaEnabled()) {
-        setAttribute(TR, [
-          A11Y_ROW(),
-          // `aria-rowindex` is incremented by both tbody and thead rows.
-          A11Y_ROWINDEX(sourceRowIndex + (
-            (this.table.rowUtils?.deps?.getColumnHeaders() as Function[])?.length ?? 0
-          ) + 1),
-        ]);
+      if (ariaEnabled) {
+        const isGridRow = rowsHoldCells && (
+          treeLayout === null || isGridRowOfTable(this.table.activeOverlayName, treeLayout, sourceRowIndex)
+        );
+
+        this.#syncRowRole(TR, sourceRowIndex, isGridRow);
+        gridRows += isGridRow ? 1 : 0;
       }
 
       if ((sourceRowIndex + 1) % 2 === 0) {
@@ -151,7 +154,39 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     this.orderView.end();
+
+    if (ariaEnabled && gridRows > 0) {
+      giveRowGroupRole(this.rootNode as HTMLElement);
+
+    } else if (ariaEnabled) {
+      dropRowGroupRole(this.rootNode as HTMLElement);
+    }
+
     this.#restoreFocus(focusedElement);
+  }
+
+  /**
+   * Gives a row the `row` role and its row index, or takes both off a row that does not stand for a grid row
+   * in this table.
+   *
+   * @param {HTMLElement} TR The row.
+   * @param {number} sourceRowIndex The row's renderable index.
+   * @param {boolean} isGridRow Whether the row is the grid row's `row` (see `render()`).
+   */
+  #syncRowRole(TR: HTMLElement, sourceRowIndex: number, isGridRow: boolean) {
+    if (!isGridRow) {
+      dropRowRole(TR);
+
+      return;
+    }
+
+    setAttribute(TR, [
+      A11Y_ROW(),
+      // `aria-rowindex` is incremented by both tbody and thead rows.
+      A11Y_ROWINDEX(sourceRowIndex + (
+        (this.table.rowUtils?.deps?.getColumnHeaders() as Function[])?.length ?? 0
+      ) + 1),
+    ]);
   }
 
   /**

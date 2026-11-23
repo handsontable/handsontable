@@ -390,8 +390,8 @@ const FROZEN_ROW_HEADER_CELLS = '.ht_clone_top_inline_start_corner tbody > tr > 
  * The headers cannot answer this themselves. A header's `aria-colindex` is `visibleColumnIndex + 1` -
  * relative to the window, so it restarts at 2 whatever is scrolled off to the left. The DATA cells
  * carry the absolute one (`sourceColumnIndex` in the cells renderer), and body rows carry an absolute
- * `aria-rowindex`, so the master's first rendered row is the grid's own map from source index to
- * position. Measured on `large-dataset-demo` (many columns in a 500px viewport): at rest the first
+ * `aria-rowindex` (on the copy of the row that holds its row header), so the first rendered row is the
+ * grid's own map from source index to position. Measured on `large-dataset-demo` (many columns in a 500px viewport): at rest the first
  * header is `A` and the first cell's `aria-colindex` is 2; scrolled to 3000px the first header is
  * `BA` and the first cell's is 54. Both lists move together, which is what makes one an index into
  * the other.
@@ -426,9 +426,14 @@ async function positionInRenderedWindow(table: Locator, index: number, axis: 'co
     }
 
     if (which === 'row') {
+      // The row headers are drawn by the inline-start overlay, which renders the master's rows, and the
+      // grid joins each row into the one that holds its row header: there, not in the master, a row
+      // carries its `aria-rowindex` (the master's copy has none while row headers are on).
+      const rowHeaderRows = [...grid.querySelectorAll('.ht_clone_inline_start tbody tr')];
+      const indexedRows = rowHeaderRows.length > 0 ? rowHeaderRows : rows;
       // `aria-rowindex` counts the header rows first, so the offset is how many of them there are.
       const headerRows = grid.querySelectorAll('.ht_master thead tr').length;
-      const sources = rows.map(row => Number(row.getAttribute('aria-rowindex')) - headerRows - 1);
+      const sources = indexedRows.map(row => Number(row.getAttribute('aria-rowindex')) - headerRows - 1);
 
       return { position: sources.indexOf(wanted), rendered: sources };
     }

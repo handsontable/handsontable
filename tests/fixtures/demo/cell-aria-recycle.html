@@ -49,7 +49,11 @@
       const attributes = {};
 
       element.getAttributeNames().forEach((name) => {
-        if (name.includes('aria-') || name.includes('role') || ['tabindex', 'scope', 'id'].includes(name)) {
+        // The id the grid's tree pass gives a cell another table's row lists (`aria-owns`) belongs to the
+        // element, not to what it shows: it stays while the element lives, so it is left out here.
+        const isTreeId = name === 'id' && /-cell-\d+$/.test(element.getAttribute(name));
+
+        if (!isTreeId && (name.includes('aria-') || name.includes('role') || ['tabindex', 'scope', 'id'].includes(name))) {
           attributes[name] = element.getAttribute(name);
         }
       });

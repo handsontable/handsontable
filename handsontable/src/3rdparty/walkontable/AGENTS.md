@@ -2134,6 +2134,92 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   before.
 - Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
   renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
+- **A table section is a `rowgroup` only while it holds rows** (`giveRowGroupRole` and `dropRowGroupRole` in
+  `render/ariaAttributes.ts`, called by `render/rows.ts` for the TBODY and `render/columnHeaderRows.ts` for
+  the THEAD). Every clone has both sections and most leave one empty: the top clone's body without frozen top
+  rows, a corner's body, a bottom clone's head. A `rowgroup` with no `row` is an invalid structure, read as an
+  empty group and reported by axe as "needs review" (DEV-3652). The sections are reused across draws, so the
+  role is removed when a section is drawn with no rows, and only a `rowgroup` role is removed: a role another
+  module wrote on such a section stays. "Holds rows" means rows with a cell that stand for grid rows: in a grid
+  that joins its tables into one tree, only the rows `isGridRowOfTable` names (see "The grid is one tree of
+  rows" below), so with row headers the master's TBODY holds rows with cells and is still no `rowgroup`. A side clone that is turned off
+  (`rowHeaders: false`, `fixedColumnsStart` or `fixedColumnsEnd` back to 0) is drawn one last time with the
+  master's rows and none of its columns, and is never drawn again, so its rows stayed in the tree as rows with
+  nothing in them; both renderers therefore key the section's role and each row's `row` role and
+  `aria-rowindex` (`dropRowRole`) on `columnsToRender + rowHeadersCount > 0`. Pinned by `test/unit/renderer/rowGroupRole.unit.ts` and
+  `tests/e2e/rowgroup-roles.spec.ts`.
+- **The grid's root lists its row groups in reading order** (`aria-owns`, DEV-3652). The clones follow the
+  master table in the DOM, so a screen reader met the data before the column headers. After each draw that
+  rendered cells, `TableView#syncAriaRowGroupOrder` asks `stampRowGroupsInReadingOrder`
+  (`overlay/ariaTree.ts`) for the ids of the sections that are row groups in that draw, in the order headers,
+  frozen top rows, rows between, frozen bottom rows, and writes the list on the root when it changed. The
+  order is a fixed list of table and section, so the pass reads no row index and no layout. Three rules. The
+  head sections of the master and of the two side clones are left out, because the stylesheet hides them. A
+  grid built with `ariaTags: false` (every menu, and the handsontable editor's list) writes no list, and only
+  a list the method wrote is removed, so an `aria-owns` an application put on its own container stays. And
+  Playwright's
+  `ariaSnapshot()` does not apply `aria-owns`, so the tree goldens do not show the order; read it from
+  Chromium's tree (`FrozenEdgesPage#accessibilityTree`, the tree check's `headers-after-data` finding).
+  axe keeps reporting `aria-required-children` on the root: its reason is the holders' `tabindex`, which the
+  list does not change. A long `aria-owns` makes axe shorten the root's markup, so the scan keys the Filters
+  value list's root as `div[role="treegrid"]`. Pinned by `test/unit/overlay/ariaTree.unit.ts` and
+  `tests/e2e/grid-tree-reading-order.spec.ts`.
+- **The grid is one tree of rows for assistive technology** (`overlay/ariaCells.ts`, DEV-3652). A cell can be
+  drawn by up to four tables (the master and the clones over it), and a grid row is spread over up to three
+  (start clone, master, end clone). Two rules, both pure functions of the frozen layout:
+  - *One copy of each cell is exposed*: the one in the table `resolveOwningOverlay` names, which is the copy
+    the user sees and the one the focus manager focuses (`getCell(coords, true)` uses the same function, so
+    the two cannot disagree and the focused copy is never hidden). Every other copy gets `aria-hidden`.
+  - *One table row stands for each grid row* (`isGridRowOfTable`): the row of the table that draws the row's
+    band (top, middle, bottom) and belongs to the leading column segment (`getLeadingSegment`: the start
+    tables with row headers or frozen start columns, else the master/top/bottom tables, else the end tables).
+    `render/rows.ts` and `render/columnHeaderRows.ts` give only that row the `row` role and its index, and
+    only a section that holds such a row is a `rowgroup`. That row takes the cells the other tables own
+    (`aria-owns`, in column order; the browser appends owned children after the natural ones, which is why
+    the LEADING table has to be the owner).
+  Rules that come with it:
+  - **`reconcileAriaTree` is the only writer of `aria-hidden` and of a row's `aria-owns`, and it runs after
+    every table rendered** (`table/drawCycle.ts`, before `onDraw`), for every rendered row whatever the cell
+    renderers painted. Do not move the hiding into the cell renderers: under `renderMode: 'onChange'` a cell
+    keeps its paint while its owner changes (a row added under frozen bottom rows, a column frozen later).
+  - **The renderers keep what the pass wrote.** They clear every `aria-*` on a painted element, so
+    `isKeptForAriaTree` (`render/ariaAttributes.ts`) spares the pass's `aria-hidden`, and the column header
+    renderer spares an id the pass gave (`hasAriaTreeId`); without that each paint would remove and the pass
+    write again, on every draw. The pass records what it wrote in `WeakSet`/`WeakMap`s and writes only on a
+    change, so a redraw and a vertical scroll write nothing (`cell-aria-recycle.spec.ts` still proves it). An
+    `aria-hidden` a cell renderer writes itself is not kept and not removed by the pass.
+  - **A cell's id belongs to the element.** A cell another table's row lists gets `${guid}-cell-<n>` once and
+    keeps it while the element lives, so a recycled element reaches its renderer with that id and a new one
+    without: the one exception to "a new and a recycled element start equal". An id a renderer wrote is kept
+    and used only while it names that copy (`getElementById` on the copy's root returns it): a renderer paints
+    every copy of a cell, the copies share its id, and `aria-owns` would resolve it to the first in the
+    document, the master's hidden copy. A later copy gets the pass's own id instead. Row elements that rotate
+    together keep their pairing, so a vertical scroll rewrites no list.
+  - **A draw that changed nothing costs a compare per row.** Each row keeps the cells it was given and the ids
+    they were listed under (`ownedByRow`), so the pass compares elements and ids and builds a list only on a
+    mismatch; the leading table's own cells are never collected, and a cell's `style` is read only when it has
+    a `style` attribute (reading `style` on a pooled cell creates a declaration that lives with it). The layout
+    (`readAriaTreeLayout`, which runs hooks and walks the index mappers in core) is read once per master draw
+    that renders cells, into `Overlays#ariaTreeLayout`, and the master's and the clones' row renderers and the
+    pass all read that copy (`TableRenderer#setAriaTreeLayout`). The host reads the same tables the pass joins
+    through `Overlays#getTables()`.
+  - **Merged cells**: a block that crosses a freeze line is drawn in slices, and a slice can be a plain 1 by 1
+    cell. The pass asks the host for the block (`onModifyGetCellCoords`, source `meta`) and judges every cell of
+    the block by its first cell, so the block is one cell in the row it starts in, as long as the table that
+    owns the first cell draws some part of the block. When it draws none (a block that starts in rows scrolled
+    out of the master and reaches into the frozen bottom rows), the slice on screen is the only copy, and it is
+    judged as a cell of its own. The host is asked
+    only when a body draws a spanning cell (`td[rowspan], td[colspan]`): one question per cell per draw is a
+    cost a grid without merged cells does not pay.
+  - **Hidden by the stylesheet, not by the pass**: the master's head, the side clones' heads and the master's
+    own row headers (`visibility: hidden`) are left alone.
+  - **No instance id, no single tree**: `readAriaTreeLayout` answers `null` without `ariaTags` or without the
+    `guid` setting (a Walkontable used on its own), and every table then keeps its own rows as before.
+  - Proven in Chromium's tree only (`aria-owns` across tables): WebKit does not reorder its tree for
+    `aria-owns` (WebKit bug 223798), so VoiceOver with Safari is the screen reader lanes' to judge.
+  Pinned by `test/unit/overlay/ariaCells.unit.ts`, `tests/e2e/grid-tree-rows.spec.ts` (the tree read through
+  CDP: every row whole, every cell once, no cell outside a row, the keyboard never on a hidden copy) and the
+  legacy `src/__tests__/a11y/rows.spec.js`.
 
 Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts

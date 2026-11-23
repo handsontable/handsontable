@@ -79,7 +79,9 @@ export function gridRows(nodes) {
 /**
  * The structural findings of the grids read in order: the column headers read after the data (1.3.2),
  * row headers exposed in rows of their own instead of in the rows they label (1.3.1), a row exposed
- * twice (1.3.1), cells or rows read out of their index order (1.3.2), and a grid with no row (1.3.1).
+ * twice (1.3.1), a cell exposed twice (1.3.1: the same row and column index on more than one cell, which
+ * a row count cannot see once the rows are joined), cells or rows read out of their index order (1.3.2),
+ * and a grid with no row (1.3.1).
  * Each grid is judged on its own rows (a list inside the page, the handsontable editor's or the filters'
  * value list, is a grid of its own). The first one is read under `READING_ORDER`, every other one under
  * its place among the grids with rows. A page without a grid role is not judged.
@@ -149,6 +151,26 @@ function gridFindings(rows, step) {
       'The same row index is exposed by more than one row, so a screen reader meets one grid row twice', step));
   }
 
+  const copies = new Map();
+
+  for (const item of rows.filter(entry => entry.rowindex !== null)) {
+    for (const cell of item.cells.filter(entry => entry.colindex !== null)) {
+      const key = `${item.rowindex}:${cell.colindex}`;
+
+      copies.set(key, (copies.get(key) ?? 0) + 1);
+    }
+  }
+
+  const repeated = [...copies].filter(([, count]) => count > 1);
+
+  if (repeated.length > 0) {
+    const [exampleRow, exampleColumn] = repeated[0][0].split(':').map(Number);
+
+    findings.push(finding('cell-exposed-twice', ['1.3.1'], 'moderate',
+      { duplicatedCells: repeated.length, exampleRow, exampleColumn, mostCopies: Math.max(...repeated.map(([, count]) => count)) },
+      'The same row and column index is exposed by more than one cell, so a screen reader meets one grid cell twice', step));
+  }
+
   const unordered = rows.filter((item) => {
     const indexes = item.cells.map(cell => cell.colindex).filter(index => index !== null);
 
@@ -208,6 +230,59 @@ export function nameFindings(nodes) {
   }
 
   return [...found.values()];
+}
+
+// The roles of the text a node's name is already built from: the snapshot leaves them out.
+const TEXT_ROLES = new Set(['StaticText', 'InlineTextBox', 'LineBreak', 'ListMarker']);
+
+/**
+ * The flattened tree as text, one node per line, indented by its depth: what the goldens keep. It is
+ * written from Chromium's own accessibility tree, the tree a screen reader gets, so it shows what
+ * `aria-owns` moves and what `aria-hidden` removes; a snapshot computed from the DOM shows neither. A node
+ * with no role (a generic container) and a text node are left out, and their children are kept in their
+ * place. Each root (the grid, every portal) starts with a header line. A node's states follow its name
+ * (`[checked]`, `[expanded=false]`, `[level=2]`), and a text field's value follows them. A live status
+ * region is written without its message, which is transient.
+ *
+ * @param {object[]} nodes The flattened tree, in reading order.
+ * @returns {string} The snapshot.
+ */
+export function serializeTree(nodes) {
+  const byId = new Map(nodes.map(item => [item.id, item]));
+  const isWritten = item => !NO_ROLE.has(item.role) && !TEXT_ROLES.has(item.role);
+  const depths = new Map();
+  const depthOf = (item) => {
+    if (!depths.has(item.id)) {
+      const parent = byId.get(item.parent);
+
+      depths.set(item.id, parent ? depthOf(parent) + (isWritten(parent) ? 1 : 0) : 0);
+    }
+
+    return depths.get(item.id);
+  };
+  const lines = [];
+  let previousRoot;
+
+  for (const item of nodes) {
+    // One header per root the tree was read from. A root Chromium ignores (a plain portal container) leaves
+    // each of its children without a parent, so a header per parentless node would depend on that.
+    const root = item.root ?? (item.parent === null ? item.id : previousRoot);
+
+    if (root !== previousRoot) {
+      lines.push(`# ${item.region}`);
+      previousRoot = root;
+    }
+    if (isWritten(item)) {
+      const name = item.role === 'status' ? '' : String(item.name ?? '').trim();
+      const states = (item.states ?? []).map(state => ` [${state}]`).join('');
+      const value = String(item.value ?? '').trim();
+
+      lines.push(`${'  '.repeat(depthOf(item))}- ${item.role}${name ? ` ${JSON.stringify(name)}` : ''}${states}`
+        + `${value && value !== name ? `: ${JSON.stringify(value)}` : ''}`);
+    }
+  }
+
+  return `${lines.join('\n')}\n`;
 }
 
 /**
