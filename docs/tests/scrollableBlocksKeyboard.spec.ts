@@ -33,6 +33,31 @@ const EXAMPLE_DUMPS = [
   },
 ] as const;
 
+/**
+ * At 1280px the page shows the table of contents beside the content, which leaves a 630px content
+ * column. At 1150px the table of contents is gone and the column is 816px wide, so a block between
+ * those two widths overflows in the first viewport and fits in the second.
+ */
+const NARROW_COLUMN_VIEWPORT = { width: 1280, height: 720 };
+const WIDE_COLUMN_VIEWPORT = { width: 1150, height: 720 };
+
+const RESIZED_BLOCKS = [
+  {
+    title: 'a Markdown table',
+    path: FORMULA_BUILDER,
+    headingId: 'autocomplete-and-popups',
+    selector: TABLE_WRAPPER,
+    name: 'Table: Autocomplete and popups',
+  },
+  {
+    title: 'a code block',
+    path: ROWS_SORTING,
+    headingId: 'sort-data-programmatically',
+    selector: CODE_BLOCK,
+    name: 'Code: Sort data programmatically',
+  },
+] as const;
+
 const PAGES_WITH_SCROLLABLE_BLOCKS = [
   FORMULA_BUILDER,
   '/javascript-data-grid/xlsx-engine/',
@@ -230,6 +255,33 @@ test.describe('Code blocks', () => {
     await expectNamedTabStop(second);
     await expect(first).toHaveAccessibleName('Code: Replace DetailedSettings');
     await expect(second).toHaveAccessibleName('Code 2: Replace DetailedSettings');
+  });
+});
+
+test.describe('Viewport changes', () => {
+  RESIZED_BLOCKS.forEach(({ title, path, headingId, selector, name }) => {
+    test(`${title} stops being a Tab stop when it fits and gets the same name back when it overflows again`, async({
+      page, baseURL,
+    }) => {
+      await page.setViewportSize(NARROW_COLUMN_VIEWPORT);
+      await openDocsPage(page, baseURL, path);
+
+      const [block] = await blocksBelow(page, headingId, selector, { overflowing: true, count: 1 });
+
+      await expectNamedTabStop(block);
+      await expect(block).toHaveAccessibleName(name);
+
+      await page.setViewportSize(WIDE_COLUMN_VIEWPORT);
+      await expect.poll(() => overflowOf(block, 'x')).toBe(0);
+      await expect(block).not.toHaveAttribute('tabindex');
+      await expect(block).not.toHaveAttribute('role');
+      await expect(block).not.toHaveAttribute('aria-label');
+
+      await page.setViewportSize(NARROW_COLUMN_VIEWPORT);
+      await expect.poll(() => overflowOf(block, 'x')).toBeGreaterThan(0);
+      await expectNamedTabStop(block);
+      await expect(block).toHaveAccessibleName(name);
+    });
   });
 });
 

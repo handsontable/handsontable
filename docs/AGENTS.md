@@ -1249,3 +1249,15 @@ unchecked.
 `src/lib/` and `src/components/` are tooling, not content, so the docs sync does not port this to `prod-docs/*`: it reaches the live site at the next prod-docs cut or through a hand cherry-pick.
 
 Unit tests: `src/lib/__tests__/headway-bell.test.mjs` (`npm run docs:test:plugins`), against a fake that defers callbacks the way the widget does. The real widget: `tests/headwayBell.spec.ts` (the `functional` project, run by the `functional` job in `.github/workflows/docs.yml` on a hosted runner against the PR preview). It skips when Headway is unreachable, which the job summary's skipped count shows, and the job runs only after the earlier gates are green.
+
+## 2.23 Scrolling code blocks and tables are named Tab stops
+
+A code block or a Markdown table wider than the content column must be scrollable from the keyboard, so `src/scripts/scrollable-blocks.ts` (loaded from `Head.astro`) makes it a focusable region while it overflows.
+
+- **`tabindex="0"`, `role="region"`, and `aria-label` go on and off together.** A block that fits gets none: it is no Tab stop, and `aria-label` is not allowed on a `div` or `pre` with no role. Never set one of the three alone.
+- **Expressive Code sets `tabindex` and `role` on an overflowing `pre` itself** (its `tabindex-js-module`), with no name. Our script makes the same decision from the same measurement (`scrollWidth > clientWidth`) and adds the name, so the two agree in either order. Do not patch Expressive Code.
+- **Names are unique page-wide.** A name is `Code: <heading>` or `Table: <heading>`, from the nearest `h2`-`h6` before the block. Blocks that share it are numbered across the whole page in document order (`Code 2: How to migrate`), because migration guides repeat heading texts. Every block is counted, also one that fits, so a name does not change with the viewport. The rule is `src/lib/scrollable-block-names.mjs`.
+- **Headings inside an example (`.hot-example`) are skipped**, the license dialog's heading included, and so are the controls a script adds inside an API heading (`.api-member-actions`). A new control inside a heading goes on `HEADING_CONTROLS_SELECTOR`, or it ends up in every name below it.
+- **Blocks are collected once, when the page loads.** A code block or table added later gets no name.
+- **A scrolling container inside an example needs literal attributes in the example source**: `tabindex="0"` (`tabIndex={0}` in JSX), `role="region"`, and an `aria-label`, as the store dumps of the Redux, Vuex, and Pinia examples have. The script does not reach into an example's preview. Keep one scroller: no scrolling element inside another.
+- **Tests:** `src/lib/__tests__/scrollable-block-names.test.mjs` (`npm run docs:test:plugins`) for the naming rule, and `tests/scrollableBlocksKeyboard.spec.ts` (the `functional` project) for the attributes, the arrow keys, and unique region names on built pages.
