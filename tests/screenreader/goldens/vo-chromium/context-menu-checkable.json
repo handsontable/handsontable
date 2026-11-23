@@ -6,15 +6,15 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-10T12:56:16.643Z"
+    "at": "2026-11-23T12:04:29.112Z"
   },
   "steps": {
-    "open-menu": "insert row above menu item group table",
-    "read-next-item": "",
-    "read-next-separator": "",
-    "end-to-borders": "borders collapsed menu item group table",
-    "up-to-cut": "cut menu item group table",
-    "up-to-copy": "copy menu item group table",
-    "up-to-read-only-comment": "read only comment checked menu item group table"
+    "open-menu": "insert row above menu item group context menu menu",
+    "read-next-item": "insert row below menu item group",
+    "read-next-separator": "insert column left menu item group",
+    "end-to-borders": "borders collapsed menu item group",
+    "up-to-cut": "cut menu item group",
+    "up-to-copy": "copy menu item group",
+    "up-to-read-only-comment": "read only comment checked menu item group"
   }
 }

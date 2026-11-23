@@ -6,13 +6,13 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T14:05:35.946Z"
+    "at": "2026-11-23T11:03:51.703Z"
   },
   "steps": {
-    "open-editor": "combo box collapsed",
+    "open-editor": "d row 1 combo box collapsed",
     "arrow-down-first": "option a",
     "arrow-down-second": "option b",
-    "commit-option": "d 2 d row 3 column 5",
+    "commit-option": "d 2 not selected d row 3 column 5 selected",
     "back-to-committed": "option b d row 2 column 5"
   }
 }

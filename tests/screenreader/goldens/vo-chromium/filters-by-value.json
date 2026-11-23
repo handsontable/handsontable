@@ -3,20 +3,20 @@
   "scenario": "filters-by-value",
   "project": "vo-chromium",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-04T11:21:55.345Z"
+    "at": "2026-11-23T12:09:18.216Z"
   },
   "steps": {
     "open-menu": "",
-    "tab-to-condition": "list box table",
-    "tab-to-search": "search edit text blank table",
+    "tab-to-condition": "list box column menu menu",
+    "tab-to-search": "filter by value search edit text filter by value group",
     "type-search": "",
-    "arrow-into-list": "checked and 1 more item column 1 row checked green level 2 tree grid 1 column 2 rows",
-    "arrow-down-next": "checked and 1 more item column 1 row checked red level 2 tree grid 1 column 2 rows",
+    "arrow-into-list": "checked and 1 more item column 1 row checked green tree grid 1 column 2 rows",
+    "arrow-down-next": "checked and 1 more item column 1 row checked red",
     "space-uncheck": "",
-    "tab-to-ok": "ok button table",
+    "tab-to-ok": "ok button column menu menu",
     "apply-filter": "color green column 2 row bob green tree grid 3 columns 9 rows",
     "arrow-down-filtered": "color blue column 2 row charlie blue"
   }

@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-03T19:25:55.344Z"
+    "at": "2026-11-23T10:58:55.584Z"
   },
   "steps": {
     "to-grid": "table with minus 1 rows and 4 columns row 2 column 2 a 1",
@@ -24,14 +24,14 @@
     "read-12": "column 4 charlie",
     "read-13": "",
     "read-14": "row 2 column 1 1",
-    "read-15": "row 3 2",
-    "read-16": "row 4 3",
-    "read-17": "row 1",
-    "read-18": "",
-    "read-19": "out of table button after the grid",
-    "read-20": "button after the grid",
-    "read-21": "button after the grid",
-    "read-22": "button after the grid",
+    "read-15": "blank",
+    "read-16": "row 3 2",
+    "read-17": "blank",
+    "read-18": "row 4 3",
+    "read-19": "blank",
+    "read-20": "row 1",
+    "read-21": "",
+    "read-22": "out of table button after the grid",
     "read-23": "button after the grid",
     "past-grid": "button after the grid"
   }

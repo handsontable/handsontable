@@ -6,7 +6,7 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-05T14:00:47.943Z"
+    "at": "2026-11-23T11:45:35.132Z"
   },
   "steps": {
     "tab-add-sheet": "",
@@ -14,7 +14,7 @@
     "tab-active-sheet": "alpha menu pop up current item button sheets group",
     "arrow-right-sheet": "beta button",
     "enter-switch-sheet": "sheet beta activated",
-    "enter-sheet-menu": "rename menu item group table 1 column 6 rows",
+    "enter-sheet-menu": "rename menu item group 1 of 7 menu sheet actions beta",
     "enter-rename": "beta",
     "type-name": "t budget",
     "enter-commit-rename": "budget menu pop up current item button",

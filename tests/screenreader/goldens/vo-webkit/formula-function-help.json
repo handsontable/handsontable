@@ -6,7 +6,7 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-10T13:57:22.975Z"
+    "at": "2026-11-23T11:41:09.324Z"
   },
   "steps": {
     "open-editor": "",
@@ -15,7 +15,7 @@
     "type-range": "3 a3",
     "type-comma": "",
     "type-close": "1 b1",
-    "commit-formula": "c 7",
-    "back-to-committed": "c 11"
+    "commit-formula": "c 7 formula a2 b2",
+    "back-to-committed": "c 11 formula sum a1 a3 b1"
   }
 }

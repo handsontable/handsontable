@@ -6,7 +6,7 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-10T12:09:13.029Z"
+    "at": "2026-11-23T11:16:54.648Z"
   },
   "steps": {
     "open-editor": "",
@@ -14,6 +14,6 @@
     "commit-datetime": "1 month stepper",
     "back-to-committed": "datetime 01 10 2024 09 30 00",
     "reopen-editor": "1 month stepper",
-    "cancel-edit": ""
+    "cancel-edit": "datetime 01 10 2024 09 30 00"
   }
 }

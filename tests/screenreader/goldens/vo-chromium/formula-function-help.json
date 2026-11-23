@@ -6,16 +6,16 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-10T13:58:52.759Z"
+    "at": "2026-11-23T12:33:43.180Z"
   },
   "steps": {
-    "open-editor": "",
+    "open-editor": "formula editor list box pop up collapsed text entry area a1 b1 insertion at end of text",
     "select-all": "",
     "type-sum": "substitute menu item 1 of 14 formula editor sum function help list box pop up collapsed text entry area sum insertion on word sum between characters and",
-    "type-range": "",
+    "type-range": "3 a3",
     "type-comma": "",
-    "type-close": "",
-    "commit-formula": "c 7 column 3 row 3 4 7 tree grid 4 columns 13 rows",
-    "back-to-committed": "c 11 column 3 row 1 2 11"
+    "type-close": "1 b1",
+    "commit-formula": "c formula a2 b2 7 column 3 row 3 4 7 formula a2 b2",
+    "back-to-committed": "c formula sum a1 a3 b1 11 column 3 row 1 2 11 formula sum a1 a3 b1"
   }
 }

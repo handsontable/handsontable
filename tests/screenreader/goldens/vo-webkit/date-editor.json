@@ -3,17 +3,17 @@
   "scenario": "date-editor",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-04T14:17:50.172Z"
+    "at": "2026-11-23T11:15:53.026Z"
   },
   "steps": {
     "open-editor": "",
     "type-date": "20",
     "commit-date": "1 month stepper",
-    "back-to-committed": "",
+    "back-to-committed": "start 12 10 24",
     "reopen-editor": "12 month stepper",
-    "cancel-edit": ""
+    "cancel-edit": "start 12 10 24"
   }
 }

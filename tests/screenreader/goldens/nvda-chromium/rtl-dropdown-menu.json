@@ -6,13 +6,13 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "chromium 151.0.7922.34",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-10T12:57:42.982Z"
+    "at": "2026-11-23T11:01:57.506Z"
   },
   "steps": {
-    "open-menu": "table insert column left",
-    "end-to-alignment": "alignment collapsed",
-    "open-submenu": "table left",
-    "close-submenu": "narrow header with a menu button e 2e fixture document blank",
-    "close-menu": ""
+    "open-menu": "insert column left 1 of 6",
+    "end-to-alignment": "alignment collapsed 6 of 6",
+    "open-submenu": "left 1 of 7",
+    "close-submenu": "alignment collapsed 6 of 6",
+    "close-menu": "table b 1 selected longer header text row 2 name column 3"
   }
 }

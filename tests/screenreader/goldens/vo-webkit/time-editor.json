@@ -6,7 +6,7 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-10T12:12:20.443Z"
+    "at": "2026-11-23T11:29:59.672Z"
   },
   "steps": {
     "open-editor": "",
@@ -14,6 +14,6 @@
     "commit-time": "10 hour stepper",
     "back-to-committed": "time 12 30 am",
     "reopen-editor": "12 hour stepper",
-    "cancel-edit": ""
+    "cancel-edit": "time 12 30 am"
   }
 }

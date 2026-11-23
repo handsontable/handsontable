@@ -6,10 +6,10 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "chromium 151.0.7922.34",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T14:05:30.666Z"
+    "at": "2026-11-23T11:03:14.077Z"
   },
   "steps": {
-    "open-editor": "combo box collapsed",
+    "open-editor": "d row 1 combo box collapsed",
     "arrow-down-first": "option a",
     "arrow-down-second": "option b",
     "commit-option": "d 2 d row 3 c column 5",

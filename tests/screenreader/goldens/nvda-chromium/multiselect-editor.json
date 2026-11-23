@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "chromium 151.0.7922.34",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T14:04:45.727Z"
+    "at": "2026-11-23T11:02:30.181Z"
   },
   "steps": {
     "open-editor": "select options grouping search options edit search blank",
@@ -14,7 +14,7 @@
     "arrow-down-second": "alfa check box not checked",
     "space-check": "checked",
     "arrow-down-third": "alto check box not checked",
-    "commit-selection": "cell dropdown arrow fixture document",
-    "back-to-committed": "table alpha alfa a row 2 column 2"
+    "commit-selection": "alpha a row 3 column 2",
+    "back-to-committed": "alpha alfa a row 2 column 2"
   }
 }

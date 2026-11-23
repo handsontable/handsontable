@@ -6,13 +6,13 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "chromium 151.0.7922.34",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-10T12:10:33.232Z"
+    "at": "2026-11-23T11:02:10.059Z"
   },
   "steps": {
-    "arrive-on-time": "09 30 am row 1 column 3 hours spin button 09",
-    "open-editor": "hours spin button 09",
-    "type-time": "11 am slash pm spin button am",
-    "commit-time": "am slash pm spin button am",
-    "back-to-committed": "11 45 am row 1 column 3 hours spin button 11"
+    "arrive-on-time": "09 30 am row 1 column 3 c row 1 grouping hours c row 1 spin button 09",
+    "open-editor": "hours c row 1 spin button 09",
+    "type-time": "01 am slash pm c row 1 spin button am",
+    "commit-time": "am slash pm c row 2 spin button am",
+    "back-to-committed": "11 45 am row 1 column 3 c row 1 grouping hours c row 1 spin button 11"
   }
 }
