@@ -7,12 +7,19 @@
       {
         "region": "grid",
         "role": "combobox",
-        "name": ""
+        "name": "A, row 1"
       },
       {
         "region": "grid",
-        "role": "combobox",
-        "name": ""
+        "role": "gridcell",
+        "name": "Al",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "end"
       }
     ]
   }

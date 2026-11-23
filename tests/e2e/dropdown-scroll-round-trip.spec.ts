@@ -81,6 +81,31 @@ test.describe('layered editor — scroll round-trip (DEV-26)', { tag: THEMES_TAG
     await expect(grid.optionByText('Bravo')).toHaveCount(0);
   });
 
+  test('the field names the list only while the list is shown over a scroll round-trip', async () => {
+    await grid.openEditor(2, 1);
+    await expect(grid.options().first()).toBeVisible();
+    expect(await grid.controlsReference()).toBe('list');
+
+    await grid.pressArrowDown();
+    await expect.poll(() => grid.innerSelectedRow()).toBe(0);
+
+    const highlighted = { role: 'option', selected: 'true', text: 'Alpha', isSelectedCell: true };
+
+    await expect.poll(() => grid.activeDescendant()).toEqual(highlighted);
+
+    // The list is hidden while the edited cell is out of the rendered range, so the field must not
+    // point at it or at its options.
+    await grid.scrollToBottom();
+    expect(await grid.controlsReference()).toBeNull();
+    expect(await grid.activeDescendant()).toBeNull();
+
+    // Back in view, the list still highlights the option, and the field names it again.
+    await grid.scrollToTop();
+    expect(await grid.listDisplayed()).toBe(true);
+    expect(await grid.controlsReference()).toBe('list');
+    await expect.poll(() => grid.activeDescendant()).toEqual(highlighted);
+  });
+
   test('plain text editor round-trip is unchanged (negative control)', async () => {
     await grid.openEditor(2, 0);
     await grid.focusEditor();

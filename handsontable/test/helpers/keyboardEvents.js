@@ -186,10 +186,11 @@ export const keyDownUp = waitOnScroll((keys, options) => {
 });
 
 /**
- * Returns current value of the keyboard proxy textarea.
+ * Returns the editor fields that act as the keyboard proxy: the text editor's textarea and the text input
+ * the autocomplete, dropdown, and handsontable editors edit in.
  *
- * @returns {string}
+ * @returns {jQuery}
  */
 export function keyProxy() {
-  return spec().$container.find('textarea.handsontableInput');
+  return spec().$container.find('textarea.handsontableInput, input.handsontableInput[type="text"]');
 }

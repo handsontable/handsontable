@@ -27,37 +27,18 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox "A, row 1": Al
-  - table:
+  - combobox "A, row 1" [expanded]: Al
+  - grid "A, row 1":
     - rowgroup:
-      - row "Alpha":
-        - cell "Alpha"
-      - row "Alfa":
-        - cell "Alfa"
-      - row "Alto":
-        - cell "Alto"
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
-  - table:
-    - rowgroup
-    - rowgroup
+      - row "Alpha Alpha code":
+        - gridcell "Alpha"
+        - gridcell "Alpha code"
+      - row "Alfa Alfa code":
+        - gridcell "Alfa"
+        - gridcell "Alfa code"
+      - row "Alto Alto code":
+        - gridcell "Alto"
+        - gridcell "Alto code"
 # portal
 - status
 - status

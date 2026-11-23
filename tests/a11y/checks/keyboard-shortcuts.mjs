@@ -118,6 +118,11 @@ export const SHORTCUT_PROBES = [
   { section: 'handsontable editor keyboard shortcuts', keys: '↑',
     probe: { page: 'handsontable-editor', setup: 'editor', at: [0, 0], prepare: ['ArrowDown', 'ArrowDown'], press: 'ArrowUp', expect: 'list-moves' } },
   { section: 'handsontable editor keyboard shortcuts', keys: '↓', probe: { page: 'handsontable-editor', setup: 'editor', at: [0, 0], press: 'ArrowDown', expect: 'list-moves' } },
+  // Both keys move across the list's columns only while a row is highlighted, so ArrowDown highlights one first.
+  { section: 'handsontable editor keyboard shortcuts', keys: '←',
+    probe: { page: 'handsontable-editor', setup: 'editor', at: [0, 0], prepare: ['ArrowDown', 'ArrowRight'], press: 'ArrowLeft', expect: 'list-moves', forbid: ['caret-moves'] } },
+  { section: 'handsontable editor keyboard shortcuts', keys: '→',
+    probe: { page: 'handsontable-editor', setup: 'editor', at: [0, 0], prepare: ['ArrowDown'], press: 'ArrowRight', expect: 'list-moves', forbid: ['caret-moves'] } },
   // The select starts with no option chosen when the cell's value is not one of them, so ArrowUp starts two options down.
   { section: 'Select editor keyboard shortcuts', keys: '↑',
     probe: { page: 'select-editor', setup: 'editor', at: [0, 3], prepare: ['ArrowDown', 'ArrowDown'], press: 'ArrowUp', expect: 'text-changes' } },

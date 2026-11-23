@@ -17,7 +17,7 @@
     }
     window.htCellType = ({
       autocomplete: 'autocomplete', dropdown: 'dropdown', handsontable: 'handsontable',
-      multiselect: 'multiselect',
+      multiselect: 'multiselect', text: 'text', select: 'select',
     })[htParams.get('cellType') ?? 'autocomplete'];
     if (!window.htCellType) {
       throw new Error('Unknown ?cellType= value: ' + JSON.stringify(htParams.get('cellType')));
@@ -36,7 +36,51 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const CHOICES = ['Alpha', 'Alfa', 'Alto'];
+    // `?source=200` gives `autocomplete` and `dropdown` 200 choices (`Al 001` to `Al 200`), so the list
+    // scrolls and an option a spec moves to is rendered only after that scroll. Every choice starts
+    // with the seeded `Al`, so `autocomplete`, which filters by the cell value, lists them all.
+    // `?source=async` gives them the same three choices through a function `source` that answers only
+    // when a spec calls `htResolveQueries()`, so a spec can let a response land after the editor closed.
+    const sourceMode = ({ 200: 'long', async: 'async' })[htParams.get('source') ?? ''] ?? null;
+    if (htParams.has('source') && sourceMode === null) {
+      throw new Error('Unknown ?source= value: ' + JSON.stringify(htParams.get('source')));
+    }
+    const longSource = sourceMode === 'long';
+    // `?allowHtml=true` turns `allowHtml` on for `autocomplete` and `dropdown` and wraps each choice in
+    // markup, so a spec can tell the text a choice shows from its raw HTML.
+    const allowHtml = ({ true: true, false: false })[htParams.get('allowHtml') ?? 'false'];
+    if (allowHtml === undefined) {
+      throw new Error('Unknown ?allowHtml= value: ' + JSON.stringify(htParams.get('allowHtml')));
+    }
+    const PLAIN_CHOICES = longSource
+      ? Array.from({ length: 200 }, (unused, i) => `Al ${String(i + 1).padStart(3, '0')}`)
+      : ['Alpha', 'Alfa', 'Alto'];
+    const CHOICES = allowHtml ? PLAIN_CHOICES.map(choice => `<b>${choice}</b>`) : PLAIN_CHOICES;
+
+    window.htPendingQueries = [];
+
+    /**
+     * Answers every query still waiting, oldest first, and returns how many it answered.
+     */
+    window.htResolveQueries = function() {
+      const pending = window.htPendingQueries.filter(entry => !entry.resolved);
+
+      pending.forEach((entry) => {
+        entry.resolved = true;
+        entry.process(CHOICES);
+      });
+
+      return pending.length;
+    };
+
+    const listSource = sourceMode === 'async'
+      ? function(query, process) {
+        window.htPendingQueries.push({ query, process, resolved: false });
+      }
+      : CHOICES;
+
+    // `?ariaTags=false` turns the grid's ARIA off, which the list editors must follow.
+    const ariaTags = htParams.get('ariaTags') !== 'false';
 
     // Three of the four cell types render the SAME arrow: `dropdownRenderer` and
     // `handsontableRenderer` both delegate to `autocompleteRenderer`, which is where
@@ -49,14 +93,112 @@
     // `multiselect` is the fourth, and it reaches a DIFFERENT element and listener:
     // `.ht-multi-select-arrow`, built by `multiSelectRenderer`. It is covered here anyway so the
     // affordance shared by every list cell type has one home (#13316).
-    const columnByCellType = {
-      autocomplete: { type: 'autocomplete', source: CHOICES },
-      dropdown: { type: 'dropdown', source: CHOICES },
-      handsontable: { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } },
-      multiselect: { type: 'multiselect', source: CHOICES },
+    // `?strict=true` makes the `autocomplete` column strict, so the list highlights the choice the typed
+    // text completes to while it still narrows the list. It makes the `handsontable` column strict too,
+    // whose list then opens with its first row highlighted.
+    const strict = ({ true: true, false: false })[htParams.get('strict') ?? 'false'];
+    if (strict === undefined) {
+      throw new Error('Unknown ?strict= value: ' + JSON.stringify(htParams.get('strict')));
+    }
+
+    // `?enterMoves=stay` keeps the selection on the edited cell after Enter commits.
+    const enterMoves = ({ stay: { row: 0, col: 0 } })[htParams.get('enterMoves') ?? ''];
+    if (htParams.has('enterMoves') && enterMoves === undefined) {
+      throw new Error('Unknown ?enterMoves= value: ' + JSON.stringify(htParams.get('enterMoves')));
+    }
+
+    // `?validator=held` gives the column a validator that answers only when a spec calls
+    // `htReleaseValidations()`, so the editor waits for the answer as long as the spec needs.
+    // `?validator=pass` gives it one that accepts every value at once, and `?validator=reject` one that rejects
+    // every value at once, with `allowInvalid: false`, so a commit reopens the editor.
+    const validatorMode = ({ held: 'held', pass: 'pass', reject: 'reject' })[htParams.get('validator') ?? ''] ?? null;
+    if (htParams.has('validator') && validatorMode === null) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
+    }
+    window.htHeldValidations = [];
+    window.htReleaseValidations = function() {
+      const held = window.htHeldValidations.splice(0);
+
+      held.forEach(callback => callback(true));
+
+      return held.length;
+    };
+    const heldValidator = function(value, callback) {
+      window.htHeldValidations.push(callback);
+    };
+    // `?outsideClickDeselects=false` keeps the selection when a press lands outside the grid.
+    const outsideClickDeselects = ({ true: true, false: false })[htParams.get('outsideClickDeselects') ?? 'true'];
+    if (outsideClickDeselects === undefined) {
+      throw new Error('Unknown ?outsideClickDeselects= value: ' + JSON.stringify(htParams.get('outsideClickDeselects')));
+    }
+    // `?contextMenu=true` turns the context menu on, a surface in the grid's portal.
+    const contextMenu = ({ true: true, false: false })[htParams.get('contextMenu') ?? 'false'];
+    if (contextMenu === undefined) {
+      throw new Error('Unknown ?contextMenu= value: ' + JSON.stringify(htParams.get('contextMenu')));
+    }
+
+    // `?imeFastEdit=true` turns `imeFastEdit` on, so the browser focus rests on the editor's field, not on the
+    // selected cell, between edits.
+    const imeFastEdit = ({ true: true, false: false })[htParams.get('imeFastEdit') ?? 'false'];
+    if (imeFastEdit === undefined) {
+      throw new Error('Unknown ?imeFastEdit= value: ' + JSON.stringify(htParams.get('imeFastEdit')));
+    }
+
+    // `?columns=2` gives the `handsontable` column's list a second column (`Alpha` | `Alpha code`), so a
+    // spec can move across the list's columns.
+    const listColumns = ({ 1: 1, 2: 2 })[htParams.get('columns') ?? '1'];
+    if (listColumns === undefined) {
+      throw new Error('Unknown ?columns= value: ' + JSON.stringify(htParams.get('columns')));
+    }
+    // `?innerAria=false` sets `ariaTags: false` in the `handsontable` column's own list settings, which
+    // win over the defaults the editor gives its list.
+    const innerAria = ({ true: true, false: false })[htParams.get('innerAria') ?? 'true'];
+    if (innerAria === undefined) {
+      throw new Error('Unknown ?innerAria= value: ' + JSON.stringify(htParams.get('innerAria')));
+    }
+    // `?dir=rtl` builds a right-to-left grid in a right-to-left document.
+    const layoutDirection = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (layoutDirection === undefined) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    if (layoutDirection === 'rtl') {
+      document.documentElement.dir = 'rtl';
+    }
+    // `?listHeaders=true` gives the `handsontable` column's list column headers, as the cell type guide's
+    // example does, so a spec can read the header row of the grid popup.
+    const listHeaders = ({ true: true, false: false })[htParams.get('listHeaders') ?? 'false'];
+    if (listHeaders === undefined) {
+      throw new Error('Unknown ?listHeaders= value: ' + JSON.stringify(htParams.get('listHeaders')));
+    }
+    const handsontableList = {
+      data: CHOICES.map(choice => (listColumns === 2 ? [choice, `${choice} code`] : [choice])),
+      ...(listHeaders ? { colHeaders: listColumns === 2 ? ['Name', 'Code'] : ['Name'] } : {}),
+      ...(innerAria ? {} : { ariaTags: false }),
     };
 
-    const column = columnByCellType[window.htCellType];
+    const columnByCellType = {
+      autocomplete: { type: 'autocomplete', source: listSource, strict, allowHtml },
+      dropdown: { type: 'dropdown', source: listSource, allowHtml },
+      handsontable: { type: 'handsontable', handsontable: handsontableList, ...(strict ? { strict } : {}) },
+      multiselect: { type: 'multiselect', source: CHOICES },
+      // `text` is the control the list editors' focus after a commit is compared with.
+      text: { type: 'text' },
+      // `select` edits in a native `<select>`, an editor without the text editors' field.
+      select: { editor: 'select', selectOptions: PLAIN_CHOICES },
+    };
+
+    const validatorByMode = {
+      held: heldValidator,
+      pass: (value, callback) => callback(true),
+      reject: (value, callback) => callback(false),
+    };
+    const column = validatorMode === null
+      ? columnByCellType[window.htCellType]
+      : {
+        ...columnByCellType[window.htCellType],
+        validator: validatorByMode[validatorMode],
+        ...(validatorMode === 'reject' ? { allowInvalid: false } : {}),
+      };
 
     // A fresh value per cell: `multiselect` stores an array, and sharing one instance across cells
     // would let a chip removal in one cell show up in the others.
@@ -105,6 +247,12 @@
 
     window.hot = new Handsontable(container, {
       ...settings,
+      ariaTags,
+      ...(layoutDirection === 'rtl' ? { layoutDirection } : {}),
+      ...(enterMoves ? { enterMoves } : {}),
+      ...(contextMenu ? { contextMenu: true } : {}),
+      ...(outsideClickDeselects ? {} : { outsideClickDeselects: false }),
+      ...(imeFastEdit ? { imeFastEdit: true } : {}),
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`
@@ -115,6 +263,39 @@
       },
       licenseKey: window.htTestLicenseKey,
     });
+
+    // TEMPORARY EXPERIMENT (removed before merge): `?voExp=` patches the list editors at runtime to find
+    // what makes VoiceOver read the field, not the list, when an editor opens.
+    // `fill`: fill an array list in the task the field takes the focus (after the opening text is recorded).
+    // `unnamed`: leave the popup without a name. `both`: the two together. `none`: as shipped.
+    const voExp = ({ none: 'none', fill: 'fill', unnamed: 'unnamed', both: 'both' })[htParams.get('voExp') ?? 'none'];
+    if (voExp === undefined) {
+      throw new Error('Unknown ?voExp= value: ' + JSON.stringify(htParams.get('voExp')));
+    }
+    if (voExp !== 'none') {
+      const { AutocompleteEditor, HandsontableEditor } = Handsontable.editors;
+      const patchBeginEditing = (EditorClass) => {
+        const original = EditorClass.prototype.beginEditing;
+
+        EditorClass.prototype.beginEditing = function(...args) {
+          original.apply(this, args);
+
+          if (this.constructor !== EditorClass && EditorClass === HandsontableEditor) {
+            return;
+          }
+          if ((voExp === 'fill' || voExp === 'both') && this instanceof AutocompleteEditor && this.isOpened()
+              && Array.isArray(this.cellProperties.source)) {
+            this.queryChoices(this.TEXTAREA.value);
+          }
+          if ((voExp === 'unnamed' || voExp === 'both') && this.htEditor) {
+            this.htEditor.rootElement.removeAttribute('aria-label');
+          }
+        };
+      };
+
+      patchBeginEditing(AutocompleteEditor);
+      patchBeginEditing(HandsontableEditor);
+    }
   </script>
 </body>
 </html>

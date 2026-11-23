@@ -12,13 +12,13 @@
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["al"], ["combo box", "list box pop up"], ["expanded"]],
-      "note": "Enter opens the editor on the cell holding `Al`: a text field with the combobox role over a listbox of the choices that match `Al` (Alpha, Alfa, Alto). Required: the text, the role and the open list (`expanded`, on every reader). The field's role, a combo box: VoiceOver with Chromium calls it a `text entry area` with a `list box pop up`, its words for a field that opens a list. Finding: VoiceOver with WebKit names no role, only `expanded group 9 items`."
+      "note": "Enter opens the editor on the cell holding `Al`: a text field with the combobox role over a listbox of the choices that match `Al` (Alpha, Alfa, Alto). Required: the text, the role and the open list (`expanded`, on every reader). NVDA reads the field (`combo box, collapsed, has auto complete, editable, Al`) and then `expanded`. Finding, new with the combobox markup: VoiceOver reads the list that opens instead of the field (`expanded list box A, row 1 3 items` with Chromium, `expanded list A, row 1 3 items` with WebKit), so it says neither the text nor the combo box role. The field takes the focus collapsed and is expanded a moment later, when the first query fills the list; the dropdown editor does the same, and VoiceOver has read its field in one run and not in the next."
     },
     {
       "id": "arrow-down-first",
       "action": {"press": "ArrowDown"},
       "expect": [["alpha"]],
-      "note": "ArrowDown highlights the first choice. The focus stays in the text field and aria-activedescendant names the option, so a reader should read the option. Finding: with Chromium neither reader names the option: NVDA says `list. section` and VoiceOver reads the field's group (`Al and 1 more item group`), on this step and the next two. NVDA with Firefox adds the position (`1 of 3`)."
+      "note": "ArrowDown highlights the first choice. The focus stays in the text field and aria-activedescendant names the option, and every reader reads it with its position: NVDA `list. Alpha, 1 of 3`, VoiceOver with Chromium `Alpha menu item, group (1 of 3)`, VoiceOver with WebKit `Alpha selected (1 of 3)`. The same on this step and the next two."
     },
     {
       "id": "arrow-down-second",
@@ -34,19 +34,19 @@
       "id": "type-narrow",
       "action": {"type": "f"},
       "expect": [["alfa"]],
-      "note": "Typing `f` after `Al` rebuilds the list with Alfa, the one choice that matches `Alf`, and leaves no choice highlighted. The list is a polite live region, so the change should be read without a focus move (4.1.3). Finding: only NVDA with Firefox reads the narrowed list (`Alfa, 2 of 3`), in one recording of three after the window title and the document; NVDA with Chromium says an object character and `section`, and VoiceOver reads the field's text (`Alf`) or its group, and no choice."
+      "note": "Typing `f` after `Al` rebuilds the list with Alfa, the one choice that matches `Alf`. The typing supersedes the arrow pick of the steps before, so the list drops it and highlights nothing (Enter would commit the typed text), and the polite live region says what is left, `1 choice available: Alfa`, so the change is read without a focus move (4.1.3). VoiceOver reads it with both browsers (with Chromium after the field, `Alf, A, row 1, list box pop up, expanded, combo box`). The NVDA goldens predate the change: there the pick (Alto) stayed on the one row left, and NVDA read Alfa as a highlighted option with its place in the source, `Alfa, 2 of 3`."
     },
     {
       "id": "arrow-down-narrowed",
       "action": {"press": "ArrowDown"},
       "expect": [["alfa"]],
-      "note": "ArrowDown highlights Alfa, the one choice left, so that Enter commits it: without this step Enter commits the typed text, `Alf`. Finding: nothing is said on any reader when the highlight lands on it."
+      "note": "ArrowDown highlights Alfa, the one choice left (`1 of 1`), so that Enter commits it: without this step Enter commits the typed text, `Alf`. VoiceOver reads it (`Alfa selected (1 of 1)` with WebKit, `Alfa menu item, group (1 of 1)` with Chromium). The NVDA goldens predate the change: there the highlight was on Alfa already, the key did not move it, and nothing was said."
     },
     {
       "id": "commit-choice",
       "action": {"press": "Enter"},
       "expect": [["al"], ["row 3"]],
-      "note": "Enter commits Alfa and moves the selection one row down (enterMoves), to the next row's cell, which holds `Al`. Required: that cell's value and its row. Finding: the focus stays on the closed editor's field, still a combo box, now collapsed and holding the next cell's value, so a reader hears `combo box, collapsed, Al` and no reader says the row the selection moved to (NVDA and VoiceOver; NVDA with Firefox said nothing here in the recording). The text and handsontable editors give the focus to the cell. VoiceOver names no row on any cell move (its behavior, grid-core)."
+      "note": "Enter commits Alfa and moves the selection one row down (enterMoves), to the next row's cell, which holds `Al`. Required: that cell's value and its row. The focus reaches the cell and every reader reads it (NVDA `Al, A, row 3, column 2`). VoiceOver names no row on any cell move (its behavior, grid-core)."
     },
     {
       "id": "back-to-committed",

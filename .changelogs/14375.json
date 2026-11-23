@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the autocomplete, dropdown, and handsontable editors to edit in a single-line `<input>` instead of a `<textarea>`, so an edited value loses its line breaks, and to expose a valid combobox with a named listbox or grid popup. ArrowLeft and ArrowRight now move across the columns of the handsontable editor's list while a row is highlighted, and the focus moves to the cell after an edit that waits for a validator. See the migration guide.",
+  "type": "changed",
+  "issueOrPR": 14375,
+  "breaking": true,
+  "framework": "none"
+}

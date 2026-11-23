@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "id": "dropdown-editor-vo-both1",
+  "surface": "TEMPORARY EXPERIMENT, removed before merge: the dropdown-editor steps with ?voExp=both (run 1).",
+  "variantOf": "dropdown-editor",
+  "query": "voExp=both"
+}

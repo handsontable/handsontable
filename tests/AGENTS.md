@@ -1821,11 +1821,11 @@ counts as lost content.
   grid's own box (the freeze bars on the freeze lines and header corners, the selection handles, the
   links, checkboxes, and pending indicator in cells, and the grid shapes, the right-to-left grid among
   them), which move with the grid when it scrolls in two dimensions; the editors whose control is a
-  native one in the cell (text, password, select, and the date and time editors); the dropdown and
-  handsontable editors, which open the same one-column `.handsontableEditor` list as the autocomplete
-  editor on that fixture; the dark pages, because a color scheme changes no box; and the right-to-left
-  menu, whose fixture lays several wide grids on one page, so the page would scroll sideways for the
-  fixture's sake.
+  native one in the cell (text, password, select, and the date and time editors); the dropdown editor,
+  which opens the same one-column `.handsontableEditor` list as the autocomplete editor on that fixture
+  (the handsontable editor opens a two-column list there, so it is measured); the dark pages, because a
+  color scheme changes no box; and the right-to-left menu, whose fixture lays several wide grids on one
+  page, so the page would scroll sideways for the fixture's sake.
 - **A grid its fixture pins wider than the viewport is measured at the page's width.** A fixture that
   sets a pixel `width` wider than the viewport gets `width: '100%'` before the state is reached (`fitted`
   in the detail). With a pixel width the bars and the overlays follow the grid's own box, so they would

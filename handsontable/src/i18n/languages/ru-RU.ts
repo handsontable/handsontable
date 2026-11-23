@@ -207,6 +207,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], строка [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Комментарий к [column], строка [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: 'Доступен вариант: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: 'Число доступных вариантов: [count]. Первый: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Комментарий к [column], [row]',
 };
 

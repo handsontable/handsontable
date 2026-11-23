@@ -214,6 +214,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], row [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Comment for [column], row [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '[count] choice available: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '[count] choices available. First: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Comment for [column], [row]',
 };
 

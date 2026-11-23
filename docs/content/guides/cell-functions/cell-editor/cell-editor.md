@@ -271,6 +271,8 @@ Two approaches are available:
 
 Override only the methods you need. The `PasswordEditor` below extends `TextEditor` and replaces the `<textarea>` with `<input type="password">`. Since both elements share the same DOM API, only `createElements()` needs to change.
 
+Not every built-in editor edits in a `<textarea>`. The `autocomplete`, `dropdown`, and `handsontable` editors edit in an `<input type="text">`: their `TEXTAREA` property keeps its name and holds an `HTMLInputElement`. A class that extends one of them gets that input.
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2

@@ -28,7 +28,7 @@
       - gridcell "Select whole grid"
   - rowgroup
   - combobox "A, row 1" [expanded]: Al
-  - listbox:
+  - listbox "A, row 1":
     - option "Alpha":
       - strong: Al
       - text: pha
@@ -38,28 +38,6 @@
     - option "Alto":
       - strong: Al
       - text: to
-    - table:
-      - rowgroup
-      - rowgroup
-    - table:
-      - rowgroup
-      - rowgroup
-    - table:
-      - rowgroup
-    - table:
-      - rowgroup
-      - rowgroup
-    - table:
-      - rowgroup
-      - rowgroup
-    - table:
-      - rowgroup
-    - table:
-      - rowgroup
-      - rowgroup
-    - table:
-      - rowgroup
-      - rowgroup
 # portal
 - status
 - status

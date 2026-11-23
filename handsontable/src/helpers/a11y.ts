@@ -1,6 +1,7 @@
 /** Returns [attr, value] for setting on elements (e.g. tabindex, aria-*) */
 export const A11Y_TABINDEX = (val: number | string): [string, string | number] => ['tabindex', val];
 export const A11Y_TREEGRID = (): [string, string] => ['role', 'treegrid'];
+export const A11Y_GRID = (): [string, string] => ['role', 'grid'];
 export const A11Y_PRESENTATION = (): [string, string] => ['role', 'presentation'];
 export const A11Y_GRIDCELL = (): [string, string] => ['role', 'gridcell'];
 export const A11Y_GRIDCELL_BUTTON = (): [string, string] => ['role', 'gridcell button'];

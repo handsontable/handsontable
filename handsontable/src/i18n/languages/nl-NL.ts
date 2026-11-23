@@ -213,6 +213,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], rij [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Opmerking bij [column], rij [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '[count] keuze beschikbaar: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '[count] keuzes beschikbaar. Eerste: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Opmerking bij [column], [row]',
 };
 

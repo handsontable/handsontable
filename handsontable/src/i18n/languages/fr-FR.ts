@@ -207,6 +207,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], ligne [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Commentaire de [column], ligne [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '[count] choix disponible : [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '[count] choix disponibles. Premier : [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Commentaire de [column], [row]',
 };
 

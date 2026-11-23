@@ -26,7 +26,6 @@ import {
   isHTMLElement,
   getParentWindow,
   hasClass,
-  removeAttribute,
   setAttribute,
   outerHeight,
   removeClass,
@@ -37,15 +36,13 @@ import { isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { createMenuItemRenderer } from './menuItemRenderer';
+import { markOwnTablesAsPresentational, removeOwnHoldersTabIndex } from '../../a11yNestedGrid';
 import {
   A11Y_EXPANDED,
   A11Y_LABEL,
   A11Y_MENU,
-  A11Y_PRESENTATION,
   A11Y_TABINDEX,
 } from '../../../helpers/a11y';
-import type { Overlay } from '../../../3rdparty/walkontable/src/overlay/regions/_base';
-import type { default as Table } from '../../../3rdparty/walkontable/src/table/baseTable';
 
 const MIN_WIDTH = 215;
 /**
@@ -1524,27 +1521,8 @@ export class Menu {
    * a menu cell (the Filters value list).
    */
   #markOwnTablesAsPresentational() {
-    const overlays = this.hotMenu!.view._wt.wtOverlays.getOverlays(true);
-
-    arrayEach(overlays, (overlay: Overlay | Table) => {
-      const wtTable = (overlay as Table).name === 'master'
-        ? (overlay as Table)
-        : (overlay as Overlay).clone?.wtTable;
-
-      if (!wtTable) {
-        return;
-      }
-
-      arrayEach([wtTable.TABLE, wtTable.THEAD, wtTable.TBODY], (element: HTMLElement | null) => {
-        if (element) {
-          setAttribute(element, [A11Y_PRESENTATION()]);
-        }
-      });
-
-      if (wtTable.holder) {
-        removeAttribute(wtTable.holder, 'tabindex');
-      }
-    });
+    markOwnTablesAsPresentational(this.hotMenu!);
+    removeOwnHoldersTabIndex(this.hotMenu!);
   }
 
   /**

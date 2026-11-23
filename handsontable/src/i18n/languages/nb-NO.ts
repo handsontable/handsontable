@@ -207,6 +207,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], rad [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Kommentar for [column], rad [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '[count] valg tilgjengelig: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '[count] valg tilgjengelige. Første: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Kommentar for [column], [row]',
 };
 

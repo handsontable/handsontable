@@ -209,6 +209,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column]، الصف [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'تعليق على [column]، الصف [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]، [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: 'خيار واحد متاح: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: 'عدد الخيارات المتاحة: [count]. الأول: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'تعليق على [column]، [row]',
 };
 

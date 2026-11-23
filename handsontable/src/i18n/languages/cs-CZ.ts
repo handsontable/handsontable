@@ -208,6 +208,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], řádek [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Komentář k [column], řádek [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: 'Dostupná volba: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: 'Počet dostupných voleb: [count]. První: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentář k [column], [row]',
 };
 

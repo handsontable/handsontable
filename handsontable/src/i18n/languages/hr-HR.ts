@@ -223,6 +223,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], redak [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Komentar za [column], redak [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: 'Dostupan izbor: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: 'Broj dostupnih izbora: [count]. Prvi: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentar za [column], [row]',
 };
 
