@@ -224,6 +224,42 @@ export class DialogStatesPage {
   }
 
   /**
+   * Hides the dialog the fixture shows on load and puts a page button before the grid whose click handler
+   * selects the first cell and opens a dialog, as an application toolbar does: `confirm` calls
+   * `showConfirm()`, `closable-text` shows text-only content with `closable: true`.
+   *
+   * @param {'confirm' | 'closable-text'} kind The dialog the button opens.
+   * @returns {Promise<Locator>} The button.
+   */
+  async addDialogOpener(kind: 'confirm' | 'closable-text'): Promise<Locator> {
+    await this.page.evaluate((dialogKind) => {
+      const hot = (window as unknown as { hot: {
+        selectCell(row: number, column: number): void;
+        getPlugin(name: string): { hide(): void; show(options: object): void; showConfirm(message: string): void };
+      } }).hot;
+      const dialog = hot.getPlugin('dialog');
+      const button = document.createElement('button');
+
+      dialog.hide();
+      button.textContent = 'Open dialog';
+      button.setAttribute('data-testid', 'dialog-opener');
+      button.addEventListener('click', () => {
+        hot.selectCell(0, 0);
+
+        if (dialogKind === 'confirm') {
+          dialog.showConfirm('Delete row?');
+        } else {
+          dialog.show({ content: 'Saving changes', closable: true });
+        }
+      });
+      document.querySelector('[data-testid="input-before"]')!.after(button);
+    }, kind);
+    await expect(this.dialog).toBeHidden();
+
+    return this.page.getByTestId('dialog-opener');
+  }
+
+  /**
    * Whether the grid listens to the keyboard, as `isListening()` reports it.
    *
    * @returns {Promise<boolean>}

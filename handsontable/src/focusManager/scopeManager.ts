@@ -510,6 +510,34 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
   }
 
   /**
+   * Returns the element a click is judged by. Normally the click's own target. When the target lies outside
+   * every enabled scope while the focus sits inside one, the click's own handler moved the focus there (a
+   * page button whose handler calls `selectCell()`, or opens a dialog that focuses its first button): the
+   * click listener runs on the document element, after that handler. Judged by its target, such a click
+   * deactivated the scope the focus had just entered and unlistened the grid, so its keys stopped working
+   * while the focus stayed inside.
+   *
+   * @param {HTMLElement} target The click's target.
+   * @returns {HTMLElement}
+   */
+  function resolveClickTarget(target: HTMLElement): HTMLElement {
+    const enabledScopes = (SCOPES.getValues() as ReturnType<typeof createFocusScope>[]).filter(
+      (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf());
+
+    if (enabledScopes.some(scope => scopeContains(scope, target))) {
+      return target;
+    }
+
+    const focused = getDeepActiveElement(hotInstance.rootDocument);
+
+    if (isHTMLElement(focused) && enabledScopes.some(scope => scopeContains(scope, focused))) {
+      return focused;
+    }
+
+    return target;
+  }
+
+  /**
    * Activates or deactivates the appropriate scope based on the target element that was
    * triggered by the focus or click event.
    *
@@ -558,7 +586,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
         processScopes(target, target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
       onClick: (event) => {
-        processScopes(getComposedEventTargetEl(event)!, FOCUS_SOURCES.CLICK);
+        processScopes(resolveClickTarget(getComposedEventTargetEl(event)!), FOCUS_SOURCES.CLICK);
       },
       onTabKeyDown: () => {
         updateScopesFocusVisibilityState();

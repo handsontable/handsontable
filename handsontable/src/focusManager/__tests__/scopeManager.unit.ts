@@ -231,3 +231,55 @@ describe('FocusScopeManager focus catchers', () => {
     expect(() => refreshFocusCatchers({} as HotInstance)).not.toThrow();
   });
 });
+
+describe('FocusScopeManager click outside every scope', () => {
+  let manager: FocusScopeManager;
+  let container: HTMLElement;
+  let hot: HotInstance;
+  let pageButton: HTMLButtonElement;
+  let insideButton: HTMLButtonElement;
+
+  beforeEach(() => {
+    const made = makeManager();
+
+    manager = made.manager;
+    container = made.container;
+    hot = made.hot;
+    insideButton = document.createElement('button');
+    container.appendChild(insideButton);
+    pageButton = document.createElement('button');
+    document.body.appendChild(pageButton);
+    manager.registerScope('grid', container);
+    manager.activateScope('grid');
+  });
+
+  afterEach(() => {
+    manager.destroy();
+    document.body.replaceChildren();
+  });
+
+  it('should keep the scope and listen when the click\'s own handler moved the focus into the scope', () => {
+    // A toolbar button whose handler selects a cell (or opens a dialog that focuses its button).
+    pageButton.addEventListener('click', () => insideButton.focus());
+    (hot.unlisten as jest.Mock).mockClear();
+    (hot.listen as jest.Mock).mockClear();
+
+    pageButton.click();
+
+    expect(manager.getActiveScopeId()).toBe('grid');
+    expect(hot.unlisten).not.toHaveBeenCalled();
+    expect(hot.listen).toHaveBeenCalled();
+  });
+
+  it('should deactivate the scope and unlisten when the focus is outside after the click (control)', () => {
+    pageButton.focus();
+    manager.activateScope('grid');
+    expect(manager.getActiveScopeId()).toBe('grid');
+    (hot.unlisten as jest.Mock).mockClear();
+
+    pageButton.click();
+
+    expect(manager.getActiveScopeId()).toBeNull();
+    expect(hot.unlisten).toHaveBeenCalled();
+  });
+});

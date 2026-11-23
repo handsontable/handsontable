@@ -200,6 +200,34 @@ test.describe('dialog Tab containment', { tag: CROSS_BROWSER_TAG }, () => {
     await expect(textarea).toBeFocused();
   });
 
+  test('a closable text-only dialog opened from a page button keeps the focus on itself', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+
+    await dialogPage.goto();
+
+    const opener = await dialogPage.addDialogOpener('closable-text');
+
+    await dialogPage.cell(1, 1).click();
+    await opener.click();
+    await expect(dialogPage.dialog).toHaveClass(/\bht-dialog--show\b/);
+    await expect(dialogPage.dialog).toBeFocused();
+    // The opening click ends outside the grid, after its handler moved the focus into the dialog; the grid
+    // must keep listening, or the dialog's keys never run.
+    await expect.poll(() => dialogPage.isListening()).toBe(true);
+
+    await page.keyboard.press('Tab');
+    await expect(dialogPage.dialog).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(dialogPage.dialog).toBeFocused();
+    expect(await dialogPage.settledFocusIsInsideDialog()).toBe(true);
+    expect(await dialogPage.isListening()).toBe(true);
+
+    await page.keyboard.press('Escape');
+    await expect(dialogPage.dialog).toBeHidden();
+  });
+
   test('a native Tab that would leave the dialog past a button the engine skips is put back inside', async({
     page, theme, bundle, browserName,
   }) => {
@@ -254,6 +282,36 @@ test.describe('dialog Tab containment around native moves', () => {
     await expect(cancel).toBeFocused();
     await expect(dialogPage.inputAfter).not.toBeFocused();
     await expect(dialogPage.inputBefore).not.toBeFocused();
+  });
+
+  test('a confirm dialog opened from a page button cycles inside and the grid keeps listening', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+    const cancel = dialogPage.button('Cancel');
+    const ok = dialogPage.button('OK');
+
+    await dialogPage.goto();
+
+    const opener = await dialogPage.addDialogOpener('confirm');
+
+    await dialogPage.cell(1, 1).click();
+    await opener.click();
+    await expect(cancel).toBeFocused();
+    await expect.poll(() => dialogPage.isListening()).toBe(true);
+
+    await page.keyboard.press('Tab');
+    await expect(ok).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(cancel).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(ok).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(cancel).toBeFocused();
+    expect(await dialogPage.settledFocusIsInsideDialog()).toBe(true);
+    expect(await dialogPage.isListening()).toBe(true);
+    await expect(dialogPage.inputBefore).not.toBeFocused();
+    await expect(dialogPage.inputAfter).not.toBeFocused();
   });
 
   test('the safety net keeps the grid listening, so every later press stays inside the dialog', async({

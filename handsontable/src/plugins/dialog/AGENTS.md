@@ -255,7 +255,9 @@ page; holding the focus there would trap the keyboard. Do not drop that check. T
 - An `iframe` in the content is a stop, but Tab inside it never reaches the parent document's keydown, so a
   press from inside an iframe that is the last stop is not contained.
 - Containment applies only to a press made while the focus is inside the dialog. After a click outside, Tab
-  follows the page.
+  follows the page. A dialog opened from a page button whose handler makes the grid listen (`selectCell()`)
+  keeps the grid listening: the scope manager judges that click by where the focus ended up, not by the
+  button (`handsontable/AGENTS.md`, "A click is judged by where the focus ended up").
 - On a wrap, the hooks see the focus at the other end of the dialog.
 - The license lock screen (`## The license lock screen is NOT this plugin`) does not share any of this. It keeps
   its non-trapping Tab order (DEV-4127), so a change here must not be ported to it.
