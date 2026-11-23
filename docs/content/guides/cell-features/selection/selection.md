@@ -392,7 +392,7 @@ Use [`selectCell()`](@/api/core.md#selectcell) to select a single cell or a rang
 
 When you use keyboard navigation to cross an edge of the grid, you can set cell selection to jump to the opposite edge.
 
-#### Jump across vertical edges
+### Jump across vertical edges
 
 To enable jumping across the left and right edges:
 
@@ -403,7 +403,7 @@ To jump across a vertical edge:
 - When cell selection is on a row's first cell, press <kbd>**←**</kbd>.
 - When cell selection is on a row's last cell, press <kbd>**→**</kbd>, or press <kbd>**Tab**</kbd>.
 
-#### Jump across horizontal edges
+### Jump across horizontal edges
 
 To enable jumping across the top and bottom edges:
 
