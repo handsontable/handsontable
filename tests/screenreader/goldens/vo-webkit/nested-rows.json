@@ -3,15 +3,15 @@
   "scenario": "nested-rows",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-10-27T09:26:42.903Z"
+    "at": "2026-11-23T11:06:00.258Z"
   },
   "steps": {
     "collapse-parent": "collapsed row 1",
-    "expand-parent": "1 expanded expanded row 1 expanded rows shown 5",
-    "into-parent-cell": "name root a",
-    "down-to-child": "name a 1"
+    "expand-parent": "1 expanded column 1 row 11 expanded row 1 expanded rows shown 5",
+    "into-parent-cell": "level 1 1 of 2 expanded",
+    "down-to-child": "level 2 1 of 3"
   }
 }

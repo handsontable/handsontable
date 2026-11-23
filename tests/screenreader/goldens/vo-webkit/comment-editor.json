@@ -3,18 +3,18 @@
   "scenario": "comment-editor",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-05T14:09:50.425Z"
+    "at": "2026-11-23T11:13:18.060Z"
   },
   "steps": {
-    "arrow-right-plain-cell": "",
+    "arrow-right-plain-cell": "b b1",
     "arrow-down-commented-cell": "b b2",
-    "open-comment-editor": "text entry area check the totals before friday insertion on word check between characters and",
+    "open-comment-editor": "comment for b row 2 text entry area check the totals before friday insertion on word check between characters and",
     "type-in-comment": "ana",
     "save-with-control-enter": "",
-    "reopen-saved-comment": "text entry area check the totals before friday call ana insertion on word check between characters and",
+    "reopen-saved-comment": "comment for b row 2 text entry area check the totals before friday call ana insertion on word check between characters and",
     "close-with-escape": "",
     "arrow-down-after-close": "b b3 table 7 columns",
     "arrow-down-again": "b b4",

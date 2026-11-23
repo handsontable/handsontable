@@ -38,14 +38,14 @@
       "id": "close-submenu",
       "action": {"press": "ArrowLeft"},
       "expect": [["alignment"]],
-      "note": "ArrowLeft closes the submenu, and the highlight should return to its parent item, Alignment. Finding: the focus falls to the document. The parent menu takes the keys again (`listen()`), but nothing focuses its Alignment item, so every reader reads the page's title as a document (`Context menu checked items e2e fixture, document`)."
+      "note": "ArrowLeft closes the submenu, and the focus returns to its parent item, Alignment, which every reader says with its collapsed state."
     },
     {
       "id": "close-menu",
       "action": {"press": "Escape"},
       "after": {"hidden": ".htContextMenu .ht_master .htCore tbody td"},
-      "expect": [["a1"]],
-      "note": "Escape closes the context menu, and the focus should return to the grid's A1. Finding: no reader says anything: the focus is still on the document the previous step left it on."
+      "expect": [["a1", "a 1"]],
+      "note": "Escape closes the context menu and the focus returns to the grid's A1, which every reader says; NVDA spells the reference apart (`A 1`), the synonym."
     }
   ]
 }
