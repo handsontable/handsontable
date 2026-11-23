@@ -607,18 +607,12 @@ export class MultipleSelectionHandles extends BasePlugin {
           return;
         }
 
-        // the extend works from the handle being held, so the drag state is set for the length of the call
-        this.dragged.push(handle);
-        this.touchStartRange = startRange;
+        // The pick extends with its own handle and range. The shared drag state belongs to a finger that may still hold
+        // the other handle, so it is neither read nor changed here. The de-duplication on the last target is reset
+        // on both sides, because it follows that finger.
         this.#lastTargetCoords = null;
-
-        try {
-          this.#extendSelection(event.clientX, event.clientY);
-        } finally {
-          this.dragged.splice(0, this.dragged.length);
-          this.touchStartRange = undefined;
-          this.#lastTargetCoords = null;
-        }
+        this.#extendSelection(event.clientX, event.clientY, handle, startRange);
+        this.#lastTargetCoords = null;
       },
       onEnd: (reason) => {
         this.#pick = null;
@@ -687,11 +681,21 @@ export class MultipleSelectionHandles extends BasePlugin {
    *
    * @param {number} clientX The finger's viewport X coordinate.
    * @param {number} clientY The finger's viewport Y coordinate.
+   * @param {string} [handle] The handle that moves. The one a finger holds, unless a pick passes its own.
+   * @param {object} [startRange] The range the gesture started from. The drag's, unless a pick passes its own.
+   * @param {number} startRange.width The width, in cells.
+   * @param {number} startRange.height The height, in cells.
+   * @param {string} startRange.direction The direction the range was selected in.
    */
-  #extendSelection(clientX: number, clientY: number): void {
+  #extendSelection(
+    clientX: number,
+    clientY: number,
+    handle: string = this.dragged[0],
+    startRange: { width: number; height: number; direction: string } | undefined = this.touchStartRange,
+  ): void {
     const selectedRange = this.hot.getSelectedRangeActive();
 
-    if (!selectedRange || this.touchStartRange === undefined) {
+    if (!selectedRange || startRange === undefined) {
       return;
     }
 
@@ -724,9 +728,9 @@ export class MultipleSelectionHandles extends BasePlugin {
     const newRangeCoords = this.getCurrentRangeCoords(
       selectedRange,
       target,
-      this.touchStartRange.direction,
+      startRange.direction,
       rangeDirection,
-      this.dragged[0]
+      handle
     );
 
     if (newRangeCoords.start !== null) {

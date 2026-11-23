@@ -492,6 +492,18 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
       expect(await mobileGrid.selectedLast()).toEqual([4, 1, 4, 1]);
     });
 
+    test('a pick finished while another finger still holds a handle moves its own corner and leaves that drag alone', async () => {
+      await mobileGrid.tapCell(2, 2);
+      await mobileGrid.selectRange(2, 2, 3, 3);
+      await mobileGrid.expectHandlesVisible();
+
+      const stillHeld = await mobileGrid.tapCellWhileHoldingTopHandle(4, 3);
+
+      // the pick was armed with the bottom handle, so the bottom corner moves, not the held top one
+      expect(await mobileGrid.selectedLast()).toEqual([2, 2, 4, 3]);
+      expect(stillHeld).toBe(true);
+    });
+
     test('a drag of a handle arms nothing', async () => {
       await mobileGrid.tapCell(1, 1);
       await mobileGrid.selectRange(1, 1, 2, 2);
