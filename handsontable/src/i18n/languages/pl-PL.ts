@@ -188,6 +188,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Poziom [level], [position] z [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Poziom [level], [position] z [setSize], rozwinięty',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Poziom [level], [position] z [setSize], zwinięty',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formuła: [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto grupę kolumn [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto grupę kolumn [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Posortowano według [label], rosnąco',
