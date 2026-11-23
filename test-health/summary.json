@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-23T06:50:47.421Z",
+  "generatedAt": "2026-11-23T10:49:50.398Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,44 +9,11 @@
   "retentionDays": 90,
   "totals": {
     "tests": 467,
-    "needsTicket": 8,
-    "quarantined": 0,
-    "entries": 2355
+    "needsTicket": 7,
+    "quarantined": 1,
+    "entries": 2356
   },
   "rows": [
-    {
-      "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "tier": "playwright",
-      "file": "e2e/side-layout-slots.spec.ts",
-      "line": 518,
-      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 12,
-      "count30": 12,
-      "countAll": 12,
-      "runs30": 6,
-      "flakyRuns30": 6,
-      "branches30": 6,
-      "nightlyRuns30": 0,
-      "openBranches30": 6,
-      "legs": [
-        "e2e-webkit"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-20T12:55:25Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44725321650/attempts/4",
-        "branch": "feature/DEV-3603_Announce-editor-close-with-Escape",
-        "leg": "e2e-webkit",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
     {
       "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
       "tier": "playwright",
@@ -291,6 +258,39 @@
         "source": "ci"
       },
       "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "tier": "playwright",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 521,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "count7": 13,
+      "count30": 13,
+      "countAll": 13,
+      "runs30": 7,
+      "flakyRuns30": 7,
+      "branches30": 7,
+      "nightlyRuns30": 0,
+      "openBranches30": 7,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": "DEV-4110 until 2026-12-18 — read before the scroll settles",
+      "lastSeen": {
+        "seenAt": "2026-11-23T10:49:00Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45150962561",
+        "branch": "feature/DEV-4001_Role-for-focus-stops",
+        "leg": "e2e-webkit",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
     },
     {
       "key": "jasmine|handsontable/src/__tests__/core/layout.spec.js|Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
