@@ -112,9 +112,11 @@ test('a11y.yml runs the axe scan as one job, axe, in the Playwright container, r
 test('the axe job can write its check run on the pull request\'s head commit, and read what the baseline guard needs', () => {
   const axe = job(stripYamlComments(read(A11Y)), 'axe');
 
-  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write\n {6}pull-requests: write\n {6}issues: read\n {6}actions: read$/m,
-    `${A11Y}: job-level permissions: read for the checkout, write for the check run and the sticky comment only, and read for the `
-      + `pull request's events and runs, where the baseline guard finds the a11y-exception-approved label and the head it approved. ${DOC}`);
+  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write\n {6}pull-requests: write\n {6}actions: read$/m,
+    `${A11Y}: job-level permissions: read for the checkout, write for the check run and the sticky comment only (the Pull requests `
+      + `permission also reads the pull request's events, where the baseline guard finds the a11y-exception-approved label), and `
+      + `read for the pull request's runs, where it finds the head the label approved. Never issues: the rc and stable test jobs `
+      + `of publish.yml grant no issues scope. ${DOC}`);
   assert.match(axe, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
     `${A11Y}: a check run on the merge commit never shows on the pull request; it goes on the head. ${DOC}`);
 });

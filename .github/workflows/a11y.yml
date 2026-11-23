@@ -79,15 +79,17 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     # Job-level, like docs.yml's angular-types and visual.yml's compare: `checks: write` posts the
-    # report check run, `pull-requests: write` the sticky comment. `issues: read` and `actions: read`
-    # let the baseline guard read the `a11y-exception-approved` label from the pull request's events and
-    # find the head it approved among the pull request's runs. Kept off the workflow level so nothing
-    # else in the run inherits them.
+    # report check run, `pull-requests: write` the sticky comment and lets the baseline guard read the
+    # `a11y-exception-approved` label from the pull request's events (GitHub serves a pull request's
+    # issue events to the Pull requests permission as well as to Issues). `actions: read` finds the head
+    # the label approved among the pull request's runs. Never `issues`: publish.yml's rc and stable test
+    # jobs grant the Tests run a ceiling without it, and GitHub refuses the whole run at startup when a
+    # nested job asks for more (workflow-permissions.test.mjs walks every caller). Kept off the workflow level
+    # so nothing else in the run inherits them.
     permissions:
       contents: read
       checks: write
       pull-requests: write
-      issues: read
       actions: read
     env:
       # The commit the check run goes on and the report names. On a pull request it is the

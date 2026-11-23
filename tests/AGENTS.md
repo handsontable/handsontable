@@ -1294,7 +1294,8 @@ input the base never scanned) is therefore not inherited either: a person decide
 requests from a maintainer's account, so "the author approved" proves nothing, and GitHub takes no
 approving review from the author. The accessibility lead reads the exceptions the check run lists,
 adds the `a11y-exception-approved` label by hand, then re-runs the `A11y / axe` job: the check run
-reads the label live from the pull request's events, and no run starts on a label. **An agent never
+reads the label live from the pull request's events, the latest by time and id rather than by its place
+in the listing (GitHub documents no order), and no run starts on a label. **An agent never
 adds the label, re-adds it, or asks a tool to add it**, on any pull request, its own included: GitHub
 would record the agent's label under the maintainer's name, as that person's approval. An agent may
 remove it, since withdrawing an approval grants nothing. The label covers the entries the baseline
@@ -1356,23 +1357,25 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   the pull request adds and every count it raises, and `baselineGuard()` judges each as inherited,
   an approved exception or the pull request's own ("Baselining a finding, and fixing one" above).
   The check run is red on an own entry and annotates it on its baseline line; the comment's headline
-  turns ⚠️ and says how many, and a section groups them by issue and spells out the first ten, own
-  first, each with its kind. The base commit is the first parent of the
+  says how many, ❌ when one is the pull request's own (the check run is red then) and ⚠️ otherwise,
+  and a section groups them by issue and spells out the first ten, own first, each with its kind. The base commit is the first parent of the
   checked-out merge commit (`A11Y_CHECKOUT_SHA`), never the payload's `base.sha` when there is a
   merge commit: a re-run, or a branch that merged the base in, leaves `base.sha` behind the tip the
   merge ref was built on, and every base change in between would read as growth (`.ai/CI.md`, the
   diff-scoped gate trap). An entry is keyed as the comparator keys it (page, theme, rule, target),
   so one the base has under another issue is moved, not added: renaming or splitting an issue
   moves all its entries, adds no debt, and gets one line saying where they went. A base file that
-  is missing or not JSON is one line in the comment saying the growth is unknown, never a failed
-  step, and a tooling failure of the check run. Approving the pull request accepts inherited
+  is missing or not JSON is a tooling failure of the check run and, in the comment, a ❌ headline
+  and one line saying the growth is unknown, never a failed step. Approving the pull request accepts inherited
   entries and approved exceptions only. Locally, read the base at the merge base, not at
   `origin/develop`, or everything `develop` changed since the branch forked reads as this branch's:
   `git show "$(git merge-base origin/develop HEAD)":tests/a11y/axe-baseline.json > base.json` and
   the same for `tests/a11y/pages.mjs > base-pages.mjs`, then
   `node scripts/a11y-check-run.mjs --dry-run --base base.json --base-pages base-pages.mjs` (or
   `a11y-pr-comment.mjs` with the same flags). `--approval <file>` stands in for the label:
-  `{"by": "<login>", "at": "<ISO time>", "baseline": "<the baseline file at the approved head>"}`.
+  `{"by": "<login>", "at": "<ISO time>", "baseline": "<the baseline file at the approved head>"}`;
+  one that cannot be read or is not that object is a tooling error when the baseline grew, as an
+  unreadable label is in CI.
 - **The agent findings** (`a11y-findings.json`, `lib/a11y-findings.mjs`): the same run, concise and
   machine-readable, for an implementer agent. `needsAction` lists each finding that needs action
   with its page, theme, fixture URL, steps, rule, WCAG criteria, element, counts, remedy and up to

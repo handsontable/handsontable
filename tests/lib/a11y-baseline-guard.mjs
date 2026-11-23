@@ -222,6 +222,10 @@ function approvalOf(label, approvers) {
  * The pull request's `a11y-exception-approved` label as its events tell it: who added it last and when, or `null`
  * when it is not on the pull request (never added, or removed after the last time it was added).
  *
+ * The latest event wins by its time, then its id, never by where it sits in the listing: GitHub does not document
+ * the order of a pull request's events (they come oldest first today), and a label added and later removed must
+ * read as absent whichever way the pages run.
+ *
  * @param {object} input The request.
  * @param {Function} input.request The REST client, as `readBaseBaseline()` takes it.
  * @param {string} input.repoApi The repository's API URL.
@@ -235,7 +239,7 @@ export async function readLabel({ request, repoApi, prNumber }) {
     const events = await request(`${repoApi}/issues/${prNumber}/events?per_page=100&page=${page}`);
 
     for (const event of events) {
-      if ((event.event === 'labeled' || event.event === 'unlabeled') && event.label?.name === EXCEPTION_LABEL) {
+      if ((event.event === 'labeled' || event.event === 'unlabeled') && event.label?.name === EXCEPTION_LABEL && isLater(event, last)) {
         last = event;
       }
     }
@@ -245,6 +249,24 @@ export async function readLabel({ request, repoApi, prNumber }) {
   }
 
   return last?.event === 'labeled' ? { by: last.actor?.login ?? 'someone', at: last.created_at } : null;
+}
+
+/**
+ * Whether an event happened after another: by its time, and by its id within one second, since the API gives
+ * times to the second and ids grow with each event.
+ *
+ * @param {{created_at: string, id: number}} event The event.
+ * @param {{created_at: string, id: number}|null} other The latest event so far.
+ * @returns {boolean} `true` when `event` is the later one, or `other` is `null`.
+ */
+function isLater(event, other) {
+  if (!other) {
+    return true;
+  }
+
+  const delta = Date.parse(event.created_at) - Date.parse(other.created_at);
+
+  return Number.isFinite(delta) && delta !== 0 ? delta > 0 : Number(event.id) > Number(other.id);
 }
 
 /**
@@ -371,14 +393,51 @@ export function guardFromFiles({ basePath, basePagesPath, approvalPath, head, pa
       return { error: `${name} could not be read (${error.message})` };
     }
   };
-  let label = null;
+  const inputs = { base: file(basePath), basePages: basePagesPath ? file(basePagesPath) : undefined, head, pageIds, approvers };
 
-  if (approvalPath) {
-    const { by, at, baseline, problem } = JSON.parse(readText(approvalPath));
-    const approved = baseline ? file(baseline) : null;
-
-    label = { by, at, ...(problem ? { problem } : approved?.error ? { problem: approved.error } : { approvedText: approved?.text ?? '' }) };
+  if (!approvalPath) {
+    return guardOf(inputs);
   }
 
-  return guardOf({ base: file(basePath), basePages: basePagesPath ? file(basePagesPath) : undefined, head, pageIds, label, approvers });
+  const approval = approvalFile(file(approvalPath), approvalPath);
+
+  if (approval.error) {
+    // As in CI, where the label is read only when the baseline grew: an approval file that cannot be read is a
+    // tooling failure only when there is growth for it to judge.
+    const guard = guardOf(inputs);
+
+    return guard.error || guard.judged.length === 0 ? guard : { error: approval.error };
+  }
+
+  const { by, at, baseline, problem } = approval;
+  const approved = baseline ? file(baseline) : null;
+  const label = { by, at, ...(problem ? { problem } : approved?.error ? { problem: approved.error } : { approvedText: approved?.text ?? '' }) };
+
+  return guardOf({ ...inputs, label });
+}
+
+/**
+ * The `--approval` file's object, or why it cannot stand in for the label.
+ *
+ * @param {{text?: string, error?: string}} read The file, as `guardFromFiles()` reads it.
+ * @param {string} name The file's name, for the message.
+ * @returns {object} `{by, at, baseline?, problem?}`, or `{error}`.
+ */
+function approvalFile(read, name) {
+  if (read.error) {
+    return { error: read.error };
+  }
+
+  let approval;
+
+  try {
+    approval = JSON.parse(read.text);
+  } catch (error) {
+    return { error: `${name} is not valid JSON (${error.message})` };
+  }
+  if (!approval || typeof approval !== 'object' || typeof approval.by !== 'string' || typeof approval.at !== 'string') {
+    return { error: `${name} must be a JSON object with "by" and "at" strings, and "baseline" or "problem"` };
+  }
+
+  return approval;
 }

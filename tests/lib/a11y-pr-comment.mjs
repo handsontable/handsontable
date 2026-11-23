@@ -329,8 +329,11 @@ export function renderComment(comparison, { reportUrl, runUrl, checkUrl, growth:
   const problems = comparison.problems ?? [];
   const text = value => neutralizeTaskIds(escapeMarkdownText(value));
   const titles = new Map((comparison.issues ?? []).map(issue => [issue.id, issue.title]));
-  const tail = growthHeadline(growth, guard?.judged);
-  const mark = problems.length > 0 || (counts.action > 0 && comparison.mode === 'block') ? '❌' : (counts.action > 0 || tail ? '⚠️' : '✅');
+  const tail = guard?.error ? ' · the baseline growth could not be judged' : growthHeadline(growth, guard?.judged);
+  // Red whenever the check run is red for the baseline: an own entry, or growth the guard could not judge.
+  const ownEntry = (guard?.judged ?? []).some(item => item.kind === 'own');
+  const red = problems.length > 0 || ownEntry || Boolean(guard?.error) || (counts.action > 0 && comparison.mode === 'block');
+  const mark = red ? '❌' : (counts.action > 0 || tail ? '⚠️' : '✅');
   const lines = [COMMENT_MARKER, `### ♿ A11y / axe: ${mark} ${text(headline(comparison))}${tail}`, ''];
 
   if (counts.action > 0) {

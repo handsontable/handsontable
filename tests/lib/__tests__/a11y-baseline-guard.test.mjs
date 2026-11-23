@@ -169,21 +169,46 @@ function stubApi(routes) {
 }
 
 test('readLabel reads the label from the pull request\'s events: the last time it was added, unless it was removed after', async() => {
-  const labeled = (name, at, login = 'a-person') => ({ event: 'labeled', label: { name }, actor: { login }, created_at: at });
+  let id = 0;
+  const event = (kind, name, at, login = 'a-person') => ({ id: (id += 1), event: kind, label: { name }, actor: { login }, created_at: at });
+  const labeled = (name, at, login) => event('labeled', name, at, login);
+  const unlabeled = (name, at) => event('unlabeled', name, at);
   const page = events => stubApi([[/\/issues\/7\/events\?per_page=100&page=1$/, () => events]]).request;
+  const read = events => readLabel({ request: page(events), repoApi: REPO_API, prNumber: 7 });
+  const T1 = '2026-11-20T10:00:00Z';
+  const T2 = '2026-11-20T11:00:00Z';
+  const T3 = '2026-11-20T12:00:00Z';
 
-  assert.deepEqual(await readLabel({ request: page([labeled(EXCEPTION_LABEL, 'T1'), labeled('Accessibility', 'T2'), labeled(EXCEPTION_LABEL, 'T3', 'other')]), repoApi: REPO_API, prNumber: 7 }),
-    { by: 'other', at: 'T3' });
-  assert.equal(await readLabel({ request: page([labeled(EXCEPTION_LABEL, 'T1'), { event: 'unlabeled', label: { name: EXCEPTION_LABEL }, created_at: 'T2' }]), repoApi: REPO_API, prNumber: 7 }), null);
-  assert.equal(await readLabel({ request: page([labeled('Accessibility', 'T1')]), repoApi: REPO_API, prNumber: 7 }), null);
+  assert.deepEqual(await read([labeled(EXCEPTION_LABEL, T1), labeled('Accessibility', T2), labeled(EXCEPTION_LABEL, T3, 'other')]), { by: 'other', at: T3 });
+  assert.equal(await read([labeled(EXCEPTION_LABEL, T1), unlabeled(EXCEPTION_LABEL, T2)]), null);
+  assert.equal(await read([labeled('Accessibility', T1)]), null);
+
+  // GitHub documents no order for the events. Listed newest first, a label added and then removed is still absent,
+  // and one removed and then added again is still on.
+  const added = labeled(EXCEPTION_LABEL, T1);
+  const removed = unlabeled(EXCEPTION_LABEL, T2);
+  const again = labeled(EXCEPTION_LABEL, T3, 'other');
+
+  assert.equal(await read([removed, added]), null, 'removed after it was added, listed newest first');
+  assert.deepEqual(await read([again, removed, added]), { by: 'other', at: T3 }, 'added again, listed newest first');
+  // The API gives times to the second; within one, the later id is the later event.
+  // Removed in the same second it was added (the higher id), and listed before the add.
+  assert.equal(await read([labeled(EXCEPTION_LABEL, T1), unlabeled(EXCEPTION_LABEL, T1)].reverse()), null, 'same second: the higher id wins');
 
   const paged = stubApi([
-    [/page=1$/, () => Array.from({ length: 100 }, () => ({ event: 'mentioned' }))],
-    [/page=2$/, () => [labeled(EXCEPTION_LABEL, 'T9')]],
+    [/page=1$/, () => Array.from({ length: 100 }, () => ({ id: 0, event: 'mentioned' }))],
+    [/page=2$/, () => [labeled(EXCEPTION_LABEL, '2026-11-20T13:00:00Z')]],
   ]);
 
-  assert.deepEqual(await readLabel({ request: paged.request, repoApi: REPO_API, prNumber: 7 }), { by: 'a-person', at: 'T9' });
+  assert.deepEqual(await readLabel({ request: paged.request, repoApi: REPO_API, prNumber: 7 }), { by: 'a-person', at: '2026-11-20T13:00:00Z' });
   assert.equal(paged.calls.length, 2);
+
+  const newestFirst = stubApi([
+    [/page=1$/, () => [unlabeled(EXCEPTION_LABEL, T2), ...Array.from({ length: 99 }, () => ({ id: 0, event: 'mentioned' }))]],
+    [/page=2$/, () => [labeled(EXCEPTION_LABEL, T1)]],
+  ]);
+
+  assert.equal(await readLabel({ request: newestFirst.request, repoApi: REPO_API, prNumber: 7 }), null, 'the latest event wins across pages too');
 });
 
 test('headAt is the head of the latest pull request run of this repository\'s branch created before the label', async() => {
@@ -246,6 +271,32 @@ test('guardFromFiles judges from saved files, the way a dry run does', () => {
   assert.equal(guardFromFiles({ basePath: 'base.json', basePagesPath: 'pages.mjs', head: headWith(added), pageIds, readText }).judged[0].kind, 'own');
   assert.equal(guardFromFiles({ basePath: 'base.json', basePagesPath: 'pages.mjs', approvalPath: 'approval.json', head: headWith(added), pageIds, readText }).judged[0].kind, 'exception');
   assert.deepEqual(guardFromFiles({ basePath: 'missing.json', head: BASE, pageIds, readText }), { error: 'missing.json could not be read (ENOENT)' });
+});
+
+test('guardFromFiles turns an unreadable --approval file into a tooling error, never a throw', () => {
+  const added = entry({ page: 'grid', theme: 'horizon' });
+  const files = {
+    'base.json': JSON.stringify(BASE),
+    'pages.mjs': "{ id: 'grid' },\n",
+    'broken.json': '{',
+    'array.json': '[]',
+    'no-at.json': JSON.stringify({ by: 'a-person', baseline: 'approved.json' }),
+  };
+  const readText = (file) => {
+    if (!(file in files)) {
+      throw new Error('ENOENT');
+    }
+
+    return files[file];
+  };
+  const judge = (approvalPath, head = headWith(added)) => guardFromFiles({ basePath: 'base.json', basePagesPath: 'pages.mjs', approvalPath, head, pageIds: source => pageLines(source).keys(), readText });
+
+  assert.deepEqual(judge('missing.json'), { error: 'missing.json could not be read (ENOENT)' });
+  assert.match(judge('broken.json').error, /^broken\.json is not valid JSON \(/);
+  assert.match(judge('array.json').error, /^array\.json must be a JSON object with "by" and "at" strings/);
+  assert.match(judge('no-at.json').error, /^no-at\.json must be a JSON object/);
+  // As in CI, where the label is read only when the baseline grew: nothing to judge, nothing to fail.
+  assert.deepEqual(judge('missing.json', BASE).judged, []);
 });
 
 const PAGES_SOURCE = "export const A11Y_PAGES = [\n  { id: 'grid', fixture: 'grid.html' },\n  { id: 'formula-builder', fixture: 'f.html' },\n];\n";
@@ -331,4 +382,33 @@ test('the comment labels each added entry with its kind, own first, and counts t
   assert.match(body, /\*\*1 entry is this pull request's own finding\*\*, so the `A11y \/ axe report` check run is red/);
   assert.match(body, /\| Kind \| Page \| Theme \| Rule \| Element \| Elements \| Known issue \|\n\|---\|---\|---\|---\|---\|---\|---\|\n\| ✖ Own finding \| grid \| horizon \|[^\n]*\n\| ✔ Inherited \| new-page \| main \|/);
   assert.match(renderComment(comparison, { guard: { error: 'boom' } }), /\*\*Baseline growth unknown:\*\* boom/);
+});
+
+test('the comment\'s headline is red whenever the check run is red for the baseline', () => {
+  const own = entry({ page: 'grid', theme: 'horizon', impact: 'minor' });
+  const inherited = entry({ page: 'new-page' });
+  const scanned = [{ page: 'grid', theme: 'main' }, { page: 'grid', theme: 'horizon' }, { page: 'new-page', theme: 'main' }, { page: 'formula-builder', theme: 'horizon' }];
+  const commentOf = (head, guard) => {
+    const violations = head.entries.map(item => ({ ...item, help: 'h', helpUrl: 'https://dequeuniversity.com/x' }));
+    const comparison = { ...compareViolations({ baseline: head.entries, issues: ISSUES, violations, scanned, mode: 'warn' }), problems: [] };
+
+    return renderComment(comparison, { guard }).split('\n')[1];
+  };
+  const judgedGuard = added => ({ label: EXCEPTION_LABEL, growth: { ...growthOf(added), moved: [] }, judged: judge(growthOf(added), headWith(added)), approval: null });
+  const ownHead = headWith(own);
+  const inheritedHead = headWith(inherited);
+
+  // An own entry turns the check run red at any severity, so the comment over it is red too.
+  assert.equal(checkRunOf(ownHead.entries, judgedGuard(own)).conclusion, 'failure');
+  assert.match(commentOf(ownHead, judgedGuard(own)), /^### ♿ A11y \/ axe: ❌ No new accessibility findings: .* · this pull request grows the baseline: 1 added \(1 its own\)$/);
+
+  // Growth the guard could not read is a tooling failure of the check run, and a red comment that says why.
+  const error = { error: 'reading tests/a11y/pages.mjs at abc answered 502' };
+
+  assert.equal(checkRunOf(BASE.entries, error).conclusion, 'failure');
+  assert.match(commentOf(BASE, error), /^### ♿ A11y \/ axe: ❌ No new accessibility findings: .* · the baseline growth could not be judged$/);
+
+  // Growth that is only inherited leaves the check run green and the comment a warning that names the growth.
+  assert.equal(checkRunOf(inheritedHead.entries, judgedGuard(inherited)).conclusion, 'success');
+  assert.match(commentOf(inheritedHead, judgedGuard(inherited)), /^### ♿ A11y \/ axe: ⚠️ No new accessibility findings: .* · this pull request grows the baseline: 1 added$/);
 });
