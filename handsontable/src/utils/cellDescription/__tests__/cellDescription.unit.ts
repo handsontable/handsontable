@@ -166,6 +166,44 @@ describe('cellDescription', () => {
     expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(2);
   });
 
+  it('should not give two elements one id when an element was removed from the root and made again', () => {
+    const hot = createHot();
+    const first = createCell();
+    const second = createCell();
+    const third = createCell();
+    const fourth = createCell();
+
+    describe_(hot, first, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+    describe_(hot, second, [[CELL_DESCRIPTION_RANK.LINK, 'link']]);
+
+    // Host markup removes the element of the first text.
+    hot.rootElement.querySelector(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)!.remove();
+
+    describe_(hot, third, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+    describe_(hot, fourth, [[CELL_DESCRIPTION_RANK.MERGED, 'merged through row 4 column 3']]);
+
+    const ids = Array.from(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).map(el => el.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).toHaveLength(3);
+    expect(descriptionOf(hot, third)).toBe('read only');
+    expect(descriptionOf(hot, fourth)).toBe('merged through row 4 column 3');
+    expect(descriptionOf(hot, second)).toBe('link');
+  });
+
+  it('should not search the root for the element of a description it already made', () => {
+    const hot = createHot();
+    const cell = createCell();
+
+    describe_(hot, cell, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+
+    const querySelector = jest.spyOn(hot.rootElement, 'querySelector');
+
+    describe_(hot, createCell(), [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+
+    expect(querySelector).not.toHaveBeenCalled();
+  });
+
   it('should keep the elements of two grids apart', () => {
     const hotA = createHot('ht_a');
     const hotB = createHot('ht_b');

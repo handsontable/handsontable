@@ -127,46 +127,54 @@ export interface CellDescriptionHost {
 }
 
 /**
- * The ids of the description elements of each grid, by their text. Keyed by the grid's root element, which the
- * elements are children of, so they go with it.
+ * The description elements of one grid: by text, and the number the next id takes. The number only grows, so an id is
+ * never used twice in a root, whatever was removed from it.
  */
-const elementIdsOfRoot = new WeakMap<HTMLElement, Map<string, string>>();
+interface DescriptionElements {
+  byText: Map<string, HTMLElement>;
+  next: number;
+}
+
+/**
+ * The description elements of each grid. Keyed by the grid's root element, which the elements are children of, so
+ * they go with it.
+ */
+const elementsOfRoot = new WeakMap<HTMLElement, DescriptionElements>();
 
 /**
  * Returns the id of the hidden element that holds a text in the grid's root, making it the first time. One element
  * serves every cell with the same description. It sits in the root, not in the page's portal, because an id has to
- * resolve in the tree the cell is in (a grid inside a shadow root).
+ * resolve in the tree the cell is in (a grid inside a shadow root). The element is remembered, so a paint that finds
+ * it still in the root searches nothing; one that a host's own markup removed is made again under a new id.
  *
  * @param {CellDescriptionHost} hot The Handsontable instance.
  * @param {string} text The description.
  * @returns {string}
  */
 function getDescriptionElementId(hot: CellDescriptionHost, text: string): string {
-  let ids = elementIdsOfRoot.get(hot.rootElement);
+  let elements = elementsOfRoot.get(hot.rootElement);
 
-  if (ids === undefined) {
-    ids = new Map();
-    elementIdsOfRoot.set(hot.rootElement, ids);
+  if (elements === undefined) {
+    elements = { byText: new Map(), next: 0 };
+    elementsOfRoot.set(hot.rootElement, elements);
   }
 
-  let id = ids.get(text);
+  const known = elements.byText.get(text);
 
-  // An element a host's own markup removed from the root is made again.
-  if (id !== undefined && hot.rootElement.querySelector(`[id="${id}"]`) !== null) {
-    return id;
+  if (known !== undefined && known.parentNode === hot.rootElement) {
+    return known.id;
   }
-
-  id = `${CELL_DESCRIPTION_ID_PREFIX}${hot.guid}-${ids.size}`;
 
   const element = hot.rootDocument.createElement('span');
 
-  element.id = id;
+  element.id = `${CELL_DESCRIPTION_ID_PREFIX}${hot.guid}-${elements.next}`;
+  elements.next += 1;
   element.hidden = true;
   element.textContent = text;
   hot.rootElement.appendChild(element);
-  ids.set(text, id);
+  elements.byText.set(text, element);
 
-  return id;
+  return element.id;
 }
 
 /**

@@ -13,7 +13,9 @@ and `#describeCell()` after the last `afterRenderer` listener. In between, a plu
 `, ` and points the cell at a hidden element that holds the text, through `aria-describedby`:
 
 - **One hidden `span` per distinct text, in `hot.rootElement`.** Ids are `ht-description-<guid>-<n>`
-  (`CELL_DESCRIPTION_ID_PREFIX`), kept in a `WeakMap` keyed by the root element. A grid has a handful of them (read only,
+  (`CELL_DESCRIPTION_ID_PREFIX`), kept in a `WeakMap` keyed by the root element, with the element itself, so a paint that finds it
+  still in the root searches nothing. `n` only grows: an element a host's own markup removed is made again under a new id, and
+  an id is never used twice in a root. A grid has a handful of them (read only,
   link, read only with link, one per distinct merged phrase), never one per cell. They sit in the root, not in the page's
   portal, because an id has to resolve in the tree the cell is in (a grid inside a shadow root). They are `hidden` and never
   in a cell, so `textContent`, `innerText`, the copied text, the cell's box and its accessible **name** do not change.
