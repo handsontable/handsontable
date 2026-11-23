@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the screen reader announcer speaking an older message when a newer one arrived within 100 ms.",
+  "type": "fixed",
+  "issueOrPR": 14416,
+  "breaking": false,
+  "framework": "none"
+}
