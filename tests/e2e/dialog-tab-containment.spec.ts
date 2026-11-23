@@ -9,7 +9,9 @@ import { LoadingStatesPage } from '../fixtures/pages/LoadingStatesPage';
 /**
  * An open modal dialog keeps Tab and Shift+Tab inside it (WCAG 2.4.3, DEV-4009): a press that would leave the
  * dialog wraps to its other end, a press from a non-focusable spot inside it goes to the end the key points at,
- * and a dialog with no tab stop keeps the focus on itself. The containment holds only while the dialog holds
+ * and a closable dialog with no tab stop keeps the focus on itself. A dialog that offers the keyboard no exit
+ * (no tab stop and not closable, such as the loading screen) lets the focus leave, or it would trap it
+ * (WCAG 2.1.2). The containment holds only while the dialog holds
  * the keyboard: a page element the user clicked Tabs on natively, and Tab from the page still enters the
  * dialog at its first stop.
  *
@@ -87,7 +89,9 @@ test.describe('dialog Tab containment', { tag: CROSS_BROWSER_TAG }, () => {
     ]);
   });
 
-  test('the loading screen keeps the focus on itself on Tab and Shift+Tab', async({ page, theme, bundle }) => {
+  test('the loading screen, with nothing to focus and no Escape exit, lets Shift+Tab leave it', async({
+    page, theme, bundle,
+  }) => {
     const loadingPage = new LoadingStatesPage(page, theme, bundle);
 
     await loadingPage.goto();
@@ -96,15 +100,37 @@ test.describe('dialog Tab containment', { tag: CROSS_BROWSER_TAG }, () => {
     await expect(loadingPage.inputBefore).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(loadingPage.overlay).toBeFocused();
+    expect(await loadingPage.activeShortcutContext()).toBe('plugin:dialog');
+
+    // Holding the focus here would trap the keyboard away from the whole page (WCAG 2.1.2), so the press
+    // stays native and leaves the overlay.
+    await page.keyboard.press('Shift+Tab');
+    await expect(loadingPage.inputBefore).toBeFocused();
+  });
+
+  test('a closable dialog with nothing to focus keeps the focus on itself, and Escape is its exit', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+
+    await dialogPage.goto();
+    await dialogPage.showControls([], { closable: true });
+    await dialogPage.dialog.click();
+    await expect.poll(() => dialogPage.activeShortcutContext()).toBe('plugin:dialog');
+    expect(await dialogPage.settledFocusIsInsideDialog()).toBe(true);
 
     await page.keyboard.press('Tab');
-    await settle(page);
-    await expect(loadingPage.overlay).toBeFocused();
+    await expect(dialogPage.dialog).toBeFocused();
+    expect(await dialogPage.settledFocusIsInsideDialog()).toBe(true);
 
     await page.keyboard.press('Shift+Tab');
-    await settle(page);
-    await expect(loadingPage.overlay).toBeFocused();
-    expect(await loadingPage.activeShortcutContext()).toBe('plugin:dialog');
+    await expect(dialogPage.dialog).toBeFocused();
+    expect(await dialogPage.settledFocusIsInsideDialog()).toBe(true);
+    await expect(dialogPage.inputBefore).not.toBeFocused();
+    await expect(dialogPage.inputAfter).not.toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(dialogPage.dialog).toBeHidden();
   });
 
   test('Tab after a click on the dialog title goes to the first tab stop', async({ page, theme, bundle }) => {

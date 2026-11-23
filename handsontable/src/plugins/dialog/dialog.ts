@@ -759,20 +759,23 @@ export class Dialog extends BasePlugin {
     // from a non-focusable spot (the dialog itself, a clicked title) to the end the key points at. Every
     // other press stays native, which is why the shortcut keeps `preventDefault: false`, and the hooks
     // still run after the move. A press made while the focus is outside the dialog (a page input the
-    // user clicked) is left alone, so containment holds only while the dialog holds the keyboard.
+    // user clicked) is left alone, so containment holds only while the dialog holds the keyboard. A
+    // dialog that offers the keyboard no way out (no tab stop and not `closable`, such as the loading
+    // screen) is not contained either: it covers the grid only, so holding the focus there would trap
+    // the keyboard away from the whole page (WCAG 2.1.2).
     pluginContext.addShortcut({
       keys: [['Shift', 'Tab'], ['Tab']],
       preventDefault: false,
       callback: (event: KeyboardEvent) => {
         const container = this.#ui!.getContainer();
-        const focused = this.#getFocusWithin(container);
-        const startedInside = focused !== null;
+        const focus = this.#getFocusWithin(container);
+        const contains = focus !== null && this.#offersKeyboardExit(container);
 
         // A focus inside a shadow tree the content hosts resolves to its host, which says nothing about
         // where the press goes inside the component, so that press stays native and only the safety net
         // below applies.
-        if (startedInside && focused === getDeepActiveElement(this.hot.rootDocument)) {
-          const target = resolveWrapTarget(container, focused, event.shiftKey);
+        if (contains && focus.inLightDom) {
+          const target = resolveWrapTarget(container, focus.element, event.shiftKey);
 
           if (target !== null) {
             event.preventDefault();
@@ -781,7 +784,7 @@ export class Dialog extends BasePlugin {
         }
 
         this.hot._registerTimeout(() => {
-          if (startedInside) {
+          if (contains) {
             this.#keepFocusInside(event.shiftKey);
           }
 
@@ -799,12 +802,13 @@ export class Dialog extends BasePlugin {
   /**
    * Returns the focused element as the dialog's container sees it, or `null` when the focus is outside
    * the dialog. The deepest focused element can sit inside a shadow tree that user `content` only hosts
-   * (a web component), which `Node.contains()` cannot see into, so the shadow hosts are tried too.
+   * (a web component), which `Node.contains()` cannot see into, so the shadow hosts are tried too, and
+   * `inLightDom` then says `false`.
    *
    * @param {HTMLElement} container The dialog's container.
-   * @returns {Element|null}
+   * @returns {{element: Element, inLightDom: boolean}|null}
    */
-  #getFocusWithin(container: HTMLElement): Element | null {
+  #getFocusWithin(container: HTMLElement): { element: Element; inLightDom: boolean } | null {
     const activeElement = getDeepActiveElement(this.hot.rootDocument);
 
     if (activeElement === null) {
@@ -812,10 +816,23 @@ export class Dialog extends BasePlugin {
     }
 
     if (container.contains(activeElement)) {
-      return activeElement;
+      return { element: activeElement, inLightDom: true };
     }
 
-    return getShadowHostChain(activeElement).find(host => container.contains(host)) ?? null;
+    const host = getShadowHostChain(activeElement).find(item => container.contains(item));
+
+    return host === undefined ? null : { element: host, inLightDom: false };
+  }
+
+  /**
+   * Checks whether the keyboard can leave the open dialog without Tab: through Escape (`closable`) or
+   * through one of its tab stops (a button that closes it, a control the application handles).
+   *
+   * @param {HTMLElement} container The dialog's container.
+   * @returns {boolean}
+   */
+  #offersKeyboardExit(container: HTMLElement): boolean {
+    return Boolean(this.getSetting('closable')) || getTabStops(container).length > 0;
   }
 
   /**

@@ -169,9 +169,13 @@ export class DialogStatesPage {
    * each carrying its `data-testid`.
    *
    * @param {Array<{tag: 'input' | 'button', testId: string}>} controls The controls to render.
+   * @param {{closable?: boolean}} [options] Dialog options to show it with.
    */
-  async showControls(controls: { tag: 'input' | 'button'; testId: string }[]): Promise<void> {
-    await this.page.evaluate((list) => {
+  async showControls(
+    controls: { tag: 'input' | 'button'; testId: string }[],
+    options: { closable?: boolean } = {},
+  ): Promise<void> {
+    await this.page.evaluate(({ list, dialogOptions }) => {
       const content = document.createElement('div');
 
       list.forEach(({ tag, testId }) => {
@@ -187,8 +191,8 @@ export class DialogStatesPage {
       });
 
       (window as unknown as { hot: { getPlugin(name: string): { show(options: object): void } } })
-        .hot.getPlugin('dialog').show({ content });
-    }, controls);
+        .hot.getPlugin('dialog').show({ ...dialogOptions, content });
+    }, { list: controls, dialogOptions: options });
     await expect(this.dialog).toHaveClass(/\bht-dialog--show\b/);
   }
 

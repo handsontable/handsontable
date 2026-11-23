@@ -18,7 +18,9 @@
         "name": "OK"
       },
       {
-        "region": "end"
+        "region": "grid",
+        "role": "button",
+        "name": "Cancel"
       }
     ],
     "backward": [
@@ -36,7 +38,9 @@
         "name": "Cancel"
       },
       {
-        "region": "start"
+        "region": "grid",
+        "role": "button",
+        "name": "OK"
       }
     ]
   }

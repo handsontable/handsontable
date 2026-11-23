@@ -27,7 +27,7 @@ describe('Dialog keyboard shortcut', () => {
   }
 
   describe('"Tab"', () => {
-    it('should keep the focus inside the dialog component (no focusable elements inside)', async() => {
+    it('should let the focus leave a non-closable dialog component with no focusable elements inside', async() => {
       const { topInput, bottomInput } = createTestInputs();
 
       handsontable({
@@ -50,16 +50,12 @@ describe('Dialog keyboard shortcut', () => {
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(getDialogFirstFocusCatcherElement());
 
+      // Nothing inside to focus and no Escape exit: holding the focus would trap the keyboard, so Tab
+      // leaves the dialog as the browser moves it.
       await keyDownUp('tab');
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(getDialogContainerElement());
-
-      await keyDownUp('tab');
-
-      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(getDialogContainerElement());
-      expect(document.activeElement).not.toBe(bottomInput[0]);
+      expect(document.activeElement).toBe(bottomInput[0]);
     });
 
     it('should keep the focus inside the dialog component (focusable elements inside)', async() => {
@@ -142,7 +138,7 @@ describe('Dialog keyboard shortcut', () => {
       expect(document.activeElement).not.toBe(bottomInput[0]);
     });
 
-    it('should keep the focus inside the `confirm` modal type (no buttons)', async() => {
+    it('should let the focus leave a non-closable `confirm` modal type with no buttons', async() => {
       const { topInput, bottomInput } = createTestInputs();
 
       handsontable({
@@ -171,8 +167,7 @@ describe('Dialog keyboard shortcut', () => {
       await keyDownUp('tab');
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
-      expect(document.activeElement).toBe(getDialogContainerElement());
-      expect(document.activeElement).not.toBe(bottomInput[0]);
+      expect(document.activeElement).toBe(bottomInput[0]);
     });
 
     it('should keep the focus inside the `confirm` modal type (with buttons)', async() => {
