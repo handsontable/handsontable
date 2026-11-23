@@ -53,6 +53,13 @@
   border-inline-start-color: var(--sl-color-accent);
 }
 
+@media (forced-colors: active) {
+  .mobile-toc-panel nav a[aria-current='true'] {
+    border-inline-start-width: 3px;
+    font-weight: 700;
+  }
+}
+
 /* Indent nested ToC levels */
 .mobile-toc-panel nav ul ul {
   padding-inline-start: 1rem;

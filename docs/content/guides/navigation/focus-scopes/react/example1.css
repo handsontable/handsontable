@@ -5,7 +5,7 @@
   line-height: 1.25rem;
   color: var(--sl-color-text, #333333);
   background: none;
-  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  border: 1px solid var(--sl-color-gray-3, #777777);
   border-radius: 0;
   outline: none;
 }

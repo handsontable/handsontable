@@ -723,7 +723,7 @@
     {
       "id": "docs-focus-indicator-contrast",
       "title": "A focus indicator in the docs stands under 3:1 from the colors next to it",
-      "tracker": "DEV-4018",
+      "tracker": "DEV-4176",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-indicator-contrast"] }
       ]

@@ -37,7 +37,7 @@
   --ec-frm-edActTabIndBtmCol: var(--sl-color-block-bg);
   --ec-frm-edTabBrdRad: 0px;
   /* Gutter / line numbers */
-  --ec-gtrFg: #616970;
+  --ec-gtrFg: var(--sl-color-gray-3);
   --ec-gtrBrdCol: #61697033;
   --ec-gtrBrdWd: 1.5px;
   --ec-gtrHlFg: #e1e4e88b;
