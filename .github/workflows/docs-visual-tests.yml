@@ -113,6 +113,10 @@ jobs:
         if: ${{ (inputs.test_env || inputs.test-url) == 'http://localhost:4321/docs' }}
         run: |
           npm run build
+        env:
+          # Authenticates the release-list request behind data/common.json
+          # (docs/src/lib/docs-versions.mjs).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore snapshot cache
         id: cache
