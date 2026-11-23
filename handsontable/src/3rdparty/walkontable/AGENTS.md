@@ -2134,7 +2134,7 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   before.
 - Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
   renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
-- **A table section is a `rowgroup` only while it holds rows** (`syncRowGroupRole` in
+- **A table section is a `rowgroup` only while it holds rows** (`giveRowGroupRole` and `dropRowGroupRole` in
   `render/ariaAttributes.ts`, called by `render/rows.ts` for the TBODY and `render/columnHeaderRows.ts` for
   the THEAD). Every clone has both sections and most leave one empty: the top clone's body without frozen top
   rows, a corner's body, a bottom clone's head. A `rowgroup` with no `row` is an invalid structure, read as an

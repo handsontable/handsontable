@@ -5,7 +5,7 @@ import {
   A11Y_ROW,
   A11Y_ROWINDEX,
 } from '../../../../helpers/a11y';
-import { syncRowGroupRole } from './ariaAttributes';
+import { dropRowGroupRole, giveRowGroupRole } from './ariaAttributes';
 
 /**
  * Column header rows renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to THEAD.
@@ -59,7 +59,11 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
     const { columnHeadersCount } = this.table;
 
     if (this.table.isAriaEnabled()) {
-      syncRowGroupRole(this.rootNode, columnHeadersCount > 0);
+      if (columnHeadersCount > 0) {
+        giveRowGroupRole(this.rootNode);
+      } else {
+        dropRowGroupRole(this.rootNode);
+      }
     }
 
     this.orderView

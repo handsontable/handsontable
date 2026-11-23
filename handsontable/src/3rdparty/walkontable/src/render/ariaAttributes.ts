@@ -35,11 +35,7 @@ export function isClearedAriaAttribute(name: string): boolean {
  * @param {KeptAriaAttributes} kept The attributes this draw writes, with their values.
  */
 export function clearStaleAriaAttributes(element: HTMLElement, kept: KeptAriaAttributes): void {
-  const attributeNames = element.getAttributeNames();
-
-  for (let i = 0; i < attributeNames.length; i++) {
-    const name = attributeNames[i];
-
+  for (const name of element.getAttributeNames()) {
     // No name of the object prototype contains `aria-` or `role`, so a plain lookup is safe here.
     if (isClearedAriaAttribute(name) && kept[name] === undefined) {
       element.removeAttribute(name);
@@ -59,10 +55,8 @@ export function clearStaleAriaAttributes(element: HTMLElement, kept: KeptAriaAtt
 export function syncAriaAttributes(element: HTMLElement, attributes: KeptAriaAttributes): void {
   clearStaleAriaAttributes(element, attributes);
 
-  const names = Object.keys(attributes);
-
-  for (let i = 0; i < names.length; i++) {
-    setAttributeIfChanged(element, names[i], attributes[names[i]]);
+  for (const name of Object.keys(attributes)) {
+    setAttributeIfChanged(element, name, attributes[name]);
   }
 }
 
@@ -93,19 +87,25 @@ export function setAttributeIfMissing(element: HTMLElement, name: string, value:
 }
 
 /**
- * Gives a table section (THEAD or TBODY) the `rowgroup` role only while it holds rows. A `rowgroup` with no
- * `row` is an invalid structure, and the section elements are reused across draws, so the role is taken off a
- * section drawn with no rows: a clone that renders no frozen rows, a corner, a grid whose rows were all removed.
+ * Gives a table section (THEAD or TBODY) that holds rows the `rowgroup` role, written only when it is missing.
+ * A section is a row group only while it holds rows: see `dropRowGroupRole` for the empty one.
+ *
+ * @param {HTMLElement} section The THEAD or TBODY element.
+ */
+export function giveRowGroupRole(section: HTMLElement): void {
+  setAttributeIfChanged(section, ROLE, ROWGROUP);
+}
+
+/**
+ * Takes the `rowgroup` role off a table section (THEAD or TBODY) that holds no rows. A `rowgroup` with no
+ * `row` is an invalid structure, and the section elements are reused across draws, so the role has to go when
+ * a section is drawn empty: a clone that renders no frozen rows, a corner, a grid whose rows were all removed.
  * Only a `rowgroup` role is taken off, so a role another module wrote on the section stays.
  *
  * @param {HTMLElement} section The THEAD or TBODY element.
- * @param {boolean} hasRows Whether this draw renders at least one row into the section.
  */
-export function syncRowGroupRole(section: HTMLElement, hasRows: boolean): void {
-  if (hasRows) {
-    setAttributeIfChanged(section, ROLE, ROWGROUP);
-
-  } else if (section.getAttribute(ROLE) === ROWGROUP) {
+export function dropRowGroupRole(section: HTMLElement): void {
+  if (section.getAttribute(ROLE) === ROWGROUP) {
     section.removeAttribute(ROLE);
   }
 }
