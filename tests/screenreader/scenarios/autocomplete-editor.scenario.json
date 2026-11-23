@@ -34,13 +34,13 @@
       "id": "type-narrow",
       "action": {"type": "f"},
       "expect": [["alfa"]],
-      "note": "Typing `f` after `Al` rebuilds the list with Alfa, the one choice that matches `Alf`, and leaves no choice highlighted; the polite live region says what is left, so the change is read without a focus move (4.1.3). NVDA reads `Alfa` (with Firefox after the window title and the document), and VoiceOver with Chromium `Alfa menu item` and the field's text. Finding: VoiceOver with WebKit reads only the typed letter, `f`."
+      "note": "Typing `f` after `Al` rebuilds the list with Alfa, the one choice that matches `Alf`. The typing supersedes the arrow pick of the steps before, so the list drops it and highlights nothing (Enter would commit the typed text), and the polite live region says what is left, `1 choice available: Alfa`, so the change is read without a focus move (4.1.3). Before that fix the pick (Alto) stayed on the one row left, so the readers read Alfa as a highlighted option with its place in the source: NVDA `Alfa, 2 of 3`, VoiceOver with Chromium `Alfa menu item, group (2 of 3)`. The goldens are those readings until the next recording. Finding: VoiceOver with WebKit reads only the typed letter, `f`."
     },
     {
       "id": "arrow-down-narrowed",
       "action": {"press": "ArrowDown"},
       "expect": [["alfa"]],
-      "note": "ArrowDown highlights Alfa, the one choice left, so that Enter commits it: without this step Enter commits the typed text, `Alf`. Finding: nothing is said on any reader when the highlight lands on it."
+      "note": "ArrowDown highlights Alfa, the one choice left (`1 of 1`), so that Enter commits it: without this step Enter commits the typed text, `Alf`. Finding, in the goldens recorded before the typing dropped the arrow pick: nothing is said on any reader, because the highlight was on Alfa already and the key did not move it."
     },
     {
       "id": "commit-choice",

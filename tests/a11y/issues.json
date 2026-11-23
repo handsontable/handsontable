@@ -84,13 +84,18 @@
     },
     {
       "id": "editor-choice-not-announced",
-      "title": "An editor's list does not announce the choice the keys reach: with Chromium the autocomplete and dropdown options that aria-activedescendant names have no name, a narrowed list and its highlighted choice are silent on every reader, and the handsontable editor exposes no highlighted row at all",
+      "title": "An autocomplete list that typing narrows is not announced on every reader: VoiceOver with WebKit reads only the typed letter, and the highlight that ArrowDown then puts on the one choice left is silent",
       "tracker": "DEV-2970",
       "match": [
-        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(type-narrow|arrow-down-narrowed)$"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["handsontable-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
-        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] }
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(type-narrow|arrow-down-narrowed)$"] }
+      ]
+    },
+    {
+      "id": "voiceover-chromium-reads-list-not-field",
+      "title": "When the autocomplete or handsontable editor opens, VoiceOver with Chromium reads the list or grid that opens (`expanded list box A, row 1`) instead of the field that takes the focus, so it says neither the cell's text nor the combo box role",
+      "tracker": "DEV-2970",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["autocomplete-editor", "handsontable-editor"], "where": ["^open-editor$"] }
       ]
     },
     {
