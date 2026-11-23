@@ -62,6 +62,7 @@ import {
   Hooks,
   CellRangeToRenderableMapper,
 } from './core/index';
+import { installSelectionAnnouncer } from './core/selectionAnnouncer';
 import {
   countSurplusTrailingItems,
   countTrailingItems,
@@ -3271,6 +3272,7 @@ export default function Core(
       const slotsHeightBeforeLicense = measureSlotsHeight();
 
       installAccessibilityAnnouncer(instance.rootPortalElement);
+      installSelectionAnnouncer(instance);
       initLicenseNotification(instance);
       initLicenseBranding(instance);
 

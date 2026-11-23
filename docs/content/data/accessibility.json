@@ -86,12 +86,6 @@
       "reportRef": null
     },
     {
-      "id": "range-selection-not-announced",
-      "text": "A range selection is not announced; only the focused cell is.",
-      "criteria": ["4.1.2", "4.1.3"],
-      "reportRef": "#2343"
-    },
-    {
       "id": "nested-headers-announcement",
       "text": "Nested column headers are not announced reliably.",
       "criteria": ["4.1.2"],

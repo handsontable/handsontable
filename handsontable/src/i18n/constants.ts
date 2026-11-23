@@ -220,6 +220,22 @@ export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING = `${COLUMN_SORTING_NAMESPACE
 export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.descending`;
 export const COLUMN_SORTING_ANNOUNCEMENT_REMOVED = `${COLUMN_SORTING_NAMESPACE}announcement.removed`;
 
+export const SELECTION_NAMESPACE = 'Selection:';
+export const SELECTION_ANNOUNCEMENT_RANGE = `${SELECTION_NAMESPACE}announcement.range`;
+export const SELECTION_ANNOUNCEMENT_ALL = `${SELECTION_NAMESPACE}announcement.all`;
+export const SELECTION_ANNOUNCEMENT_COLUMN = `${SELECTION_NAMESPACE}announcement.column`;
+export const SELECTION_ANNOUNCEMENT_COLUMNS = `${SELECTION_NAMESPACE}announcement.columns`;
+export const SELECTION_ANNOUNCEMENT_ROW = `${SELECTION_NAMESPACE}announcement.row`;
+export const SELECTION_ANNOUNCEMENT_ROWS = `${SELECTION_NAMESPACE}announcement.rows`;
+export const SELECTION_ANNOUNCEMENT_ADDED = `${SELECTION_NAMESPACE}announcement.added`;
+export const SELECTION_ANNOUNCEMENT_ADDED_CELL = `${SELECTION_NAMESPACE}announcement.added.cell`;
+export const SELECTION_ANNOUNCEMENT_ADDED_RANGE = `${SELECTION_NAMESPACE}announcement.added.range`;
+export const SELECTION_ANNOUNCEMENT_ADDED_ALL = `${SELECTION_NAMESPACE}announcement.added.all`;
+export const SELECTION_ANNOUNCEMENT_ADDED_COLUMN = `${SELECTION_NAMESPACE}announcement.added.column`;
+export const SELECTION_ANNOUNCEMENT_ADDED_COLUMNS = `${SELECTION_NAMESPACE}announcement.added.columns`;
+export const SELECTION_ANNOUNCEMENT_ADDED_ROW = `${SELECTION_NAMESPACE}announcement.added.row`;
+export const SELECTION_ANNOUNCEMENT_ADDED_ROWS = `${SELECTION_NAMESPACE}announcement.added.rows`;
+
 export const FORMULA_BUILDER_NAMESPACE = 'FormulaBuilder:';
 export const FORMULA_BUILDER_EDITOR = `${FORMULA_BUILDER_NAMESPACE}labels.formulaEditor`;
 export const FORMULA_BUILDER_INPUT = `${FORMULA_BUILDER_NAMESPACE}labels.formulaInput`;

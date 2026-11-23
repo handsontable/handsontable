@@ -320,7 +320,7 @@ The {{$a11y.report.link}} lists the ones that carry a reference and a success cr
 
 ## Result
 
-Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell and a sort that a user makes. A range selection is not announced yet, and some screen readers announce the menus as a table (see [Known limitations](#known-limitations)).
+Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell, a sort that a user makes, and a range, whole columns or rows, or every cell that a user selects. Some screen readers announce the menus as a table (see [Known limitations](#known-limitations)).
 
 ## API reference
 
