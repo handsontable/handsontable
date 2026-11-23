@@ -70,6 +70,39 @@ export class EmptyDataStateShortcutsPage {
     return this.page.locator('.ht-empty-data-state').locator('visible=true');
   }
 
+  /** The element of the message that takes the focus when the message has no buttons. */
+  get messageTarget(): Locator {
+    return this.overlay.locator('.ht-empty-data-state__content-wrapper-inner');
+  }
+
+  /** The message's title. */
+  get messageTitle(): Locator {
+    return this.messageTarget.locator('.ht-empty-data-state__title');
+  }
+
+  /** The message's description. */
+  get messageDescription(): Locator {
+    return this.messageTarget.locator('.ht-empty-data-state__description');
+  }
+
+  /**
+   * Presses Tab from outside the grid until the message holds the focus, the way a keyboard user
+   * reaches it. The grid has no rows, so the presses go through its headers first.
+   */
+  async focusMessageWithTab(): Promise<void> {
+    for (let press = 0; press < 12; press++) {
+      await this.page.keyboard.press('Tab');
+
+      const focused = await this.messageTarget.evaluate(element => element === element.ownerDocument.activeElement);
+
+      if (focused) {
+        return;
+      }
+    }
+
+    throw new Error('Twelve Tab presses never reached the empty data state message.');
+  }
+
   /**
    * Selects the whole grid the way a user does: click a cell, then Ctrl/Cmd+A.
    *

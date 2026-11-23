@@ -35,6 +35,14 @@ export class MenuFocusReturnPage extends MenuSeparatorRolePage {
   }
 
   /**
+   * The focus catchers a Tab can land on: the hidden sentinels around a focus scope that are armed
+   * (`tabindex="0"`). A disarmed one carries `tabindex="-1"`.
+   */
+  get armedFocusCatchers(): Locator {
+    return this.page.locator('.htFocusCatcher[tabindex="0"]');
+  }
+
+  /**
    * A text field outside the grid, which a click or a hook listener can move the focus to.
    */
   get outside(): Locator {

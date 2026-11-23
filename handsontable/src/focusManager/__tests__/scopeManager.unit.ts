@@ -145,3 +145,50 @@ describe('FocusScopeManager#activateScope', () => {
     }
   });
 });
+
+describe('FocusScopeManager focus catchers', () => {
+  let manager: FocusScopeManager;
+  let container: HTMLElement;
+
+  const catchers = () => Array.from(document.querySelectorAll<HTMLElement>('.htFocusCatcher'));
+  const focusIn = (parent: HTMLElement) => {
+    const target = document.createElement('div');
+
+    target.tabIndex = -1;
+    parent.appendChild(target);
+    document.body.appendChild(parent);
+    target.focus();
+  };
+
+  beforeEach(() => {
+    const made = makeManager();
+
+    manager = made.manager;
+    container = made.container;
+    manager.registerScope('grid', container);
+    manager.activateScope('grid');
+  });
+
+  afterEach(() => {
+    manager.destroy();
+    document.body.replaceChildren();
+  });
+
+  it('should arm the catchers while the focus is outside the active scope (control)', () => {
+    focusIn(document.createElement('div'));
+    manager.deactivateScope('grid');
+
+    expect(catchers()).toHaveLength(2);
+    expect(catchers().map(catcher => catcher.tabIndex)).toEqual([0, 0]);
+  });
+
+  it('should keep the catchers out of the Tab order while a menu holds the focus', () => {
+    const menu = document.createElement('div');
+
+    menu.className = 'htMenu';
+    focusIn(menu);
+    manager.deactivateScope('grid');
+
+    expect(catchers().map(catcher => catcher.tabIndex)).toEqual([-1, -1]);
+  });
+});

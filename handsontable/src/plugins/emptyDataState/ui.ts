@@ -2,7 +2,9 @@ import { buildTemplate, type TemplateSpec } from '../../helpers/dom/template';
 import {
   addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute, empty
 } from '../../helpers/dom/element';
-import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
+import {
+  A11Y_TABINDEX, A11Y_BUSY, A11Y_GROUP, A11Y_LABELED_BY
+} from '../../helpers/a11y';
 import { htmlToPlainText } from '../../helpers/string';
 import { resolveButtonType } from '../../helpers/uiButton';
 import type { default as ViewInstance } from '../../tableView';
@@ -39,7 +41,22 @@ type MessageButton = { type: unknown, text: string, callback?: Function };
  */
 type MessageContent = { title?: string, description?: string, buttons?: MessageButton[] };
 
-const templateContent = ({ title, description, buttons }: MessageContent, isLoading = false): TemplateSpec[] => {
+/**
+ * The ids the title and the description carry, so the message element can name itself by them.
+ * The prefix is per grid, because a page can hold several of them.
+ *
+ * @param {string} idPrefix The prefix of this grid's ids.
+ * @returns {{title: string, description: string}} The two ids.
+ */
+const messageIds = (idPrefix: string) => ({
+  title: `${idPrefix}-${EMPTY_DATA_STATE_CLASS_NAME}-title`,
+  description: `${idPrefix}-${EMPTY_DATA_STATE_CLASS_NAME}-description`,
+});
+
+const templateContent = (
+  { title, description, buttons }: MessageContent, idPrefix: string, isLoading = false
+): TemplateSpec[] => {
+  const ids = messageIds(idPrefix);
   const hasButtons = !!buttons?.length;
 
   return [
@@ -53,10 +70,16 @@ const templateContent = ({ title, description, buttons }: MessageContent, isLoad
       className: `${EMPTY_DATA_STATE_CLASS_NAME}__content`,
       children: [
         title ? {
-          tag: 'h2', className: `${EMPTY_DATA_STATE_CLASS_NAME}__title`, text: htmlToPlainText(title),
+          tag: 'h2',
+          className: `${EMPTY_DATA_STATE_CLASS_NAME}__title`,
+          attrs: { id: ids.title },
+          text: htmlToPlainText(title),
         } : null,
         description ? {
-          tag: 'p', className: `${EMPTY_DATA_STATE_CLASS_NAME}__description`, text: htmlToPlainText(description),
+          tag: 'p',
+          className: `${EMPTY_DATA_STATE_CLASS_NAME}__description`,
+          attrs: { id: ids.description },
+          text: htmlToPlainText(description),
         } : null,
       ],
     },
@@ -188,6 +211,18 @@ export class EmptyDataStateUI {
    */
   #rootDocument: Document;
   /**
+   * The prefix of the ids of the title and the description, unique per grid.
+   *
+   * @type {string}
+   */
+  #idPrefix: string;
+  /**
+   * Whether the grid writes its ARIA attributes (the `ariaTags` setting, read when the grid is built).
+   *
+   * @type {boolean}
+   */
+  #ariaTags: boolean;
+  /**
    * The references to the UI elements.
    *
    * @type {object}
@@ -206,9 +241,13 @@ export class EmptyDataStateUI {
   constructor({
     gridContainer,
     rootDocument,
-  }: { gridContainer: HTMLElement, rootDocument: Document }) {
+    idPrefix,
+    ariaTags = true,
+  }: { gridContainer: HTMLElement, rootDocument: Document, idPrefix: string, ariaTags?: boolean }) {
     this.#gridContainer = gridContainer;
     this.#rootDocument = rootDocument;
+    this.#idPrefix = idPrefix;
+    this.#ariaTags = ariaTags;
 
     this.install();
   }
@@ -315,7 +354,7 @@ export class EmptyDataStateUI {
     }
 
     const template = buildTemplate(
-      templateContent(content, isLoading), this.#rootDocument
+      templateContent(content, this.#idPrefix, isLoading), this.#rootDocument
     );
 
     if (isLoading) {
@@ -330,6 +369,8 @@ export class EmptyDataStateUI {
 
     this.#refs = { ...this.#refs, ...template.refs };
 
+    this.#syncMessageSemantics(emptyDataStateInner, content, isLoading);
+
     empty(emptyDataStateInner);
     emptyDataStateInner.appendChild(template.fragment);
 
@@ -337,6 +378,44 @@ export class EmptyDataStateUI {
       Array.from(this.#refs.emptyDataStateButtons.children).forEach((button, index) => {
         (button as HTMLElement).addEventListener('click', content.buttons![index].callback as EventListener);
       });
+    }
+  }
+
+  /**
+   * Makes the element that takes the focus a group named by the whole message. A bare `div` with a tab
+   * stop has no role in the accessibility tree, so a screen reader can say nothing about it. The title and
+   * the description are both in the name, not split into a name and a description, because screen readers
+   * do not all read a description on arrival, and a message heard in half is not the message.
+   *
+   * The element takes the focus only when the message has no buttons to take it instead. With buttons it
+   * is plain content, and a name on it would make a reader speak the message twice.
+   *
+   * @param {HTMLElement} messageElement The element the message is drawn in.
+   * @param {MessageContent} content The message.
+   * @param {boolean} isLoading Whether the loading message is shown, which has no buttons.
+   */
+  #syncMessageSemantics(messageElement: HTMLElement, content: MessageContent, isLoading: boolean) {
+    if (!this.#ariaTags) {
+      return;
+    }
+
+    const hasButtons = !isLoading && !!content.buttons?.length;
+
+    if (hasButtons) {
+      removeAttribute(messageElement, ['role', 'aria-labelledby']);
+
+      return;
+    }
+
+    const ids = messageIds(this.#idPrefix);
+    const labelIds = [content.title ? ids.title : '', content.description ? ids.description : ''].filter(Boolean);
+
+    setAttribute(messageElement, [A11Y_GROUP()]);
+
+    if (labelIds.length > 0) {
+      setAttribute(messageElement, [A11Y_LABELED_BY(labelIds.join(' '))]);
+    } else {
+      removeAttribute(messageElement, 'aria-labelledby');
     }
   }
 

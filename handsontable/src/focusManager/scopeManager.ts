@@ -421,6 +421,8 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function updateScopesFocusVisibilityState(): void {
     const scopes = SCOPES.getValues() as ReturnType<typeof createFocusScope>[];
+    const focusedElement = getDeepActiveElement(hotInstance.rootDocument);
+    const isFocusInMenu = isHTMLElement(focusedElement) && focusedElement.closest('.htMenu') !== null;
     const modalScopes = scopes.filter(
       (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf() && scope.getType() === 'modal');
 
@@ -435,8 +437,13 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
         scope.disable();
       }
 
-      if (scope === activeScope) {
-        if (scopeContains(scope, getDeepActiveElement(hotInstance.rootDocument))) {
+      if (isFocusInMenu) {
+        // A menu answers Tab itself: it moves the selection and closes, so the keystroke never reaches a
+        // catcher, and an armed one would only be a tab stop with no role that nobody can land on.
+        scope.deactivateFocusCatchers();
+
+      } else if (scope === activeScope) {
+        if (scopeContains(scope, focusedElement)) {
           scope.deactivateFocusCatchers();
         } else {
           scope.activateFocusCatchers();
@@ -505,6 +512,12 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     if (!hasActiveScope && activeScope) {
       deactivateScope(activeScope, false);
       hotInstance.unlisten();
+
+    } else if (!hasActiveScope) {
+      // No scope held the focus to begin with (a menu took it, then closed), so no deactivation will refresh
+      // the catchers. Without this, a focus that ends outside every scope leaves them in the state the menu
+      // put them in, and a Tab from the browser UI, which sends no keydown to the page, skips the grid.
+      updateScopesFocusVisibilityState();
     }
   }
 
