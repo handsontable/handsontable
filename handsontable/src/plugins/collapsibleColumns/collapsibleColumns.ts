@@ -11,6 +11,9 @@ import {
   removeAttribute,
   setAttribute
 } from '../../helpers/dom/element';
+import { hasTouchList } from '../../helpers/dom/event';
+import { isLongPressReplay } from '../../helpers/dom/longPress';
+import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { throwWithCause } from '../../helpers/errors';
 import { isPlainObject } from '../../helpers/object';
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
@@ -301,6 +304,13 @@ export class CollapsibleColumns extends BasePlugin {
    * @type {{ from: number, to: number }|null}
    */
   #keyToggleGroupColumns: { from: number, to: number } | null = null;
+
+  /**
+   * Drops the press on an indicator that waits for its release (see `#onBeforeOnCellMouseDown`). The
+   * listeners of a press that is still held go with the event manager when the plugin is disabled or
+   * destroyed.
+   */
+  #disposePress: (() => void) | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -1442,7 +1452,9 @@ export class CollapsibleColumns extends BasePlugin {
   };
 
   /**
-   * Indicator mouse event callback.
+   * Indicator mouse event callback. A press on the indicator is claimed at once, so it selects nothing, but
+   * the group toggles when the pointer is released over the same indicator: moving it off before letting go
+   * cancels the toggle. A tap toggles at once, because Walkontable replays it at `touchend`.
    *
    * @param {object} event Mouse event.
    * @param {object} coords Event coordinates.
@@ -1453,13 +1465,22 @@ export class CollapsibleColumns extends BasePlugin {
     const target = eventTargetEl(event)?.closest<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
     if (target) {
-      if (hasClass(target, 'expanded')) {
+      if (hasClass(target, 'expanded') || hasClass(target, 'collapsed')) {
+        // An earlier press whose release was lost would take the synthetic `mouseup` below for its own, so it
+        // is dropped first. The event is fired before this press is armed, so it is not taken for its release.
+        this.#disposePress?.();
+        this.#disposePress = null;
         this.eventManager.fireEvent(target, 'mouseup');
-        this.#toggleSectionByUser(coords, 'collapse');
 
-      } else if (hasClass(target, 'collapsed')) {
-        this.eventManager.fireEvent(target, 'mouseup');
-        this.#toggleSectionByUser(coords, 'expand');
+        if (hasTouchList(event)) {
+          // A tap acts at once. A long press is replayed with the finger still down and acts on nothing.
+          if (!isLongPressReplay(event)) {
+            this.#toggleSectionByUser(coords, hasClass(target, 'expanded') ? 'collapse' : 'expand');
+          }
+
+        } else {
+          this.#armIndicatorPress(event, coords);
+        }
       }
 
       // Only the grid's own flag, which makes the table skip selection handling. The shared
@@ -1468,6 +1489,36 @@ export class CollapsibleColumns extends BasePlugin {
       (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
     }
   };
+
+  /**
+   * Waits for the release of a press on an indicator, and toggles the group there when it is over the same
+   * indicator.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   * @param {object} coords The coordinates of the pressed header.
+   */
+  #armIndicatorPress(event: MouseEvent, coords: { row: number; col: number }): void {
+    // The header cell resolves to the same coordinates at the release, whatever node a render put there.
+    const isSameIndicator = (releaseTarget: HTMLElement | null) => {
+      const indicator = releaseTarget?.closest<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`) ?? null;
+      const header = indicator?.closest<HTMLElement>('th') ?? null;
+      const releaseCoords = getCoordsWithinGrid(this.hot, header);
+
+      return !!releaseCoords && releaseCoords.row === coords.row && releaseCoords.col === coords.col;
+    };
+
+    this.#disposePress = armPressRelease(this.eventManager, this.hot.rootDocument, event, {
+      isSame: isSameIndicator,
+      onRelease: () => {
+        this.#disposePress = null;
+        // The state is read again: it is what the user sees at the release.
+        this.#toggleSectionByUser(coords, this.#isGroupCollapsed(coords) ? 'expand' : 'collapse');
+      },
+      onCancel: () => {
+        this.#disposePress = null;
+      },
+    });
+  }
 
   /**
    * Records the collapsed-groups version at the start of a column cache update.

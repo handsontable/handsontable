@@ -567,6 +567,40 @@ test('every kind a check rule names is one the checks\' code can emit', () => {
   assert.deepEqual(unknown, []);
 });
 
+test('a focus catcher armed with the focus on body is an accepted exception, and a catcher on any other page stays a tracked defect', () => {
+  // An armed catcher is the Tab entry for a Tab from the browser UI, and a role would make a screen reader announce a
+  // hidden stop (handsontable/AGENTS.md, the focus catchers bullet). Only the page where the focus falls to body is the
+  // exception; a catcher a menu leaves armed is the menu fix regressing, so it keeps counting as a defect.
+  const catalog = compileIssuesCatalog(readCatalog());
+  const { findings } = readSample();
+  const isCatcher = item => /htFocusCatcher/.test(item.where ?? '');
+  const catcherRows = findings.filter(isCatcher);
+  const bodyArmed = catcherRows.filter(item => item.page === 'data-provider-sheets-bar');
+  const menuRows = catcherRows.filter(item => item.page !== 'data-provider-sheets-bar');
+  const otherRoleless = findings.filter(item => item.kind === 'focusable-without-role' && !isCatcher(item));
+  const cluster = catalog.clusters.find(entry => entry.id === 'focus-catchers-armed-at-rest');
+
+  assert.ok(bodyArmed.some(item => item.check === 'tree-snapshots' && item.kind === 'focusable-without-role'), 'the sample holds the tree row');
+  assert.ok(bodyArmed.some(item => item.check === 'axe-discovery' && item.rule === 'focus-order-semantics'), 'the sample holds the axe row');
+  assert.ok(menuRows.length > 0, 'the sample holds a catcher row on a page other than the sheets bar');
+  assert.ok(otherRoleless.length > 0, 'the sample holds a role-less stop that is not a catcher');
+  assert.equal(cluster?.notDefect, 'intended-tab-entry');
+  assert.equal(cluster?.tracker, null, 'a class that is not a defect carries no tracker');
+  for (const item of bodyArmed) {
+    assert.deepEqual(clusterOf(item, catalog), { id: 'focus-catchers-armed-at-rest', tracker: null, ambiguous: [] }, `${item.check} ${item.page}`);
+  }
+  for (const item of menuRows) {
+    const { id, tracker, ambiguous } = clusterOf(item, catalog);
+
+    assert.equal(id, 'unnamed-controls', `${item.check} ${item.page}`);
+    assert.notEqual(tracker, null, 'a menu left armed is tracked, so a regression of the menu fix counts');
+    assert.deepEqual(ambiguous, []);
+  }
+  for (const item of otherRoleless) {
+    assert.notEqual(clusterOf(item, catalog).id, 'focus-catchers-armed-at-rest', `${item.page}: ${item.where}`);
+  }
+});
+
 test('every rule of every cluster matches a sampled finding', () => {
   // A rule that matches nothing is misspelled (an axe rule, a cause, a where pattern) or dead: fix it or delete it.
   const catalog = compileIssuesCatalog(readCatalog());
