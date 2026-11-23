@@ -2585,6 +2585,7 @@ describe('ContextMenu', () => {
         height: 100
       });
       const hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         contextMenu: true,
         height: 100
       }).handsontable('getInstance');
@@ -2644,6 +2645,7 @@ describe('ContextMenu', () => {
       });
 
       const hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         contextMenu: true,
         height: 100
       }).handsontable('getInstance');
