@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a grid with more than about 100 columns kept a short horizontal scroll range after AutoColumnSize measured the remaining columns, so `scrollViewportTo()` and `selectCell()` stopped before the target column.",
+  "type": "fixed",
+  "issueOrPR": 14406,
+  "breaking": false,
+  "framework": "none"
+}

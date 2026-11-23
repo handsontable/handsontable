@@ -67,6 +67,18 @@ normalizes: a bare string becomes the title, an absent value becomes the default
 normalization the value is a record, which is why the later code reads it as one — the union is narrowed by
 the checks above it, not by a cast.
 
+## The element that takes the focus is a named group (DEV-4001)
+
+With no buttons, `getFocusableElements()` returns the message wrapper (`emptyDataStateInner`), so a Tab
+stop lands on a `div`. A bare `div` has no role in the accessibility tree, and NVDA with Firefox read it as
+`section` with no text. With `ariaTags` on (read once, when the UI is built), `updateContent()` makes it
+`role="group"` and names it with `aria-labelledby` pointing at the title and the description together.
+Both ids go in the name, not the description in `aria-describedby`: a reader that skips descriptions on
+arrival would speak half the message. The ids are `${hot.guid}-ht-empty-data-state-title` and `-description`,
+so two grids on a page never share one; the reference to a part the message lacks is left out. The role and the name are written only while no button is rendered (`isLoading` or no `buttons`) and the message has a title or a description (`buttons: []` with neither leaves plain content, not an unnamed group): with buttons, `getFocusableElements()` returns the buttons, the wrapper is plain content, and a name on it would make a reader speak the message twice. The loading
+message is the same element, so it keeps the role next to `aria-busy`. Pinned by
+`tests/e2e/empty-data-state-focus-role.spec.ts` and `__tests__/ui.unit.js`.
+
 ## Button types go through `helpers/uiButton.ts`
 
 `isButtonType()` / `resolveButtonType()` are used at the render site **and** in `SETTINGS_VALIDATORS` — same

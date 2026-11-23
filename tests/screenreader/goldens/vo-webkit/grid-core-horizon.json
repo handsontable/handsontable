@@ -24,8 +24,8 @@
     "menu-arrow-down-again": "insert column left menu item group table 1 column 18 rows",
     "close-context-menu": "handsontable screen reader fixture web content",
     "reselect-cell": "name alice table 4 columns",
-    "extend-range": "",
-    "extend-range-again": "",
+    "extend-range": "selection from column name row 1 to column age row 1",
+    "extend-range-again": "row 1 selected",
     "up-to-header-for-sort": "name",
     "sort-ascending": "sorted by name ascending",
     "sort-descending": "sorted by name descending"

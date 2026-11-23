@@ -139,14 +139,14 @@ function findShortcut(hotInstance, key) {
   return call?.[0];
 }
 
-function setLifecycle(state, extra = {}, channels = { console: true, ui: true }, badge = false) {
+function setLifecycle(state, extra = {}, channels = { console: true, ui: true }, attributionBar = false) {
   _getLicenseState.mockReturnValue({
     lifecycle: {
       state, isTrial: state.indexOf('trial') === 0, daysRemaining: null, licensedUntil: null, ...extra,
     },
     channels,
     tiers: null,
-    badge,
+    attributionBar,
   });
 }
 
@@ -337,7 +337,7 @@ describe('licenseBranding', () => {
 
   describe('the "Powered by Handsontable DataGrid" bar (DEV-3413)', () => {
     it.each(['trial_valid', 'trial_notice', 'trial_soft_stop', 'trial_hard_stop'])(
-      'should mount the bar for the "%s" state of a trial, which needs no `badge` flag',
+      'should mount the bar for the "%s" state of a trial, which needs no `attribution-bar` flag',
       (state) => {
         setLifecycle(state, { daysRemaining: 5, licensedUntil: '2026-09-26' });
         const hotInstance = createMockHotInstanceWithBottomSlot();
@@ -348,7 +348,7 @@ describe('licenseBranding', () => {
       }
     );
 
-    it('should mount the bar for a key with the `badge` flag', () => {
+    it('should mount the bar for a key with the `attribution-bar` flag', () => {
       setLifecycle('usage_valid', {}, { console: true, ui: true }, true);
       const hotInstance = createMockHotInstanceWithBottomSlot();
 
@@ -357,7 +357,7 @@ describe('licenseBranding', () => {
       expect(getPoweredByBar(hotInstance)).not.toBeNull();
     });
 
-    it('should mount the bar for a `badge` key with `no-ui-warns`: it is branding, not a warning', () => {
+    it('should mount the bar for an `attribution-bar` key with `no-ui-warns`: it is branding, not a warning', () => {
       setLifecycle('usage_valid', {}, { console: false, ui: false }, true);
       const hotInstance = createMockHotInstanceWithBottomSlot();
 
@@ -379,7 +379,7 @@ describe('licenseBranding', () => {
     it.each([
       'usage_valid', 'usage_notice', 'usage_soft_stop', 'usage_hard_stop', 'release_valid',
       'release_expired', 'legacy_valid', 'legacy_expired', 'invalid', 'missing',
-    ])('should mount no bar for the "%s" state of a key without the `badge` flag', (state) => {
+    ])('should mount no bar for the "%s" state of a key without the `attribution-bar` flag', (state) => {
       setLifecycle(state, { licensedUntil: '2011-05-24' });
       const hotInstance = createMockHotInstanceWithBottomSlot();
 

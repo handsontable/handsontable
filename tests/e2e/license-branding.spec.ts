@@ -531,7 +531,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     }
   });
 
-  // DEV-3413: a trial key and a key with the `badge` flag show a "Powered by Handsontable DataGrid"
+  // DEV-3413: a trial key and a key with the `attribution-bar` flag show a "Powered by Handsontable DataGrid"
   // bar last in the bottom slot. It is branding, not a license warning, so `no-ui-warns` does not hide
   // it, and it is a separate element from the warning bar (`license.bar`).
   test.describe('the "Powered by Handsontable DataGrid" bar', () => {
@@ -548,7 +548,10 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await expect(license.bar).toHaveCount(0);
     });
 
-    for (const key of ['sponsored-badge', 'sponsored-badge-external'] as const) {
+    for (const key of [
+      'sponsored-attribution-bar', 'sponsored-attribution-bar-external', 'perpetual-attribution-bar',
+      'perpetual-attribution-bar-no-ui-warns',
+    ] as const) {
       test(`shows for a "${key}" key, with no corner badge and no warning bar`, async () => {
         await license.goto(INSTANT.duringTrial, { key });
 
@@ -560,14 +563,14 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     }
 
     test('shows for a trial issued for external use, whose `no-ui-warns` still hides the corner badge', async () => {
-      // O-6: DEV-3413 keeps the bar on under `no-ui-warns`, for a trial as for a `badge` key.
+      // O-6: DEV-3413 keeps the bar on under `no-ui-warns`, for a trial as for an `attribution-bar` key.
       await license.goto(INSTANT.duringTrial, { key: 'trial-external' });
 
       await expect(license.poweredByLink).toBeVisible();
       await expect(license.badge).toHaveCount(0);
     });
 
-    for (const key of ['sponsored-no-badge', 'subscription', 'legacy-expired'] as const) {
+    for (const key of ['sponsored-no-attribution-bar', 'sponsored-retired-badge-flag', 'subscription', 'legacy-expired'] as const) {
       test(`does not show for a "${key}" key`, async () => {
         await license.goto(INSTANT.duringTrial, { key });
 
@@ -579,7 +582,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     }
 
     for (const [key, instant] of [
-      ['sponsored-badge', INSTANT.duringTrial],
+      ['sponsored-attribution-bar', INSTANT.duringTrial],
       ['trial', INSTANT.trialSoftStop],
     ] as const) {
       test(`keeps the grid at its declared height of 200px, the bars inside it (a "${key}" key)`, async () => {
@@ -610,7 +613,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     });
 
     test('follows the Figma frame on main and horizon, and the compact bar density on classic', async ({ theme }) => {
-      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-attribution-bar' });
 
       const geometry = await license.poweredByGeometry();
 
@@ -659,7 +662,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     });
 
     test('changes nothing on hover: Figma draws no hover state for the bar', async () => {
-      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-attribution-bar' });
 
       const readText = () => license.poweredByLink.evaluate((link) => {
         const style = getComputedStyle(link.querySelector('.ht-license-powered-by__text') as HTMLElement);
@@ -676,7 +679,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     });
 
     test('paints the logomark: a dark "H" with the brand-blue dot at its foot', async () => {
-      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-attribution-bar' });
 
       const { blue, ink } = await license.poweredByLogoPaint();
 
@@ -689,7 +692,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
 
     for (const part of ['logo', 'text'] as const) {
       test(`opens handsontable.com in a new tab when its ${part} is clicked`, async ({ page }) => {
-        await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+        await license.goto(INSTANT.duringTrial, { key: 'sponsored-attribution-bar' });
 
         const opened = await license.clickPoweredBy(part);
 
@@ -700,7 +703,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     }
 
     test('is reached with Tab from the grid\'s last cell, and Shift+Tab goes back into the grid', async ({ page }) => {
-      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-attribution-bar' });
 
       await license.selectCell(3, 2);
       await page.keyboard.press('Tab');

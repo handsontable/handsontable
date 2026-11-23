@@ -1227,3 +1227,11 @@ Two writes of this plugin are invisible to the incremental render and are marked
 - **The neighbor height** (`renderer.ts`, `getHeightNextToMergedBlock`, `rowHeaders: false` only) is written on the cell right after a block that starts at column 0, and it is DERIVED from the merged collection inside that cell's own paint — never handed over from the origin's paint. A one-shot map filled by the origin broke under `renderMode: 'onChange'`: the neighbor repainted for its own reason while the origin was skipped, its style was wiped, and nothing re-created the entry. Deriving it needs no `markCellChanged`: a collection change repaints every cell, `rowHeights` goes through `updateSettings` (render epoch).
 
 The selection extra class (`afterDrawSelection`) is asked by Walkontable on every draw for every coordinate of the selection and diffed like any other class, so the plugin no longer registers `beforeRemoveCellClassNames` (the hook still exists for external code). The per-coordinate call matters: `getSelectedMergedCellClassName` answers only for a block's **first renderable** coordinate, so a scan that asked once per element would miss the block.
+
+- **The origin of a block is described as `merged through row [row] column [column]`** (an accessible description through `aria-describedby`, not part of the name). `renderer.ts` `after()` adds the part with
+  the block's last cell by its `aria-rowindex` and `aria-colindex`: the last renderable row and column plus the column header
+  rows and the row header columns, plus one (`lastMergedRowIndex + countColHeaders() + 1`). Hidden lines are skipped, so the
+  numbers agree with what a screen reader says for that cell, which a count of data rows from 1 did not (it was one header
+  row and one header column short). NVDA with Chromium reads the native `rowspan`/`colspan` and the other readers read
+  nothing. **Known limit, accepted:** NVDA with Chromium says the span twice, once from the description and once from the native `rowspan`; the numbers agree (screen reader proof run 45148360219, groups `structure` and `menus`: VoiceOver with WebKit speaks the part too). Only the origin gets the part; the covered cells are `display: none`. Rules:
+  `../../utils/cellDescription/AGENTS.md`.
