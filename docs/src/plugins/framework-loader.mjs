@@ -457,7 +457,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v45';
+const LOADER_VERSION = 'v46';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -510,6 +510,44 @@ function slugFromRelPath(relPath) {
 // ---------------------------------------------------------------------------
 // VuePress preprocessing (mirrored from vuepress-preprocessor.mjs)
 // ---------------------------------------------------------------------------
+
+/**
+ * The name each framework variant's `<title>` gives its framework.
+ */
+const FRAMEWORK_TITLE_NAMES = {
+  javascript: 'JavaScript',
+  react: 'React',
+  angular: 'Angular',
+  vue: 'Vue',
+};
+
+/**
+ * Returns the page's frontmatter with a `<title>` that names its framework:
+ * `<title> | Handsontable DataGrid for <Framework>`. Starlight titles a page
+ * `<title> | <site title>`, so the four framework variants of a page would
+ * share one title, and a tab or a history list could not tell them apart
+ * (WCAG 2.4.2). The title is built from `title`, not from `metaTitle`, so it
+ * always holds the page's heading: the changelog and migration pages keep an
+ * older `metaTitle` shape that differs from it.
+ *
+ * @param {Record<string, any>} frontmatter The page's frontmatter.
+ * @param {string} framework One of `FRAMEWORKS`.
+ * @returns {Record<string, any>}
+ */
+export function withFrameworkTitle(frontmatter, framework) {
+  const title = typeof frontmatter.title === 'string' ? frontmatter.title.trim() : '';
+
+  if (title === '' || !FRAMEWORK_TITLE_NAMES[framework]) {
+    return frontmatter;
+  }
+
+  const head = (frontmatter.head ?? []).filter(entry => entry?.tag !== 'title');
+
+  return {
+    ...frontmatter,
+    head: [...head, { tag: 'title', content: `${title} | Handsontable DataGrid for ${FRAMEWORK_TITLE_NAMES[framework]}` }],
+  };
+}
 
 /**
  * Filters :::: only-for [framework1 framework2] ... :::: blocks.
@@ -1597,15 +1635,16 @@ export function frameworkLoader({ contentDir }) {
           const digest = generateDigest(raw + framework + LOADER_VERSION + embedSig);
 
           let data;
+          const pageFrontmatter = withFrameworkTitle(frontmatter, framework);
 
           try {
-            data = await parseData({ id, data: frontmatter });
+            data = await parseData({ id, data: pageFrontmatter });
           } catch (err) {
             // Astro 6 / Zod 4 schema validation may fail during migration;
             // fall back to raw frontmatter with Starlight-required defaults.
             data = {
-              ...frontmatter,
-              head: frontmatter.head || [],
+              ...pageFrontmatter,
+              head: pageFrontmatter.head || [],
               sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
               template: frontmatter.template || 'doc',
               editUrl: frontmatter.editUrl ?? true,
@@ -1688,7 +1727,7 @@ export function frameworkLoader({ contentDir }) {
         const notFoundData = await parseData({
           id: '404',
           data: {
-            title: '404',
+            title: 'Page not found',
             template: 'splash',
             editUrl: false,
             pagefind: false,

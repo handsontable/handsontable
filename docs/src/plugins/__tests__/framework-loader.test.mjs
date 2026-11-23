@@ -850,6 +850,51 @@ test('a fenced code block inside an aside stays a markdown fence between its par
   assert.ok(!html.includes('<aside'), 'no aside element');
 });
 
+test('titles each framework variant of a page after the page and its framework', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-title-'));
+  const contentDir = join(root, 'content');
+  const pageDir = join(contentDir, 'guides', 'migration');
+
+  mkdirSync(pageDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(join(pageDir, 'migration.md'), [
+    '---',
+    'title: Migrating from 10.0 to 11.0',
+    'metaTitle: Migrate from 10.0 to 11.0 - JavaScript Data Grid | Handsontable',
+    'permalink: /migration',
+    'head:',
+    '  - tag: meta',
+    '    attrs:',
+    '      name: robots',
+    '      content: noindex',
+    '---',
+    '',
+    'Body.',
+    '',
+  ].join('\n'));
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const titlesOf = id => store.get(id).data.head.filter(entry => entry.tag === 'title').map(entry => entry.content);
+
+    assert.deepEqual(titlesOf('javascript-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for JavaScript']);
+    assert.deepEqual(titlesOf('react-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for React']);
+    assert.deepEqual(titlesOf('angular-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for Angular']);
+    assert.deepEqual(titlesOf('vue-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for Vue']);
+    assert.deepEqual(
+      store.get('vue-data-grid/migration').data.head.filter(entry => entry.tag === 'meta').map(entry => entry.attrs.name),
+      ['robots'],
+      'the page\'s own head entries stay'
+    );
+    assert.equal(store.get('404').data.title, 'Page not found', 'the not-found title holds the page\'s heading');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('a callout is a note named by its title, not a complementary landmark', async () => {
   const html = await loadPageWithBody('::: warning Source data format\nKeep one object per row.\n:::\n\n::: tip\nShort.\n:::');
 
