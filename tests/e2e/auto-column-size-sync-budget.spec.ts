@@ -334,3 +334,123 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
     expect(budgeted.constructorColumns.length).toBeLessThan(51);
   });
 });
+
+/**
+ * A grid wider than the synchronous part (`syncLimit` + 1 columns, plus one chunk: about 102 columns) leaves
+ * the other columns to idle tasks, whatever its height and whether AutoRowSize is on. The width map's
+ * observer only drops the engine's cache, so without a draw when the sweep ends the scroll range keeps the
+ * fallback widths of the columns the sweep measured late. These cases use the plugin's own budget, so the
+ * grid takes the exact path with its columns past the synchronous part, and nothing here calls `render()`.
+ */
+const WIDE_GRID: SyncBudgetGrid = { rows: 50, cols: 160 };
+const WIDE_EXACT = { autoColumnSize: { syncLimit: WIDE_GRID.cols } };
+const LAST_COLUMN = WIDE_GRID.cols - 1;
+
+test.describe('AutoColumnSize idle sweep on a grid wider than its synchronous part', { tag: THEMES_TAG }, () => {
+  let grid: AutoColumnSizeSyncBudgetPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new AutoColumnSizeSyncBudgetPage(page, theme, bundle);
+    await grid.goto();
+    await grid.countRenders();
+  });
+
+  test('widens the scroll range to every measured column once the sweep ends', async() => {
+    await grid.build({ ...WIDE_GRID, settings: WIDE_EXACT });
+
+    const referenceScrollWidth = await grid.scrollWidth();
+
+    await grid.build(WIDE_GRID);
+    await grid.waitForSweepEnd();
+
+    // The positive control: the columns past the synchronous part did get wide, so the first paint's scroll
+    // range was far too short.
+    expect(referenceScrollWidth).toBeGreaterThan(WIDE_GRID.cols * 50 * 2);
+    await expect.poll(() => grid.scrollWidth()).toBe(referenceScrollWidth);
+  });
+
+  test('scrolls to the last column in one call made after the sweep ends', async() => {
+    await grid.build(WIDE_GRID);
+    await grid.waitForSweepEnd();
+    await grid.scrollViewportToColumn(LAST_COLUMN);
+
+    // A scroll computed from the first paint's scroll range lands short of the column, and a second call
+    // would reach it. One call must.
+    await expect.poll(() => grid.lastRenderedColumn()).toBe(LAST_COLUMN);
+  });
+
+  test('widens the scroll range to every measured column once the sweep after loadData() ends', async() => {
+    await grid.build({ ...WIDE_GRID, settings: WIDE_EXACT });
+    await grid.loadLongerData(WIDE_GRID);
+
+    const referenceScrollWidth = await grid.scrollWidth();
+
+    await grid.build(WIDE_GRID);
+    await grid.waitForSweepEnd();
+    await grid.loadLongerData(WIDE_GRID);
+    await grid.waitForSweepEnd();
+
+    await expect.poll(() => grid.scrollWidth()).toBe(referenceScrollWidth);
+    await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
+  });
+
+  for (const after of ['selectCell0x159', 'scrollViewportToColumn159'] as const) {
+    test(`keeps the last column in view after a call made before the sweep ends (${after})`, async() => {
+      // The scroll offset is the sum of the widths of the columns before the target, so the hook measures the
+      // ones the sweep has not reached and draws them before the scroll is computed.
+      await grid.build({ ...WIDE_GRID, settings: WIDE_EXACT }, undefined, after);
+      await expect.poll(() => grid.cellIsInView(0, LAST_COLUMN)).toBe(true);
+
+      await grid.build(WIDE_GRID, undefined, after);
+      await grid.waitForSweepEnd();
+
+      await expect.poll(() => grid.cellIsInView(0, LAST_COLUMN)).toBe(true);
+    });
+  }
+
+  test('keeps the last column in view without measuring up front when the grid sets an explicit syncLimit', async() => {
+    const tall: SyncBudgetGrid = { rows: 1000, cols: WIDE_GRID.cols };
+
+    // The control: on the budget path the same call measures every column before the target, one meta read
+    // per column, so the counter sees a measure.
+    await grid.build(tall, BUDGET, 'scrollViewportToColumn159CountingReads');
+
+    expect(await grid.metaReadsDuringCall()).toBeGreaterThan(100);
+
+    // An explicit syncLimit asks for less synchronous work: the call measures nothing, and the scroll runs
+    // again once the sweep ends.
+    await grid.build({ ...tall, settings: { autoColumnSize: { syncLimit: 10 } } }, undefined, 'scrollViewportToColumn159CountingReads');
+
+    expect(await grid.metaReadsDuringCall()).toBeLessThan(20);
+
+    await grid.waitForSweepEnd();
+    await expect.poll(() => grid.cellIsInView(0, LAST_COLUMN)).toBe(true);
+  });
+
+  test('widens the scroll range once the sweep ends with an explicit syncLimit below the column count', async() => {
+    const limited = { autoColumnSize: { syncLimit: 10 } };
+
+    await grid.build({ ...WIDE_GRID, settings: WIDE_EXACT });
+
+    const referenceScrollWidth = await grid.scrollWidth();
+
+    await grid.build({ ...WIDE_GRID, settings: limited });
+    await grid.waitForSweepEnd();
+
+    await expect.poll(() => grid.scrollWidth()).toBe(referenceScrollWidth);
+  });
+
+  test('draws once when the sweep ends on a grid wider than its synchronous part, and not on one that fits it', async() => {
+    // The control: 100 columns fit the synchronous part (`syncLimit` + 1 columns and one chunk of 51), so the
+    // constructor ends the sweep and nothing follows it. Both counts start in the constructor's task.
+    await grid.build({ ...WIDE_GRID, cols: 100 }, undefined, 'recordRenderCount');
+    await grid.waitForSweepEnd();
+
+    expect(await grid.rendersSinceBuild()).toBe(0);
+
+    await grid.build(WIDE_GRID, undefined, 'recordRenderCount');
+    await grid.waitForSweepEnd();
+
+    expect(await grid.rendersSinceBuild()).toBe(1);
+  });
+});

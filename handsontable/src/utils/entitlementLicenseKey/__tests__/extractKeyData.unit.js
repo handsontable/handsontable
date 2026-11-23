@@ -24,6 +24,9 @@ import {
   SPONSORED_BADGE_KEY,
   SPONSORED_BADGE_EXTERNAL_KEY,
   SPONSORED_NO_BADGE_KEY,
+  PERPETUAL_BADGE_KEY,
+  PERPETUAL_BADGE_NO_UI_WARNS_KEY,
+  BADGE_EMPTY_CLAUSE_KEY,
 } from './fixtures';
 import { BADGE_FLAG } from '../index';
 
@@ -157,6 +160,43 @@ describe('entitlementLicenseKey/extractKeyData', () => {
 
       expect(entitlement.usage_until).toBe('2027-11-04');
       expect(entitlement.flags).toEqual([]);
+    });
+
+    it('should keep the badge flag on a `release_until` entry (a perpetual key)', () => {
+      const entitlement = getProductEntitlement(extractEntitlementKeyData(PERPETUAL_BADGE_KEY), 'handsontable');
+
+      expect(entitlement).toEqual({
+        capabilities: ['core'],
+        release_until: '2099-12-31',
+        notice: 60,
+        grace: 90,
+        flags: [BADGE_FLAG],
+      });
+      expect(entitlement.usage_until).toBeUndefined();
+    });
+
+    it('should keep the badge flag of a perpetual key next to `no-ui-warns`', () => {
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(PERPETUAL_BADGE_NO_UI_WARNS_KEY),
+        'handsontable',
+      );
+
+      expect(entitlement.release_until).toBe('2099-12-31');
+      expect(entitlement.flags).toEqual([BADGE_FLAG, 'no-ui-warns']);
+    });
+
+    it('should read a badge key whose badge clause is empty, and keep its flag', () => {
+      expect(BADGE_EMPTY_CLAUSE_KEY).not.toContain('Powered by');
+
+      const entitlement = getProductEntitlement(extractEntitlementKeyData(BADGE_EMPTY_CLAUSE_KEY), 'handsontable');
+
+      expect(entitlement).toEqual({
+        capabilities: ['core'],
+        usage_until: '2027-11-04',
+        notice: 60,
+        grace: 90,
+        flags: [BADGE_FLAG],
+      });
     });
 
     it('should read every product of a key granting two, each on its own terms', () => {
