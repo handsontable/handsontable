@@ -438,8 +438,9 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       }
 
       if (isFocusInMenu) {
-        // A menu answers Tab itself: it moves the selection and closes, so the keystroke never reaches a
-        // catcher, and an armed one would only be a tab stop with no role that nobody can land on.
+        // A menu answers Tab itself (it moves the selection and closes, or moves the focus within the menu),
+        // so the keystroke never reaches a catcher, and an armed one would only be a tab stop with no role
+        // that nobody can land on.
         scope.deactivateFocusCatchers();
 
       } else if (scope === activeScope) {

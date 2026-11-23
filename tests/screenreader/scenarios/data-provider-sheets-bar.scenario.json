@@ -13,7 +13,7 @@
       "id": "tab-loading-overlay",
       "action": {"press": "Tab"},
       "expect": [["loading data"], ["please wait"]],
-      "note": "The Orders sheet's first fetch is still out (the fixture's server holds every request until the scenario releases it), so the grid shows its loading overlay, and Tab from the top of the page lands on it. The overlay's message is a group named by its title and description, so every reader speaks it whole with the busy state."
+      "note": "The Orders sheet's first fetch is still out (the fixture's server holds every request until the scenario releases it), so the grid shows its loading overlay, and Tab from the top of the page lands on it. Finding: NVDA with Firefox reads only `section, busy`, without the message, and VoiceOver with WebKit reads the title and not the description (`Loading data and 1 more item`)."
     },
     {
       "id": "tab-add-sheet",

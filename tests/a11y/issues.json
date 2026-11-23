@@ -136,6 +136,14 @@
       ]
     },
     {
+      "id": "empty-data-state-without-role",
+      "title": "The empty data state's message, for no data and for loading, takes the focus as a div with no role, so NVDA with Firefox reads `section` without its text and VoiceOver with WebKit reads its title alone",
+      "tracker": "DEV-4001",
+      "match": [
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["empty-data", "data-provider-sheets-bar"], "where": ["^(tab-empty-message|shift-tab-empty-message|tab-loading-overlay)$"] }
+      ]
+    },
+    {
       "id": "formula-editor-combobox-markup",
       "title": "The formula builder's editor puts the combobox role on a textarea, which ARIA in HTML does not allow, and names a closed list in aria-controls: VoiceOver reads only the typed text, neither the suggestion that typing highlights nor the function help the editor names as its description, and with WebKit an empty list (`0 items`); and its options' ids follow their place in the list, so when typing refilters it and the active option stays first, aria-activedescendant keeps its value and NVDA with Chromium says nothing (NVDA with Firefox reads the new option)",
       "tracker": "DEV-4007",
