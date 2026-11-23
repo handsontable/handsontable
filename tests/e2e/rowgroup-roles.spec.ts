@@ -11,23 +11,27 @@ import { FrozenEdgesPage, type FrozenEdges, type TableSection } from '../fixture
 const EDGES: FrozenEdges[] = ['none', 'top-start', 'bottom-end', 'all'];
 
 /**
- * The sections that carry the `rowgroup` role without holding a row.
+ * The sections that carry the `rowgroup` role, or hold a `row`, without holding a cell.
  *
  * @param sections The sections.
  * @returns The offending ones, as `table tag`.
  */
 function emptyRowGroups(sections: TableSection[]): string[] {
-  return sections.filter(item => item.role === 'rowgroup' && item.rows === 0).map(item => `${item.table} ${item.tag}`);
+  return sections
+    .filter(item => item.cells === 0 && (item.role === 'rowgroup' || item.rowRoles > 0))
+    .map(item => `${item.table} ${item.tag}`);
 }
 
 /**
- * The sections that hold rows without carrying the `rowgroup` role.
+ * The sections whose rows hold cells without the section being a `rowgroup` of `row` elements.
  *
  * @param sections The sections.
  * @returns The offending ones, as `table tag`.
  */
 function unnamedRowGroups(sections: TableSection[]): string[] {
-  return sections.filter(item => item.role !== 'rowgroup' && item.rows > 0).map(item => `${item.table} ${item.tag}`);
+  return sections
+    .filter(item => item.cells > 0 && (item.role !== 'rowgroup' || item.rowRoles !== item.rows))
+    .map(item => `${item.table} ${item.tag}`);
 }
 
 test.describe('the rowgroup role of the table sections', () => {
@@ -95,6 +99,34 @@ test.describe('the rowgroup role of the table sections', () => {
     await grid.updateSettings({ colHeaders: true });
 
     await expect.poll(() => grid.section('clone_top', 'thead')).toMatchObject({ rows: 1, role: 'rowgroup' });
+    expect(unnamedRowGroups(await grid.sections())).toEqual([]);
+  });
+
+  test('a side clone that is turned off leaves no row group and no row without cells', async() => {
+    await grid.goto('all');
+
+    // The row headers and the frozen columns go: the start and end clones are drawn one last time with
+    // the master's rows and none of their columns.
+    await grid.updateSettings({ rowHeaders: false, fixedColumnsStart: 0, fixedColumnsEnd: 0 });
+
+    const sections = await grid.sections();
+
+    // The control: the side clones still hold their rows, now without a cell.
+    expect(sections.filter(item => item.table === 'clone_inline_start' && item.rows > 0 && item.cells === 0))
+      .not.toEqual([]);
+    expect(sections.filter(item => item.table === 'clone_inline_end' && item.rows > 0 && item.cells === 0))
+      .not.toEqual([]);
+    expect(emptyRowGroups(sections)).toEqual([]);
+    expect(unnamedRowGroups(sections)).toEqual([]);
+
+    // The clones come back with their cells, and with the roles.
+    await grid.updateSettings({ rowHeaders: true, fixedColumnsStart: 1, fixedColumnsEnd: 1 });
+
+    await expect.poll(() => grid.section('clone_inline_start', 'tbody'))
+      .toMatchObject({ rows: 6, rowRoles: 6, role: 'rowgroup' });
+    await expect.poll(() => grid.section('clone_inline_end', 'tbody'))
+      .toMatchObject({ rows: 6, rowRoles: 6, role: 'rowgroup' });
+    expect(emptyRowGroups(await grid.sections())).toEqual([]);
     expect(unnamedRowGroups(await grid.sections())).toEqual([]);
   });
 

@@ -2140,7 +2140,11 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   rows, a corner's body, a bottom clone's head. A `rowgroup` with no `row` is an invalid structure, read as an
   empty group and reported by axe as "needs review" (DEV-3652). The sections are reused across draws, so the
   role is removed when a section is drawn with no rows, and only a `rowgroup` role is removed: a role another
-  module wrote on the section stays. Pinned by `test/unit/renderer/rowGroupRole.unit.ts` and
+  module wrote on such a section stays. "Holds rows" means rows with a cell. A side clone that is turned off
+  (`rowHeaders: false`, `fixedColumnsStart` or `fixedColumnsEnd` back to 0) is drawn one last time with the
+  master's rows and none of its columns, and is never drawn again, so its rows stayed in the tree as rows with
+  nothing in them; both renderers therefore key the section's role and each row's `row` role and
+  `aria-rowindex` (`dropRowRole`) on `columnsToRender + rowHeadersCount > 0`. Pinned by `test/unit/renderer/rowGroupRole.unit.ts` and
   `tests/e2e/rowgroup-roles.spec.ts`.
 
 Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that

@@ -1,6 +1,8 @@
-import { A11Y_ROWGROUP } from '../../../../helpers/a11y';
+import { A11Y_ROW, A11Y_ROWGROUP, A11Y_ROWINDEX } from '../../../../helpers/a11y';
 
 const [ROLE, ROWGROUP] = A11Y_ROWGROUP();
+const ROW = A11Y_ROW()[1];
+const ROWINDEX = A11Y_ROWINDEX(0)[0];
 
 /**
  * The attributes the renderers write on a cell or header, by name, with the value the current draw
@@ -87,8 +89,9 @@ export function setAttributeIfMissing(element: HTMLElement, name: string, value:
 }
 
 /**
- * Gives a table section (THEAD or TBODY) that holds rows the `rowgroup` role, written only when it is missing.
- * A section is a row group only while it holds rows: see `dropRowGroupRole` for the empty one.
+ * Gives a table section (THEAD or TBODY) whose rows hold cells the `rowgroup` role, written only when the
+ * section carries another role or none. A section is a row group only while its rows hold cells: see
+ * `dropRowGroupRole` for the others.
  *
  * @param {HTMLElement} section The THEAD or TBODY element.
  */
@@ -97,15 +100,31 @@ export function giveRowGroupRole(section: HTMLElement): void {
 }
 
 /**
- * Takes the `rowgroup` role off a table section (THEAD or TBODY) that holds no rows. A `rowgroup` with no
- * `row` is an invalid structure, and the section elements are reused across draws, so the role has to go when
- * a section is drawn empty: a clone that renders no frozen rows, a corner, a grid whose rows were all removed.
- * Only a `rowgroup` role is taken off, so a role another module wrote on the section stays.
+ * Takes the `rowgroup` role off a table section (THEAD or TBODY) that holds no rows, or whose rows hold no
+ * cells. A `rowgroup` with no `row` is an invalid structure, and the section elements are reused across draws,
+ * so the role has to go when a section is drawn empty: a clone that renders no frozen rows, a corner, a grid
+ * whose rows were all removed. Only a `rowgroup` role is taken off, so a role another module wrote on such a
+ * section stays.
  *
  * @param {HTMLElement} section The THEAD or TBODY element.
  */
 export function dropRowGroupRole(section: HTMLElement): void {
   if (section.getAttribute(ROLE) === ROWGROUP) {
     section.removeAttribute(ROLE);
+  }
+}
+
+/**
+ * Takes the `row` role and the row index off a table row that holds no cells. A side clone that is turned off
+ * (the row headers, the frozen columns) is drawn one last time with the master's rows and none of its columns,
+ * and is not drawn again, so its rows would stay in the accessibility tree as rows with nothing in them. The
+ * row elements are reused, and get the role back with their cells.
+ *
+ * @param {HTMLElement} row The TR element.
+ */
+export function dropRowRole(row: HTMLElement): void {
+  if (row.getAttribute(ROLE) === ROW) {
+    row.removeAttribute(ROLE);
+    row.removeAttribute(ROWINDEX);
   }
 }

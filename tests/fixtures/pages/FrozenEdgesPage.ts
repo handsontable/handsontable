@@ -10,14 +10,30 @@ export type FrozenEdges = 'none' | 'top-start' | 'bottom-end' | 'all';
  * One table section (a `thead` or a `tbody`) of the master table or of an overlay clone.
  */
 export interface TableSection {
-  /** The table the section belongs to: `master`, or the clone's name (`clone_top`, `clone_inline_start`, …). */
+  /**
+   * The table the section belongs to: `master`, or the clone's name (`clone_top`, `clone_inline_start`, …).
+   */
   table: string;
-  /** `thead` or `tbody`. */
+  /**
+   * `thead` or `tbody`.
+   */
   tag: string;
-  /** The section's `role` attribute, or `null` when it has none. */
+  /**
+   * The section's `role` attribute, or `null` when it has none.
+   */
   role: string | null;
-  /** The number of rows the section holds. */
+  /**
+   * The number of rows the section holds.
+   */
   rows: number;
+  /**
+   * The number of cells the section's rows hold together.
+   */
+  cells: number;
+  /**
+   * How many of the section's rows carry the `row` role.
+   */
+  rowRoles: number;
 }
 
 /**
@@ -67,6 +83,8 @@ export class FrozenEdgesPage {
         tag: section.tagName.toLowerCase(),
         role: section.getAttribute('role'),
         rows: section.querySelectorAll(':scope > tr').length,
+        cells: section.querySelectorAll(':scope > tr > *').length,
+        rowRoles: section.querySelectorAll(':scope > tr[role="row"]').length,
       };
     }));
   }

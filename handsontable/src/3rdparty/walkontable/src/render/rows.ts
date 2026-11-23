@@ -14,7 +14,7 @@ import {
   A11Y_ROW,
   A11Y_ROWINDEX
 } from '../../../../helpers/a11y';
-import { dropRowGroupRole, giveRowGroupRole } from './ariaAttributes';
+import { dropRowGroupRole, dropRowRole, giveRowGroupRole } from './ariaAttributes';
 
 const ROW_CLASSNAMES = {
   rowEven: 'ht__row_even',
@@ -98,8 +98,12 @@ export class RowsRenderer extends BaseRenderer {
         turning off the "renderAllRows" option.`);
     }
 
+    // A row is a `row`, and its section a `rowgroup`, only while the row holds a cell: a side clone that was
+    // turned off is drawn one last time with the master's rows and none of its columns.
+    const rowsHoldCells = this.table.columnsToRender + this.table.rowHeadersCount > 0;
+
     if (this.table.isAriaEnabled()) {
-      if (rowsToRender > 0) {
+      if (rowsToRender > 0 && rowsHoldCells) {
         giveRowGroupRole(this.rootNode as HTMLElement);
       } else {
         dropRowGroupRole(this.rootNode as HTMLElement);
@@ -131,7 +135,7 @@ export class RowsRenderer extends BaseRenderer {
         continue; // eslint-disable-line no-continue
       }
 
-      if (this.table.isAriaEnabled()) {
+      if (this.table.isAriaEnabled() && rowsHoldCells) {
         setAttribute(TR, [
           A11Y_ROW(),
           // `aria-rowindex` is incremented by both tbody and thead rows.
@@ -139,6 +143,9 @@ export class RowsRenderer extends BaseRenderer {
             (this.table.rowUtils?.deps?.getColumnHeaders() as Function[])?.length ?? 0
           ) + 1),
         ]);
+
+      } else if (this.table.isAriaEnabled()) {
+        dropRowRole(TR);
       }
 
       if ((sourceRowIndex + 1) % 2 === 0) {

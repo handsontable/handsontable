@@ -5,6 +5,8 @@ import type { TableRenderer } from 'walkontable/render/tableRenderer';
 interface SectionState {
   size: number;
   ariaEnabled: boolean;
+  columns: number;
+  rowHeaders: number;
 }
 
 /**
@@ -15,12 +17,18 @@ interface SectionState {
 function createBody() {
   const rootNode = document.createElement('tbody');
   const renderer = new RowsRenderer(rootNode);
-  const state: SectionState = { size: 0, ariaEnabled: true };
+  const state: SectionState = { size: 0, ariaEnabled: true, columns: 3, rowHeaders: 1 };
 
   renderer.setTable({
     rootDocument: document,
     get rowsToRender() {
       return state.size;
+    },
+    get columnsToRender() {
+      return state.columns;
+    },
+    get rowHeadersCount() {
+      return state.rowHeaders;
     },
     renderedRowToSource: (renderedRow: number) => renderedRow,
     isAriaEnabled: () => state.ariaEnabled,
@@ -28,9 +36,11 @@ function createBody() {
     renderEpoch: 0,
   } as unknown as TableRenderer);
 
-  const draw = (size: number, ariaEnabled = true) => {
+  const draw = (size: number, ariaEnabled = true, columns = 3, rowHeaders = 1) => {
     state.size = size;
     state.ariaEnabled = ariaEnabled;
+    state.columns = columns;
+    state.rowHeaders = rowHeaders;
     renderer.render();
   };
 
@@ -45,19 +55,27 @@ function createBody() {
 function createHead() {
   const rootNode = document.createElement('thead');
   const renderer = new ColumnHeaderRowsRenderer(rootNode);
-  const state: SectionState = { size: 0, ariaEnabled: true };
+  const state: SectionState = { size: 0, ariaEnabled: true, columns: 3, rowHeaders: 1 };
 
   renderer.setTable({
     rootDocument: document,
     get columnHeadersCount() {
       return state.size;
     },
+    get columnsToRender() {
+      return state.columns;
+    },
+    get rowHeadersCount() {
+      return state.rowHeaders;
+    },
     isAriaEnabled: () => state.ariaEnabled,
   } as unknown as TableRenderer);
 
-  const draw = (size: number, ariaEnabled = true) => {
+  const draw = (size: number, ariaEnabled = true, columns = 3, rowHeaders = 1) => {
     state.size = size;
     state.ariaEnabled = ariaEnabled;
+    state.columns = columns;
+    state.rowHeaders = rowHeaders;
     renderer.render();
   };
 
@@ -111,6 +129,39 @@ describe.each([
     draw(0);
 
     expect(rootNode.getAttribute('role')).toBe('presentation');
+  });
+
+  it('is not set when the rows hold no cell: no column and no row header is rendered', () => {
+    // The last draw of a side clone that was turned off: the master's rows, none of its columns.
+    const { rootNode, draw } = createSection();
+
+    draw(2, true, 0, 0);
+
+    expect(rootNode.children.length).toBe(2);
+    expect(rootNode.hasAttribute('role')).toBe(false);
+    expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual([null, null]);
+    expect(Array.from(rootNode.children, row => row.hasAttribute('aria-rowindex'))).toEqual([false, false]);
+  });
+
+  it('is taken off, with the rows\' own role, when the rows lose their cells', () => {
+    const { rootNode, draw } = createSection();
+
+    draw(2);
+    expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual(['row', 'row']);
+
+    draw(2, true, 0, 0);
+
+    expect(rootNode.hasAttribute('role')).toBe(false);
+    expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual([null, null]);
+  });
+
+  it('is set for rows that hold a row header and no column', () => {
+    const { rootNode, draw } = createSection();
+
+    draw(2, true, 0, 1);
+
+    expect(rootNode.getAttribute('role')).toBe('rowgroup');
+    expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual(['row', 'row']);
   });
 
   it('writes nothing when the grid writes no accessibility attributes', () => {
