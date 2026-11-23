@@ -44,8 +44,8 @@
       "id": "close-menu",
       "action": {"press": "Escape"},
       "after": {"hidden": ".htContextMenu .ht_master .htCore tbody td"},
-      "expect": [["a1"]],
-      "note": "Escape closes the context menu, and the focus should return to the grid's A1. Finding: no reader says anything: the focus is still on the document the previous step left it on."
+      "expect": [["a1", "a 1"]],
+      "note": "Escape closes the context menu and the focus returns to the grid's A1, which every reader says; NVDA spells the reference apart (`A 1`), the synonym."
     }
   ]
 }

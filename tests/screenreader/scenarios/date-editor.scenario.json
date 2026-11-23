@@ -42,7 +42,7 @@
       "id": "cancel-edit",
       "action": {"press": "Escape"},
       "expect": [["1/1/20", "1 slash 1 slash 20"]],
-      "note": "Escape closes the editor without a change. Finding: neither VoiceOver nor NVDA (with both browsers) says anything, and the focus stays on the closed input, as the commit leaves it; grid-core records the same silence for the text editor."
+      "note": "Escape closes the editor without a change, the focus returns to the cell, and every reader reads it. VoiceOver with WebKit reads `12/10/24`, the date its input took (the typing step), so the step misses there on the typing, not on the reading."
     }
   ]
 }

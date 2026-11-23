@@ -19,7 +19,7 @@
       "id": "value-resolves",
       "action": {"call": ["resolveRequest", 0, "New A"]},
       "expect": [["new a"]],
-      "note": "The server answers the request for the cell the user is on with `New A`. The plugin announces no resolved value. Finding: NVDA and VoiceOver with Chromium say nothing, so a reader is not told that the value it read as loading has arrived; with Firefox and WebKit they read the cell again."
+      "note": "The server answers the request for the cell the user is on with `New A`. The plugin announces no resolved value. Finding: NVDA and VoiceOver with Chromium say nothing, so a reader is not told that the value it read as loading has arrived; NVDA with Firefox reads the new value alone (`New A`). Finding (the grid's): VoiceOver with WebKit says nothing too, where it read the cell again, as checkbox-cell records for a cell that changes in place."
     },
     {
       "id": "arrow-down-pending",

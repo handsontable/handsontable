@@ -20,8 +20,8 @@
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["date", "month stepper", "month spin button"]],
-      "note": "Enter opens the editor on that cell: the native date input the focus already sat in, now shown, holding 2024-06-10. Required: the control, in the reader's words. NVDA said `date edit` when the focus arrived, so here it reads only the segment, `Month, spin button`, a synonym. Finding: NVDA with Firefox says nothing, because the focus does not move."
+      "expect": [["date", "month stepper", "month spin button", "month"]],
+      "note": "Enter opens the editor on that cell: the native date input the focus already sat in, now shown, holding 2024-06-10. Required: the control, in the reader's words. NVDA said `date edit` when the focus arrived, so here it reads only the segment. The input is named after its cell (`<column>, row <n>`), and NVDA and VoiceOver with Chromium read that name between the segment and its role (`Month, A, row 1, spin button`; `06, month, A, row 1, stepper`), so `month` is a synonym, as in the date editor. Finding: NVDA with Firefox says nothing, because the focus does not move."
     },
     {
       "id": "type-date",
