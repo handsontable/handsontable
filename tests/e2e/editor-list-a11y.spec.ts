@@ -32,6 +32,44 @@ for (const cellType of CELL_TYPES) {
       await expect(listbox.getByRole('option')).toHaveText(['Alpha', 'Alfa', 'Alto']);
       await expect(listbox.locator('[role="row"], [role="rowgroup"], table:not([role="presentation"])'))
         .toHaveCount(0);
+      // The nested grid's own wrappers (overlay, holder, hider, spreader, of the master table and of every
+      // clone) sit between the listbox and its options. Chromium hands an exposed wrapper to VoiceOver as a
+      // group, which then reads a list of 1 item. The selection borders are hidden: an option exposes its
+      // highlight itself.
+      const exposedWrappers = listbox
+        .locator('div:not([role="presentation"], [aria-hidden="true"], [aria-hidden="true"] *)');
+
+      await expect(exposedWrappers).toHaveCount(0);
+
+      // A highlight draws the borders of the list, which the list creates on that draw.
+      await grid.page.keyboard.press('ArrowDown');
+      await expect.poll(() => grid.referencedElements()).toMatchObject({ activeDescendant: { role: 'option' } });
+      await expect(listbox.locator('.htBorders').first()).toHaveAttribute('aria-hidden', 'true');
+      await expect(exposedWrappers).toHaveCount(0);
+    });
+
+    test('gives each option its place among the choices the list shows', async() => {
+      await grid.goto();
+      await grid.openEditorAt(0, 0);
+
+      const options = grid.listbox('A, row 1').getByRole('option');
+
+      await expect(options).toHaveText(['Alpha', 'Alfa', 'Alto']);
+      await expect(options.nth(0)).toHaveAttribute('aria-posinset', '1');
+      await expect(options.nth(1)).toHaveAttribute('aria-posinset', '2');
+      await expect(options.nth(2)).toHaveAttribute('aria-posinset', '3');
+
+      for (let index = 0; index < 3; index += 1) {
+        await expect(options.nth(index)).toHaveAttribute('aria-setsize', '3');
+      }
+
+      if (cellType === 'autocomplete') {
+        // Typing narrows the list to Alfa: the option counts the list, not the place Alfa has in `source`.
+        await grid.page.keyboard.type('f');
+        await expect(options).toHaveText(['Alfa']);
+        await expect(options.first()).toHaveAttribute('aria-posinset', '1');
+        await expect(options.first()).toHaveAttribute('aria-setsize', '1');
+      }
     });
 
     test('keeps the table markup hidden after typing reloads the list', async() => {
@@ -383,6 +421,37 @@ test.describe('narrowed list announcement', { tag: [THEMES_TAG, CROSS_BROWSER_TA
       '1 choice available: Alpha',
     ]);
     await expect(grid.politeRegion).toHaveText('1 choice available: Alpha');
+  });
+
+  test('drops an arrow pick that typing superseded, and announces the narrowed list', async({ page, theme, bundle }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto();
+    await grid.startAnnouncementLog();
+    await page.clock.install();
+    await grid.openEditorAt(0, 0);
+    await page.clock.runFor(1000);
+
+    const listbox = grid.listbox('A, row 1');
+
+    await expect(listbox.getByRole('option')).toHaveCount(3);
+
+    // Pick Alto, the last choice, with the arrows.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(() => grid.referencedElements())
+      .toMatchObject({ activeDescendant: { role: 'option', text: 'Alto' } });
+
+    // `Alf` leaves Alfa only. The pick is gone with the list: nothing is highlighted, so Enter would commit the
+    // typed text, and the live region says what is left.
+    await page.keyboard.type('f');
+    await page.clock.runFor(1000);
+    await expect(listbox.getByRole('option')).toHaveText(['Alfa']);
+    await expect.poll(() => grid.referencedElements()).toMatchObject({ activeDescendant: null });
+    await expect(listbox.getByRole('option', { selected: true })).toHaveCount(0);
+
+    expect(await grid.announcements()).toEqual(['1 choice available: Alfa']);
   });
 
   test('announces the text a choice shows, not its markup, with allowHtml', async({ page, theme, bundle }) => {

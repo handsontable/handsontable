@@ -1,6 +1,8 @@
 import type { HotInstance } from '../../core/types';
 import {
+  hideOwnSelectionBorders,
   markOwnTablesAsPresentational,
+  markOwnWrappersAsPresentational,
   markRowAsPresentational,
   removeOwnCellsTabIndex,
   removeOwnHoldersTabIndex,
@@ -109,6 +111,135 @@ describe('a11yNestedGrid', () => {
       expect(nested.tHead?.hasAttribute('role')).toBe(false);
       expect(nested.tBodies[0].hasAttribute('role')).toBe(false);
       expect(nested.querySelector('tr')?.hasAttribute('role')).toBe(false);
+    });
+  });
+
+  describe('markOwnWrappersAsPresentational()', () => {
+    /**
+     * Wraps a table in the chain of elements the rendering engine builds around it (overlay, holder, hider,
+     * spreader) and appends the chain to the root.
+     *
+     * @param {HTMLElement} root The grid's root element.
+     * @param {HTMLTableElement} TABLE The table.
+     * @returns {HTMLElement[]} The wrappers, outermost first.
+     */
+    function wrapTable(root: HTMLElement, TABLE: HTMLTableElement): HTMLElement[] {
+      const wrappers = ['ht_master', 'wtHolder', 'wtHider', 'wtSpreader'].map((className) => {
+        const div = document.createElement('div');
+
+        div.className = className;
+
+        return div;
+      });
+
+      wrappers.reduce((parent, child) => parent.appendChild(child), root);
+      wrappers[wrappers.length - 1].appendChild(TABLE);
+
+      return wrappers;
+    }
+
+    /**
+     * Builds a grid whose master table and one overlay clone sit in the engine's wrapper chain.
+     *
+     * @param {HTMLTableElement} master The master table.
+     * @param {HTMLTableElement} clone The overlay clone table.
+     * @returns {object}
+     */
+    function createWrappedHot(master: HTMLTableElement, clone: HTMLTableElement) {
+      const rootElement = document.createElement('div');
+      const masterWrappers = wrapTable(rootElement, master);
+      const cloneWrappers = wrapTable(rootElement, clone);
+      const hot = {
+        rootElement,
+        view: {
+          _wt: {
+            wtTable: { TABLE: master },
+            wtOverlays: {
+              getOverlays: () => [{ clone: { wtTable: { TABLE: clone } } }, { clone: undefined }],
+            },
+          },
+        },
+      } as unknown as HotInstance;
+
+      return { hot, rootElement, masterWrappers, cloneWrappers };
+    }
+
+    it('should mark every element between the root and the master table and every overlay clone table', () => {
+      const { hot, rootElement, masterWrappers, cloneWrappers } = createWrappedHot(createTable(), createTable());
+
+      markOwnWrappersAsPresentational(hot);
+
+      [...masterWrappers, ...cloneWrappers].forEach((wrapper) => {
+        expect(wrapper.getAttribute('role')).toBe('presentation');
+      });
+      expect(rootElement.hasAttribute('role')).toBe(false);
+    });
+
+    it('should keep the role of the root element', () => {
+      const { hot, rootElement } = createWrappedHot(createTable(), createTable());
+
+      rootElement.setAttribute('role', 'listbox');
+      markOwnWrappersAsPresentational(hot);
+
+      expect(rootElement.getAttribute('role')).toBe('listbox');
+    });
+
+    it('should not touch the wrappers of a table rendered inside a cell', () => {
+      const master = createTable();
+      const { hot } = createWrappedHot(master, createTable());
+      const cellWrapper = document.createElement('div');
+
+      cellWrapper.appendChild(createTable());
+      master.tBodies[0].rows[0].cells[0].appendChild(cellWrapper);
+
+      markOwnWrappersAsPresentational(hot);
+
+      expect(cellWrapper.hasAttribute('role')).toBe(false);
+    });
+
+    it('should stop at the document when a table is not inside the root element', () => {
+      const hot = {
+        rootElement: document.createElement('div'),
+        view: {
+          _wt: {
+            wtTable: { TABLE: createTable() },
+            wtOverlays: { getOverlays: () => [] },
+          },
+        },
+      } as unknown as HotInstance;
+      const detached = document.createElement('div');
+
+      detached.appendChild(hot.view._wt.wtTable.TABLE);
+
+      markOwnWrappersAsPresentational(hot);
+
+      expect(detached.hasAttribute('role')).toBe(false);
+    });
+  });
+
+  describe('hideOwnSelectionBorders()', () => {
+    it('should hide the selection border holder of the master table and every overlay clone', () => {
+      const masterBorders = document.createElement('div');
+      const cloneBorders = document.createElement('div');
+      const hot = {
+        view: {
+          _wt: {
+            wtTable: { bordersHolder: masterBorders },
+            wtOverlays: {
+              getOverlays: () => [
+                { clone: { wtTable: { bordersHolder: cloneBorders } } },
+                { clone: { wtTable: {} } },
+                { clone: undefined },
+              ],
+            },
+          },
+        },
+      } as unknown as HotInstance;
+
+      hideOwnSelectionBorders(hot);
+
+      expect(masterBorders.getAttribute('aria-hidden')).toBe('true');
+      expect(cloneBorders.getAttribute('aria-hidden')).toBe('true');
     });
   });
 

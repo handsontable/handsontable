@@ -30,7 +30,12 @@ import {
   A11Y_POSINSET,
   A11Y_SETSIZE,
 } from '../../helpers/a11y';
-import { markOwnTablesAsPresentational, markRowAsPresentational } from '../../utils/a11yNestedGrid';
+import {
+  hideOwnSelectionBorders,
+  markOwnTablesAsPresentational,
+  markOwnWrappersAsPresentational,
+  markRowAsPresentational,
+} from '../../utils/a11yNestedGrid';
 import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 import { debounce } from '../../helpers/function';
 import { isPlainObject } from '../../helpers/object';
@@ -140,6 +145,13 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {boolean}
    */
   #loadingTypedList = false;
+
+  /**
+   * Hides the list's selection borders from assistive technology after each of its draws.
+   */
+  #hideListSelectionBorders = (): void => {
+    hideOwnSelectionBorders(this.htEditor);
+  };
 
   /**
    * Gets current value from editable element.
@@ -256,8 +268,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const trimDropdownSetting = this.cellProperties.trimDropdown as boolean | undefined;
     const trimDropdown = trimDropdownSetting === undefined ? true : trimDropdownSetting;
     const rootInstanceAriaTagsEnabled = this.hot.getSettings().ariaTags;
-    const sourceArray = Array.isArray(this.cellProperties.source) ? this.cellProperties.source as unknown[] : null;
-    const sourceSize = sourceArray?.length;
+    const hasSourceArray = Array.isArray(this.cellProperties.source);
     const { row: rowIndex, col: colIndex } = this;
 
     this.showEditableElement();
@@ -326,9 +337,12 @@ export class AutocompleteEditor extends HandsontableEditor {
           markRowAsPresentational(TD);
           setAttribute(TD, [
             A11Y_OPTION(),
-            // Add `setsize` and `posinset` only if the source is an array.
-            ...(sourceArray ? [A11Y_SETSIZE(sourceSize ?? 0)] : []),
-            ...(sourceArray ? [A11Y_POSINSET(sourceArray.indexOf(value) + 1)] : []),
+            // Add `setsize` and `posinset` only if the source is an array. Both count the choices the list
+            // shows, not the source: typing narrows the list, and a reader then says "Alfa, 1 of 1", not the
+            // place Alfa has in the source. The list draws only the rows in view, so the size is written on
+            // every option.
+            ...(hasSourceArray ? [A11Y_SETSIZE(hotInstance.countRows())] : []),
+            ...(hasSourceArray ? [A11Y_POSINSET(row + 1)] : []),
             ['id', `${this.htEditor.rootElement.id}_${row}-${col}`],
           ]);
         }
@@ -340,6 +354,13 @@ export class AutocompleteEditor extends HandsontableEditor {
       // from assistive technology, so the listbox owns options only. The nested grid is built anew on
       // every open, and its clones with it, so this runs on every open.
       markOwnTablesAsPresentational(this.htEditor);
+      // The engine marks its wrappers only for a grid with its own `ariaTags` on, and the list is built with
+      // it off: an exposed wrapper reads to VoiceOver with Chromium as a group, so the list read as one item.
+      markOwnWrappersAsPresentational(this.htEditor);
+      // The selection borders sit beside the table inside the listbox, and the engine creates their holder on
+      // the first draw that lays one, after this point.
+      hideOwnSelectionBorders(this.htEditor);
+      this.htEditor.addHook('afterRender', this.#hideListSelectionBorders);
 
       // The editor type keeps the ids of the autocomplete and dropdown lists apart: each editor keeps its
       // container, and the id it last wrote, while another edits a cell at the same coordinates.
@@ -850,6 +871,12 @@ export class AutocompleteEditor extends HandsontableEditor {
         // Only on this branch: in non-strict mode `highlightBestMatchingChoice()` never runs, so a
         // late query must not clear a `'user'` origin the arrow keys set.
         this.innerSelectionOrigin = matchedIndex === undefined ? null : 'auto';
+      } else if (this.#loadingTypedList && this.innerSelectionOrigin === null) {
+        // Typing superseded the arrow pick (the field's `input` listener cleared its origin), so Enter
+        // commits the typed text. The list kept the pick's row, clamped into the shorter list, so a
+        // choice the user never picked stayed highlighted, and a reader read it in place of what the
+        // list now holds. Drop it: nothing is highlighted, as nothing will be committed.
+        this.highlightBestMatchingChoice(undefined);
       }
     } else {
       // The list is empty and hidden, so there is nothing left on screen that a pick could refer

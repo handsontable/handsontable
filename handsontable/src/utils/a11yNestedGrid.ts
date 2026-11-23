@@ -1,4 +1,4 @@
-import { A11Y_PRESENTATION } from '../helpers/a11y';
+import { A11Y_HIDDEN, A11Y_PRESENTATION } from '../helpers/a11y';
 import { removeAttribute, setAttribute } from '../helpers/dom/element';
 import type { HotInstance } from '../core/types';
 
@@ -52,6 +52,49 @@ function getOwnTables(hot: HotInstance): OwnTable[] {
  */
 export function markOwnTablesAsPresentational(hot: HotInstance): void {
   getOwnTables(hot).forEach(wtTable => markTableAsPresentational(wtTable.TABLE));
+}
+
+/**
+ * Hides the wrapper elements of a nested grid from assistive technology: marks as presentational every element
+ * between the grid's root element and each of its own tables (the overlay element, the scroll holder, the
+ * hider, and the spreader), for the master table and for every overlay clone. The rendering engine writes the
+ * same role on them itself only when the nested grid's own `ariaTags` is on, and a list built with it off left
+ * them exposed: Chromium reports such wrappers to VoiceOver as groups, so a `listbox` on the root read as a
+ * list of one item instead of a list of its options. Tables rendered inside a cell of the grid are not reached.
+ *
+ * @param {HotInstance} hot The nested Handsontable instance.
+ */
+export function markOwnWrappersAsPresentational(hot: HotInstance): void {
+  const [name, value] = A11Y_PRESENTATION();
+  const { rootElement } = hot;
+
+  getOwnTables(hot).forEach((wtTable) => {
+    let element = wtTable.TABLE.parentElement;
+
+    while (element !== null && element !== rootElement && rootElement.contains(element)) {
+      setAttribute(element, name, value);
+      element = element.parentElement;
+    }
+  });
+}
+
+/**
+ * Hides the selection borders of a nested grid from assistive technology: sets `aria-hidden="true"` on the
+ * element that holds them (`.htBorders`) in the master table and in every overlay clone. The borders draw the
+ * highlight of a list option, which the option already exposes, and they sit beside the table inside the
+ * widget role, as children the role does not allow. The holder is created on the grid's first draw that lays
+ * a border, so call this after every draw.
+ *
+ * @param {HotInstance} hot The nested Handsontable instance.
+ */
+export function hideOwnSelectionBorders(hot: HotInstance): void {
+  getOwnTables(hot).forEach((wtTable) => {
+    const { bordersHolder } = wtTable;
+
+    if (bordersHolder && bordersHolder.getAttribute('aria-hidden') !== 'true') {
+      setAttribute(bordersHolder, ...A11Y_HIDDEN());
+    }
+  });
 }
 
 /**
