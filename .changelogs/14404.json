@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grid's structure for screen readers: the column headers now come before the data, each row holds its row header and all of its cells, and cells of frozen rows and columns are no longer read more than once.",
+  "type": "fixed",
+  "issueOrPR": 14404,
+  "breaking": false,
+  "framework": "none"
+}
