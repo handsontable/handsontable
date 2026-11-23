@@ -13,6 +13,9 @@ import {
   SPONSORED_BADGE_KEY,
   SPONSORED_BADGE_EXTERNAL_KEY,
   SPONSORED_NO_BADGE_KEY,
+  PERPETUAL_BADGE_KEY,
+  PERPETUAL_BADGE_NO_UI_WARNS_KEY,
+  BADGE_EMPTY_CLAUSE_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { blockOf } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
@@ -363,6 +366,21 @@ describe('the `badge` facet of the license state (DEV-3413)', () => {
 
   it('should read `badge` from a key whose Handsontable entry carries the flag', () => {
     expect(_getLicenseState(SPONSORED_BADGE_KEY).badge).toBe(true);
+  });
+
+  it('should read `badge` from a perpetual key, whose entry is a `release_until` one', () => {
+    expect(_getLicenseState(PERPETUAL_BADGE_KEY).badge).toBe(true);
+  });
+
+  it('should keep `badge` on a perpetual key that also carries `no-ui-warns`', () => {
+    const { badge, channels } = _getLicenseState(PERPETUAL_BADGE_NO_UI_WARNS_KEY);
+
+    expect(channels.ui).toBe(false);
+    expect(badge).toBe(true);
+  });
+
+  it('should read `badge` from a key whose badge clause is empty', () => {
+    expect(_getLicenseState(BADGE_EMPTY_CLAUSE_KEY).badge).toBe(true);
   });
 
   it('should keep `badge` on a key whose silencing flags close both channels', () => {
