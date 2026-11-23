@@ -215,6 +215,22 @@ describe('HandsontableEditor list option press', () => {
     expect(editor.hot.listen).toHaveBeenCalledTimes(2);
   });
 
+  it('removes the click listener once the timer has run, so a later click takes nothing', () => {
+    editor._opened = true;
+    editor.TEXTAREA.focus = jest.fn();
+
+    press(1);
+    release(outside);
+    flushTimeouts();
+    editor.hot.listen.mockClear();
+    editor.TEXTAREA.focus.mockClear();
+
+    document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(editor.hot.listen).not.toHaveBeenCalled();
+    expect(editor.TEXTAREA.focus).not.toHaveBeenCalled();
+  });
+
   it('gives the keys back from a timer when the gesture ends with no click', () => {
     editor._opened = true;
     editor.TEXTAREA.focus = jest.fn();
@@ -321,6 +337,24 @@ describe('HandsontableEditor list option press', () => {
 
       expect(editor.hot.listen).toHaveBeenCalled();
       expect(editor.TEXTAREA.focus).toHaveBeenCalled();
+    });
+
+    it.each([
+      ['a press by another button', { button: 2 }],
+      ['a replayed long press', { longPress: true }],
+    ])('leaves nothing armed for a later click after %s', (_, init) => {
+      editor._opened = true;
+      editor.TEXTAREA.focus = jest.fn();
+
+      press(1, init);
+      flushTimeouts();
+      editor.hot.listen.mockClear();
+      editor.TEXTAREA.focus.mockClear();
+
+      document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      expect(editor.hot.listen).not.toHaveBeenCalled();
+      expect(editor.TEXTAREA.focus).not.toHaveBeenCalled();
     });
 
     it('picks nothing at the lift of a finger that long-pressed the option', () => {

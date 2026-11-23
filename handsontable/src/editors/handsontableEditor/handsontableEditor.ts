@@ -1015,7 +1015,8 @@ export class HandsontableEditor extends TextEditor {
    * The keys return at once, and again after the `click` that ends a release outside the grid: that
    * click makes the focus scopes stop the grid listening, and the next key would be lost. Waiting for
    * a timer to undo it would leave a gap in which a key press is lost, so the return follows the click
-   * itself. A timer covers a gesture that ends with no click.
+   * itself. The listener lives until the timer that follows, so a gesture that ends with no click leaves
+   * nothing armed.
    *
    * @param {PendingOptionPress} press The press that was abandoned.
    */
@@ -1029,7 +1030,13 @@ export class HandsontableEditor extends TextEditor {
       this.#keysReturnRemover = null;
       this.#returnKeysToEditor();
     });
-    this.hot._registerTimeout(() => this.#returnKeysToEditor(), 0);
+    // The click of the same gesture has run by now. A gesture that ends with no click (a press by another
+    // button, a replayed long press) must not leave the listener armed for a later, unrelated click.
+    this.hot._registerTimeout(() => {
+      this.#returnKeysToEditor();
+      this.#keysReturnRemover?.();
+      this.#keysReturnRemover = null;
+    }, 0);
   }
 
   /**
