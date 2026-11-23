@@ -1002,6 +1002,7 @@ describe('UndoRedo', () => {
         });
 
         spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: [
             ['A'],
             ['B'],
@@ -1602,6 +1603,7 @@ describe('UndoRedo', () => {
         });
 
         spec().$container2.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           data: [
             ['A'],
             ['B'],

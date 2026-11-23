@@ -105,8 +105,9 @@ function collectTextNodes(TD: HTMLTableCellElement): Text[] {
  *
  * @param {Text} textNode The text node.
  * @param {LinkifyOptions} options The pass options.
+ * @returns {boolean} Whether it made a link.
  */
-function linkifyTextNode(textNode: Text, options: LinkifyOptions): void {
+function linkifyTextNode(textNode: Text, options: LinkifyOptions): boolean {
   const tokens = findLinkTokens(textNode.data, options.baseUrl, options.schemes, options.strict);
   const doc = textNode.ownerDocument;
 
@@ -127,6 +128,8 @@ function linkifyTextNode(textNode: Text, options: LinkifyOptions): void {
     link.appendChild(urlNode);
     hideSchemePrefix(link);
   }
+
+  return tokens.length > 0;
 }
 
 /**
@@ -135,19 +138,20 @@ function linkifyTextNode(textNode: Text, options: LinkifyOptions): void {
  * @param {HTMLTableCellElement} TD The cell.
  * @param {string} text The cell's rendered text.
  * @param {LinkifyOptions} options The pass options.
+ * @returns {boolean} Whether it made the link.
  */
-function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: LinkifyOptions): void {
+function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: LinkifyOptions): boolean {
   const trimmed = text.trim();
   const tokens = findLinkTokens(trimmed, options.baseUrl, options.schemes, options.strict);
 
   if (tokens.length !== 1 || tokens[0].start !== 0 || tokens[0].end !== trimmed.length) {
-    return;
+    return false;
   }
 
   // A checkbox whose label is the URL is the case this guards: the trimmed text is exactly one URL,
   // but wrapping the whole cell would move the interactive element inside the anchor and hijack it.
   if (TD.querySelector(SKIPPED_ANCESTORS) !== null) {
-    return;
+    return false;
   }
 
   const link = createLinkElement(TD.ownerDocument, {
@@ -161,6 +165,8 @@ function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: Linki
   // wrapper on every render pass.
   wrapCellContent(TD, link);
   hideSchemePrefix(link);
+
+  return true;
 }
 
 /**
@@ -170,8 +176,9 @@ function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: Linki
  *
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {LinkifyOptions} options The pass options.
+ * @returns {boolean} Whether the cell now holds a link this feature made.
  */
-export function linkifyCell(TD: HTMLTableCellElement, options: LinkifyOptions): void {
+export function linkifyCell(TD: HTMLTableCellElement, options: LinkifyOptions): boolean {
   // Walkontable recycles TD elements and a renderer may keep its previous DOM, so the pass starts
   // from a clean cell and rebuilds every anchor from the text that is actually rendered now.
   unlinkifyCell(TD);
@@ -183,16 +190,22 @@ export function linkifyCell(TD: HTMLTableCellElement, options: LinkifyOptions): 
   // so it only skips a cell holding none of the three - still the overwhelming majority of cells.
   if (options.strict ? text.indexOf(':') === -1
     : text.indexOf(':') === -1 && text.indexOf('.') === -1 && text.indexOf('@') === -1) {
-    return;
+    return false;
   }
 
   if (TD.querySelector('a') !== null) {
-    return;
+    return false;
   }
 
   if (options.inline) {
-    collectTextNodes(TD).forEach(textNode => linkifyTextNode(textNode, options));
-  } else {
-    linkifyWholeCell(TD, text, options);
+    let linked = false;
+
+    collectTextNodes(TD).forEach((textNode) => {
+      linked = linkifyTextNode(textNode, options) || linked;
+    });
+
+    return linked;
   }
+
+  return linkifyWholeCell(TD, text, options);
 }

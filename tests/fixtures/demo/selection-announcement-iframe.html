@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - selection announcements across realms</title>
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    #frame { width: 900px; height: 500px; border: 0; display: block; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Fixture for the selection announcement of a grid in another realm: the grid's DOM, and so its
+    `rootWindow`, live in the IFRAME, while the `Handsontable` that builds it is the PARENT's.
+
+    A 10 x 6 grid with row and column headers. Cells carry data-testid="cell-<row>-<col>". The live
+    regions are created in the iframe document, next to the grid's portal; `window.frameDoc` and
+    `window.hot` expose both to the page object.
+  -->
+  <iframe id="frame" data-testid="frame" title="Grid"></iframe>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * Loads one stylesheet into the iframe document and resolves when it applied, so the grid is not
+     * measured from an unthemed table.
+     */
+    function loadStyle(doc, href) {
+      return new Promise((resolve, reject) => {
+        const link = doc.createElement('link');
+
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.addEventListener('load', resolve);
+        link.addEventListener('error', () => reject(new Error(`failed to load ${href}`)));
+        doc.head.appendChild(link);
+      });
+    }
+
+    (async() => {
+      try {
+        const doc = document.getElementById('frame').contentDocument;
+
+        doc.open();
+        doc.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head><body></body></html>');
+        doc.close();
+
+        await Promise.all([
+          loadStyle(doc, '/handsontable/styles/handsontable.min.css'),
+          loadStyle(doc, `/handsontable/styles/ht-theme-${window.htTheme}.min.css`),
+        ]);
+
+        const grid = doc.createElement('div');
+
+        grid.className = `ht-theme-${window.htTheme}`;
+        grid.setAttribute('data-testid', 'grid');
+        doc.body.appendChild(grid);
+
+        window.frameDoc = doc;
+        window.hot = new Handsontable(grid, {
+          data: Array.from({ length: 10 }, (_, row) =>
+            Array.from({ length: 6 }, (__, col) => `${String.fromCharCode(65 + col)}${row + 1}`)),
+          colHeaders: true,
+          rowHeaders: true,
+          renderer: testIdRenderer,
+          licenseKey: window.htTestLicenseKey,
+        });
+      } catch (error) {
+        window.htBuildError = String((error && error.stack) || error);
+        throw error;
+      }
+    })();
+  </script>
+</body>
+</html>

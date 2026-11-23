@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulas cell description e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    HyperFormula-backed grid for the accessible description of a formula cell. Row 0 holds plain values
+    in A and B and a formula in C (`=SUM(A1:B1)`), row 1 a plain value in C, row 2 an array formula in
+    A with the cell below it spilled, so a spec can prove: a formula cell carries visually hidden
+    "Formula: ..." generated text after its value, a value cell and a spilled cell carry none, `showFormulas()`
+    does not announce the formula twice, `ariaTags: false` removes the text, and the text follows the
+    formula when the cell is edited, sorted or the plugin is switched off. Every leg runs exactly ONE
+    engine: the `umd` legs load HyperFormula as an external script (the base bundle ships none); the
+    `full-min` legs use the engine baked into the bundle.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    // `ariaTags` is an init-only option, so a case that runs without it builds the grid that way. Same
+    // fail-loud allowlist as the theme: an absent param keeps the default (on), an unknown value throws.
+    const ariaTags = ({ on: true, off: false })[htParams.get('ariaTags') ?? 'on'];
+
+    if (ariaTags === undefined) {
+      throw new Error('Unknown ?ariaTags= value: ' + JSON.stringify(htParams.get('ariaTags')));
+    }
+
+    // Two more layouts the description has to survive: an exact row height (which wraps every cell's content
+    // in `div.htCellClip`) and `renderMode: 'onChange'` (which skips a cell whose stamp did not change).
+    const rowsByParam = { default: undefined, exact: 30 };
+    const renderModeByParam = { default: 'all', onChange: 'onChange' };
+    const rowsParam = htParams.get('rows') ?? 'default';
+    const renderParam = htParams.get('render') ?? 'default';
+
+    if (!Object.hasOwn(rowsByParam, rowsParam)) {
+      throw new Error('Unknown ?rows= value: ' + JSON.stringify(rowsParam));
+    }
+    if (!Object.hasOwn(renderModeByParam, renderParam)) {
+      throw new Error('Unknown ?render= value: ' + JSON.stringify(renderParam));
+    }
+
+    // Two cells other styles also draw into: a commented formula cell (the Comments indicator is the cell's
+    // `::after`) and a formula in the first cell that returns an empty string (the empty-cell guard of the
+    // base stylesheet is the cell's `::after` too).
+    const directionParam = htParams.get('dir') ?? 'ltr';
+
+    if (directionParam !== 'ltr' && directionParam !== 'rtl') {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(directionParam));
+    }
+
+    document.documentElement.dir = directionParam;
+
+    // A result wider than its cell, in a grid that does not wrap: the description sits after that text, and has
+    // to add nothing to the width of what scrolls.
+    const overflowing = htParams.get('overflow') === 'on';
+    const withComment = htParams.get('comment') === 'on';
+    const emptyFirstCell = htParams.get('first') === 'empty';
+    const rowHeights = rowsByParam[rowsParam];
+    const renderMode = renderModeByParam[renderParam];
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.hot = new Handsontable(container, {
+      data: [
+        [emptyFirstCell ? '=IF(1=1,"","x")' : '1', '2', overflowing ? '=REPT("x",400)' : '=SUM(A1:B1)'],
+        ['3', '4', '5'],
+        ['=TRANSPOSE(A1:A2)', null, '6'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+        sheetName: 'Sheet1',
+      },
+      width: 500,
+      height: 160,
+      rowHeaders: true,
+      colHeaders: true,
+      columnSorting: true,
+      ariaTags,
+      wordWrap: !overflowing,
+      colWidths: overflowing ? 80 : undefined,
+      layoutDirection: directionParam,
+      comments: withComment,
+      cell: withComment ? [{ row: 0, col: 2, comment: { value: 'A note' } }] : [],
+      rowHeights,
+      renderMode,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: window.htTestLicenseKey,
+    });
+  </script>
+</body>
+</html>

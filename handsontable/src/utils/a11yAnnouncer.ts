@@ -4,6 +4,7 @@
 let announcerElement: HTMLElement | null = null;
 let politeAnnouncerElement: HTMLElement | null = null;
 const installedPortals: HTMLElement[] = [];
+let announcementCount = 0;
 
 /**
  * How urgently an announcement interrupts the screen reader. `assertive` interrupts the current
@@ -112,6 +113,8 @@ export function announce(message: string, politeness: AnnouncementPoliteness = '
     return;
   }
 
+  announcementCount += 1;
+
   // The value needs to be cleared first to ensure that screen readers announce the new message.
   liveRegion.textContent = '';
 
@@ -120,4 +123,14 @@ export function announce(message: string, politeness: AnnouncementPoliteness = '
       liveRegion.textContent = message;
     }
   }, 100);
+}
+
+/**
+ * Returns how many announcements were made since the page loaded. A feature that announces late (after a
+ * debounce) compares two readings to learn whether another feature already announced for the same user action.
+ *
+ * @returns {number}
+ */
+export function getAnnouncementCount(): number {
+  return announcementCount;
 }

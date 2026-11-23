@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { keyWithTier } from './xlsxLicenseKeys';
+import { buildTestKey } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/buildTestKey';
 
 /**
  * The license tiers of the build under test, read from `handsontable/dist/manifest.json` when a test
@@ -9,6 +10,20 @@ import { keyWithTier } from './xlsxLicenseKeys';
  */
 interface ManifestCapability {
   id: string;
+  kind: string;
+  name: string;
+  licensing: string;
+  gate: string | null;
+  tiers: string[];
+}
+
+/**
+ * A sold plugin's license token as the manifest lists it, in the shape of the plugin's static `LICENSE`.
+ */
+export interface PluginLicenseEntry {
+  capability: string;
+  name: string;
+  gate: string;
   tiers: string[];
 }
 
@@ -62,6 +77,49 @@ function tiersOf(id: string): string[] {
  */
 export function manifestTiers(): string[] {
   return [...readManifest().tiers];
+}
+
+/**
+ * The tiers the manifest lists for a feature.
+ *
+ * @param {string} id The feature id, for example `'feat:filters'`.
+ * @returns {string[]}
+ */
+export function featureTiers(id: string): string[] {
+  return [...tiersOf(id)];
+}
+
+/**
+ * Every plugin the manifest sells (`kind: 'plugin'`, `licensing: 'token'`), with the token, the display
+ * name, the gate and the tiers its static `LICENSE` must carry in the built bundle.
+ *
+ * @returns {PluginLicenseEntry[]}
+ */
+export function soldPluginLicenses(): PluginLicenseEntry[] {
+  return readManifest().capabilities
+    .filter(entry => entry.kind === 'plugin' && entry.licensing === 'token')
+    .map(entry => ({ capability: entry.id, name: entry.name, gate: entry.gate as string, tiers: [...entry.tiers] }));
+}
+
+/**
+ * A perpetual key that names no tier and covers the builds released on or before `releaseUntil`. Whether
+ * a build is past it is decided by the release date the build inlined, never by the clock.
+ *
+ * @param {string} releaseUntil The last covered release day, `YYYY-MM-DD`.
+ * @returns {string}
+ */
+export function releaseKeyUntil(releaseUntil: string): string {
+  return buildTestKey({
+    products: {
+      handsontable: {
+        capabilities: ['core'],
+        release_until: releaseUntil,
+        notice: 60,
+        grace: 90,
+        flags: [],
+      },
+    },
+  });
 }
 
 /**

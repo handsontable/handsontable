@@ -1,7 +1,10 @@
 import {
   addClass,
+  hasClass,
   removeClass,
+  setAttribute,
 } from '../../helpers/dom/element';
+import { A11Y_GRIDCELL } from '../../helpers/a11y';
 import { isNumeric, clamp } from '../../helpers/number';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isLeftClick, isRightClick, isTouchEvent } from '../../helpers/dom/event';
@@ -73,6 +76,35 @@ export type NestedHeader = string | number | NestedHeaderSettings;
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
+
+/**
+ * The attributes that give an element inside a header label an accessible name.
+ */
+const NAMING_ATTRIBUTES = ['alt', 'aria-label', 'aria-labelledby', 'title'];
+const NAMING_ATTRIBUTES_SELECTOR = NAMING_ATTRIBUTES.map(name => `[${name}]`).join(', ');
+
+/**
+ * Checks whether a rendered header label names its header: it has text, or an element in it that is
+ * not hidden from assistive technology carries a non-empty naming attribute (an `<img alt="Q1">`, an
+ * icon with an `aria-label`). A label of markup with no name (an `aria-hidden` icon, an `<img>` with no
+ * `alt`) names nothing.
+ *
+ * @param {Element} label The header's `.colHeader` element.
+ * @returns {boolean}
+ */
+function hasLabelName(label: Element): boolean {
+  if ((label.textContent ?? '').trim() !== '') {
+    return true;
+  }
+
+  if (label.childElementCount === 0) {
+    return false;
+  }
+
+  return Array.from(label.querySelectorAll(NAMING_ATTRIBUTES_SELECTOR)).some(element =>
+    !element.closest('[aria-hidden="true"]') &&
+    NAMING_ATTRIBUTES.some(name => (element.getAttribute(name) ?? '').trim() !== ''));
+}
 
 /**
  * The header group membership a column move left behind, as `NestedHeaders#captureState()` records it.
@@ -935,6 +967,7 @@ export class NestedHeaders extends BasePlugin {
 
       if (!reachesCells) {
         removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
+        this.#markUnlabeledGroupHeader(TH);
       }
 
       if ((!isPlaceholder && !isHidden && !isRowspanPlaceholder) || isEndContinuation) {
@@ -948,6 +981,30 @@ export class NestedHeaders extends BasePlugin {
         }
       }
     };
+  }
+
+  /**
+   * Turns a header above the bottom header row that shows no label into a plain cell: `role="gridcell"`
+   * with no `scope`. Such a header (a group row shorter than the column count leaves one over each column
+   * it does not cover) names no column, so as a column header it gives a screen reader an empty name to
+   * read for every cell below it. Walkontable writes `role="columnheader"` and `scope` again on every draw
+   * before this renderer runs, so a recycled header that gets a label is a column header again.
+   *
+   * @param {HTMLTableCellElement} TH The header element.
+   */
+  #markUnlabeledGroupHeader(TH: HTMLTableCellElement) {
+    if (!this.hot.getSettings().ariaTags || hasClass(TH, 'hiddenHeader')) {
+      return;
+    }
+
+    const label = TH.querySelector('.colHeader');
+
+    if (!label || hasLabelName(label)) {
+      return;
+    }
+
+    setAttribute(TH, [A11Y_GRIDCELL()]);
+    TH.removeAttribute('scope');
   }
 
   /**

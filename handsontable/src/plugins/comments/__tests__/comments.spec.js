@@ -476,6 +476,7 @@ describe('Comments', () => {
       `).appendTo(spec().$container);
 
       const hot = new Handsontable(testContainer.find('#hot-container')[0], {
+        licenseKey: TEST_LICENSE_KEY,
         data: createSpreadsheetData(10, 10),
         width: 200,
         height: 150,
@@ -1358,6 +1359,7 @@ describe('Comments', () => {
   describe('Destroying the plugin with two instances of Handsontable', () => {
     it('should create two containers for comments for two HOT instances', async() => {
       const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: createSpreadsheetData(6, 6),
         cell: [
           { row: 1, col: 1, comment: { value: 'Hello world!' } },
@@ -1369,6 +1371,7 @@ describe('Comments', () => {
       });
 
       const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: createSpreadsheetData(6, 6),
         cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
         rowHeaders: true,
@@ -1393,6 +1396,7 @@ describe('Comments', () => {
 
     it('should delete one container when one HOT instance is destroyed', async() => {
       const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: createSpreadsheetData(6, 6),
         cell: [
           { row: 1, col: 1, comment: { value: 'Hello world!' } },
@@ -1404,6 +1408,7 @@ describe('Comments', () => {
       });
 
       const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: createSpreadsheetData(6, 6),
         cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
         rowHeaders: true,

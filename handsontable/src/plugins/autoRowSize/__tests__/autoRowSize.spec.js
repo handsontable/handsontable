@@ -345,10 +345,12 @@ describe('AutoRowSize', () => {
   it('should consider CSS style of each instance separately', async() => {
     const $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: arrayOfObjects(),
       autoRowSize: true
     });
     const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: arrayOfObjects(),
       autoRowSize: true
     });
@@ -957,6 +959,7 @@ describe('AutoRowSize', () => {
       });
 
       spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: [['c'], ['d']],
         autoRowSize: true,
         autoColumnSize: true,
@@ -990,6 +993,7 @@ describe('AutoRowSize', () => {
       });
 
       const hot2Instance = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: [['=Sheet1!A1'], ['d'], ['e']],
         autoRowSize: true,
         formulas: {

@@ -49,8 +49,6 @@ const EXPECTED_MESSAGES = [
   /^The "data" setting is ignored when "hasExternalDataSource" returns `true`\.$/,
   /^The `data` setting is ignored when `sheetsBar\.sheets` declares a workbook/,
   /^The sheet "[^"]+" passes the HyperFormula class with a sheetName\./,
-  // The license specs build keys that are invalid or that lack a token.
-  /^The license key for Handsontable is invalid\./,
   // `docsExamples.unit.js` runs the getting-started demo, which logs
   // `Handsontable: v${version} (${buildDate})` itself.
   /^Handsontable: v\d+\.\d+\.\d+\S* \(/,
@@ -78,14 +76,92 @@ function isExpected(args) {
   return EXPECTED_MESSAGES.some(pattern => pattern.test(message));
 }
 
+/**
+ * The message a grid logs for a missing, an invalid, or an expired legacy license key. Every test grid
+ * takes the internal test key (`test/helpers/licenseKey.js`), which logs nothing, so a test that logs
+ * one built a grid without it, and that grid sits behind the license lock.
+ */
+const LICENSE_KEY_MESSAGE = /^The license key for Handsontable (?:is missing|is invalid|expired)\b/;
+
+/**
+ * The test files that build such keys on purpose: they test how a key is read, what a key unlocks,
+ * or what an export or an import does without a valid key. A path matches when it contains one of
+ * these fragments.
+ */
+const LICENSE_TEST_FILES = [
+  '/utils/entitlementLicenseKey/',
+  '/utils/licenseCapabilities/',
+  '/utils/__tests__/licenseBranding',
+  '/utils/__tests__/licenseNotification',
+  '/helpers/__tests__/mixed.unit',
+  '/helpers/__tests__/entitlementLicenseInfo',
+  '/core/__tests__/license.unit',
+  '/plugins/base/__tests__/licenseGate',
+  '/utils/xlsxEngine/__tests__/licenseCapabilities',
+  '/utils/xlsxEngine/__tests__/xlsxEntitlement',
+  '/plugins/exportFile/__tests__/exportFile.unit',
+  '/plugins/exportFile/__tests__/xlsxLicenseGates',
+  '/plugins/exportFile/__tests__/xlsxProtectionOption',
+  '/plugins/importFile/__tests__/importFile.unit',
+  '/plugins/importFile/__tests__/importLicenseGates',
+];
+
+/**
+ * Tells whether the running test file may log a license key message.
+ *
+ * @param {string} testPath The absolute path of the running test file.
+ * @returns {boolean}
+ */
+function isLicenseTestFile(testPath) {
+  const path = String(testPath).split('\\').join('/');
+
+  return LICENSE_TEST_FILES.some(fragment => path.includes(fragment));
+}
+
+// The license key messages logged since the last check, by a file that is not a license test.
+const unexpectedLicenseMessages = [];
+
 ['warn', 'error', 'log', 'info'].forEach((level) => {
   const original = console[level];
 
   console[level] = (...args) => {
+    if (LICENSE_KEY_MESSAGE.test(String(args[0]))) {
+      if (!isLicenseTestFile(expect.getState().testPath)) {
+        unexpectedLicenseMessages.push(String(args[0]));
+      }
+
+      return;
+    }
+
     if (!isExpected(args)) {
       original.apply(console, args);
     }
   };
 });
 
-module.exports = { EXPECTED_MESSAGES, isExpected };
+/**
+ * Throws when a test that is not a license test logged a license key message since the last call,
+ * and forgets the messages either way.
+ */
+function assertNoUnexpectedLicenseMessage() {
+  if (unexpectedLicenseMessages.length > 0) {
+    const message = unexpectedLicenseMessages.splice(0)[0];
+
+    throw new Error(`A grid in this test was built without the test license key and logged "${message}" `
+      + 'Pass `licenseKey: TEST_LICENSE_KEY` (import it from `test/helpers/licenseKey.js`). A test of the '
+      + 'license behavior itself goes in LICENSE_TEST_FILES in `test/jestExpectedConsole.js`.');
+  }
+}
+
+// The legacy message prints once per test file (the core keeps a module-level flag), so this finds the
+// first grid built without a key in a file, which is enough to fail it.
+afterEach(assertNoUnexpectedLicenseMessage);
+
+module.exports = {
+  EXPECTED_MESSAGES,
+  LICENSE_KEY_MESSAGE,
+  LICENSE_TEST_FILES,
+  assertNoUnexpectedLicenseMessage,
+  isExpected,
+  isLicenseTestFile,
+};

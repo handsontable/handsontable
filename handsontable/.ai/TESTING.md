@@ -609,7 +609,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Framework: Playwright, over the same catalog pages and keyboard-reached states as the axe scan (`tests/a11y/harness.ts`), one project per check
 - Location: `tests/a11y/checks/` (the specs), `tests/a11y/evidence.ts` (what a test declares and attaches); the evidence shape, the WCAG 2.2 criteria table, the summary and the check run are `tests/lib/a11y-evidence.mjs`, the reporter `tests/reporters/a11y-checks.ts`
 - Output: one evidence document per check, `tests/test-results/a11y-checks/<check>.json`, that the conformance report generator cites per criterion (the targets each criterion was evaluated on, and the findings against it), plus a detail file per target
-- CI: the `A11y nightly` only (a weekly schedule and a dispatch; every check on develop, evidence kept 30 days, a subset's 7): the `checks` job of `a11y.yml` runs when its caller asks for it, which the pull-request pipeline does not, so a pull request runs the axe scan alone; the short suite (the checks that finish in under two minutes) is for a local run or a dispatch of the nightly, and the `checks` input runs the named checks alone (a proof run from a branch; `tests/AGENTS.md` → "A11y: the audit and the proof runs")
+- CI: every check on the `A11y nightly` (a weekly schedule and a dispatch; on develop, evidence kept 30 days, a subset's 7), and the short suite (the checks that finish in under two minutes) on every pull request that builds the UMD, beside the axe scan (the same gate), report-only, its new findings told from the known ones by the findings ledger (`tests/lib/a11y-pr-ledger.mjs`): the `checks` job of `a11y.yml` runs when its caller asks for it; the short suite is also for a local run or a dispatch of the nightly, and the `checks` input runs the named checks alone (a proof run from a branch; `tests/AGENTS.md` → "A11y: the audit and the proof runs")
 - Checks: the keyboard walker (`keyboard-walker`: Tab walks with traps, focus order, Escape out of popups, the APG grid keys, every documented shortcut from `tests/a11y/checks/keyboard-shortcuts.mjs`, character keys, focus and input context changes; tab-order goldens in `tests/a11y/tab-order-goldens/`); the accessibility-tree snapshots (`tree-snapshots`: Chromium's tree of the grid and its portal in reading order, its structure, names and roles; goldens in `tests/a11y/tree-goldens/`); the axe discovery run (`axe-discovery`, nightly only: best-practice, AAA and experimental rules over the catalog, extra states, the dark scheme, right to left and a second phone, every "needs review" result with its reason, for triage); focus appearance and non-text contrast (`focus-contrast`: focus indicators, checkboxes, icons, selection outline and grid lines measured from pixels on every theme, light and dark, and the focus kept in view behind frozen panes); zoom, reflow, text spacing, and hover content (`reflow`: the surfaces around the grid at 320 px, at 200%, and under the text-spacing override, the comment shown on hover, both orientations); forced colors and reduced motion (`forced-colors-motion`, nightly only: every state watched at rest for five seconds, four interactions watched with and without `prefers-reduced-motion`, the focus, selection, menu highlight, grid lines, and icons captured in forced colors); pointer and drag alternatives (`pointer`: every control pressed and released away from it, compared with its click, every drag of `tests/a11y/checks/drag-operations.mjs` performed with each of its alternatives, and the inventory itself as the 2.5.1 target)
 - Report-only: a finding is a summary row and an annotation, never a red job; the `A11y / <check> report` check run follows the severity rule (`tests/AGENTS.md` → "A11y: the verdict of a check run"), and the nightly's run follows its worst check run; a test fails for tooling only, and a flaky check is a finding against the check. Product findings are recorded, never fixed in the check's change. How to add a check: `tests/AGENTS.md` → "A11y: the checks beyond axe"
 
@@ -718,6 +718,29 @@ it('should maintain selections after render', async() => {
 - `keyUp(key)` -- Simulate keyup event
 - `keyDownUp(key)` -- Simulate full keydown+keyup sequence
 - Key names: `'enter'`, `'esc'`, `'tab'`, `'arrowdown'`, `'arrowup'`, `'arrowleft'`, `'arrowright'`, `'ctrl'`, `'shift'`, `'space'`, `'backspace'`, `'delete'`, etc.
+
+## The license key every test grid takes
+
+Since 19.0 a grid built without a valid key mounts behind the license lock. API calls still work, so a test
+that only reads the grid passes, while its clicks, focus moves, screenshots and axe scans meet the lock. Every
+grid a test builds therefore takes the internal test key, from its suite's constant:
+`TEST_LICENSE_KEY` (`test/helpers/licenseKey.js`; a global in Jasmine specs, imported in Jest), and
+`window.htTestLicenseKey` in a Playwright fixture. The Jasmine `handsontable()` helper adds it unless
+`explicitOptions` is `true`. Only a test of the license behavior itself builds another key, or none.
+
+Three guards hold it, one per runner, because no single check sees every runner:
+
+- **Jasmine and fixture pages: a static scan.** `scripts/__tests__/test-license-key.test.mjs` (root
+  `test:tooling`) fails on a grid constructor (`new Handsontable(`, `new Handsontable.Core(`, `new Core(`,
+  jQuery's `.handsontable(`) whose options do not name `licenseKey`, unless they are a variable, a spread or
+  `Object.assign()` in a file that sets a key. A runtime check cannot do this job in Jasmine: the whole suite
+  shares one page, and the core prints the legacy key message once per page.
+- **Jest: the console.** `test/jestExpectedConsole.js` fails a unit test whose grid logged a missing, invalid
+  or expired key message, unless its file is listed in `LICENSE_TEST_FILES`. The message prints once per
+  test file, so the guard fails the first keyless grid of a file. A `Core` built without the root symbol
+  never checks the key and logs nothing; it shows no lock either.
+- **Playwright: the page.** The `page` fixture in `tests/fixtures/test.ts` fails a passing test that left a
+  `.ht-license-lock` on its page (`tests/AGENTS.md`, "Fixture contract").
 
 ## Bootstrap and Setup
 

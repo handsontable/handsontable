@@ -11,6 +11,8 @@ import {
   sumBlockWidthsOutsideBand,
 } from './utils';
 import type { HotInstance } from '../../core/types';
+import { CELL_DESCRIPTION_MERGED } from '../../i18n/constants';
+import { CELL_DESCRIPTION_RANK, addCellDescriptionPart } from '../../utils/cellDescription/cellDescription';
 
 /**
  * The class of the element that lays out a merged cell's content at the width of the whole block, in a
@@ -170,6 +172,15 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     if (notHiddenRow === row && notHiddenColumn === col) {
       TD.setAttribute('rowspan', String(notHiddenRowspan));
       TD.setAttribute('colspan', String(notHiddenColspan));
+
+      // The native spans are read by NVDA with Chromium only, and they are clamped to the rendered band. The
+      // description names the block's last row and column by the `aria-rowindex` and `aria-colindex` of that cell,
+      // which count the header rows and the row header columns and skip hidden lines, so the two numbers a screen
+      // reader gives for the cell agree.
+      addCellDescriptionPart(TD, CELL_DESCRIPTION_RANK.MERGED, hot.getTranslatedPhrase(CELL_DESCRIPTION_MERGED, {
+        row: lastMergedRowIndex + hot.countColHeaders() + 1,
+        column: lastMergedColumnIndex + hot.countRowHeaders() + 1,
+      }));
 
       if (continuesAboveBottomOverlay) {
         // The cell only continues a block whose content the master draws. It is painted with the covered
