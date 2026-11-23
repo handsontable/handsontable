@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-23T14:11:52.915Z",
+  "generatedAt": "2026-11-23T16:02:46.600Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 467,
     "needsTicket": 7,
     "quarantined": 1,
-    "entries": 2357
+    "entries": 2358
   },
   "rows": [
     {
@@ -265,14 +265,14 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 521,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 13,
-      "count30": 13,
-      "countAll": 13,
-      "runs30": 7,
-      "flakyRuns30": 7,
-      "branches30": 7,
+      "count7": 14,
+      "count30": 14,
+      "countAll": 14,
+      "runs30": 8,
+      "flakyRuns30": 8,
+      "branches30": 8,
       "nightlyRuns30": 0,
-      "openBranches30": 7,
+      "openBranches30": 8,
       "legs": [
         "e2e-webkit"
       ],
@@ -282,9 +282,9 @@
       "isolation": [],
       "quarantine": "DEV-4110 until 2026-12-18 — read before the scroll settles",
       "lastSeen": {
-        "seenAt": "2026-11-23T10:49:00Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45150962561",
-        "branch": "feature/DEV-4001_Role-for-focus-stops",
+        "seenAt": "2026-11-23T16:00:19Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45204824146",
+        "branch": "feature/DEV-3679_A11y-skill-defect-classes",
         "leg": "e2e-webkit",
         "status": "flaky",
         "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
