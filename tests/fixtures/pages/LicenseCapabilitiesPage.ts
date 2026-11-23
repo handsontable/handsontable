@@ -1,8 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
+import { type Bundle } from '../bundle';
 import { presetKey, presetQuery, type LicensePresetName } from '../licenseTiers';
-
-type PluginsName = 'filters' | 'column-menu' | 'header-checkbox';
+import { LicenseFixturePage, type LicensePluginsName } from './LicenseFixturePage';
 
 /**
  * Page Object for the license capabilities fixture: a grid built with a license key that names a
@@ -10,38 +9,20 @@ type PluginsName = 'filters' | 'column-menu' | 'header-checkbox';
  * made-up tier the features of its preset (`LICENSE_PRESETS`). A plugin the key's tier leaves out stays
  * off, and one console error and the license bar say which.
  */
-export class LicenseCapabilitiesPage {
-  readonly page: Page;
-  readonly theme: string;
-  readonly bundle: Bundle;
-  readonly grid: Locator;
-  readonly bar: Locator;
+export class LicenseCapabilitiesPage extends LicenseFixturePage {
   readonly missingFeatures: Locator;
   readonly salesLink: Locator;
   readonly columnMenuButtons: Locator;
   readonly openColumnMenu: Locator;
   readonly valueList: Locator;
-  readonly consoleErrors: string[] = [];
 
   constructor(page: Page, theme = 'main', bundle: Bundle = 'umd') {
-    this.page = page;
-    this.theme = theme;
-    this.bundle = bundle;
-    this.grid = page.getByTestId('grid');
-    this.bar = page.locator('.hot-display-license-info');
+    super(page, theme, bundle);
     this.missingFeatures = page.locator('.hot-display-license-info_missing-features');
     this.salesLink = this.missingFeatures.getByRole('link', { name: 'sales@handsontable.com' });
     this.columnMenuButtons = page.locator('.ht_clone_top button.changeType');
     this.openColumnMenu = page.locator('.htDropdownMenu:not([class*="htDropdownMenuSub_"]):visible');
     this.valueList = this.openColumnMenu.locator('.htUIMultipleSelectHot');
-
-    // Registered once, from before the first navigation: the license message prints while the grid is
-    // built. A listener added per `goto()` recorded every later error once more for each call.
-    page.on('console', (message) => {
-      if (message.type() === 'error') {
-        this.consoleErrors.push(message.text());
-      }
-    });
   }
 
   /**
@@ -52,14 +33,8 @@ export class LicenseCapabilitiesPage {
    * @param {string} options.key The preset whose key the grid is built with.
    * @param {string} [options.plugins] The options the grid asks for.
    */
-  async goto({ key, plugins = 'filters' }: { key: LicensePresetName; plugins?: PluginsName }): Promise<void> {
-    await this.page.goto(
-      `/tests/fixtures/demo/license-capabilities.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&${presetQuery(key, plugins)}`
-    );
-    await awaitBundle(this.page);
-    await awaitFixtureBuilt(this.page);
-    await expect(this.grid.locator('.ht_master td').first()).toBeVisible();
+  async goto({ key, plugins = 'filters' }: { key: LicensePresetName; plugins?: LicensePluginsName }): Promise<void> {
+    await this.open(new URLSearchParams(presetQuery(key, plugins)));
   }
 
   /**
@@ -81,18 +56,6 @@ export class LicenseCapabilitiesPage {
     return this.page.evaluate(() => (window as unknown as {
       sizeAtConstruction: { barMounted: boolean; outerHeight: number };
     }).sizeAtConstruction);
-  }
-
-  /**
-   * Whether a plugin of the grid is on.
-   *
-   * @param {string} pluginName The plugin key.
-   * @returns {Promise<boolean>}
-   */
-  async isPluginEnabled(pluginName: string): Promise<boolean> {
-    return this.page.evaluate(name => (window as unknown as {
-      hot: { getPlugin(n: string): { enabled: boolean } };
-    }).hot.getPlugin(name).enabled, pluginName);
   }
 
   /**

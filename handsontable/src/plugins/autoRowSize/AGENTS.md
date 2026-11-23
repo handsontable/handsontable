@@ -318,8 +318,8 @@ old heights (14390 px against 10050 px with 10 long rows in 300) until the next 
 finds the grid hidden abandons the sweep (`#abandonSweep()`, which owes a full recalculation), as does one that
 throws: measured in a hidden root, every row was stored at 0 px. That check covers every sweep's idle chunks,
 not only this one. The render that starts it comes by itself: AutoColumnSize draws when a re-measure sweep ends (the font path),
-and when any other sweep ends on a grid with this plugin enabled (a fill-only render, see "A grid with
-AutoRowSize enabled keeps the exact path" in `../autoColumnSize/AGENTS.md`). Both halves are needed: without
+and when any other sweep ends in an idle task, with or without this plugin (a fill-only render, see "A grid
+with AutoRowSize enabled keeps the exact path" in `../autoColumnSize/AGENTS.md`). Both halves are needed: without
 the flag the render measures only the band, and without the render the flag waits for one that may never
 come. The check reads `isReMeasurePending()` (the public `inProgress` field, or a re-measure AutoColumnSize owes
 its next render), and a sweep AutoColumnSize restarts in the same render reads as still running, because its
