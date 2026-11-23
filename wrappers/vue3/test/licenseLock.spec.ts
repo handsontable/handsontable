@@ -46,14 +46,19 @@ describe('The license key through HotTable', () => {
   }
 
   /**
-   * The license lock of a grid, or `null`.
+   * The license lock of a grid, or `null`. The root wrapper is asserted first: a grid with no wrapper
+   * would otherwise read as unlocked without any lock being checked.
    *
    * @param {object} hot The instance.
    * @param {HTMLElement} hot.rootElement The instance's root element.
    * @returns {Element | null}
    */
   function lockOf(hot: { rootElement: HTMLElement }): Element | null {
-    return hot.rootElement.closest('.ht-root-wrapper')?.querySelector('.ht-license-lock') ?? null;
+    const wrapper = hot.rootElement.closest('.ht-root-wrapper');
+
+    expect(wrapper).not.toBeNull();
+
+    return wrapper?.querySelector('.ht-license-lock') ?? null;
   }
 
   it('should build a grid without a key behind the license lock', () => {
