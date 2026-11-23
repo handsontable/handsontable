@@ -472,6 +472,26 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
       expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
     });
 
+    test('a second finger that taps one handle while the first holds the other leaves one pick, not two', async () => {
+      await mobileGrid.tapCell(3, 3);
+      await mobileGrid.selectRange(3, 3, 4, 4);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.tapBottomHandleWhileHoldingTopHandle();
+
+      // the finger that lifted last armed the pick, and the first pick ended
+      await expect(mobileGrid.pickingRoot()).toHaveClass(/ht__picking-selection--top/);
+      await expect(mobileGrid.pickingRoot()).not.toHaveClass(/ht__picking-selection--bottom/);
+
+      await mobileGrid.tapCell(1, 2);
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      expect(await mobileGrid.selectedLast()).toEqual([1, 2, 4, 4]);
+
+      // a leaked first pick would still be listening and would take this tap instead of letting it select
+      await mobileGrid.tapCell(4, 1);
+
+      expect(await mobileGrid.selectedLast()).toEqual([4, 1, 4, 1]);
+    });
+
     test('a drag of a handle arms nothing', async () => {
       await mobileGrid.tapCell(1, 1);
       await mobileGrid.selectRange(1, 1, 2, 2);

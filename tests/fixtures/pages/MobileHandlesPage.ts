@@ -685,6 +685,32 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Taps the bottom handle with a second finger while a first finger still holds the top handle, then lifts the first
+   * finger without moving it. Playwright's `touchscreen` is a single finger, so this goes through the DevTools protocol.
+   */
+  async tapBottomHandleWhileHoldingTopHandle(): Promise<void> {
+    if (!this.#cdp) {
+      this.#cdp = await this.page.context().newCDPSession(this.page);
+    }
+
+    const topBox = await this.topHitArea().boundingBox();
+    const bottomBox = await this.bottomHitArea().boundingBox();
+
+    expect(topBox, 'the top handle hit area must be laid out').not.toBeNull();
+    expect(bottomBox, 'the bottom handle hit area must be laid out').not.toBeNull();
+
+    // a small radius keeps Chromium's touch adjustment from moving the touch to a cell beside the hit area
+    const first = { x: topBox!.x + (topBox!.width / 2), y: topBox!.y + (topBox!.height / 2), radiusX: 1, radiusY: 1, force: 1, id: 1 };
+    const second = { x: bottomBox!.x + (bottomBox!.width / 2), y: bottomBox!.y + (bottomBox!.height / 2), radiusX: 1, radiusY: 1, force: 1, id: 2 };
+
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [first] });
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [first, second] });
+    // a touchEnd lists the fingers that lift: the second one first, then the one that held the top handle
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [second] });
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [first] });
+  }
+
+  /**
    * Dispatches one touch event carrying a single touch point.
    */
   async #dispatchTouch(

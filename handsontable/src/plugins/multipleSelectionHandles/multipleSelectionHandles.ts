@@ -587,6 +587,10 @@ export class MultipleSelectionHandles extends BasePlugin {
     const armedCorners = readCorners();
     const root = this.hot.rootElement;
 
+    // A second finger can tap while the first still holds the other handle, so a pick may already wait. Two picks
+    // would leave the first one's listeners on the document for good.
+    this.#pick?.cancel();
+
     if (armedCorners === null) {
       return;
     }
