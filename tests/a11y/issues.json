@@ -192,7 +192,6 @@
       "title": "The formula builder's error cell points aria-errormessage at its error popup, a tooltip with no live region, which axe rejects",
       "tracker": "DEV-4032",
       "match": [
-        { "source": "axe", "axeIssues": ["formula-builder-error-message-reference"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-valid-attr-value"], "where": ["^td\\.hfe-cell--error"] }
       ]
     },
