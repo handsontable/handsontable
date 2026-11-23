@@ -4,6 +4,21 @@ import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { FormulaBuilder } from '../formulaBuilder';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
+import { CELL_DESCRIPTION_ID_PREFIX } from '../../../utils/cellDescription/cellDescription';
+/**
+ * Reads the description the cell painter gave a cell: the text of the hidden elements its
+ * `aria-describedby` points at, without the column header and the error popup references.
+ *
+ * @param {HTMLTableCellElement | null} cell The cell element.
+ * @returns {string}
+ */
+function cellDescriptionText(cell: HTMLTableCellElement | null): string {
+  return (cell?.getAttribute('aria-describedby') ?? '')
+    .split(' ')
+    .filter(id => id.startsWith(CELL_DESCRIPTION_ID_PREFIX))
+    .map(id => cell?.closest('.ht-wrapper')?.querySelector(`[id="${id}"]`)?.textContent ?? '')
+    .join(', ');
+}
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -105,7 +120,7 @@ describe('FormulaBuilder teardown on a real grid', () => {
     // The grid's render resets classes and ARIA attributes but not `data-*`, and it reuses cell
     // elements, so a mark left behind would move to other cells on scroll.
     expect(hot.rootElement.querySelectorAll('[data-hfe-error]')).toHaveLength(0);
-    expect(hot.getCell(0, 0)?.hasAttribute('aria-description')).toBe(false);
+    expect(cellDescriptionText(hot.getCell(0, 0))).toBe('');
 
     hot.destroy();
   });

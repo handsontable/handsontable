@@ -5,6 +5,7 @@ import { TextEditor } from '../../../editors/textEditor';
 import { isImmediatePropagationStopped } from '../../../helpers/dom/event';
 import { collection as staticRegisterCollection } from '../../../utils/staticRegister';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
+import { applyCellDescription, beginCellDescription } from '../../../utils/cellDescription/cellDescription';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
@@ -1669,62 +1670,54 @@ describe('FormulaBuilder afterRenderer', () => {
     expect(cell.hasAttribute('aria-invalid')).toBe(false);
   });
 
-  it('describes an error cell with its message under ariaTags, and only then', () => {
-    const { stub, afterRenderer } = makeRenderContext();
-    const withAria = document.createElement('td');
+  /**
+   * Paints a cell the way the cell painter does: begins its description, runs the plugin's
+   * `afterRenderer`, then writes the description the parts make.
+   *
+   * @param {ReturnType<typeof makeRenderContext>} context The render context.
+   * @param {HTMLTableCellElement} cell The cell element.
+   * @param {unknown[]} args The `afterRenderer` arguments after the cell.
+   */
+  function paintDescribed(
+    context: ReturnType<typeof makeRenderContext>,
+    cell: HTMLTableCellElement,
+    ...args: unknown[]
+  ): void {
+    beginCellDescription(cell);
+    context.afterRenderer(cell, ...args);
+    applyCellDescription(descriptionHost, cell, context.stub.settings.ariaTags === true);
+  }
 
-    afterRenderer(withAria, 0, 0, 0, null, { editor: 'formula' });
+  const descriptionHost = {
+    guid: 'ht_formula_builder_unit',
+    rootElement: document.createElement('div'),
+    rootDocument: document,
+  };
 
-    expect(withAria.getAttribute('aria-description')).toBe(withAria.getAttribute('data-hfe-error'));
-    expect(withAria.getAttribute('aria-description')).toContain('#');
-
-    stub.settings.ariaTags = false;
-
-    const withoutAria = document.createElement('td');
-
-    afterRenderer(withoutAria, 0, 0, 0, null, { editor: 'formula' });
-
-    expect(withoutAria.hasAttribute('aria-description')).toBe(false);
-  });
-
-  it('removes its description from a recycled cell, and leaves an application\'s own alone', () => {
-    const { afterRenderer } = makeRenderContext();
-    const recycled = document.createElement('td');
-    const appDescribed = document.createElement('td');
-
-    afterRenderer(recycled, 0, 0, 0, null, { editor: 'formula' });
-    afterRenderer(recycled, 0, 1, 1, null, { editor: 'text' });
-
-    expect(recycled.hasAttribute('aria-description')).toBe(false);
-
-    appDescribed.setAttribute('aria-description', 'Total of the quarter');
-    afterRenderer(appDescribed, 0, 1, 1, null, { editor: 'text' });
-
-    expect(appDescribed.getAttribute('aria-description')).toBe('Total of the quarter');
-  });
-
-  it('keeps the description an application wrote on a recycled cell that showed an error before', () => {
-    const { afterRenderer } = makeRenderContext();
+  it('leaves the description of an error cell to hyperformula-ui', () => {
+    const context = makeRenderContext();
     const cell = document.createElement('td');
 
-    // The cell shows the `#DIV/0!` of A1 first, so the plugin describes it.
-    afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
+    cell.setAttribute('aria-describedby', 'ht_x-colheader-0');
+    paintDescribed(context, cell, 0, 0, 0, null, { editor: 'formula' });
 
-    expect(cell.hasAttribute('aria-description')).toBe(true);
+    expect(cell.getAttribute('data-hfe-error')).toContain('#DIV/0!');
+    expect(cell.getAttribute('aria-describedby')).toBe('ht_x-colheader-0');
+    expect(cell.hasAttribute('aria-description')).toBe(false);
+  });
 
-    // The grid recycles the element for B1, and the application's renderer describes it first.
+  it('never touches the aria-description an application wrote', () => {
+    const context = makeRenderContext();
+    const cell = document.createElement('td');
+
     cell.setAttribute('aria-description', 'Q2 revenue');
-    afterRenderer(cell, 0, 1, 1, 5, { editor: 'formula' });
+    paintDescribed(context, cell, 0, 0, 0, null, { editor: 'formula' });
 
     expect(cell.getAttribute('aria-description')).toBe('Q2 revenue');
 
-    // Recycled again, with no description of anybody's: nothing of the plugin's is left to remove.
-    cell.removeAttribute('aria-description');
-    afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
-    cell.setAttribute('aria-description', 'Q1 revenue');
-    afterRenderer(cell, 0, 1, 1, 5, { editor: 'formula' });
+    paintDescribed(context, cell, 0, 1, 1, 5, { editor: 'formula' });
 
-    expect(cell.getAttribute('aria-description')).toBe('Q1 revenue');
+    expect(cell.getAttribute('aria-description')).toBe('Q2 revenue');
   });
 });
 

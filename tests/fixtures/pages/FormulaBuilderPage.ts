@@ -758,4 +758,33 @@ export class FormulaBuilderPage {
       };
     });
   }
+
+  /**
+   * The name and the description Chromium's own accessibility tree gives a cell, which is what a screen
+   * reader on Chromium reads from it. Chromium only: it reads the tree over CDP.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<{ name: string, description: string }>}
+   */
+  async chromiumAccessibility(row: number, col: number): Promise<{ name: string; description: string }> {
+    const client = await this.page.context().newCDPSession(this.page);
+
+    try {
+      await client.send('Accessibility.enable');
+
+      const { result } = await client.send('Runtime.evaluate', {
+        expression: `document.querySelector('[data-testid="cell-${row}-${col}"]')`,
+      });
+      const { nodes } = await client.send('Accessibility.getPartialAXTree', {
+        objectId: result.objectId,
+        fetchRelatives: false,
+      });
+      const clean = (value: unknown) => String(value ?? '').replace(/\s+/g, ' ').trim();
+
+      return { name: clean(nodes[0]?.name?.value), description: clean(nodes[0]?.description?.value) };
+    } finally {
+      await client.detach();
+    }
+  }
 }
