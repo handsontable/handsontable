@@ -460,8 +460,8 @@
     },
     {
       "id": "voiceover-error-cell-description-silent",
-      "title": "VoiceOver, with Chromium and with WebKit, does not read the message a formula error cell carries in aria-description (`Function name NOPE not recognized.`): it says the error value and that the data is invalid, where NVDA reads the message too",
-      "tracker": "DEV-4032",
+      "title": "VoiceOver, with Chromium and with WebKit, does not read a formula error cell's message (`Function name NOPE not recognized.`): it says the error value and that the data is invalid, where NVDA reads the message too",
+      "tracker": "DEV-4181",
       "match": [
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["formula-builder"], "where": ["^error-cell$"] }
       ]
