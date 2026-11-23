@@ -8,6 +8,7 @@ import {
   MIN_DOCS_VERSION,
   RELEASES_URL,
   buildVersionList,
+  createCommonJsonHooks,
   fetchReleaseTags,
   groupReleaseTags,
   resolveReleaseVersions,
@@ -50,7 +51,17 @@ function fakeFetch(answers) {
 }
 
 const restBody = (...tags) => tags.map((tag_name) => ({ tag_name }));
-const graphqlBody = (...tags) => ({ data: { repository: { releases: { nodes: tags.map((tagName) => ({ tagName })) } } } });
+const graphqlPage = (tags, next = null) => ({
+  data: {
+    repository: {
+      releases: {
+        nodes: tags.map((tagName) => ({ tagName })),
+        pageInfo: { hasNextPage: next !== null, endCursor: next },
+      },
+    },
+  },
+});
+const graphqlBody = (...tags) => graphqlPage(tags);
 
 // The tags a healthy history holds: stable minors down to the floor and a prerelease on top.
 const HEALTHY_TAGS = ['19.0.0-rc5', '18.1.3', '18.1.2', '18.0.0', '17.1.0', '10.0.0', '9.0.1', '9.0.0', '8.4.0'];
@@ -97,6 +108,49 @@ test('fetchReleaseTags with a token sends an authenticated GraphQL request', asy
   assert.equal(calls[0].options.headers.Authorization, 'Bearer secret');
   assert.match(JSON.parse(calls[0].options.body).query, /releases\(first: 100/);
   assert.ok(calls[0].options.signal instanceof AbortSignal);
+});
+
+test('fetchReleaseTags with a token reads the next page until the list reaches the floor', async() => {
+  const { fetchImpl, calls } = fakeFetch([
+    { body: graphqlPage(['19.0.0-rc5', '18.1.3', '17.1.0'], 'cursor-1') },
+    { body: graphqlPage(['10.0.0', '9.0.1', '9.0.0'], 'cursor-2') },
+    { body: graphqlPage(['8.4.0']) },
+  ]);
+  const tags = await fetchReleaseTags({ token: 'secret', fetchImpl, sleep: noSleep });
+
+  assert.deepEqual(tags, ['19.0.0-rc5', '18.1.3', '17.1.0', '10.0.0', '9.0.1', '9.0.0']);
+  assert.equal(calls.length, 2);
+  assert.equal(JSON.parse(calls[0].options.body).variables.after, null);
+  assert.equal(JSON.parse(calls[1].options.body).variables.after, 'cursor-1');
+});
+
+test('fetchReleaseTags with a token stops at the first page that holds the floor', async() => {
+  const { fetchImpl, calls } = fakeFetch([{ body: graphqlPage(HEALTHY_TAGS, 'cursor-1') }]);
+  const tags = await fetchReleaseTags({ token: 'secret', fetchImpl, sleep: noSleep });
+
+  assert.deepEqual(tags, HEALTHY_TAGS);
+  assert.equal(calls.length, 1);
+});
+
+test('fetchReleaseTags with a token stops at maxPages and at the last page', async() => {
+  const endless = fakeFetch([{ body: graphqlPage(['18.1.3'], 'more') }]);
+  const tags = await fetchReleaseTags({ token: 'secret', fetchImpl: endless.fetchImpl, maxPages: 3, sleep: noSleep });
+
+  assert.equal(endless.calls.length, 3);
+  assert.equal(tags.length, 3);
+
+  const lastPage = fakeFetch([{ body: graphqlPage(['18.1.3']) }]);
+
+  await fetchReleaseTags({ token: 'secret', fetchImpl: lastPage.fetchImpl, sleep: noSleep });
+  assert.equal(lastPage.calls.length, 1);
+});
+
+test('fetchReleaseTags does not page the anonymous request', async() => {
+  const { fetchImpl, calls } = fakeFetch([{ body: restBody('18.1.3') }]);
+
+  await fetchReleaseTags({ fetchImpl, sleep: noSleep });
+
+  assert.equal(calls.length, 1);
 });
 
 test('fetchReleaseTags retries a refused or dropped request and recovers', async() => {
@@ -289,19 +343,33 @@ test('every workflow that builds the docs passes GITHUB_TOKEN to the build step'
     const next = text.indexOf('\n      - ', start + stepHeader.length);
     const step = text.slice(start, next === -1 ? undefined : next);
 
+    // Anchored to the line start, so a commented-out line does not count.
     assert.match(
       step,
-      /GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/,
+      /^\s*GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}\s*$/m,
       `${file}: the "${stepHeader}" step must set GITHUB_TOKEN, or the release-list request is anonymous (DEV-4146)`,
     );
   }
 });
 
-test('the docs config hands the build mode and the token to buildVersionList', () => {
+test('the build-done hook awaits the write, so a failed write fails the build', async() => {
+  const calls = [];
+  const failure = new Error('Cannot write data/common.json');
+  const hooks = createCommonJsonHooks(async(outDir, distDir) => {
+    calls.push([outDir, distDir]);
+    throw failure;
+  });
+
+  await assert.rejects(hooks['astro:build:done']({ dir: new URL('file:///tmp/dist/') }), failure);
+  assert.deepEqual(calls, [['/tmp/dist/', '/tmp/dist/']]);
+});
+
+test('the docs config hands the build mode and the token to buildVersionList and uses the hooks', () => {
   const config = readFileSync(resolve(repoRoot, 'docs/astro.config.mjs'), 'utf8');
 
   assert.match(
     config,
     /buildVersionList\(\{\s*localPatch,\s*isProduction,\s*token: process\.env\.GITHUB_TOKEN,?\s*\}\)/,
   );
+  assert.match(config, /^\s*hooks: createCommonJsonHooks\(buildAndWrite\),$/m);
 });

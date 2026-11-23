@@ -25,7 +25,7 @@ import { AGENT_NOTE_MD } from './src/agent-note.mjs';
 import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolveSentryRelease } from './src/lib/sentry-release.mjs';
-import { buildVersionList, toMinor } from './src/lib/docs-versions.mjs';
+import { buildVersionList, createCommonJsonHooks, toMinor } from './src/lib/docs-versions.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
@@ -525,15 +525,7 @@ function commonJsonIntegration() {
 
   return {
     name: 'common-json',
-    hooks: {
-      'astro:build:done': async ({ dir }) => {
-        const outDir = fileURLToPath(dir);
-
-        // Pass distDir so collectUrls() can scan built HTML files, which
-        // includes auto-generated API pages not present in content/.
-        await buildAndWrite(outDir, outDir);
-      },
-    },
+    hooks: createCommonJsonHooks(buildAndWrite),
   };
 }
 

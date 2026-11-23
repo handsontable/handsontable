@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import semver from 'semver';
 
 /**
@@ -11,23 +12,28 @@ import semver from 'semver';
 
 /**
  * The anonymous request. It returns every release body, about 600 KB for 100
- * releases, which is why a token switches the request to GraphQL.
+ * releases, has no paging here, and shares the runner IP's rate limit.
  */
 export const RELEASES_URL = 'https://api.github.com/repos/handsontable/handsontable/releases?per_page=100';
 
 /**
- * The authenticated request. GraphQL needs a token and answers with the tag
- * names only. `deploy/getListOrPreviousVersions.mjs` moved to it for the same
- * reason: the REST list failed on GitHub Actions runners with "Premature close".
+ * The authenticated request. GraphQL needs a token, answers with the tag names
+ * only, and pages. `deploy/getListOrPreviousVersions.mjs` sends the same query
+ * (without paging); its comment records "Premature close" failures of its REST
+ * call on GitHub Actions runners.
  */
 export const GRAPHQL_URL = 'https://api.github.com/graphql';
 
 const GRAPHQL_QUERY = `
-  query {
+  query($after: String) {
     repository(owner: "handsontable", name: "handsontable") {
-      releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
+      releases(first: 100, after: $after, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
           tagName
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
         }
       }
     }
@@ -38,6 +44,13 @@ const GRAPHQL_QUERY = `
  * The oldest minor that has deployed docs. Older minors are not listed.
  */
 export const MIN_DOCS_VERSION = '9.0';
+
+/**
+ * How many pages of 100 releases the GraphQL request reads before it gives up.
+ * The list is newest first, so it stops earlier, at the first stable release of
+ * `MIN_DOCS_VERSION`.
+ */
+export const MAX_PAGES = 5;
 
 /**
  * Converts a patch version to its minor line.
@@ -87,51 +100,67 @@ export function groupReleaseTags(tags) {
 }
 
 /**
- * Reads the tag names from a GitHub response body.
+ * Whether the tags already hold a stable release of `MIN_DOCS_VERSION`.
+ *
+ * @param {string[]} tags Release tag names.
+ * @returns {boolean} `true` when no older page is needed.
+ */
+function reachesFloor(tags) {
+  return tags.some((tag) => semver.valid(tag) && !semver.prerelease(tag) && toMinor(tag) === MIN_DOCS_VERSION);
+}
+
+/**
+ * Reads the tag names and the next page cursor from a GitHub response body.
  *
  * @param {boolean} graphql Whether the request went to the GraphQL endpoint.
  * @param {any} body The parsed response body.
- * @returns {string[]} The tag names.
+ * @returns {{ tags: string[], next: string | null }} The tag names, and the cursor of the next page or `null`.
  */
-function readTagNames(graphql, body) {
+function readPage(graphql, body) {
   if (graphql) {
     if (body?.errors?.length) {
       throw new Error(`GitHub GraphQL answered with an error: ${body.errors[0]?.message ?? 'unknown'}.`);
     }
 
-    const nodes = body?.data?.repository?.releases?.nodes;
+    const releases = body?.data?.repository?.releases;
 
-    if (!Array.isArray(nodes) || nodes.length === 0) {
+    if (!Array.isArray(releases?.nodes) || releases.nodes.length === 0) {
       throw new Error('GitHub returned no releases.');
     }
 
-    return nodes.map((node) => node.tagName);
+    return {
+      tags: releases.nodes.map((node) => node.tagName),
+      next: releases.pageInfo?.hasNextPage ? releases.pageInfo.endCursor ?? null : null,
+    };
   }
 
   if (!Array.isArray(body) || body.length === 0) {
     throw new Error('GitHub returned no releases.');
   }
 
-  return body.map((release) => release.tag_name);
+  return { tags: body.map((release) => release.tag_name), next: null };
 }
 
 /**
  * Reads the release tags from GitHub, retrying a transient failure.
  *
  * With a token the request goes to GraphQL, which lifts the limit from about 60
- * requests per hour for a shared runner IP to the token's own and returns tag
- * names only. Without one it falls back to the anonymous REST list. A rejected
- * token (401) is not retried. The function throws once every attempt has
- * failed, so the caller decides whether a missing list is fatal.
+ * requests per hour for a shared runner IP to the token's own, returns tag
+ * names only, and reads further pages until the list reaches `MIN_DOCS_VERSION`
+ * (at most `MAX_PAGES`). Without a token it falls back to the anonymous REST
+ * list, which is one page of 100. A rejected token (401) is not retried. The
+ * function throws once every attempt at a page has failed, so the caller
+ * decides whether a missing list is fatal.
  *
  * @param {object} [options] The request options.
  * @param {string} [options.token] A GitHub token. The request is anonymous without one.
  * @param {typeof fetch} [options.fetchImpl] The `fetch` implementation.
- * @param {number} [options.attempts] How many times to try.
+ * @param {number} [options.attempts] How many times to try one page.
  * @param {number} [options.delayMs] The wait before the second attempt. It doubles after each failure.
  * @param {number} [options.timeoutMs] How long one attempt may take.
+ * @param {number} [options.maxPages] The most pages to read.
  * @param {(ms: number) => Promise<void>} [options.sleep] The wait implementation.
- * @returns {Promise<string[]>} The tag names of the latest 100 releases.
+ * @returns {Promise<string[]>} The tag names, newest release first.
  */
 export async function fetchReleaseTags({
   token,
@@ -139,6 +168,7 @@ export async function fetchReleaseTags({
   attempts = 5,
   delayMs = 2000,
   timeoutMs = 15000,
+  maxPages = MAX_PAGES,
   sleep = (ms) => new Promise((done) => { setTimeout(done, ms); }),
 } = {}) {
   const graphql = Boolean(token);
@@ -152,51 +182,76 @@ export async function fetchReleaseTags({
     headers['Content-Type'] = 'application/json';
   }
 
-  let lastError;
+  /**
+   * Reads one page, retrying a transient failure.
+   *
+   * @param {string | null} after The cursor of the page, `null` for the first.
+   * @returns {Promise<{ tags: string[], next: string | null }>} The page.
+   */
+  async function readOnePage(after) {
+    let lastError;
 
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    try {
-      const response = await fetchImpl(graphql ? GRAPHQL_URL : RELEASES_URL, {
-        headers,
-        signal: AbortSignal.timeout(timeoutMs),
-        ...(graphql ? { method: 'POST', body: JSON.stringify({ query: GRAPHQL_QUERY }) } : {}),
-      });
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        const response = await fetchImpl(graphql ? GRAPHQL_URL : RELEASES_URL, {
+          headers,
+          signal: AbortSignal.timeout(timeoutMs),
+          ...(graphql ? { method: 'POST', body: JSON.stringify({ query: GRAPHQL_QUERY, variables: { after } }) } : {}),
+        });
 
-      if (response.status === 401) {
-        const rejected = new Error('GitHub rejected GITHUB_TOKEN (401).');
+        if (response.status === 401) {
+          const rejected = new Error('GitHub rejected GITHUB_TOKEN (401).');
 
-        rejected.retryable = false;
-        throw rejected;
-      }
+          rejected.retryable = false;
+          throw rejected;
+        }
 
-      if (!response.ok) {
-        throw new Error(`GitHub ${graphql ? 'GraphQL' : 'releases'} API answered ${response.status}${graphql ? '' : ' (no GITHUB_TOKEN was set)'}.`);
-      }
+        if (!response.ok) {
+          throw new Error(`GitHub ${graphql ? 'GraphQL' : 'releases'} API answered ${response.status}${graphql ? '' : ' (no GITHUB_TOKEN was set)'}.`);
+        }
 
-      return readTagNames(graphql, await response.json());
-    } catch (error) {
-      lastError = error;
+        return readPage(graphql, await response.json());
+      } catch (error) {
+        lastError = error;
 
-      if (error.retryable === false) {
-        break;
-      }
+        if (error.retryable === false) {
+          break;
+        }
 
-      if (attempt < attempts) {
-        await sleep(delayMs * (2 ** (attempt - 1)));
+        if (attempt < attempts) {
+          await sleep(delayMs * (2 ** (attempt - 1)));
+        }
       }
     }
+
+    throw lastError;
   }
 
-  throw lastError;
+  const tags = [];
+  let after = null;
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    const result = await readOnePage(after);
+
+    tags.push(...result.tags);
+
+    if (!result.next || reachesFloor(tags)) {
+      break;
+    }
+
+    after = result.next;
+  }
+
+  return tags;
 }
 
 /**
  * Reads the release history and groups it by minor line.
  *
  * @param {Parameters<typeof fetchReleaseTags>[0] & { requireFloor?: boolean }} [options] The options of
- *   `fetchReleaseTags()`. With `requireFloor`, the list must reach `MIN_DOCS_VERSION`: the request returns the
- *   latest 100 releases and has no paging, so a list that ends higher is truncated and would drop the older
- *   versions from the dropdown without any error.
+ *   `fetchReleaseTags()`. With `requireFloor`, the list must reach `MIN_DOCS_VERSION`. A list that ends higher is
+ *   truncated (the anonymous request is one page of 100, and the GraphQL one stops at `MAX_PAGES`) and would drop
+ *   the older versions from the dropdown without any error.
  * @returns {Promise<{ minors: string[], minorMap: Map<string, string[]> }>} The minor lines and their patches.
  */
 export async function resolveReleaseVersions({ requireFloor = false, ...options } = {}) {
@@ -207,7 +262,7 @@ export async function resolveReleaseVersions({ requireFloor = false, ...options 
   }
 
   if (requireFloor && !grouped.minors.includes(MIN_DOCS_VERSION)) {
-    throw new Error(`The GitHub release list ends at ${grouped.minors.at(-1)} and never reaches ${MIN_DOCS_VERSION}, so it is truncated.`);
+    throw new Error(`The GitHub release list ends at ${grouped.minors.at(-1)} and never reaches ${MIN_DOCS_VERSION}, so it is truncated. Only the GraphQL request (GITHUB_TOKEN set) reads more than one page.`);
   }
 
   return grouped;
@@ -262,4 +317,26 @@ export async function buildVersionList({
   }
 
   return { minors, minorMap };
+}
+
+/**
+ * Builds the Astro hooks of the `data/common.json` integration.
+ *
+ * The build-done hook awaits the write, so a rejection of `buildVersionList()`
+ * fails a production build. A hook that does not await it lets the build pass
+ * without the file.
+ *
+ * @param {(outDir: string, distDir: string) => Promise<void>} buildAndWrite Writes `data/common.json` under `outDir`.
+ * @returns {Record<string, (options: { dir: URL }) => Promise<void>>} The hooks.
+ */
+export function createCommonJsonHooks(buildAndWrite) {
+  return {
+    'astro:build:done': async({ dir }) => {
+      const outDir = fileURLToPath(dir);
+
+      // Pass the dist directory so the URL list is read from the built pages,
+      // which include the generated API pages that are not in content/.
+      await buildAndWrite(outDir, outDir);
+    },
+  };
 }
