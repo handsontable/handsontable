@@ -19,7 +19,7 @@ export interface SyncBudgetGrid {
  */
 export type AfterBuild =
   'toggleAutoColumnSize' | 'toggleAutoColumnSizeWithoutRender' | 'enableAutoRowSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'selectCell0x25InBatch' |
-  'selectCell0x25WhileSuspended' | 'suspendRender' | 'recordRenderCount' | 'selectCell0x159' | 'scrollViewportToColumn159';
+  'selectCell0x25WhileSuspended' | 'suspendRender' | 'recordRenderCount' | 'selectCell0x159' | 'scrollViewportToColumn159' | 'scrollViewportToColumn159CountingReads';
 
 /**
  * What the constructor did: the visual columns it read cell meta for (the columns measured before the
@@ -62,6 +62,7 @@ interface FixtureWindow extends Window {
   Handsontable: { hooks: { add(key: string, callback: () => void): void } };
   renderCount: number;
   rendersAtBuild: number;
+  metaReadsDuringCall: number;
   constructorColumns: number[];
   buildGrid(settings: Record<string, unknown>, budget?: number): void;
 }
@@ -161,6 +162,27 @@ export class AutoColumnSizeSyncBudgetPage {
         case 'scrollViewportToColumn159':
           win.hot.scrollViewportTo({ col: 159 });
           break;
+        case 'scrollViewportToColumn159CountingReads': {
+          // The sampler reads the cell meta of a column it measures, and the draw does not read it this way, so
+          // the reads during the call are the columns the call measured.
+          const read = win.hot.getCellMetaTransient;
+          let reads = 0;
+
+          win.hot.getCellMetaTransient = (row: number, column: number) => {
+            reads += 1;
+
+            return read(row, column);
+          };
+
+          try {
+            win.hot.scrollViewportTo({ col: 159 });
+          } finally {
+            win.hot.getCellMetaTransient = read;
+          }
+
+          win.metaReadsDuringCall = reads;
+          break;
+        }
         case 'recordRenderCount':
           // Read in the constructor's task, before any idle chunk can end the sweep.
           win.rendersAtBuild = win.renderCount;
@@ -445,6 +467,13 @@ export class AutoColumnSizeSyncBudgetPage {
     await this.page.evaluate((col) => {
       (window as unknown as FixtureWindow).hot.scrollViewportTo({ col });
     }, column);
+  }
+
+  /**
+   * The cell meta reads the call made by `build(…, 'scrollViewportToColumn159CountingReads')` caused.
+   */
+  async metaReadsDuringCall(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).metaReadsDuringCall);
   }
 
   /**

@@ -408,6 +408,25 @@ test.describe('AutoColumnSize idle sweep on a grid wider than its synchronous pa
     });
   }
 
+  test('keeps the last column in view without measuring up front when the grid sets an explicit syncLimit', async() => {
+    const tall: SyncBudgetGrid = { rows: 1000, cols: WIDE_GRID.cols };
+
+    // The control: on the budget path the same call measures every column before the target, one meta read
+    // per column, so the counter sees a measure.
+    await grid.build(tall, BUDGET, 'scrollViewportToColumn159CountingReads');
+
+    expect(await grid.metaReadsDuringCall()).toBeGreaterThan(100);
+
+    // An explicit syncLimit asks for less synchronous work: the call measures nothing, and the scroll runs
+    // again once the sweep ends.
+    await grid.build({ ...tall, settings: { autoColumnSize: { syncLimit: 10 } } }, undefined, 'scrollViewportToColumn159CountingReads');
+
+    expect(await grid.metaReadsDuringCall()).toBeLessThan(20);
+
+    await grid.waitForSweepEnd();
+    await expect.poll(() => grid.cellIsInView(0, LAST_COLUMN)).toBe(true);
+  });
+
   test('widens the scroll range once the sweep ends with an explicit syncLimit below the column count', async() => {
     const limited = { autoColumnSize: { syncLimit: 10 } };
 

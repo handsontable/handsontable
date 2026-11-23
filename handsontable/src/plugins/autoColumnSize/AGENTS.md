@@ -285,13 +285,20 @@ hold it together:
   chunk writes widths and draws only at the end of the sweep, and a sweep that ends while the rendering is held
   draws at `resumeRender()`. So the hook also renders, and stores the scroll when held, whenever
   `#widthsChangedSinceDraw` is set (by a `syncViewport` idle chunk or the hook's own measure, cleared at the end of
-  `#onBeforeRender`), not only when it measured something itself. The hook acts while any sweep is running
-  (`inProgress`), so a default grid wider than the synchronous part (about 102 columns, under the budget, no
-  AutoRowSize) gets the same: a `selectCell(0, 159)` right after the constructor on 160 columns landed on the
-  fallback widths of the columns before it, and the cell was off screen once the sweep drew
+  `#onBeforeRender`), not only when it measured something itself. Only a `syncViewport` sweep measures up front.
+  Any other sweep still running (`inProgress`: an explicit `syncLimit`, a default grid wider than the
+  synchronous part under the budget, AutoRowSize on a tall grid) measures nothing in the hook, because an
+  application that sets `syncLimit` asks for less synchronous work (a scroll to column 40 of 60 on 100k rows
+  measured 720 ms with `syncLimit: 5`, against 0.3 ms before). The hook remembers the last scroll whose columns
+  before the target still lack a width (`#scrollAfterSweep`) and runs it again after the render that ends the
+  sweep (`#replayScrollAfterSweep()`), through `#scrollAfterResumedRender` when that render is held. Without
+  the replay a `selectCell(0, 159)` right after the constructor on 160 columns landed on the fallback widths of
+  the columns before it, and the cell was off screen once the sweep drew
   (`auto-column-size-sync-budget.spec.ts`, "keeps the last column in view after a call made before the sweep
-  ends"). A re-measure sweep already has every width, so the hook finds none missing and stays out of its way.
-  With no sweep running and no width written since the last draw, the hook is inert. An edit made while the sweep runs is
+  ends" and "without measuring up front"). A scroll to a column whose widths are all known clears the pending
+  one, and `#cancelSweep()` drops it. A user who scrolls with the scrollbar while the sweep runs is not seen by
+  the hook, so the replay moves the viewport back to the last programmatic target. With no sweep running and no
+  width written since the last draw, the hook is inert. An edit made while the sweep runs is
   refreshed when it ends (`#refreshQueuedColumnsWidth()` waits for `inProgress`), and a column scrolled into
   view before the sweep reached it is measured by that render, synchronously, over every row (the visible
   pass fills every missing width), as for any grid wider than `syncLimit` before. A grid whose columns all fit
