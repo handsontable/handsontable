@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-23T16:18:07.196Z",
+  "updatedAt": "2026-11-23T21:01:57.904Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-webkit",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 521,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": "DEV-4110 until 2026-12-18 — read before the scroll settles",
+      "source": "ci",
+      "runId": "45261974258",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45261974258",
+      "workflow": "Tests",
+      "branch": "docs/DEV-4174_Docs-focus-visible-and-not-obscured",
+      "headSha": "4b07d56b51bf4103a7c8792c055febef730aaa3a",
+      "event": "pull_request",
+      "seenAt": "2026-11-23T21:01:05Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-firefox",
