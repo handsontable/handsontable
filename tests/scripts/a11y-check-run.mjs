@@ -27,13 +27,19 @@
  * older than the deploy the run read. `--suite website` reports the website scan the same way
  * (`.github/workflows/website-a11y.yml`): `A11y / website-axe report`, from `test-results/a11y-website/comparison.json`,
  * with the same drift rule against the latest website audit, which reads production as a change run does.
+ *
+ * On an audit (a schedule or a dispatch) every scan reads the findings ledger as the audit before left it
+ * (`auditLedgerInput()` of `lib/a11y-verdict-inputs.mjs`: `A11Y_LEDGER_FILE`, or `A11Y_LEDGER_URL`, the published
+ * `a11y.json` by default): every open finding stays listed, known debt is a warning at most, and a regression or a new
+ * finding counts, so the run turns red on what changed since that audit. A ledger that does not load leaves every open
+ * finding counted, with a note.
  */
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, pageLinesOf } from '../lib/a11y-check-run.mjs';
 import { LEDGER_URL, auditStaleness, driftNotes, driftOf, siteAudit } from '../lib/a11y-docs-drift.mjs';
-import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
+import { auditLedgerInput, verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -92,6 +98,8 @@ if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
     grown: grownCounted.length, grownItems: grownCounted, deployedAt, site: suite }));
 }
 
+// On an audit, the ledger as the audit before left it tells what changed since from the debt that stands.
+const auditLedger = await auditLedgerInput({ env, scope, source: scan.source });
 const payload = buildCheckRun({
   comparison: comparison && { ...comparison, notes: [...(comparison.notes ?? []), ...notes, ...driftLines] },
   pages,
@@ -102,6 +110,7 @@ const payload = buildCheckRun({
   tracked,
   scan,
   drift,
+  auditLedger,
 });
 
 if (dryRun) {

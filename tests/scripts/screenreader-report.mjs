@@ -22,6 +22,12 @@
  * `GITHUB_RUN_ID` (stamped on the check run as its `external_id`, which the run verdict reads).
  * `SCREENREADER_PROJECT` names the project when the run left no transcript at all, and `SCREENREADER_GROUP`
  * the scenario group the job ran (the check run's name, the scenarios a transcript is expected for).
+ *
+ * On an audit (a schedule or a dispatch) the report reads the findings ledger as the audit before left it
+ * (`auditLedgerInput()` of `lib/a11y-verdict-inputs.mjs`: `A11Y_LEDGER_FILE`, or `A11Y_LEDGER_URL`, the published
+ * `a11y.json` by default): every step stays listed, a known one or one of a scenario the audit before did not read whole
+ * is a warning at most, and a regression or a new one counts. A ledger that does not load leaves every step counted,
+ * with a note.
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -31,7 +37,7 @@ import { postCheckRun } from '../lib/github-check-run.mjs';
 import { buildScreenreaderEvidence, SCREENREADER_CHECK } from '../lib/screenreader-evidence.mjs';
 import { buildReport, stepLines } from '../lib/screenreader-report.mjs';
 import { SCENARIO_FILE_SUFFIX, laneOfProject, loadScenarios } from '../lib/screenreader-scenario.mjs';
-import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
+import { auditLedgerInput, verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT_DIR = path.join(TESTS_ROOT, 'test-results/screenreader');
@@ -99,6 +105,8 @@ writeFileSync(path.join(EVIDENCE_DIR, `${SCREENREADER_CHECK}.json`), `${JSON.str
 evidence.details.forEach(({ file, detail }) => writeFileSync(path.join(EVIDENCE_DIR, file), `${JSON.stringify(detail, null, 2)}\n`));
 evidence.problems.forEach(problem => problems.push(`the evidence document does not validate: ${problem}`));
 
+// On an audit, the ledger as the audit before left it tells what changed since from the debt that stands.
+const auditLedger = await auditLedgerInput({ env, scope, source: 'reader' });
 const report = buildReport({
   transcripts,
   expectedScenarios: group === undefined ? [...lines.keys()] : scenarios.map(scenario => scenario.id),
@@ -111,6 +119,7 @@ const report = buildReport({
   files,
   scope,
   tracked,
+  auditLedger,
 });
 // The title is escaped like every value in the summary: a tooling failure's title carries raw error text.
 const summary = `## ${escapeMarkdownText(report.title)}\n\n${report.summary}`;

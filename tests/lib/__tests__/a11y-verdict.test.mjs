@@ -9,6 +9,8 @@ import {
   annotationLevel,
   capAnnotations,
   countingScope,
+  renderAuditLedger,
+  ledgerLine,
   renderRunVerdict,
   renderVerdict,
   runVerdict,
@@ -224,4 +226,34 @@ test('the run verdict renders a table a reader can scan, escaped', () => {
   assert.match(markdown, /^## Run verdict: red/m);
   assert.match(markdown, /\| ✖ red \| \[A11y \/ axe report\]\(https:\/\/github\.com\/o\/r\/runs\/1\) \| failure title \|/);
   assert.doesNotMatch(markdown, /<b>/);
+});
+
+test('the ledger line names a finding not measured before only when there is one, so a pull request\'s title is what it was', () => {
+  assert.equal(ledgerLine({ new: 1, regression: 1, unmeasured: 0, known: 3 }), 'ledger: 1 new, 1 regression, 3 known');
+  assert.equal(ledgerLine({ new: 0, regression: 2, known: 0 }), 'ledger: 0 new, 2 regressions, 0 known');
+  assert.equal(ledgerLine({ new: 0, regression: 0, unmeasured: 4, known: 9 }), 'ledger: 0 new, 0 regressions, 4 not measured before, 9 known');
+});
+
+test('an audit\'s ledger section lists what is not known debt, regressions first, and cuts the list at thirty', () => {
+  const classified = [
+    ...Array.from({ length: 31 }, (_, index) => ({ ledger: 'new', id: `n${index}` })),
+    { ledger: 'unmeasured', id: 'u' }, { ledger: 'known', id: 'k' }, { ledger: 'regression', id: 'r' },
+  ];
+  const markdown = renderAuditLedger({ auditLedger: { auditAt: '2026-11-17T12:09:26Z', auditRun: '44077688383' }, classified, columns: ['Id'], cellsOf: item => [item.id] });
+  const rows = markdown.split('\n').filter(line => /^\| (New|Regression|Known|Not measured before) \| [a-z]\d* \|$/.test(line));
+
+  assert.match(markdown, /as the audit of 2026-11-17 \(run 44077688383\) left it/);
+  assert.match(markdown, /\| 31 \| 1 \| 1 \| 1 \|/);
+  assert.equal(rows.length, 30);
+  assert.deepEqual([rows[0], rows[1], rows[29]], ['| Regression | r |', '| New | n0 |', '| New | n28 |'], 'regressions, then new, then not measured before');
+  assert.match(markdown, /…and 3 more in the annotations and the run's artifacts\.$/);
+  assert.doesNotMatch(markdown, /\| Known \| k \|/, 'known debt is counted, not listed');
+  assert.match(renderAuditLedger({ auditLedger: {}, classified: [], columns: ['Id'], cellsOf: () => [] }), /as the latest audit left it/);
+});
+
+test('an audit\'s run verdict says the run turns red on what changed since the audit before; a change run\'s says nothing of it', () => {
+  const result = runVerdict({ checkRuns: [], runId: '1', prefixes: ['A11y / '] });
+
+  assert.match(renderRunVerdict(result, { scope: 'audit' }), /On an audit a check run counts what the findings ledger does not hold as open/);
+  assert.doesNotMatch(renderRunVerdict(result), /findings ledger/);
 });

@@ -10,7 +10,8 @@ name: A11y
 # (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a critical or serious finding,
 # neutral with a warning on a moderate or minor one, green on none. On a pull request or a push
 # only a new or grown finding counts, a tracked one as a warning at most; on the nightly (a
-# schedule or a dispatch) every open finding counts. The job's only reds are tooling failures:
+# schedule or a dispatch) every open finding is listed, and one the findings ledger does not hold as
+# open counts, known debt a warning at most. The job's only reds are tooling failures:
 # a fixture that does not load, an invalid baseline, a run that completed no scan. The flip to blocking is one constant, `A11Y_MODE` in
 # tests/lib/a11y-baseline.mjs, after a replay over recent pull requests shows the
 # comparator is precise.

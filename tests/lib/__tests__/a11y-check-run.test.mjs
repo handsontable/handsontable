@@ -18,6 +18,7 @@ import {
   pageLinesOf,
 } from '../a11y-check-run.mjs';
 import { AXE_SCAN_CHECK, DOCS_SCAN_CHECK, ISSUES_FILE, compileIssuesCatalog, trackedBy } from '../a11y-issues.mjs';
+import { auditLedgerOf, ledgerIndex, ledgerKey } from '../a11y-pr-ledger.mjs';
 import { DOCS_BASELINE_FILE, suiteFor } from '../a11y-suites.mjs';
 import { A11Y_PAGES } from '../../a11y/pages.mjs';
 import { DOCS_PAGES, EXTRA_PAGES } from '../../a11y/docs/pages.mjs';
@@ -133,6 +134,62 @@ test('an audit run counts every open finding: the known ones too, annotated on t
     ['tests/a11y/axe-baseline.json', 6, 'failure', 'Known accessibility finding (critical): aria-required-parent'],
   ]);
   assert.match(payload.summary, /\*\*Audit run\*\* \(a schedule or a dispatch\): every open finding counts, tracked or not\./);
+});
+
+// tests/AGENTS.md, "A11y: the verdict of a check run": on an audit the scan reads the findings ledger as the audit before
+// left it. Every open finding stays listed; known debt is a warning at most, and a new finding or a regression counts.
+const AXE_LEDGER = {
+  latest: { a11y: { runId: '100', seenAt: '2026-11-17T12:09:26Z' } },
+  nights: [{ source: 'a11y', runId: '100', coverage: { checks: {}, axe: true, reader: [], golden: [] } }],
+  rows: [
+    { source: 'axe', key: ledgerKey('axe', 'axe', finding()), status: 'persisting', firstRun: '90', lastRun: '100', gaps: 0, seenSinceGap: 2 },
+    { source: 'axe', key: ledgerKey('axe', 'axe', finding({ page: 'context-menu', rule: 'aria-required-parent', target: 'td[role="menuitem"]' })),
+      status: 'resolved', firstRun: '90', lastRun: '90', gaps: 1, seenSinceGap: 0 },
+  ],
+};
+const axeAudit = (ledger = AXE_LEDGER) => auditLedgerOf({ index: ledgerIndex(ledger, 'axe'), source: 'axe', runId: '200' });
+
+test('on an audit known debt is a warning at most, and a regression or a new finding of the scan counts, every one listed with its class', () => {
+  const known = build(comparison([finding()]), { scope: 'audit', auditLedger: axeAudit() });
+
+  assert.equal(known.conclusion, 'neutral', 'reading 1: a known critical finding never turns the audit red');
+  assert.match(known.title, /^⚠ Warning: 0 critical, 0 serious, 0 moderate, 0 minor .* · 1 warning only, 1 advisory · ledger: 0 new, 0 regressions, 1 known · /,
+    'the context menu\'s baseline entry is stale here: advisory, never classified');
+  assert.equal(known.annotations[0].title, 'Known accessibility finding (critical): aria-required-children · ledger: known');
+  assert.match(known.summary, /#### New and known, by the findings ledger/);
+
+  const regressed = build(comparison(matchedAll), { scope: 'audit', auditLedger: axeAudit() });
+
+  assert.equal(regressed.conclusion, 'failure', 'reading 3: a resolved row that came back counts');
+  assert.match(regressed.title, /^✖ Red: 1 critical, .* · 1 warning only · ledger: 0 new, 1 regression, 1 known · No new accessibility findings: 2 known/,
+    'the context menu\'s three nodes are one baseline entry, one ledger row');
+  assert.ok(regressed.summary.includes('| Regression | critical | context-menu | main | aria-required-parent | <code>td\\[role="menuitem"\\]</code> |'),
+    'the regression is listed with its element, escaped for the table');
+
+  const fresh = build(comparison([finding(), finding({ rule: 'label', target: 'textarea', impact: 'serious' })]), { scope: 'audit', auditLedger: axeAudit() });
+
+  assert.equal(fresh.conclusion, 'failure', 'reading 2: a finding with no row counts');
+  assert.match(fresh.title, /ledger: 1 new, 0 regressions, 1 known · /);
+
+  const unmeasured = build(comparison([finding({ rule: 'label', target: 'textarea', impact: 'serious' })]), { scope: 'audit',
+    auditLedger: axeAudit({ ...AXE_LEDGER, nights: [{ source: 'a11y', runId: '100', coverage: { checks: {}, axe: false, reader: [], golden: [] } }] }) });
+
+  assert.equal(unmeasured.conclusion, 'neutral', 'reading 6: the audit before did not complete its scan, so a finding with no row is a warning');
+  assert.match(unmeasured.title, /ledger: 0 new, 0 regressions, 1 not measured before, 0 known · /);
+});
+
+test('on an audit a scan that could not measure stays red, and a ledger that did not load counts every open finding', () => {
+  const broken = build(comparison([finding()], { problems: ['grid on main: the scan did not run'] }), { scope: 'audit', auditLedger: axeAudit() });
+
+  assert.equal(broken.conclusion, 'failure', 'reading 4: a tooling failure is red whatever the ledger says');
+  assert.equal(broken.title, '✖ Tooling failure: grid on main: the scan did not run');
+
+  const unread = build(comparison([finding()]), { scope: 'audit', auditLedger: { problem: 'the findings ledger did not load from x (HTTP 503)' } });
+
+  assert.equal(unread.conclusion, 'failure');
+  assert.match(unread.summary, /> Known and new findings were not told apart, so every open finding counts: the findings ledger did not load/);
+  assert.equal(build(comparison([finding()]), { scope: 'change', auditLedger: axeAudit() }).conclusion, 'success',
+    'a change run never reads the audit\'s ledger: a known baseline entry is not counted there');
 });
 
 test('a violation axe gave no impact counts as serious', () => {
