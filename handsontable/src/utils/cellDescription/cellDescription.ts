@@ -12,7 +12,6 @@ export { CELL_DESCRIPTION_ID_PREFIX };
  * The position of each part in the description. A part with a lower rank is read first.
  */
 export const CELL_DESCRIPTION_RANK = {
-  TREE_POSITION: 5,
   READ_ONLY: 10,
   LINK: 20,
   MERGED: 30,
@@ -51,6 +50,18 @@ export function beginCellDescription(TD: HTMLTableCellElement): void {
   } else {
     partsOfCell.set(TD, []);
   }
+}
+
+/**
+ * Tells whether the cell painter is painting an element now: its renderers and `afterRenderer` listeners run
+ * between `beginCellDescription()` and `applyCellDescription()`. A cell painted outside the grid (a measuring
+ * table, a ghost cell) answers `false`.
+ *
+ * @param {HTMLTableCellElement} TD The cell element.
+ * @returns {boolean}
+ */
+export function isCellBeingPainted(TD: HTMLTableCellElement): boolean {
+  return partsOfCell.has(TD);
 }
 
 /**
@@ -149,8 +160,8 @@ const elementsOfRoot = new WeakMap<HTMLElement, DescriptionElements>();
  * resolve in the tree the cell is in (a grid inside a shadow root). The element is remembered, so a paint that finds
  * it still in the root searches nothing; one that a host's own markup removed is made again under a new id.
  *
- * Exported for an element that is not a data cell but has to be described by the same text as the cells (a row
- * header that takes the focus), so both point at one element and no second store of elements exists.
+ * Exported for another reference to a hidden text in the grid: a row header described by the level of its row, and a
+ * nested row cell whose name ends with that level (`aria-labelledby`), so no second store of elements exists.
  *
  * @param {CellDescriptionHost} hot The Handsontable instance.
  * @param {string} text The description.

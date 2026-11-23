@@ -19,6 +19,7 @@ import {
   NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
 } from '../../../i18n/constants';
 import { getCellDescriptionElementId } from '../../../utils/cellDescription/cellDescription';
+import { removeRowLabels } from '../utils/rowLabels';
 
 /**
  * The treegrid attributes this plugin writes on a row's `TR`. Walkontable recycles `TR` elements
@@ -341,6 +342,24 @@ class HeadersUI extends BaseUI {
     rows.forEach((TR) => {
       if (this.#isOwnRenderedElement(TR)) {
         clearRowAttributes(TR);
+      }
+    });
+  }
+
+  /**
+   * Removes the level labels (`aria-labelledby`) this plugin wrote on the rows and on the data cells this
+   * instance has rendered, in the master table and every overlay copy. Walkontable keeps a cell's label across a
+   * repaint, so once the plugin's hooks are gone nothing else would take it off. The ids the cells got stay:
+   * they are unique, and a cell keeps one id for its whole life.
+   *
+   * @private
+   */
+  removeRenderedRowLabels() {
+    const rows = this.hot.rootElement.querySelectorAll<HTMLTableRowElement>('tbody tr');
+
+    rows.forEach((TR) => {
+      if (this.#isOwnRenderedElement(TR)) {
+        removeRowLabels(TR);
       }
     });
   }

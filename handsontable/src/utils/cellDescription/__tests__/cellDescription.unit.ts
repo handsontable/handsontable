@@ -5,6 +5,7 @@ import {
   applyCellDescription,
   beginCellDescription,
   getCellDescriptionElementId,
+  isCellBeingPainted,
   removeCellDescriptionPart,
 } from '../cellDescription';
 
@@ -322,28 +323,13 @@ describe('cellDescription', () => {
     expect(descriptionOf(hot, outer)).toBe('read only, merged through row 4 column 3');
   });
 
-  it('should read the tree position first, before read only, a link and a merged block', () => {
-    const hot = createHot();
-    const cell = createCell();
-
-    describe_(hot, cell, [
-      [CELL_DESCRIPTION_RANK.MERGED, 'merged through row 4 column 3'],
-      [CELL_DESCRIPTION_RANK.READ_ONLY, 'read only'],
-      [CELL_DESCRIPTION_RANK.TREE_POSITION, 'Level 2, 1 of 3'],
-      [CELL_DESCRIPTION_RANK.LINK, 'link'],
-    ]);
-
-    expect(descriptionOf(hot, cell)).toBe('Level 2, 1 of 3, read only, link, merged through row 4 column 3');
-    expect(CELL_DESCRIPTION_RANK.TREE_POSITION).toBeLessThan(CELL_DESCRIPTION_RANK.READ_ONLY);
-  });
-
   it('should give an element outside the cells the id of the element a cell with the same text points at', () => {
     const hot = createHot();
     const cell = createCell();
 
-    describe_(hot, cell, [[CELL_DESCRIPTION_RANK.TREE_POSITION, 'Level 2, 1 of 3']]);
+    describe_(hot, cell, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
 
-    const id = getCellDescriptionElementId(hot, 'Level 2, 1 of 3');
+    const id = getCellDescriptionElementId(hot, 'read only');
 
     expect(cell.getAttribute('aria-describedby')).toBe(id);
     expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(1);
@@ -360,5 +346,20 @@ describe('cellDescription', () => {
     expect(element?.hasAttribute('hidden')).toBe(true);
     expect(getCellDescriptionElementId(hot, 'Level 1, 2 of 2, collapsed')).toBe(id);
     expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(1);
+  });
+
+  it('should tell a cell the painter is painting from one it is not', () => {
+    const hot = createHot();
+    const cell = createCell();
+
+    expect(isCellBeingPainted(cell)).toBe(false);
+
+    beginCellDescription(cell);
+
+    expect(isCellBeingPainted(cell)).toBe(true);
+
+    applyCellDescription(hot, cell, true);
+
+    expect(isCellBeingPainted(cell)).toBe(false);
   });
 });

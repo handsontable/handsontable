@@ -45,6 +45,7 @@ vanishes from that list while it still filters.
 | `ui/headers.ts` | The `+`/`-` button and the indent markers in row headers |
 | `ui/contextMenu.ts` | "Insert child row" / "Detach from parent", and it overrides `row_above`/`row_below` |
 | `utils/rowMoveController.ts` | Replaces ManualRowMove entirely (see below) |
+| `utils/rowLabels.ts` | The level label: cell ids and the `aria-labelledby` of cells and rows (see "Treegrid accessibility") |
 
 Note the file names: `ui/headers.ts` and `ui/contextMenu.ts`, not `headersUI.ts`.
 
@@ -937,47 +938,89 @@ row semantics. Six things look simpler than they are.
   state, and a `button` inside it would nest one interactive element in another (two stops, two names
   for one action). Without `navigableHeaders` nothing in the header takes the focus, which is what the
   <kbd>Shift</kbd>+<kbd>Alt</kbd> chords are for.
-- **The level of a row is each cell's description, never a live message.** `aria-level`,
-  `aria-posinset` and `aria-setsize` sit on the `TR`, and the tested readers speak none of them while
-  the focus is on a cell of the row. `#onAfterRenderer` therefore adds a part to every data cell's
-  description (`utils/cellDescription/`, rank `TREE_POSITION`, read before "read only"): "Level 2, 1 of
-  3", with ", expanded" or ", collapsed" for a parent (three whole phrases,
-  `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a concatenation, so a translation can order them; the keys
-  keep their `announcement.` names because renaming them would break a customer's dictionary). The text
-  comes from `HeadersUI#getRowLevelDescription()`, which reads `DataManager#getRowTreePosition()`, the
-  same call `HeadersUI#updateRowAttributes()` writes the attributes from, so the description and the
-  attributes cannot disagree (a filter recounts both). Six rules:
+- **The level of a row ends each cell's accessible NAME, never its description and never a live
+  message.** `aria-level`, `aria-posinset` and `aria-setsize` sit on the `TR`, and the tested readers
+  speak none of them while the focus is on a cell of the row. `#onAfterRenderer` therefore labels every
+  data cell of a nested row with itself and a hidden element: `aria-labelledby="<cell id> <level element
+  id>"`, the element holding ", Level 2, 1 of 3", with ", expanded" or ", collapsed" for a parent (three
+  whole phrases, `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a concatenation, so a translation can order
+  them; the keys keep their `announcement.` names because renaming them would break a customer's
+  dictionary). The text comes from `HeadersUI#getRowLevelDescription()`, which reads
+  `DataManager#getRowTreePosition()`, the same call `HeadersUI#updateRowAttributes()` writes the
+  attributes from, so the name and the attributes cannot disagree (a filter recounts both). The writes
+  live in `utils/rowLabels.ts`. Measured in Chromium's accessibility tree (`Accessibility.getPartialAXTree`,
+  pinned by the Chromium describe of `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`): the cell's name is
+  "Grape , Level 2, 4 of 6" (the ", " gives VoiceOver a pause), its description stays the column header
+  (plus "read only" on a read-only cell), and the row's name is "Grape 12". Rules:
   - **Why not a polite message on each move.** The first version announced the level when the highlight
     reached another row. VoiceOver (Chromium and Safari) lags behind fast arrow presses: after three
     quick ArrowDowns it spoke an earlier cell ("Cherry") while the focus and the message were already on
-    a later row ("Grape"), so the name and the level disagreed. A description is part of the cell the
-    reader speaks, so whatever cell it speaks, it speaks that cell's level. The cost is that the level is
-    read on every move, a move between the cells of one row included.
-  - **A row header that takes the focus (`navigableHeaders`) points at the same element.**
+    a later row ("Grape"), so the name and the level disagreed. A label is part of the cell the reader
+    speaks, so whatever cell it speaks, it speaks that cell's level. The cost is that the level is read on
+    every move, a move between the cells of one row included.
+  - **Why the name and not the description.** The second version put the level in the cell's description
+    (`utils/cellDescription/`). VoiceOver reads a description BEFORE the value, so the user heard "Item,
+    Level 2, 4 of 6, Grape, column 1, row Grape 12". The product requires "Item Grape, Level 2, 4 of 6,
+    column 1, row Grape 12": the level right after the value, and not in the row's name. Hidden text
+    inside the cell is ruled out (it changes `textContent`, the copied text and every name-matching
+    test), so the cell names itself through its own id first, then the level element.
+  - **The row needs its own `aria-labelledby`.** Without it Chromium builds a row's name from its cells'
+    names, so the level repeated once per column (measured). `#onAfterViewRender` labels each row with the
+    ids of its labelled cells, in DOM order. Per the accessible name computation a node reached through
+    `aria-labelledby` does not follow its own `aria-labelledby`, so each cell gives its content only and the
+    row reads "Grape 12" (measured). Only the rows whose cells were painted in the draw are visited
+    (`#rowsToLabel`, filled in `afterRenderer`), every write compares first, and a row without labelled
+    cells loses ours. A grid without `rowHeaders` (no `aria-level` on its rows) is labelled the same way,
+    because its cells are.
+  - **Ids.** A cell gets one id for its whole life (`ownCellIds`, a `WeakMap`), `<guid>-cell-<n>` with a
+    module-wide counter, so the master and every overlay clone (each copy is its own element) and two
+    grids on a page never share one. A cell that already has an `id` (a renderer's) keeps it and is
+    referenced by it. The ids stay on the elements after a disable: they are unique and harmless, and a
+    re-enable reuses them.
+  - **A cell its renderer named is left alone.** A cell with an `aria-label`, or an `aria-labelledby` this
+    plugin did not write (`ownLabels` holds the value we wrote), keeps it, and a label of ours on it goes.
+    Its row is labelled by the other cells only.
+  - **Walkontable keeps our label across a repaint.** `prepareCellAriaAttributes` clears every `aria-*` of
+    a recycled cell before the renderer runs; `isKeptLabelledBy()` (`render/ariaAttributes.ts`) leaves an
+    `aria-labelledby` that is the cell's own id followed by `CELL_DESCRIPTION_ID_PREFIX` references, the
+    same exception `isKeptDescribedBy()` makes for the description, so a repaint does not remove it for
+    this plugin to write it back. The cost is the same too: a renderer that reads `aria-labelledby` on a
+    recycled labelled cell sees ours. Because of that keep, `disablePlugin()` (outside a rebuild) and a
+    rebuild that stops on invalid data walk the rendered rows (`HeadersUI#removeRenderedRowLabels()`, the
+    same `tbody tr` walk and ownership rule as the row attributes) and take our labels off the rows and
+    their cells. Cost, measured on a 1000-row tree (200 parents, 4 children, 5 columns, `height: 400`), 20
+    scroll steps of 300px: 300 `aria-describedby` writes with the description, 276 `aria-labelledby` plus
+    30 `id` plus 30 `aria-describedby` (the column header on new cells) writes with the label; the scroll
+    draw and `render()` medians did not move (4.2 to 4.5 ms and 2.7 to 3.0 ms on both).
+  - **Only cells the painter paints.** `isCellBeingPainted()` (`utils/cellDescription/`) answers `false`
+    for a measuring table or a ghost cell, which run `afterRenderer` too and get nothing.
+  - **The level element** is the cell description store's (`getCellDescriptionElementId(hot, ', ' +
+    text)`), a separate element from the plain text a row header points at, so no second store of hidden
+    elements exists. The texts repeat across siblings, so a grid holds at most two elements per distinct
+    (level, position, set size, state); a flat top level of N rows makes up to N of them over a scroll,
+    and they stay in the root until the grid is destroyed (`utils/cellDescription/AGENTS.md`).
+  - **A row header that takes the focus (`navigableHeaders`) is DESCRIBED by the plain level.**
     `HeadersUI#updateHeaderDescription()`, called from `appendLevelIndicators()` (`afterGetRowHeader`),
-    writes `aria-describedby` on the `TH` with the id `getCellDescriptionElementId()` gives for the
-    row's text: the element the row's cells point at, never a second copy. Walkontable strips every
-    `aria-*` from a `TH` on each paint, so it is written on every header paint, and only when the value
-    differs. Without `navigableHeaders` the header takes no focus and gets nothing. A parent's header
-    also carries `aria-expanded`, so a reader can say the state twice there; that repeat is accepted.
-  - **One element per distinct text.** The texts repeat across siblings, so a grid holds at most one
-    element per distinct (level, position, set size, state); a flat top level of N rows makes up to N of
-    them over a scroll, and they stay in the root until the grid is destroyed
-    (`utils/cellDescription/AGENTS.md`).
+    writes `aria-describedby` on the `TH` with the id `getCellDescriptionElementId()` gives for the row's
+    text. Walkontable strips every `aria-*` from a `TH` on each paint, so it is written on every header
+    paint, and only when the value differs. Without `navigableHeaders` the header takes no focus and gets
+    nothing. A parent's header also carries `aria-expanded`, so a reader can say the state twice there;
+    that repeat is accepted.
   - **What repaints a stale level under `renderMode: 'onChange'`.** A collapse, an expand, a filter and a
     trim change the row index mapper's cache, and Core advances the render epoch on every
     `cacheUpdated` of it, so those need no mark of their own. A tree change can move a row to another
     level or position with no index or value change (detaching the last child keeps it at the same
     physical row), so `DataManager#rewriteCache()` calls `hot.markAllCellsChanged()`. `enablePlugin()`
-    and `disablePlugin()` mark too, as every plugin that adds a description part must. Pinned by the
-    `renderMode onChange` cases of `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`; the detach case fails
-    without the mark in `rewriteCache()`.
+    and `disablePlugin()` mark too. Pinned by the `renderMode onChange` cases of
+    `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`; the detach case fails without the mark in
+    `rewriteCache()`.
   - **One gesture, one message.** Only the toggle announces ("Collapsed row 1", "Expanded row 1, expanded
     rows shown: 5"). Moving the highlight, the stranded-selection restore after a collapse, and the API
     announce nothing, so there is no flag to hold a level message back. A whole row selected by a click on
     its header is announced by the core selection announcer ("Row 3 selected",
     `core/selectionAnnouncer/`); the level message used to silence it through `getAnnouncementCount()`.
-  - `ariaTags: false` describes nothing: the part is skipped and the painter writes no description.
+  - `ariaTags: false` labels nothing: `afterRenderer` only takes a label of ours off a cell (the grid can
+    switch the option at runtime), and Walkontable clears every `aria-*` of a cell on such a grid anyway.
 
 ## How it interacts with the rest of the grid
 
@@ -1076,8 +1119,9 @@ row semantics. Six things look simpler than they are.
 | `__tests__/operationSelection.unit.js` | The selection stays on its rows across a row removal, an added child and a detach, with and without a collapsed parent; a removed selected row, a selection changed in between and a whole column keep their own rules (DEV-509) |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
-| `tests/e2e/nested-rows-tree-keys-a11y.spec.ts` | Playwright (Chromium, Firefox, WebKit): the <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chords from a data cell with `navigableHeaders` off and from a row header with it on, the walk from a child to its parent in the same column, the RTL mirror, a multi-row selection and a covered body left alone, and the row level description (every cell of a leaf, an expanded and a collapsed parent, a filter, the row header with `navigableHeaders` and none without, a cell left behind by fast presses, before "read only", a frozen column and a second grid, `ariaTags: false`, the plugin switched off, `renderMode: 'onChange'` after a collapse and a detach, and no level in the live region) |
-| `__tests__/data/dataManager.unit.js` (`getRowTreePosition`) | The level, position and set size the row attributes and the level description share, and the `markAllCellsChanged()` in `rewriteCache()` |
+| `tests/e2e/nested-rows-tree-keys-a11y.spec.ts` | Playwright (Chromium, Firefox, WebKit): the <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chords from a data cell with `navigableHeaders` off and from a row header with it on, the walk from a child to its parent in the same column, the RTL mirror, a multi-row selection and a covered body left alone, and the row level in the cell name and the row name (every cell of a leaf, an expanded and a collapsed parent, a filter, the row header with `navigableHeaders` and none without, a cell left behind by fast presses, a read-only cell, a renderer's own name, a frozen column and a second grid, `ariaTags: false`, the plugin switched off, `renderMode: 'onChange'` after a collapse and a detach, and no level in the live region); a Chromium-only describe reads the names and descriptions from Chromium's accessibility tree |
+| `__tests__/utils/rowLabels.unit.ts` | The cell and row labels: one id per cell for its life, a renderer's id kept, a renderer's name left alone, compare before write, row ids in DOM order, removal of our labels only |
+| `__tests__/data/dataManager.unit.js` (`getRowTreePosition`) | The level, position and set size the row attributes and the level label share, and the `markAllCellsChanged()` in `rewriteCache()` |
 | `__tests__/filtering.unit.js` | Filtering keeps ancestors and subtrees, widens once per pass, survives collapse/undo, and the hook's normalization on a plain grid (DEV-512) |
 | `tests/e2e/filters-nested-rows.spec.ts` | Playwright: the Filter by value list of a nested grid, and the parent chain and subtree a filter keeps |
 | `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included, with a listener removing rows mid-clear, and when every visible cell is read-only), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
