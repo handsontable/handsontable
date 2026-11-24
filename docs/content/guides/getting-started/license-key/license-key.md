@@ -636,7 +636,7 @@ The wrapper component creates its instance once, when it mounts. A later change 
 What you can do depends on your license type:
 
 - **Subscription license:** once your subscription expires, you can no longer use Handsontable. Renew your subscription to keep using the grid.
-- **Perpetual license:** you can keep using any version of Handsontable that was released _before_ your license expired. You won't be able to upgrade to versions released after that date.
+- **Perpetual license:** you can keep using any version of Handsontable that was released on or before the day your license expired. You won't be able to upgrade to versions released after that date.
 
 If you load a version that your license doesn't cover, what you see depends on your license type. A perpetual license shows a console error and a [notice bar](#expired-license-key) below the grid. A key in the 25-character format shows a console warning and the same notice bar. A lapsed subscription shows a console error only. To keep support and access to updates, keep your license up to date.
 
