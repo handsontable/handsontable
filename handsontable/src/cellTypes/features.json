@@ -11,8 +11,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -31,8 +30,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -52,8 +50,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -73,8 +70,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -94,8 +90,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -115,8 +110,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -136,8 +130,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -157,8 +150,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -177,8 +169,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -197,8 +188,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -218,8 +208,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -239,8 +228,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -259,8 +247,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [
@@ -279,8 +266,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ],
       "requires": {
         "allOf": [

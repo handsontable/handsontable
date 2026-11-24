@@ -11,8 +11,7 @@
       "licensing": "token",
       "gate": "call",
       "tiers": [
-        "standard",
-        "professional"
+        "standard"
       ]
     }
   ]

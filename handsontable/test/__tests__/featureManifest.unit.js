@@ -20,6 +20,7 @@ import {
   checkSources,
   computeImplies,
   findStaleOutputs,
+  REMOVED_TIERS,
   indexEntries,
   listEntries,
   loadSources,
@@ -280,16 +281,13 @@ describe('feature manifest', () => {
     });
 
     it('should require every tier on an entry the runtime never switches off', () => {
-      const [first, ...rest] = sources.tiers;
       const reported = [...byId.values()].filter(entry => entry.gate === 'report').map(entry => entry.id);
 
       expect(reported).toEqual(expect.arrayContaining(['grid', 'cell:text', 'xlsx:import_report']));
-      ['grid', 'cell:date', 'xlsx:import_report'].forEach((id) => {
-        expect([id, checkSources(withEntry(sources, id, entry => ({ ...entry, tiers: rest })))]).toEqual([id, [
-          expect.stringContaining('"gate": "report" is never switched off, so "tiers" must list every tier; ' +
-            `"${first}" is missing`),
-        ]]);
-      });
+      // An entry with no tiers at all is not a sold entry: it fails on the empty list, not on a missing tier.
+      expect(checkSources(withEntry(sources, 'grid', entry => ({ ...entry, tiers: [] })))).toEqual([
+        expect.stringContaining('"tiers" must be a non-empty list of tier names'),
+      ]);
 
       // A tier added to `tiers.json` alone is missing from every such entry.
       const added = { ...sources, tiers: [...sources.tiers, 'added_tier'] };
@@ -410,6 +408,27 @@ describe('feature manifest', () => {
         expect.stringContaining(`"tier:${first}" was released as a tier`),
       ]);
       expect(checkReleased({ ...sources, tiers: [...sources.tiers, 'added_tier'] })).toEqual([]);
+    });
+
+    it('should have a single tier, "standard", and record no tier that was removed', () => {
+      expect(sources.tiers).toEqual(['standard']);
+      expect(Object.keys(sources.released).filter(id => id.startsWith('tier:'))).toEqual(['tier:standard']);
+      expect(sources.released['tier:professional']).toBeUndefined();
+    });
+
+    it('should accept the removal of "professional", the one tier removed on purpose (DEV-4198)', () => {
+      expect(REMOVED_TIERS).toEqual({ professional: 'DEV-4198' });
+      // Without the removal list, a record that still held the tier would refuse sources that drop it.
+      expect(checkReleased({ ...sources, released: { ...sources.released, 'tier:professional': ['tier'] } }))
+        .toEqual([]);
+    });
+
+    it('should refuse to bring a removed tier back', () => {
+      expect(checkSources({
+        ...sources,
+        tiers: [...sources.tiers, 'professional'],
+        tiersFile: { ...sources.tiersFile, tiers: [...sources.tiers, 'professional'] },
+      })).toEqual(expect.arrayContaining([expect.stringContaining('tier "professional" was removed (DEV-4198)')]));
     });
 
     it('should refuse a tier line of the record that lists anything but "tier"', () => {
@@ -645,6 +664,10 @@ describe('feature manifest', () => {
       expect(checkRecordAgainstBase(record, current)).toEqual([
         `"tier:${first}" is in the base branch's ${RELEASED_FILE}, so it must stay in it`,
       ]);
+    });
+
+    it('should accept a record that drops "tier:professional", the one tier removed on purpose', () => {
+      expect(checkRecordAgainstBase({ ...record, 'tier:professional': ['tier'] }, record)).toEqual([]);
     });
 
     it('should refuse a record that loses a value the base recorded', () => {

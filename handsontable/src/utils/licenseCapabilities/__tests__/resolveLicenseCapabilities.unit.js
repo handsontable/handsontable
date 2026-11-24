@@ -237,6 +237,25 @@ describe('a key that names a tier', () => {
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(false);
   });
 
+  // DEV-4198: DataGrid has a single tier, `standard`. The `professional` tier was removed, so a key that names
+  // only `tier:professional` is a restricted key whose tier no feature lists, and unlocks nothing.
+  it('should unlock every shipped plugin for the single tier, "standard"', () => {
+    const hot = gridWithKey(keyWithTier(['standard']));
+
+    ['feat:filters', 'feat:comments', 'feat:formulas', 'feat:export_file'].forEach((id) => {
+      expect([id, hasLicenseCapability(hot, id)]).toEqual([id, true]);
+    });
+  });
+
+  it('should unlock no feature for a key that names only the removed tier "professional"', () => {
+    const hot = gridWithKey(keyWithTier(['professional']));
+
+    expect(resolveLicenseCapabilities(hot)).toBeInstanceOf(Set);
+    ['feat:filters', 'feat:comments', 'feat:formulas', 'feat:export_file'].forEach((id) => {
+      expect([id, hasLicenseCapability(hot, id)]).toEqual([id, false]);
+    });
+  });
+
   it.each(['__proto__', 'constructor'])('should unlock no feature for the tier %s', (tier) => {
     const hot = gridWithKey(keyWithTier([tier]));
 

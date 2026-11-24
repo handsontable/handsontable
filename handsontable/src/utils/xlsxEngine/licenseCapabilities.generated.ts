@@ -58,36 +58,32 @@ export const XLSX_FLAG_BY_ID: Readonly<Record<string, string>> = Object.freeze({
 export const XLSX_TIERS_BY_ID: Readonly<Record<string, readonly string[]>> = Object.freeze({
   'xlsx:import': Object.freeze([
     'standard',
-    'professional',
   ]),
   'xlsx:export': Object.freeze([
     'standard',
-    'professional',
   ]),
   'xlsx:formulas': Object.freeze([
     'standard',
-    'professional',
   ]),
   'xlsx:layout': Object.freeze([
     'standard',
-    'professional',
   ]),
   'xlsx:number_formats': Object.freeze([
-    'professional',
+    'standard',
   ]),
   'xlsx:comments': Object.freeze([
-    'professional',
+    'standard',
   ]),
   'xlsx:styles': Object.freeze([
-    'professional',
+    'standard',
   ]),
   'xlsx:conditional_formatting': Object.freeze([
-    'professional',
+    'standard',
   ]),
   'xlsx:data_validation': Object.freeze([
-    'professional',
+    'standard',
   ]),
   'xlsx:protection': Object.freeze([
-    'professional',
+    'standard',
   ]),
 });

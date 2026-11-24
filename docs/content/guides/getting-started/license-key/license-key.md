@@ -330,84 +330,84 @@ The table lists the tiers that include each feature. For prices, see the
 
 <!-- license-tiers:start -->
 
-| Feature | Standard | Professional |
-| --- | :---: | :---: |
-| Data grid | Yes | Yes |
-| Async values | Yes | Yes |
-| Auto column size | Yes | Yes |
-| Auto link | Yes | Yes |
-| Auto row header size | Yes | Yes |
-| Auto row size | Yes | Yes |
-| Autofill | Yes | Yes |
-| Bind rows with headers | Yes | Yes |
-| Checkbox header | Yes | Yes |
-| Collapsible columns | Yes | Yes |
-| Column freezing | Yes | Yes |
-| Column menu | Yes | Yes |
-| Column moving | Yes | Yes |
-| Column resizing | Yes | Yes |
-| Column sorting | Yes | Yes |
-| Column stretching | Yes | Yes |
-| Column summary | Yes | Yes |
-| Comments | Yes | Yes |
-| Context menu | Yes | Yes |
-| Copy and paste | Yes | Yes |
-| Custom borders | Yes | Yes |
-| Data provider | Yes | Yes |
-| Dialog | Yes | Yes |
-| Drag to scroll | Yes | Yes |
-| Editable headers | Yes | Yes |
-| Empty data state | Yes | Yes |
-| Export to file | Yes | Yes |
-| Filters | Yes | Yes |
-| Formula builder | Yes | Yes |
-| Formulas | Yes | Yes |
-| Freeze bar | Yes | Yes |
-| Hidden columns | Yes | Yes |
-| Hidden rows | Yes | Yes |
-| Import from file | Yes | Yes |
-| Loading | Yes | Yes |
-| Merge cells | Yes | Yes |
-| Move cells | Yes | Yes |
-| Multi-column sorting | Yes | Yes |
-| Nested headers | Yes | Yes |
-| Nested rows | Yes | Yes |
-| Notifications | Yes | Yes |
-| Pagination | Yes | Yes |
-| Row moving | Yes | Yes |
-| Row resizing | Yes | Yes |
-| Row selection | Yes | Yes |
-| Search | Yes | Yes |
-| Selection handles | Yes | Yes |
-| Sheets bar | Yes | Yes |
-| Trim rows | Yes | Yes |
-| Undo and redo | Yes | Yes |
-| View state | Yes | Yes |
-| Cell type: Autocomplete | Yes | Yes |
-| Cell type: Checkbox | Yes | Yes |
-| Cell type: Date | Yes | Yes |
-| Cell type: Date (Intl) | Yes | Yes |
-| Cell type: Date and time (Intl) | Yes | Yes |
-| Cell type: Dropdown | Yes | Yes |
-| Cell type: Handsontable | Yes | Yes |
-| Cell type: Multiselect | Yes | Yes |
-| Cell type: Numeric | Yes | Yes |
-| Cell type: Password | Yes | Yes |
-| Cell type: Select | Yes | Yes |
-| Cell type: Text | Yes | Yes |
-| Cell type: Time | Yes | Yes |
-| Cell type: Time (Intl) | Yes | Yes |
-| XLSX export | Yes | Yes |
-| XLSX import | Yes | Yes |
-| XLSX: Cell styles | No | Yes |
-| XLSX: Comments | No | Yes |
-| XLSX: Conditional formatting | No | Yes |
-| XLSX: Data validation | No | Yes |
-| XLSX: Formulas | Yes | Yes |
-| XLSX: Import report | Yes | Yes |
-| XLSX: Number formats | No | Yes |
-| XLSX: Sheet layout | Yes | Yes |
-| XLSX: Sheet protection | No | Yes |
+| Feature | Standard |
+| --- | :---: |
+| Data grid | Yes |
+| Async values | Yes |
+| Auto column size | Yes |
+| Auto link | Yes |
+| Auto row header size | Yes |
+| Auto row size | Yes |
+| Autofill | Yes |
+| Bind rows with headers | Yes |
+| Checkbox header | Yes |
+| Collapsible columns | Yes |
+| Column freezing | Yes |
+| Column menu | Yes |
+| Column moving | Yes |
+| Column resizing | Yes |
+| Column sorting | Yes |
+| Column stretching | Yes |
+| Column summary | Yes |
+| Comments | Yes |
+| Context menu | Yes |
+| Copy and paste | Yes |
+| Custom borders | Yes |
+| Data provider | Yes |
+| Dialog | Yes |
+| Drag to scroll | Yes |
+| Editable headers | Yes |
+| Empty data state | Yes |
+| Export to file | Yes |
+| Filters | Yes |
+| Formula builder | Yes |
+| Formulas | Yes |
+| Freeze bar | Yes |
+| Hidden columns | Yes |
+| Hidden rows | Yes |
+| Import from file | Yes |
+| Loading | Yes |
+| Merge cells | Yes |
+| Move cells | Yes |
+| Multi-column sorting | Yes |
+| Nested headers | Yes |
+| Nested rows | Yes |
+| Notifications | Yes |
+| Pagination | Yes |
+| Row moving | Yes |
+| Row resizing | Yes |
+| Row selection | Yes |
+| Search | Yes |
+| Selection handles | Yes |
+| Sheets bar | Yes |
+| Trim rows | Yes |
+| Undo and redo | Yes |
+| View state | Yes |
+| Cell type: Autocomplete | Yes |
+| Cell type: Checkbox | Yes |
+| Cell type: Date | Yes |
+| Cell type: Date (Intl) | Yes |
+| Cell type: Date and time (Intl) | Yes |
+| Cell type: Dropdown | Yes |
+| Cell type: Handsontable | Yes |
+| Cell type: Multiselect | Yes |
+| Cell type: Numeric | Yes |
+| Cell type: Password | Yes |
+| Cell type: Select | Yes |
+| Cell type: Text | Yes |
+| Cell type: Time | Yes |
+| Cell type: Time (Intl) | Yes |
+| XLSX export | Yes |
+| XLSX import | Yes |
+| XLSX: Cell styles | Yes |
+| XLSX: Comments | Yes |
+| XLSX: Conditional formatting | Yes |
+| XLSX: Data validation | Yes |
+| XLSX: Formulas | Yes |
+| XLSX: Import report | Yes |
+| XLSX: Number formats | Yes |
+| XLSX: Sheet layout | Yes |
+| XLSX: Sheet protection | Yes |
 
 <!-- license-tiers:end -->
 

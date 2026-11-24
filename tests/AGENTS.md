@@ -508,12 +508,15 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
   throws, like the other two.
 - **License specs name no real tier, and the plugin specs use made-up ones.** Which features
-  `standard` or `professional` include can change in any release, so no spec
-  writes a real tier's name or a list of what it holds. The xlsx license specs
+  a tier includes can change in any release, so no spec
+  writes a real tier's name or a list of what it holds. The one name a spec may write
+  is `professional`, the tier removed in DEV-4198: it stands for "a tier this build
+  does not list", whose key unlocks nothing. DataGrid has a single tier, `standard`, so
+  no real key can leave an xlsx feature out. The xlsx license specs
   still run on the build's real tiers, read from the manifest, because a fixture
   cannot add a made-up tier to the bundle's XLSX tier table: each picks its tier by
-  the feature it needs off or on, and fails with the reason when a tier edit leaves
-  no tier that fits. That is a prompt to move the case to the unit suite. `fixtures/licenseTiers.ts` holds
+  the feature it needs off or on, and fails with the reason when no tier fits.
+  That is a prompt to move the case to the unit suite. `fixtures/licenseTiers.ts` holds
   the presets (`LICENSE_PRESETS`: a made-up tier, the feature ids it includes,
   and the key flags), builds a preset's key (`presetKey()`, through
   `keyWithTier()`) and its query (`presetLicenseQuery()`, `presetQuery()`), and
