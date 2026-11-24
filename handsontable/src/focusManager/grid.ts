@@ -432,9 +432,7 @@ export class FocusGridManager {
       return;
     }
 
-    // A cell that waits for an async value is busy: VoiceOver read nothing for such a cell once it was rebuilt, and
-    // read its old value, its loading state and its busy flag when it was not.
-    if (isDataCell && isRootInstance(this.#hot) && elementToBeFocused.getAttribute('aria-busy') !== 'true') {
+    if (isDataCell && isRootInstance(this.#hot)) {
       rebuildAccessibilityObject(elementToBeFocused);
     }
 
