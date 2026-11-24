@@ -31,6 +31,10 @@ import type { OperationHold } from '../../core/operationScope';
 const STEP = 10;
 const SMALL_STEP = 1;
 /**
+ * The pixels a press on the handle may move and still be a click: a hand does not hold a pointer perfectly still.
+ */
+const CLICK_TOLERANCE = 3;
+/**
  * The keys the keyboard resize uses, and the modifiers pressed with them.
  */
 const KEYBOARD_RESIZE_KEYS = new Set([
@@ -212,10 +216,27 @@ export class ResizeGesture {
   #pressEndedPick = false;
 
   /**
+   * Whether the press on the handle was the first of its double-click window. Read on release, because a press held
+   * past the window has seen `afterMouseDownTimeout()` reset the count by then.
+   */
+  #pressWasFirst = false;
+
+  /**
+   * Whether the pointer left the press point by more than a click's tolerance. A drag the clamp leaves at the start
+   * size (a column at its minimum dragged narrower) changes no size, and is still a drag, not a click.
+   */
+  #pointerMoved = false;
+
+  /**
    * Whether the keyboard resize mode is on: the handle and the guide follow the arrow keys, like a drag follows the
    * pointer, and nothing is stored until `Enter`.
    */
   #keyboardActive = false;
+
+  /**
+   * Whether the cycle of `updatePlugin()` is running, which a keyboard resize survives.
+   */
+  #keepsKeyboardResize = false;
 
   /**
    * Creates the handle and the guide. Neither is attached until the pointer reaches a header.
@@ -320,21 +341,61 @@ export class ResizeGesture {
       },
       ...whileActive,
     });
+    this.#restoreKeyboardResize();
   }
 
   /**
-   * Removes the shortcuts `registerShortcuts()` added and ends a keyboard resize that is running, without storing
-   * anything: its header and indexes would be stale when the plugin is enabled again. A waiting pick stays, as it
-   * does through `detach()`.
+   * Removes the shortcuts `registerShortcuts()` added. A running keyboard resize ends without storing anything: its
+   * header and indexes would be stale when the plugin is enabled again. Inside `keepKeyboardResizeThrough()` it stays,
+   * as a waiting pick does through `detach()`.
    */
   unregisterShortcuts() {
     this.#hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(this.#axis.shortcutsGroup);
 
-    if (this.#keyboardActive) {
+    if (this.#keyboardActive && !this.#keepsKeyboardResize) {
       this.#keyboardActive = false;
       this.#newSize = this.#startSize;
       this.#hideHandleAndGuide();
     }
+  }
+
+  /**
+   * Runs the `disablePlugin(); enablePlugin();` cycle `updatePlugin()` performs, which a framework wrapper sends on
+   * every re-render, without ending a keyboard resize: the header and the indexes it works on are not stale after that
+   * cycle, and `registerShortcuts()` draws the handle and the guide again. A real disable still ends it.
+   *
+   * @param {Function} cycle The disable and enable calls.
+   */
+  keepKeyboardResizeThrough(cycle: () => void) {
+    this.#keepsKeyboardResize = true;
+
+    try {
+      cycle();
+    } finally {
+      this.#keepsKeyboardResize = false;
+    }
+  }
+
+  /**
+   * Draws the handle and the guide of a keyboard resize that the `disablePlugin(); enablePlugin();` cycle detached,
+   * where the size is still the one the keys described. A resize whose header is gone ends silently instead.
+   */
+  #restoreKeyboardResize() {
+    if (!this.#keyboardActive) {
+      return;
+    }
+
+    if (!this.#currentTH?.isConnected || !this.#isStillOnIndex(this.#currentTH)) {
+      this.#keyboardActive = false;
+      this.#newSize = this.#startSize;
+
+      return;
+    }
+
+    this.#hot.rootElement.appendChild(this.#handle);
+    this.#setupGuidePosition();
+    this.#refreshHandlePosition();
+    this.#refreshGuidePosition();
   }
 
   /**
@@ -1011,6 +1072,8 @@ export class ResizeGesture {
       }
 
       this.#dblclick += 1;
+      this.#pressWasFirst = this.#dblclick === 1;
+      this.#pointerMoved = false;
       this.#startPointer = this.#readPointer(event);
       this.#newSize = this.#startSize;
       // A handle press never reaches `onCellMouseDown`, which is what listens for a header TH.
@@ -1031,6 +1094,11 @@ export class ResizeGesture {
     }
 
     const pointerChange = this.#readPointer(event) - (this.#startPointer ?? 0);
+
+    if (Math.abs(pointerChange) > CLICK_TOLERANCE) {
+      this.#pointerMoved = true;
+    }
+
     // The inline axis runs the other way under RTL; the block axis never does.
     const visualChange = this.#isVertical() ? pointerChange : pointerChange * this.#hot.getDirectionFactor();
     const change = normalizeVisualDelta(this.#anchoredAtInlineEnd ? -visualChange : visualChange, this.#scaleFactor);
@@ -1058,7 +1126,8 @@ export class ResizeGesture {
       return;
     }
 
-    const wasPlainClick = this.#newSize === this.#startSize && this.#dblclick === 1 && !this.#pressEndedPick;
+    const wasPlainClick = this.#newSize === this.#startSize && !this.#pointerMoved && this.#pressWasFirst &&
+      !this.#pressEndedPick;
 
     this.#pressEndedPick = false;
     this.#hideHandleAndGuide();

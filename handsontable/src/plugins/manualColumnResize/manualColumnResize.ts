@@ -174,8 +174,11 @@ export class ManualColumnResize extends BasePlugin {
     // revert a column the user had since dragged to the array's width - neither the dragged width
     // nor the one being requested.
     if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
-      this.disablePlugin();
-      this.enablePlugin();
+      // A keyboard resize survives it, as a drag does: a framework wrapper sends it on every re-render.
+      this.#gesture.keepKeyboardResizeThrough(() => {
+        this.disablePlugin();
+        this.enablePlugin();
+      });
     }
 
     // Runs after the re-initialization, so that the widths replayed on the map's `init` hook are

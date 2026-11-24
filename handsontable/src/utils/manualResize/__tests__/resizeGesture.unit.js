@@ -943,6 +943,36 @@ describe('ResizeGesture', () => {
       expect(context.owner.setManualSize).not.toHaveBeenCalled();
     });
 
+    it('should arm no pick when the clamp leaves the size as it was after a drag', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      // a column at its minimum width dragged narrower: the clamp answers the start size again
+      context.owner.clampSize.mockImplementation(() => 0);
+      placeHeader(context.th);
+      mouse('mouseover', context.th);
+      mouse('mousedown', context.handle(), { pageX: 30 });
+      mouse('mousemove', window, { pageX: 15 });
+      mouse('mouseup', window, { pageX: 15 });
+      context.owner.setManualSize.mockClear();
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should arm the pick for a press held past the double-click window', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      mouse('mouseover', context.th);
+      mouse('mousedown', context.handle(), { pageX: 30 });
+      // 500ms later the window ends and the count is back to 0
+      context.gesture.afterMouseDownTimeout();
+      mouse('mouseup', window, { pageX: 30 });
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize.mock.calls).toEqual([[3, 160]]);
+    });
+
     it('should stay armed through detach(), which a wrapper re-render runs', () => {
       const context = createGesture({ orientation: 'horizontal' });
 

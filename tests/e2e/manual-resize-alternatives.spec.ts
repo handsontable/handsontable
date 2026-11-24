@@ -248,6 +248,24 @@ test.describe('manual resize without a drag', { tag: THEMES_TAG }, () => {
       expect(await grid.page.evaluate(() => (window as any).grid.getSelectedLast())).toEqual([1, 3, 1, 3]);
     });
 
+    test('a settings update keeps a keyboard resize, which is what a wrapper re-render sends', async () => {
+      const start = await colWidth(2);
+
+      await dataCell(1, 2).click();
+      await grid.page.keyboard.press('ControlOrMeta+Alt+r');
+      await grid.page.keyboard.press('ArrowRight');
+      await grid.page.keyboard.press('ArrowRight');
+      await grid.page.evaluate(() => (window as any).grid.updateSettings({ manualColumnResize: true }));
+
+      // the guide is drawn again, and the keys still steer the resize
+      await expect(grid.columnHandle).toHaveClass(/active/);
+      await grid.page.keyboard.press('ArrowRight');
+      await grid.page.keyboard.press('Enter');
+
+      expect(await colWidth(2)).toBe(start + 30);
+      expect(await grid.page.evaluate(() => (window as any).grid.getSelectedLast())).toEqual([1, 2, 1, 2]);
+    });
+
     test('a press on the handle ends a keyboard resize', async () => {
       const start = await colWidth(2);
 
@@ -333,6 +351,37 @@ test.describe('manual resize without a drag', { tag: THEMES_TAG }, () => {
       await grid.page.mouse.click(cell!.x + 5, cell!.y + 5);
 
       expect(await colWidth(2)).toBe(start);
+    });
+
+    test('a drag the clamp leaves at the same size arms no pick', async () => {
+      const start = await rowHeight(2);
+
+      // a row at the default height cannot get shorter, so dragging it up changes nothing
+      await grid.dragRowHandle(2, -15);
+
+      expect(await rowHeight(2)).toBe(start);
+      await expect(grid.rowHandle).not.toHaveClass(/ht-resize-handle--armed/);
+
+      const cell = await dataCell(5, 5).boundingBox();
+
+      await grid.page.mouse.click(cell!.x + 5, cell!.y + 5);
+
+      expect(await rowHeight(2)).toBe(start);
+      expect(await grid.page.evaluate(() => (window as any).grid.getSelectedLast())).toEqual([5, 5, 5, 5]);
+    });
+
+    test('a press held past the double-click window still arms the pick', async () => {
+      await grid.hoverColumnHeader(2);
+
+      const handle = await grid.columnHandle.boundingBox();
+
+      await grid.page.mouse.move(handle!.x + handle!.width / 2, handle!.y + handle!.height / 2);
+      await grid.page.mouse.down();
+      // what the 500ms timer of the press does, without waiting for it
+      await grid.page.evaluate(() => (window as any).grid.getPlugin('manualColumnResize').afterMouseDownTimeout());
+      await grid.page.mouse.up();
+
+      await expect(grid.columnHandle).toHaveClass(/ht-resize-handle--armed/);
     });
 
     test('a second press on the handle ends the pick', async () => {
