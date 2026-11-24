@@ -192,8 +192,14 @@ test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BU
 
     const popupId = await grid.errorPopup.getAttribute('id');
 
-    // hyperformula-ui describes the cell with its open popup, after the column header: the message is
-    // read once.
+    await expect(cell).toHaveAttribute('aria-errormessage', popupId!);
+    await expect(cell).toHaveAttribute('aria-describedby', new RegExp(`^\\S+-colheader-2 ${popupId}$`));
+    await expect(cell).toHaveAccessibleDescription(/^C #NAME\? Function name FOO not recognized\.$/);
+
+    const describedByRightAfterPaint = await grid.repaintAndReadDescribedBy(3, 2);
+
+    expect(describedByRightAfterPaint).not.toContain(popupId!);
+    await expect(grid.errorPopup).toBeVisible();
     await expect(cell).toHaveAttribute('aria-errormessage', popupId!);
     await expect(cell).toHaveAttribute('aria-describedby', new RegExp(`^\\S+-colheader-2 ${popupId}$`));
     await expect(cell).toHaveAccessibleDescription(/^C #NAME\? Function name FOO not recognized\.$/);
@@ -201,15 +207,12 @@ test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BU
     await page.keyboard.press('Escape');
     await expect(grid.errorPopup).toBeHidden();
     await expect(cell).toBeFocused();
-    // With the popup closed its reference is gone, and the cell is described by its header alone.
     await expect(cell).not.toHaveAttribute('aria-errormessage', /.*/);
     await expect(cell).not.toHaveAttribute('aria-describedby', new RegExp(popupId!));
     await expect(cell).toHaveAccessibleDescription('C');
   });
 });
 
-// What a screen reader on Chromium gets from an error cell: Chromium's own accessibility tree, read over
-// CDP, so this block runs on the Chromium legs only.
 test.describe('formulaBuilder error description', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('Chromium reads the error message once, from the open popup', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle);

@@ -11,21 +11,6 @@ import { TrimRows } from '../../trimRows';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
-import { CELL_DESCRIPTION_ID_PREFIX } from '../../../utils/cellDescription/cellDescription';
-/**
- * Reads the description the cell painter gave a cell: the text of the hidden elements its
- * `aria-describedby` points at, without the column header and the error popup references.
- *
- * @param {HTMLTableCellElement | null} cell The cell element.
- * @returns {string}
- */
-function cellDescriptionText(cell: HTMLTableCellElement | null): string {
-  return (cell?.getAttribute('aria-describedby') ?? '')
-    .split(' ')
-    .filter(id => id.startsWith(CELL_DESCRIPTION_ID_PREFIX))
-    .map(id => cell?.closest('.ht-wrapper')?.querySelector(`[id="${id}"]`)?.textContent ?? '')
-    .join(', ');
-}
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -327,7 +312,7 @@ describe('FormulaBuilder state that has to follow the grid', () => {
 
       expect(grid.getPlugin('formulaBuilder').enabled).toBe(true);
       expect(grid.rootElement.querySelectorAll('[data-hfe-error]')).toHaveLength(0);
-      expect(cellDescriptionText(grid.getCell(0, 0))).toBe('');
+      expect(grid.getCell(0, 0)?.hasAttribute('aria-description')).toBe(false);
     });
 
     it('clears a mark a recycled cell element carries, and describes nothing', () => {
@@ -340,7 +325,7 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       grid.render();
 
       expect(grid.getCell(0, 1)?.hasAttribute('data-hfe-error')).toBe(false);
-      expect(cellDescriptionText(grid.getCell(0, 1))).toBe('');
+      expect(grid.getCell(0, 1)?.hasAttribute('aria-description')).toBe(false);
     });
   });
 

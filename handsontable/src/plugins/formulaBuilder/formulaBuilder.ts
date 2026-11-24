@@ -63,10 +63,10 @@ const CELL_MOUSE_HOOK_ORDER = -1;
  */
 const CELL_ERROR_ATTRIBUTE = 'data-hfe-error';
 /**
- * The longest error message, in characters, the plugin puts in a cell's description or an
- * announcement. A screen reader reads a description in full each time the cell gets the focus, and a
- * HyperFormula parse error lists every token it expected (about 300 characters over 14 lines). 120
- * keeps the error code and a sentence of explanation, about one line of speech.
+ * The longest error message, in characters, the plugin puts in the `cellError` announcement it makes
+ * when a commit leaves an error. A HyperFormula parse error lists every token it expected (about 300
+ * characters over 14 lines). 120 keeps the error code and a sentence of explanation, about one line
+ * of speech.
  */
 const MAX_SPOKEN_ERROR_LENGTH = 120;
 /**

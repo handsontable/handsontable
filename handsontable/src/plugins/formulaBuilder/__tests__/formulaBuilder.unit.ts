@@ -5,7 +5,6 @@ import { TextEditor } from '../../../editors/textEditor';
 import { isImmediatePropagationStopped } from '../../../helpers/dom/event';
 import { collection as staticRegisterCollection } from '../../../utils/staticRegister';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
-import { applyCellDescription, beginCellDescription } from '../../../utils/cellDescription/cellDescription';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
@@ -1670,36 +1669,12 @@ describe('FormulaBuilder afterRenderer', () => {
     expect(cell.hasAttribute('aria-invalid')).toBe(false);
   });
 
-  /**
-   * Paints a cell the way the cell painter does: begins its description, runs the plugin's
-   * `afterRenderer`, then writes the description the parts make.
-   *
-   * @param {ReturnType<typeof makeRenderContext>} context The render context.
-   * @param {HTMLTableCellElement} cell The cell element.
-   * @param {unknown[]} args The `afterRenderer` arguments after the cell.
-   */
-  function paintDescribed(
-    context: ReturnType<typeof makeRenderContext>,
-    cell: HTMLTableCellElement,
-    ...args: unknown[]
-  ): void {
-    beginCellDescription(cell);
-    context.afterRenderer(cell, ...args);
-    applyCellDescription(descriptionHost, cell, context.stub.settings.ariaTags === true);
-  }
-
-  const descriptionHost = {
-    guid: 'ht_formula_builder_unit',
-    rootElement: document.createElement('div'),
-    rootDocument: document,
-  };
-
   it('leaves the description of an error cell to hyperformula-ui', () => {
     const context = makeRenderContext();
     const cell = document.createElement('td');
 
     cell.setAttribute('aria-describedby', 'ht_x-colheader-0');
-    paintDescribed(context, cell, 0, 0, 0, null, { editor: 'formula' });
+    context.afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
 
     expect(cell.getAttribute('data-hfe-error')).toContain('#DIV/0!');
     expect(cell.getAttribute('aria-describedby')).toBe('ht_x-colheader-0');
@@ -1711,11 +1686,11 @@ describe('FormulaBuilder afterRenderer', () => {
     const cell = document.createElement('td');
 
     cell.setAttribute('aria-description', 'Q2 revenue');
-    paintDescribed(context, cell, 0, 0, 0, null, { editor: 'formula' });
+    context.afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
 
     expect(cell.getAttribute('aria-description')).toBe('Q2 revenue');
 
-    paintDescribed(context, cell, 0, 1, 1, 5, { editor: 'formula' });
+    context.afterRenderer(cell, 0, 1, 1, 5, { editor: 'formula' });
 
     expect(cell.getAttribute('aria-description')).toBe('Q2 revenue');
   });

@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
+import { chromiumAccessibility } from '../accessibility';
 
 /**
  * The grid configurations `demo/formula-builder.html` builds, one per `?variant=` value.
@@ -60,6 +61,9 @@ interface FixtureWindow {
     getSourceDataAtCell(row: number, col: number): unknown;
     getDataAtCell(row: number, col: number): unknown;
     setDataAtCell(row: number, col: number, value: unknown): void;
+    getCell(row: number, col: number): HTMLTableCellElement | null;
+    markAllCellsChanged(): void;
+    render(): void;
     isListening(): boolean;
     getActiveEditor(): { isOpened?: () => boolean } | undefined;
     getPlugin(name: string): {
@@ -538,6 +542,26 @@ export class FormulaBuilderPage {
   }
 
   /**
+   * Paints every rendered cell again and reads a cell's `aria-describedby` in the same task, right after
+   * the paint and before any `MutationObserver` callback runs, so it shows what the paint itself left
+   * on the cell.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<string | null>}
+   */
+  async repaintAndReadDescribedBy(row: number, col: number): Promise<string | null> {
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.markAllCellsChanged();
+      hot.render();
+
+      return hot.getCell(r, c)?.getAttribute('aria-describedby') ?? null;
+    }, [row, col]);
+  }
+
+  /**
    * Whether the grid listens to the keyboard.
    *
    * @returns {Promise<boolean>}
@@ -768,23 +792,8 @@ export class FormulaBuilderPage {
    * @returns {Promise<{ name: string, description: string }>}
    */
   async chromiumAccessibility(row: number, col: number): Promise<{ name: string; description: string }> {
-    const client = await this.page.context().newCDPSession(this.page);
+    const { name, description } = await chromiumAccessibility(this.page, `[data-testid="cell-${row}-${col}"]`);
 
-    try {
-      await client.send('Accessibility.enable');
-
-      const { result } = await client.send('Runtime.evaluate', {
-        expression: `document.querySelector('[data-testid="cell-${row}-${col}"]')`,
-      });
-      const { nodes } = await client.send('Accessibility.getPartialAXTree', {
-        objectId: result.objectId,
-        fetchRelatives: false,
-      });
-      const clean = (value: unknown) => String(value ?? '').replace(/\s+/g, ' ').trim();
-
-      return { name: clean(nodes[0]?.name?.value), description: clean(nodes[0]?.description?.value) };
-    } finally {
-      await client.detach();
-    }
+    return { name: name.trim(), description: description.trim() };
   }
 }

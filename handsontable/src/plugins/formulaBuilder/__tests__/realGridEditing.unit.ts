@@ -11,22 +11,6 @@ import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
-import { CELL_DESCRIPTION_ID_PREFIX } from '../../../utils/cellDescription/cellDescription';
-/**
- * Reads the description the cell painter gave a cell: the text of the hidden elements its
- * `aria-describedby` points at, without the column header and the error popup references.
- *
- * @param {HTMLTableCellElement | null} cell The cell element.
- * @returns {string}
- */
-function cellDescriptionText(cell: HTMLTableCellElement | null): string {
-  return (cell?.getAttribute('aria-describedby') ?? '')
-    .split(' ')
-    .filter(id => id.startsWith(CELL_DESCRIPTION_ID_PREFIX))
-    .map(id => cell?.closest('.ht-wrapper')?.querySelector(`[id="${id}"]`)?.textContent ?? '')
-    .join(', ');
-}
-
 type CoreModule = typeof import('hyperformula-ui');
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
@@ -1476,13 +1460,12 @@ describe('FormulaBuilder editing on a real grid', () => {
     // HyperFormula's message for `=1+` lists every token it expected, one per line.
     const PARSE_ERROR_FORMULA = '=1+';
 
-    it('keeps the whole message in the popup mark and adds no description of its own', () => {
+    it('keeps the whole message in the popup mark and writes no aria-description', () => {
       createGrid({ data: [[PARSE_ERROR_FORMULA, 1]] });
 
       const cell = hot.getCell(0, 0)!;
 
       expect(cell.getAttribute('data-hfe-error')).toContain('NumberLiteral');
-      expect(cellDescriptionText(cell)).toBe('');
       expect(cell.hasAttribute('aria-description')).toBe(false);
     });
 

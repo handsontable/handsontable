@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 import './windowTypes';
+import { chromiumAccessibility } from '../accessibility';
 
 /**
  * Page Object for the cell description fixture. Row 0 holds a plain value (A1), a read-only cell (B1), a
@@ -53,24 +54,9 @@ export class CellDescriptionPage {
    * Chromium reads from it (Playwright's `toHaveAccessibleName()` computes them from the DOM and the styles instead).
    */
   async chromiumAccessibility(row: number, col: number): Promise<{ name: string; description: string }> {
-    const client = await this.page.context().newCDPSession(this.page);
+    const { name, description } = await chromiumAccessibility(this.page, `[data-testid="cell-${row}-${col}"]`);
 
-    try {
-      await client.send('Accessibility.enable');
-
-      const { result } = await client.send('Runtime.evaluate', {
-        expression: `document.querySelector('[data-testid="cell-${row}-${col}"]')`,
-      });
-      const { nodes } = await client.send('Accessibility.getPartialAXTree', {
-        objectId: result.objectId,
-        fetchRelatives: false,
-      });
-      const clean = (value: unknown) => String(value ?? '').replace(/\s+/g, ' ').trim();
-
-      return { name: clean(nodes[0]?.name?.value), description: clean(nodes[0]?.description?.value) };
-    } finally {
-      await client.detach();
-    }
+    return { name: name.trim(), description: description.trim() };
   }
 
   /**
