@@ -6,7 +6,6 @@ description: Back Handsontable DataGrid's dataProvider plugin with DuckDB-Wasm, 
 permalink: /recipes/data-management/duckdb-wasm
 canonicalUrl: /recipes/data-management/duckdb-wasm
 framework: react
-menuTag: new
 tags:
   - duckdb
   - duckdb-wasm

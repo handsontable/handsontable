@@ -5,7 +5,6 @@ metaTitle: Two-way sync with Google Sheets | Handsontable DataGrid for JavaScrip
 description: Put Handsontable DataGrid on top of a Google Sheet. Read it into the grid, write edits back, pick up changes made in Google Sheets, and catch conflicts.
 permalink: /recipes/real-time/google-sheets-sync
 canonicalUrl: /recipes/real-time/google-sheets-sync
-menuTag: new
 tags:
   - google sheets
   - google sheets api
