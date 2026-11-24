@@ -179,6 +179,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Filas inmovilizadas en la parte inferior',
   [C.FREEZE_BAR_COLUMNS_START]: 'Columnas inmovilizadas al inicio',
   [C.FREEZE_BAR_COLUMNS_END]: 'Columnas inmovilizadas al final',
+  [C.ARMED_PICK_STARTED]: 'Haga clic o toque el destino para terminar. Presione Escape para cancelar.',
+  [C.ARMED_PICK_CANCELED]: 'Cancelado.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivel [level], [position] de [setSize]',

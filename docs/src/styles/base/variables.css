@@ -66,6 +66,10 @@
 
   /* Shared bg for tables and code blocks */
   --sl-color-block-bg: #121212;
+
+  /* Focus ring of every link and control: Blue 300 of the brand palette.
+     The accent (#2856ea) stands under 3:1 against a callout background. */
+  --sl-color-focus-ring: #3b82f6;
 }
 
 /* Light mode accent colors + pure neutral gray palette */
@@ -100,6 +104,9 @@
 
   /* Shared bg for tables and code blocks */
   --sl-color-block-bg: #f5f5f5;
+
+  /* Focus ring: Blue 500, the brand blue, as the light accent */
+  --sl-color-focus-ring: var(--sl-color-accent);
 }
 
 /* Hex fallbacks when oklch is unsupported (Safari / iOS before 15.4). */

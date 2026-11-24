@@ -175,6 +175,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'الصفوف المجمّدة في الأسفل',
   [C.FREEZE_BAR_COLUMNS_START]: 'الأعمدة المجمّدة في البداية',
   [C.FREEZE_BAR_COLUMNS_END]: 'الأعمدة المجمّدة في النهاية',
+  [C.ARMED_PICK_STARTED]: 'انقر أو المس الهدف للإنهاء. اضغط Escape للإلغاء.',
+  [C.ARMED_PICK_CANCELED]: 'تم الإلغاء.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'المستوى [level]، [position] من [setSize]',

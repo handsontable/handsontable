@@ -7,12 +7,12 @@
       {
         "region": "grid",
         "role": "DateTime",
-        "name": ""
+        "name": "Datetime, row 1"
       },
       {
         "region": "grid",
         "role": "DateTime",
-        "name": ""
+        "name": "Datetime, row 1"
       }
     ]
   }

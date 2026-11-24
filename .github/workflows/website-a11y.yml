@@ -68,6 +68,8 @@ on:
       - 'tests/lib/a11y-report.*'
       - 'tests/lib/a11y-suites.*'
       - 'tests/lib/a11y-check-run.*'
+      - 'tests/lib/a11y-baseline-guard.*'
+      - 'tests/lib/a11y-pr-comment.*'
       - 'tests/lib/a11y-docs-drift.*'
       - 'tests/lib/a11y-issues.*'
       - 'tests/lib/a11y-evidence.*'
@@ -76,6 +78,7 @@ on:
       - 'tests/lib/a11y-verdict.*'
       - 'tests/lib/a11y-verdict-inputs.*'
       - 'tests/lib/github-check-run.*'
+      - 'tests/lib/github-rest.*'
       - 'tests/lib/website-pages.*'
       - 'tests/scripts/a11y-check-run.mjs'
   workflow_call:

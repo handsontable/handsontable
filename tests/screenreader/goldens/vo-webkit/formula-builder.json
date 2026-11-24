@@ -6,21 +6,21 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-12T18:39:08.274Z"
+    "at": "2026-11-23T11:20:39.978Z"
   },
   "steps": {
     "tab-address-box": "",
     "tab-formula-input": "a1 b1 formula editor list box pop up collapsed combo box",
-    "tab-into-grid": "c 3 table 4 columns",
+    "tab-into-grid": "c 3 formula a1 b1 table 4 columns",
     "open-editor": "a1 b1 formula editor list box pop up collapsed combo box",
     "select-formula-text": "",
-    "type-function-prefix": "u su",
+    "type-function-prefix": "su",
     "type-named-prefix": "m summ",
     "erase-to-function": "m",
     "open-function-help": "sum collapsed sum",
     "close-function-help": "",
-    "cancel-edit": "c 3",
-    "move-down": "c 5",
-    "error-cell": "c name invalid data actions available"
+    "cancel-edit": "c 3 formula a1 b1",
+    "move-down": "c 5 formula a2 b1",
+    "error-cell": "c name formula nope a3 n check invalid data"
   }
 }

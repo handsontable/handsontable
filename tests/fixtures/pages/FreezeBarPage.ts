@@ -236,6 +236,86 @@ export class FreezeBarPage {
   }
 
   /**
+   * Clicks the middle of a bar, which is a press and a release that do not move.
+   *
+   * @param edge The edge.
+   */
+  async clickBar(edge: FreezeBarEdge): Promise<void> {
+    const bar = await this.bar(edge).boundingBox();
+
+    if (!bar) {
+      throw new Error(`The ${edge} bar is not visible`);
+    }
+
+    await this.page.mouse.click(bar.x + bar.width / 2, bar.y + bar.height / 2);
+  }
+
+  /**
+   * Clicks the middle of the `count`-th track from the edge (the first one is 1), which is the click that picks the
+   * freeze line once a click on the bar armed the gesture. The edge has to be armed first: that is what scrolls the grid
+   * to the edge of its axis.
+   *
+   * @param edge The edge.
+   * @param count The number of the track, counted from the edge the band grows from.
+   */
+  async clickTrack(edge: FreezeBarEdge, count: number): Promise<void> {
+    const from = await this.boundaryPosition(edge, count - 1);
+    const to = await this.boundaryPosition(edge, count);
+    // the grid's own box: the fixture's container is wider than the grid
+    const root = await this.page.evaluate(() => {
+      const rect = window.hot.rootElement.getBoundingClientRect();
+
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    });
+    const along = (from + to) / 2;
+    const horizontal = edge === 'start' || edge === 'end';
+
+    await this.page.mouse.click(horizontal ? along : root.x + root.width / 2, horizontal ? root.y + root.height / 2 : along);
+  }
+
+  /**
+   * Clicks the middle of a cell with the real mouse, without waiting for a selection: the click that picks a freeze line
+   * selects nothing.
+   *
+   * @param row The visual row.
+   * @param col The visual column.
+   */
+  async pressCell(row: number, col: number): Promise<void> {
+    const box = await this.page.evaluate(([r, c]) => {
+      const rect = window.hot.getCell(r, c, true)!.getBoundingClientRect();
+
+      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    }, [row, col]);
+
+    await this.page.mouse.click(box.x, box.y);
+  }
+
+  /**
+   * Clicks the middle of a cell with the real mouse, and waits until the grid selected it.
+   *
+   * @param row The visual row.
+   * @param col The visual column.
+   */
+  async clickCell(row: number, col: number): Promise<void> {
+    await this.pressCell(row, col);
+    await expect.poll(() => this.selection()).toEqual([[row, col, row, col]]);
+  }
+
+  /**
+   * The polite live region the announcements go to.
+   */
+  politeAnnouncer(): Locator {
+    return this.page.locator('[role="status"][aria-live="polite"]');
+  }
+
+  /**
+   * The cells of the selection, to tell a pick from a click that selects.
+   */
+  async selection(): Promise<number[][] | undefined> {
+    return this.page.evaluate(() => window.hot.getSelected());
+  }
+
+  /**
    * The page coordinate of the boundary after `count` tracks: the inner edge of the last frozen header.
    * With nothing frozen it is the edge of the data area.
    *
