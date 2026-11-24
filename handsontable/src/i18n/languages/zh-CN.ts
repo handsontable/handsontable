@@ -145,8 +145,8 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: '工作表 [name] 已移至第 [position] 个位置（共 [count] 个）',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
 
-  [C.CHECKBOX_CHECKED]: '已选中',
-  [C.CHECKBOX_UNCHECKED]: '未选中',
+  [C.CHECKBOX_CHECKED]: '已勾选',
+  [C.CHECKBOX_UNCHECKED]: '未勾选',
 
   [C.LOADING_TITLE]: '加载中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '关闭',

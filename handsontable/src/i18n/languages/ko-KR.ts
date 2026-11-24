@@ -55,9 +55,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: '셀 병합 해제',
 
   [C.CONTEXTMENU_ITEMS_COPY]: '복사',
-  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['헤더와 함께 복사', '헤더와 함께 복사'],
-  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['그룹 헤더와 함께 복사', '그룹 헤더와 함께 복사'],
-  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['헤더만 복사', '헤더만 복사'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['머리글과 함께 복사', '머리글과 함께 복사'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['그룹 머리글과 함께 복사', '그룹 머리글과 함께 복사'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['머리글만 복사', '머리글만 복사'],
   [C.CONTEXTMENU_ITEMS_CUT]: '잘라내기',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: '내보내기',

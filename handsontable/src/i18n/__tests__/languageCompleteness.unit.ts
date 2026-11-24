@@ -1,3 +1,5 @@
+import { readdirSync } from 'fs';
+import { resolve } from 'path';
 import * as allLanguages from 'handsontable/i18n/languages';
 import enUS from 'handsontable/i18n/languages/en-US';
 
@@ -12,9 +14,15 @@ type Dictionary = Record<string, Phrase> & { languageCode: string };
 describe('i18n: every language file holds every phrase', () => {
   const english = enUS as unknown as Dictionary;
   const phraseKeys = Object.keys(english).filter(key => key !== 'languageCode');
-  const dictionaries = Object.getOwnPropertyNames(allLanguages)
-    .map(exportName => (allLanguages as unknown as Record<string, Dictionary>)[exportName])
-    .filter(dictionary => typeof dictionary?.languageCode === 'string' && dictionary.languageCode !== 'en-US');
+  // Every export is kept, so a dictionary with a broken `languageCode` fails below instead of leaving the checks.
+  const allDictionaries = Object.getOwnPropertyNames(allLanguages)
+    .filter(exportName => exportName !== '__esModule')
+    .map(exportName => (allLanguages as unknown as Record<string, Dictionary>)[exportName]);
+  const dictionaries = allDictionaries.filter(dictionary => dictionary?.languageCode !== 'en-US');
+  const languageFiles = readdirSync(resolve(__dirname, '../languages'))
+    .filter(fileName => /\.ts$/.test(fileName) && !/^index\.|\.d\.ts$/.test(fileName))
+    .map(fileName => fileName.replace(/\.ts$/, ''))
+    .sort();
 
   /**
    * The placeholders a phrase holds, such as `[label]`, in every one of its forms.
@@ -28,19 +36,24 @@ describe('i18n: every language file holds every phrase', () => {
     return [...new Set(text.match(/\[[a-zA-Z]+\]/g) ?? [])].sort();
   }
 
-  it('should have the English phrases and the other dictionaries to check', () => {
+  it('should have the English phrases to check', () => {
     expect(phraseKeys.length).toBeGreaterThan(150);
-    expect(dictionaries.length).toBeGreaterThan(15);
   });
 
-  it.each(dictionaries.map(dictionary => [dictionary.languageCode, dictionary] as const))(
+  // The language code names the file, so a dictionary that left the barrel, or one whose `languageCode`
+  // is missing or not a string, shows up here as a difference between the two lists.
+  it('should check one dictionary for every language file', () => {
+    expect(allDictionaries.map(dictionary => dictionary?.languageCode).sort()).toEqual(languageFiles);
+  });
+
+  it.each(dictionaries.map(dictionary => [`${dictionary?.languageCode}`, dictionary] as const))(
     'should hold every phrase of en-US in %s',
     (languageCode, dictionary) => {
       expect(phraseKeys.filter(key => dictionary[key] === undefined)).toEqual([]);
     }
   );
 
-  it.each(dictionaries.map(dictionary => [dictionary.languageCode, dictionary] as const))(
+  it.each(dictionaries.map(dictionary => [`${dictionary?.languageCode}`, dictionary] as const))(
     'should hold no empty phrase in %s',
     (languageCode, dictionary) => {
       const empty = phraseKeys.filter((key) => {
@@ -56,7 +69,7 @@ describe('i18n: every language file holds every phrase', () => {
 
   // A form may leave a placeholder out (the Arabic singular of a count says "another cell"), so only a
   // placeholder the English phrase does not have is an error: nothing fills it, and it is read as text.
-  it.each(dictionaries.map(dictionary => [dictionary.languageCode, dictionary] as const))(
+  it.each(dictionaries.map(dictionary => [`${dictionary?.languageCode}`, dictionary] as const))(
     'should use no placeholder the en-US phrase lacks in %s',
     (languageCode, dictionary) => {
       const unknown = phraseKeys.filter((key) => {

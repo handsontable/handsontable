@@ -55,12 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Séparer les cellules',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copier',
-  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copier avec l’en-tête', 'Copier avec les en-têtes'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copier avec l\'en-tête', 'Copier avec les en-têtes'],
   [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
-    'Copier avec l’en-tête de groupe',
+    'Copier avec l\'en-tête de groupe',
     'Copier avec les en-têtes de groupe',
   ],
-  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copier uniquement l’en-tête', 'Copier uniquement les en-têtes'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copier uniquement l\'en-tête', 'Copier uniquement les en-têtes'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Couper',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exporter',

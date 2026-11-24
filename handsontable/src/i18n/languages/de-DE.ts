@@ -55,12 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zellen teilen',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopieren',
-  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Mit Kopfzeile kopieren', 'Mit Kopfzeilen kopieren'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Mit Überschrift kopieren', 'Mit Überschriften kopieren'],
   [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
-    'Mit Gruppenkopfzeile kopieren',
-    'Mit Gruppenkopfzeilen kopieren',
+    'Mit Gruppenüberschrift kopieren',
+    'Mit Gruppenüberschriften kopieren',
   ],
-  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Nur Kopfzeile kopieren', 'Nur Kopfzeilen kopieren'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Nur Überschrift kopieren', 'Nur Überschriften kopieren'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Ausschneiden',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportieren',
@@ -148,8 +148,8 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blatt [name] an Position [position] von [count] verschoben',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blatt',
 
-  [C.CHECKBOX_CHECKED]: 'Aktiviert',
-  [C.CHECKBOX_UNCHECKED]: 'Nicht aktiviert',
+  [C.CHECKBOX_CHECKED]: 'Angekreuzt',
+  [C.CHECKBOX_UNCHECKED]: 'Nicht angekreuzt',
 
   [C.LOADING_TITLE]: 'Lädt...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Schließen',
