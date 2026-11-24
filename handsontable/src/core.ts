@@ -5910,6 +5910,7 @@ export default function Core(
   /**
    * Suspends the execution, the way {@link Core#suspendExecution} does.
    *
+   * @private
    * @param {boolean} firesHooks `false` for a suspension Handsontable makes for its own bookkeeping (see
    * `_batchExecutionWithoutHooks()`), which fires no execution hooks.
    */
@@ -6001,6 +6002,7 @@ export default function Core(
   /**
    * Resumes the execution, the way {@link Core#resumeExecution} does.
    *
+   * @private
    * @param {boolean} forceFlushChanges If `true`, the index cache is updated also by a nested call.
    * @param {boolean} firesHooks `false` for the resume of a suspension that fired no execution hooks.
    */

@@ -347,14 +347,17 @@ not run yet. AutoColumnSize keeps its listener for the same reason.
 
 ## Size writes fire no execution hooks (DEV-4193)
 
-Every write to `rowHeightsMap` is batched with `this.hot._batchExecutionWithoutHooks()`, never with
-`batchExecution()`. Both suspend the execution, open a `'batch'` operation, and flush the index cache on a
-forced resume. Only `batchExecution()` fires `beforeSuspendExecution`, `afterSuspendExecution`,
+Every batched write to `rowHeightsMap` goes through `this.hot._batchExecutionWithoutHooks()`, never through
+`batchExecution()`. Both methods suspend the execution, open a `'batch'` operation, and flush the index cache
+on a forced resume. Only `batchExecution()` fires `beforeSuspendExecution`, `afterSuspendExecution`,
 `beforeResumeExecution`, and `afterResumeExecution`. The render that ends a `batch()` runs after the batch
 resumed the execution, so a size write made with `batchExecution()` there fired a second full cycle of the
 hooks for one `batch()` call, and one more cycle on every render. The hooks report the batches an application
-or a feature makes, so a new size write uses the silent method too. Pinned by
-`src/__tests__/core/executionSuspendHooks.unit.js`.
+or a feature makes, so a new size write uses the silent method too.
+
+The public `clearCache()` and `clearCacheByRange()` with a list of indexes batch the same way, so they are silent as well. The
+full `clearCache()` calls `rowHeightsMap.clear()` with no batch at all: it suspends nothing and fires nothing.
+Pinned by `src/__tests__/core/executionSuspendHooks.unit.js`.
 
 ## Where to look next
 

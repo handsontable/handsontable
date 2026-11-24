@@ -2502,7 +2502,7 @@ export class Formulas extends BasePlugin {
   /**
    * `afterSuspendExecution` hook callback. With `batchEvaluation` on, the grid holds the engine's
    * recalculation: the engine is suspended at the first engine write the plugin makes from now on, not here,
-   * so a suspension that writes only index maps (every render's autosizing, a filter, a hidden row) never
+   * so a suspension that writes only index maps (a filter, a hidden row, a page change) never
    * touches the engine.
    */
   #onAfterSuspendExecution = () => {
@@ -2521,8 +2521,8 @@ export class Formulas extends BasePlugin {
   /**
    * Takes this grid out of the hold on its engine. When it was the last grid holding it, the held writes are
    * recalculated, once, and their dependents are validated, once each. Both run in one plugin write scope, so
-   * the grids paint after the validation, and a paint that suspends a grid's execution again (its render's
-   * autosizing) starts a hold of its own. When the host holds the engine suspended itself, the hold ends and
+   * the grids paint after the validation, and a paint that suspends a grid's execution again (a batch a render
+   * listener makes) starts a hold of its own. When the host holds the engine suspended itself, the hold ends and
    * the dependents are validated when the host resumes it.
    *
    * @param {boolean} [leaving=false] `true` when the grid is being destroyed: its own cells are not validated,
@@ -2631,7 +2631,7 @@ export class Formulas extends BasePlugin {
       }
     });
 
-    // Most holds end with nothing to validate (every render's autosizing), so the registry is not read for them.
+    // Most holds end with nothing to validate (a filter, a hidden row), so the registry is not read for them.
     if (dependentsBySheet.size === 0) {
       return;
     }

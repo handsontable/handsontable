@@ -2320,7 +2320,7 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   resume that may never come (a grid that suspends across an `await`). Without the setting they are validated at
   once. Pinned by "validates the dependents of its writes when it leaves".
 - **Release.** The grid leaves first, then the flush and the settle run in one write scope, so the grids paint
-  after the validation. A paint can suspend a grid's execution again (its render's autosizing), so a release
+  after the validation. A paint can suspend a grid's execution again (a batch a render listener makes), so a release
   re-entered during the plugin's own resume (`resuming`) leaves the end to the outer one. When the host holds the
   engine suspended, the hold ends and validates at the host's resume, unless a grid holds the engine again before
   then: `joinEvaluationHold()` clears `onSettled`, so that grid's release ends it. Left set, the host's resume
