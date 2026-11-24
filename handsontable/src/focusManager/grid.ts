@@ -412,7 +412,7 @@ export class FocusGridManager {
       return;
     }
 
-    const coords = this.#hot.getCoords(elementToBeFocused);
+    const coords = this.#readCoords(elementToBeFocused);
 
     if (coords === null) {
       return;
@@ -434,6 +434,21 @@ export class FocusGridManager {
   }
 
   /**
+   * Reads where an element sits in the grid.
+   *
+   * @param {HTMLElement} element The cell or header.
+   * @returns {{ row: number, col: number } | null} The visual coordinates, `null` for an element that is not
+   * rendered in the grid or has no row or column.
+   */
+  #readCoords(element: HTMLElement): { row: number, col: number } | null {
+    const coords = this.#hot.getCoords(element);
+
+    return coords !== null && coords.row !== null && coords.col !== null
+      ? { row: coords.row, col: coords.col }
+      : null;
+  }
+
+  /**
    * Makes a screen reader read the focused cell or header again when what it shows changed in place, or when the
    * grid drew another cell into the element that holds the focus (a jump to a row that is rendered only then).
    * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
@@ -451,7 +466,7 @@ export class FocusGridManager {
       return;
     }
 
-    const coords = this.#hot.getCoords(activeElement);
+    const coords = this.#readCoords(activeElement);
     const highlight = this.#hot.getSelectedRangeActive()?.highlight;
 
     if (coords === null || !highlight || coords.row !== highlight.row || coords.col !== highlight.col) {
