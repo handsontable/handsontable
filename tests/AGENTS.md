@@ -510,8 +510,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
 - **License specs name no real tier, and the plugin specs use made-up ones.** Which features
   a tier includes can change in any release, so no spec
   writes a real tier's name or a list of what it holds. The one name a spec may write
-  is `professional`, the tier removed in DEV-4198: it stands for "a tier this build
-  does not list", whose key unlocks nothing. DataGrid has a single tier, `standard`, so
+  is `standard`, the tier removed in DEV-4198: it stands for "a tier this build
+  does not list", whose key unlocks nothing. DataGrid has a single tier, `professional`, so
   no real key can leave an xlsx feature out. The xlsx license specs
   still run on the build's real tiers, read from the manifest, because a fixture
   cannot add a made-up tier to the bundle's XLSX tier table: each picks its tier by

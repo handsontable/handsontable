@@ -9,6 +9,6 @@ export const LICENSE: PluginLicense = Object.freeze({
   name: 'Sheets bar',
   gate: 'enable',
   tiers: Object.freeze([
-    'standard',
+    'professional',
   ]),
 });

@@ -9,7 +9,7 @@ import {
 
 /**
  * The keys name the build's real tier, read from `dist/manifest.json` when a test runs. DataGrid has a single
- * tier, `standard`, that unlocks every feature (DEV-4198), so no real key can leave one xlsx feature out, and the
+ * tier, `professional`, that unlocks every feature (DEV-4198), so no real key can leave one xlsx feature out, and the
  * fixture cannot add a made-up tier to the bundle's XLSX tier table, as `license-capabilities.html` does for
  * plugins. The cases that need a partial tier live in the unit suite, which builds keys with made-up tiers: the
  * export refused and the menu item hidden without xlsx:export
@@ -151,15 +151,15 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect((await lic.warnings()).some(message => message.includes(PASSWORD))).toBe(false);
       });
 
-    // DEV-4198: DataGrid has a single tier, `standard`, so no real key can leave one xlsx feature out. A key that
-    // names only a tier the build does not list (the removed `professional`) unlocks nothing: the plugin is off, so the export is
+    // DEV-4198: DataGrid has a single tier, `professional`, so no real key can leave one xlsx feature out. A key that
+    // names only a tier the build does not list (the removed `standard`) unlocks nothing: the plugin is off, so the export is
     // refused. The partial-tier cases (parts left out, the warning, the password) live in the unit suite, which
     // builds keys with made-up tiers.
-    test('a key that names only the removed tier "professional" refuses the export', async({ page, theme, bundle }) => {
+    test('a key that names only the removed tier "standard" refuses the export', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
-      await lic.create(keyWithTier(['professional']));
+      await lic.create(keyWithTier(['standard']));
 
       await expect(lic.exportBytes(EXPORT_OPTIONS)).rejects.toThrow('does not include these features: Export to file (feat:export_file)');
     });

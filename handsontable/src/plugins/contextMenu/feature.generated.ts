@@ -14,6 +14,6 @@ export const LICENSE: PluginLicense = Object.freeze({
   name: 'Context menu',
   gate: 'enable',
   tiers: Object.freeze([
-    'standard',
+    'professional',
   ]),
 });

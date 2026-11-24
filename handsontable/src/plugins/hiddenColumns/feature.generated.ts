@@ -9,6 +9,6 @@ export const LICENSE: PluginLicense = Object.freeze({
   name: 'Hidden columns',
   gate: 'enable',
   tiers: Object.freeze([
-    'standard',
+    'professional',
   ]),
 });

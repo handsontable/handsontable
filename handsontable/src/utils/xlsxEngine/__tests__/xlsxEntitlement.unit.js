@@ -198,11 +198,11 @@ describe('xlsxEngine/xlsxEntitlement', () => {
       expect(resolveXlsxEntitlement(['zz_unknown']).export).toBe(false);
     });
 
-    // DEV-4198: DataGrid has a single tier, `standard`, that unlocks every feature. The `professional` tier was
-    // removed, so the xlsx features it alone unlocked (number formats, comments, styles, conditional formatting,
-    // data validation, protection) belong to `standard`, and a key naming only `tier:professional` unlocks nothing.
-    it('unlocks every gated xlsx feature for the single tier, "standard"', () => {
-      const { tiers } = _getLicenseState(keyWithTier(['standard']));
+    // DEV-4198: DataGrid has a single tier, `professional`, that unlocks every feature. The `standard` tier was
+    // removed, so every xlsx feature (number formats, comments, styles, conditional formatting, data validation,
+    // protection included) belongs to `professional`, and a key naming only `tier:standard` unlocks nothing.
+    it('unlocks every gated xlsx feature for the single tier, "professional"', () => {
+      const { tiers } = _getLicenseState(keyWithTier(['professional']));
       const entitlement = resolveXlsxEntitlement(tiers);
 
       expect(entitlement.missing).toEqual([]);
@@ -210,12 +210,12 @@ describe('xlsxEngine/xlsxEntitlement', () => {
         'xlsx:number_formats', 'xlsx:comments', 'xlsx:styles', 'xlsx:conditional_formatting',
         'xlsx:data_validation', 'xlsx:protection',
       ].forEach((id) => {
-        expect([id, XLSX_TIERS_BY_ID[id]]).toEqual([id, ['standard']]);
+        expect([id, XLSX_TIERS_BY_ID[id]]).toEqual([id, ['professional']]);
       });
     });
 
-    it('unlocks no gated xlsx feature for a key that names only the removed tier "professional"', () => {
-      const { tiers } = _getLicenseState(keyWithTier(['professional']));
+    it('unlocks no gated xlsx feature for a key that names only the removed tier "standard"', () => {
+      const { tiers } = _getLicenseState(keyWithTier(['standard']));
       const entitlement = resolveXlsxEntitlement(tiers);
 
       expect(entitlement.missing).toEqual([...XLSX_CAPABILITY_IDS]);
@@ -223,7 +223,7 @@ describe('xlsxEngine/xlsxEntitlement', () => {
       expect(entitlement.export).toBe(false);
       expect(entitlement.styles).toBe(false);
       expect(entitlement.importReport).toBe(true);
-      Object.values(XLSX_TIERS_BY_ID).forEach(ids => expect(ids).not.toContain('professional'));
+      Object.values(XLSX_TIERS_BY_ID).forEach(ids => expect(ids).not.toContain('standard'));
     });
   });
 });

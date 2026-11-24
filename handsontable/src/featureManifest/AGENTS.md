@@ -38,7 +38,7 @@ Jest suite fails until it has one (`needs exactly one "plugin" entry for "<Name>
 | an editor, renderer, or validator | `src/editors/`, `src/renderers/`, or `src/validators/` `features.json` | `editor:…`, `renderer:…`, `validator:…` | `none` |
 | an XLSX sub-feature a tier can switch | `src/utils/xlsxEngine/features.json` | `xlsx:<name>` | `token` |
 
-Every `token` entry also lists the tiers that include it (`"tiers": ["standard"]`, see "Tiers"
+Every `token` entry also lists the tiers that include it (`"tiers": ["professional"]`, see "Tiers"
 below).
 
 Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes (the record in
@@ -64,7 +64,7 @@ A plugin entry looks like this (`src/plugins/filters/feature.json`):
       "status": "stable",
       "licensing": "token",
       "gate": "enable",
-      "tiers": ["standard"],
+      "tiers": ["professional"],
       "requires": { "allOf": ["feat:dropdown_menu", "feat:hidden_rows", "cell:checkbox"] },
       "enforceAtInit": true
     }
@@ -203,17 +203,17 @@ because a record never loses a value.
 - **A tier name, once merged, is never renamed or removed, with one recorded exception.** The license portal reads
   the top-level `tiers` of each published build (the `experimental` tag included) and refuses a build that lacks a
   tier it sells, and keys that name the tier are already issued. Add a tier; do not rename one.
-  `released-tokens.json` records each tier as its key token (`"tier:standard": ["tier"]`): `checkReleased()` refuses
-  sources that lack a recorded tier, and `--check-base` refuses a record that drops one, the same way both protect
-  a sold feature id. **The exception is `professional` (DEV-4198).** The business decided that DataGrid has a single
-  tier, `standard`, which unlocks every feature, so `professional` was removed from `tiers.json`, from every
-  entry's `tiers` (the six `xlsx:` entries that listed only it now list `standard`), and from the record. It is
-  the one name in `REMOVED_TIERS` (`scripts/utils/feature-manifest.js`): `checkReleased()` and `--check-base`
-  accept a missing `tier:professional` line, and the checks refuse to list `professional` in `tiers.json` again.
-  A key that names only `tier:professional` is a restricted key whose tier no feature lists, so it unlocks nothing
-  and must be reissued with `tier:standard`; the license portal must stop selling `professional` before a build
-  without it is published. Do not add a name to `REMOVED_TIERS` to rename a tier, or without a business decision
-  to drop it.
+  `released-tokens.json` records each tier as its key token (`"tier:professional": ["tier"]`): `checkReleased()`
+  refuses sources that lack a recorded tier, and `--check-base` refuses a record that drops one, the same way both
+  protect a sold feature id. **The exception is `standard` (DEV-4198).** The business decided that DataGrid has a
+  single tier, named `professional`, which unlocks every feature, so `standard` was removed from `tiers.json`, from
+  every entry's `tiers` (the six `xlsx:` entries that listed only `professional` are unchanged), and from the
+  record. It is the one name in `REMOVED_TIERS` (`scripts/utils/feature-manifest.js`): `checkReleased()` and
+  `--check-base` accept a missing `tier:standard` line, and the checks refuse to list `standard` in `tiers.json`
+  again. A key that names only `tier:standard` is a restricted key whose tier no feature lists, so it unlocks
+  nothing and must be reissued with `tier:professional`; the license portal must stop selling `standard` before a
+  build without it is published. Do not add a name to `REMOVED_TIERS` to rename a tier, or without a business
+  decision to drop it.
 - **Public text says "tier"**, never "plan": the key token is `tier:<name>`, the manifest field is `tiers`, and
   "plan" already names a support product.
 - **`dist/manifest.json`** carries `tiers` at the top level and per capability, and no `keyFlag` (the

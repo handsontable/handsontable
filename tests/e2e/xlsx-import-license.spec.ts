@@ -7,7 +7,7 @@ import { requiredTierWithEvery } from '../fixtures/licenseTiers';
 
 /**
  * The keys name the build's real tier, read from `dist/manifest.json` when a test runs. DataGrid has a single
- * tier, `standard`, that unlocks every feature (DEV-4198), so no real key can leave one xlsx feature out. The
+ * tier, `professional`, that unlocks every feature (DEV-4198), so no real key can leave one xlsx feature out. The
  * cases that need a partial tier live in the unit suite, which builds keys with made-up tiers: the import refused
  * without xlsx:import (`handsontable/src/plugins/importFile/__tests__/importFile.unit.js`), and the parts and
  * license entries without xlsx:formulas or xlsx:layout
@@ -87,17 +87,17 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect((await lic.warnings()).filter(message => message.startsWith(LICENSE_WARNING_PREFIX))).toEqual([]);
     });
 
-    // DEV-4198: DataGrid has a single tier, `standard`, so no real key can leave one xlsx feature out. A key that
-    // names only a tier the build does not list (the removed `professional`) unlocks nothing: the plugin is off, so the import is
+    // DEV-4198: DataGrid has a single tier, `professional`, so no real key can leave one xlsx feature out. A key that
+    // names only a tier the build does not list (the removed `standard`) unlocks nothing: the plugin is off, so the import is
     // refused. The partial-tier cases live in the unit suite, which builds keys with made-up tiers.
-    test('a key that names only the removed tier "professional" refuses the import', async({ page, theme, bundle }) => {
+    test('a key that names only the removed tier "standard" refuses the import', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
 
       const bytes = await fullWorkbook(lic);
 
-      await lic.create(keyWithTier(['professional']));
+      await lic.create(keyWithTier(['standard']));
 
       await expect(lic.importBytes(bytes, IMPORT_OPTIONS)).rejects.toThrow('does not include these features: Import from file (feat:import_file)');
     });

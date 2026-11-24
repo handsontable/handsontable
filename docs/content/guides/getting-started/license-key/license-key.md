@@ -330,7 +330,7 @@ The table lists the tiers that include each feature. For prices, see the
 
 <!-- license-tiers:start -->
 
-| Feature | Standard |
+| Feature | Professional |
 | --- | :---: |
 | Data grid | Yes |
 | Async values | Yes |

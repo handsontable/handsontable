@@ -64,9 +64,9 @@ const TIER_TOKEN_PREFIX = 'tier:';
 // listed here may be missing from `tiers.json` and from the record of released ids, and may not come back.
 // Add a name only with a business decision to drop the tier, and never to rename one.
 const REMOVED_TIERS = Object.freeze({
-  // DataGrid has a single tier, `standard`, that unlocks every feature. Keys that name only `tier:professional`
-  // were issued on myHOT staging and sandbox only, and unlock nothing now.
-  professional: 'DEV-4198',
+  // DataGrid has a single tier, named `professional`, that unlocks every feature. `standard` was removed. Keys that
+  // name only `tier:standard` were issued on myHOT staging and sandbox only, and unlock nothing now.
+  standard: 'DEV-4198',
 });
 const STATUSES = ['stable', 'planned'];
 

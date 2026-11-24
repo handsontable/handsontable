@@ -13,7 +13,7 @@
       "licensing": "token",
       "gate": "call",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "allOf": [
@@ -33,7 +33,7 @@
       "licensing": "token",
       "gate": "call",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "allOf": [
@@ -54,7 +54,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "allOf": [
@@ -79,7 +79,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "anyOf": [
@@ -100,7 +100,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "allOf": [
@@ -121,7 +121,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "allOf": [
@@ -145,7 +145,7 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard"
+        "professional"
       ]
     },
     {
@@ -161,7 +161,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "anyOf": [
@@ -183,7 +183,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "anyOf": [
@@ -205,7 +205,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "allOf": [
@@ -230,7 +230,7 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard"
+        "professional"
       ],
       "requires": {
         "anyOf": [

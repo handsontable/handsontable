@@ -320,9 +320,9 @@ describe('feature manifest', () => {
         ['a format version this generator does not read', { schemaVersion: 2 }, '"schemaVersion" must be 1, found 2'],
         ['a key it does not know', { order: [] }, 'unknown top-level key "order"'],
         ['an empty list', { tiers: [] }, '"tiers" must be a non-empty list of tier names'],
-        ['a list that is not a list', { tiers: 'standard' }, '"tiers" must be a non-empty list of tier names'],
-        ['a name listed twice', { tiers: ['standard', 'standard'] }, 'tier "standard" is listed twice'],
-        ['a name that is not a string', { tiers: ['standard', 7] }, 'tier 7 must match /^[a-z][a-z0-9_]*$/'],
+        ['a list that is not a list', { tiers: 'professional' }, '"tiers" must be a non-empty list of tier names'],
+        ['a name listed twice', { tiers: ['professional', 'professional'] }, 'tier "professional" is listed twice'],
+        ['a name that is not a string', { tiers: ['professional', 7] }, 'tier 7 must match /^[a-z][a-z0-9_]*$/'],
       ])('should report %s', (label, change, problem) => {
         expect(checkSources(withTiersFile({ ...sources.tiersFile, ...change }))).toContain(`${FILE}: ${problem}`);
       });
@@ -410,25 +410,25 @@ describe('feature manifest', () => {
       expect(checkReleased({ ...sources, tiers: [...sources.tiers, 'added_tier'] })).toEqual([]);
     });
 
-    it('should have a single tier, "standard", and record no tier that was removed', () => {
-      expect(sources.tiers).toEqual(['standard']);
-      expect(Object.keys(sources.released).filter(id => id.startsWith('tier:'))).toEqual(['tier:standard']);
-      expect(sources.released['tier:professional']).toBeUndefined();
+    it('should have a single tier, "professional", and record no tier that was removed', () => {
+      expect(sources.tiers).toEqual(['professional']);
+      expect(Object.keys(sources.released).filter(id => id.startsWith('tier:'))).toEqual(['tier:professional']);
+      expect(sources.released['tier:standard']).toBeUndefined();
     });
 
-    it('should accept the removal of "professional", the one tier removed on purpose (DEV-4198)', () => {
-      expect(REMOVED_TIERS).toEqual({ professional: 'DEV-4198' });
+    it('should accept the removal of "standard", the one tier removed on purpose (DEV-4198)', () => {
+      expect(REMOVED_TIERS).toEqual({ standard: 'DEV-4198' });
       // Without the removal list, a record that still held the tier would refuse sources that drop it.
-      expect(checkReleased({ ...sources, released: { ...sources.released, 'tier:professional': ['tier'] } }))
+      expect(checkReleased({ ...sources, released: { ...sources.released, 'tier:standard': ['tier'] } }))
         .toEqual([]);
     });
 
     it('should refuse to bring a removed tier back', () => {
       expect(checkSources({
         ...sources,
-        tiers: [...sources.tiers, 'professional'],
-        tiersFile: { ...sources.tiersFile, tiers: [...sources.tiers, 'professional'] },
-      })).toEqual(expect.arrayContaining([expect.stringContaining('tier "professional" was removed (DEV-4198)')]));
+        tiers: [...sources.tiers, 'standard'],
+        tiersFile: { ...sources.tiersFile, tiers: [...sources.tiers, 'standard'] },
+      })).toEqual(expect.arrayContaining([expect.stringContaining('tier "standard" was removed (DEV-4198)')]));
     });
 
     it('should refuse a tier line of the record that lists anything but "tier"', () => {
@@ -666,8 +666,8 @@ describe('feature manifest', () => {
       ]);
     });
 
-    it('should accept a record that drops "tier:professional", the one tier removed on purpose', () => {
-      expect(checkRecordAgainstBase({ ...record, 'tier:professional': ['tier'] }, record)).toEqual([]);
+    it('should accept a record that drops "tier:standard", the one tier removed on purpose', () => {
+      expect(checkRecordAgainstBase({ ...record, 'tier:standard': ['tier'] }, record)).toEqual([]);
     });
 
     it('should refuse a record that loses a value the base recorded', () => {
