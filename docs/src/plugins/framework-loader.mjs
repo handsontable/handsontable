@@ -457,7 +457,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v44';
+const LOADER_VERSION = 'v47';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -510,6 +510,51 @@ function slugFromRelPath(relPath) {
 // ---------------------------------------------------------------------------
 // VuePress preprocessing (mirrored from vuepress-preprocessor.mjs)
 // ---------------------------------------------------------------------------
+
+/**
+ * The name each framework variant's `<title>` gives its framework.
+ */
+const FRAMEWORK_TITLE_NAMES = {
+  javascript: 'JavaScript',
+  react: 'React',
+  angular: 'Angular',
+  vue: 'Vue',
+};
+
+/**
+ * Returns the page's frontmatter with a `<title>` that names its framework:
+ * `<title> | Handsontable DataGrid for <Framework>`. Starlight titles a page
+ * `<title> | <site title>`, so the four framework variants of a page would
+ * share one title, and a tab or a history list could not tell them apart
+ * (WCAG 2.4.2). The framework's own `metaTitle` (the top-level one for
+ * JavaScript, `<framework>.metaTitle` for the others) is used when it already
+ * ends with that suffix, because it tells apart pages that share a `title`
+ * (the guides' and the API reference's "Introduction"). Otherwise the title is
+ * built from `title`: the changelog and migration pages keep an older
+ * `metaTitle` shape on purpose.
+ *
+ * @param {Record<string, any>} frontmatter The page's frontmatter.
+ * @param {string} framework One of `FRAMEWORKS`.
+ * @returns {Record<string, any>}
+ */
+export function withFrameworkTitle(frontmatter, framework) {
+  const title = typeof frontmatter.title === 'string' ? frontmatter.title.trim() : '';
+
+  if (title === '' || !FRAMEWORK_TITLE_NAMES[framework]) {
+    return frontmatter;
+  }
+
+  const suffix = ` | Handsontable DataGrid for ${FRAMEWORK_TITLE_NAMES[framework]}`;
+  const rawMetaTitle = framework === 'javascript' ? frontmatter.metaTitle : frontmatter[framework]?.metaTitle;
+  const metaTitle = typeof rawMetaTitle === 'string' ? rawMetaTitle.trim() : '';
+  const content = metaTitle.endsWith(suffix) && metaTitle.length > suffix.length ? metaTitle : `${title}${suffix}`;
+  const head = (frontmatter.head ?? []).filter(entry => entry?.tag !== 'title');
+
+  return {
+    ...frontmatter,
+    head: [...head, { tag: 'title', content }],
+  };
+}
 
 /**
  * Filters :::: only-for [framework1 framework2] ... :::: blocks.
@@ -969,8 +1014,10 @@ function buildAsideContent(bodyLines) {
 }
 
 /**
- * Transforms `<div class="boxes-list">` blocks with markdown lists into
- * Starlight-styled card grid HTML.
+ * Converts `::: tip|warning|danger|note` containers into callouts styled as
+ * Starlight asides. A callout is a `role="note"` element named by its title,
+ * never an `<aside>`: an `<aside>` is a complementary landmark, so a page with
+ * several callouts would list "Tip" in its landmarks once per callout.
  *
  * @param {string} content
  * @returns {string}
@@ -999,10 +1046,10 @@ function convertAsideBlocks(content) {
     } else if (/^:::\s*$/.test(line)) {
       // Convert markdown syntax to HTML since the body is injected as raw
       // HTML and won't be processed by remark. Fenced code blocks stay markdown.
-      result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
+      result.push(`<div role="note" class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
       result.push(`<p class="starlight-aside__title" aria-hidden="true">${asideTitle}</p>`);
       result.push(...buildAsideContent(asideBody));
-      result.push('</aside>');
+      result.push('</div>');
       asideType = null;
       asideTitle = null;
       asideBody = [];
@@ -1595,15 +1642,16 @@ export function frameworkLoader({ contentDir }) {
           const digest = generateDigest(raw + framework + LOADER_VERSION + embedSig);
 
           let data;
+          const pageFrontmatter = withFrameworkTitle(frontmatter, framework);
 
           try {
-            data = await parseData({ id, data: frontmatter });
+            data = await parseData({ id, data: pageFrontmatter });
           } catch (err) {
             // Astro 6 / Zod 4 schema validation may fail during migration;
             // fall back to raw frontmatter with Starlight-required defaults.
             data = {
-              ...frontmatter,
-              head: frontmatter.head || [],
+              ...pageFrontmatter,
+              head: pageFrontmatter.head || [],
               sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
               template: frontmatter.template || 'doc',
               editUrl: frontmatter.editUrl ?? true,
@@ -1686,7 +1734,7 @@ export function frameworkLoader({ contentDir }) {
         const notFoundData = await parseData({
           id: '404',
           data: {
-            title: '404',
+            title: 'Page not found',
             template: 'splash',
             editUrl: false,
             pagefind: false,

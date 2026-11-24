@@ -105,8 +105,9 @@ const pageHref       = pathname;
 
 </div>
 
-<aside
+<div
   id="hot-newer-version-banner"
+  role="note"
   class="starlight-aside starlight-aside--tip hot-newer-version-banner"
   data-current-minor={currentMinor}
   hidden={!showNewerBanner}
@@ -115,7 +116,7 @@ const pageHref       = pathname;
     There is a newer version of Handsontable available.
     <a id="hot-newer-version-link" href={`https://handsontable.com/docs/`}>Switch to the latest version &rarr;</a>
   </p>
-</aside>
+</div>
 
 <div class="hot-title-row">
   <h1 id="_top">{pageTitle}</h1>

@@ -179,7 +179,7 @@ Regardless of the client-side strategy, complement it with server-side validatio
 
 ## High-quality code pledge
 
-We pledge to deliver high-quality code. You can see our high-quality code score [here](https://lgtm.com/projects/g/handsontable/handsontable/context:javascript).
+We pledge to deliver high-quality code. You can see our [code quality score on LGTM](https://lgtm.com/projects/g/handsontable/handsontable/context:javascript).
 
 Our policy is to fix issues when they arise, as quickly as possible, and keep the library up to date. This requires from you, a user of this software, to keep your copy of Handsontable's software up to date.
 

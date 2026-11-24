@@ -61,13 +61,13 @@ For more details, see the API reference:
 - [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/12.4/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex)
 - [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex)
 
-#### Before
+### Before
 
 ```js
 handsontableInstance.getFirstNotHiddenIndex(0, 1, true, 1);
 ```
 
-#### After
+### After
 
 ```js
 handsontableInstance.getNearestNotHiddenIndex(0, 1, true);
@@ -80,7 +80,7 @@ Handsontable [12.2.0](@/guides/upgrade-and-migration/changelog/changelog.md#depr
 
 You can read more about this change on [our blog](https://handsontable.com/blog/handsontable-12.2.0).
 
-#### Before
+### Before
 
 ```js
 // insert a row above row number 10
@@ -90,7 +90,7 @@ handsontableInstance.alter('insert_row', 10);
 handsontableInstance.alter('insert_col', 10);
 ```
 
-#### After
+### After
 
 ```js
 // insert a row below the last row
@@ -116,14 +116,14 @@ Handsontable 13.0 changes the order of execution for the following hooks:
 
 For more details on this change, see this pull request: [#10231](https://github.com/handsontable/handsontable/pull/10231).
 
-#### Before
+### Before
 
 Up to Handsontable 12.4, the hooks fire in the following order:
 
 1. [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) or [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
 2. [`beforeChange`](@/api/hooks.md#beforechange)
 
-#### After
+### After
 
 Since Handsontable 13.0, the hooks are fired in the following order:
 
