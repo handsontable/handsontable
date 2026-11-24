@@ -260,6 +260,17 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
       expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
     });
 
+    for (const disableVisualSelection of [true, 'current', ['current']]) {
+      test(`the cell takes a new value with disableVisualSelection: ${JSON.stringify(disableVisualSelection)}`, async() => {
+        await grid.goto({ disableVisualSelection });
+        expect(await grid.selectCell(3, 4)).toBe(true);
+        await grid.startRoleRecorder();
+        await grid.setData(3, 4, 'changed in place');
+
+        expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
+      });
+    }
+
     test('a checkbox cell is toggled with the keyboard', async() => {
       await grid.goto();
       await grid.makeCheckboxCell(2, 0, false);

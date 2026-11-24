@@ -13,10 +13,14 @@ import { debounce } from '../helpers/function';
 import { isRootInstance } from '../utils/rootInstance';
 
 /**
- * The class the selection puts on the cell that holds the focus highlight, after the draw that shows it. A focused
- * element without it shows another cell than the selected one (the grid recycled it).
+ * Tells whether a cell waits for an async value, which the AsyncValues plugin marks with `aria-busy`.
+ *
+ * @param {HTMLElement} element The cell.
+ * @returns {boolean}
  */
-const FOCUS_HIGHLIGHT_CLASS_NAME = 'current';
+function isBusy(element: HTMLElement): boolean {
+  return element.getAttribute('aria-busy') === 'true';
+}
 
 /**
  * Possible focus modes.
@@ -432,7 +436,7 @@ export class FocusGridManager {
       return;
     }
 
-    if (isDataCell && isRootInstance(this.#hot)) {
+    if (isDataCell && isRootInstance(this.#hot) && !isBusy(elementToBeFocused)) {
       rebuildAccessibilityObject(elementToBeFocused);
     }
 
@@ -458,8 +462,8 @@ export class FocusGridManager {
    * grid drew another cell into the element that holds the focus (a jump to a row that is rendered only then).
    * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
    * hears nothing or a name that changed. It only counts when the element is a cell of this grid, not of a grid
-   * nested in one of its cells, and shows the selected cell (it carries the selection's `current` class): a scroll
-   * that recycles the focused element for a cell the user is not on says nothing.
+   * nested in one of its cells, and shows the selected cell: a scroll that recycles the focused element for a cell
+   * the user is not on says nothing. A cell that waits for an async value (busy) is left as it is.
    */
   #announceChangeInPlace(): void {
     const activeElement = getDeepActiveElement(this.#hot.rootDocument);
@@ -467,15 +471,21 @@ export class FocusGridManager {
     if (
       !isHTMLElement(activeElement) ||
       (activeElement.nodeName !== 'TD' && activeElement.nodeName !== 'TH') ||
-      !isInternalElement(activeElement, this.#hot.rootElement) ||
-      !activeElement.classList.contains(FOCUS_HIGHLIGHT_CLASS_NAME)
+      !isInternalElement(activeElement, this.#hot.rootElement)
     ) {
       return;
     }
 
     const coords = this.#readHighlight();
 
-    if (coords !== null && hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col)) {
+    // The element shows the selected cell when it is the one the grid renders for the highlight. The `current` class
+    // says the same, but a grid with `disableVisualSelection` never gets it.
+    if (coords === null || this.#hot.getCell(coords.row, coords.col, true) !== activeElement) {
+      return;
+    }
+
+    // The record is kept up to date either way, so the value that resolves later counts as a change.
+    if (hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col) && !isBusy(activeElement)) {
       rebuildAccessibilityObject(activeElement);
     }
   }
