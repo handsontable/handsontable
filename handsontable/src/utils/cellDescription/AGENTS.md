@@ -30,6 +30,7 @@ and `#describeCell()` after the last `afterRenderer` listener. In between, a plu
 | `READ_ONLY` (10) | `CellDescription:readOnly` | the painter itself, from `cellProperties.readOnly` |
 | `LINK` (20) | `CellDescription:link` | `describeLink()` (`utils/cellLinks/describeLink.ts`), called by AutoLink when `linkifyCell()` made an anchor and by the Formulas `HYPERLINK` pass right after it wraps the cell |
 | `MERGED` (30) | `CellDescription:merged` with `[row]`/`[column]` | `mergeCells/renderer.ts`, for the origin of a block: the block's last cell by its `aria-rowindex` and `aria-colindex` (header rows and row header columns counted, hidden lines skipped), so the numbers agree with what the screen reader says for that cell |
+| `ROW_LEVEL` (40) | `NestedRows:announcement.level` (and its `.expanded` and `.collapsed` forms) | `nestedRows.ts`, `#onAfterRenderer`, for the ONE cell the highlight reached on a move to another row. A selection draws with a fast draw that runs no renderer, so the plugin also writes the part onto the rendered cell with `redescribeRenderedCell()`, which composes it with the parts the cell was last painted with (`plugins/nestedRows/AGENTS.md`, "Treegrid accessibility"). It is the one part that is **not** joined into the shared text: it is a description of its own, in a single element per grid whose text is rewritten in place (`getLevelElementId()`), because its text carries per-row numbers and an element per text would pile up while the user walks a list. It is never added to every cell |
 
 Rules, each from a measured reason:
 

@@ -185,6 +185,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti redovi na dnu',
   [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznute kolone na početku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznute kolone na kraju',
+  [C.ARMED_PICK_STARTED]: 'Kliknite ili dodirnite cilj da završite. Pritisnite Escape da otkažete.',
+  [C.ARMED_PICK_CANCELED]: 'Otkazano.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivo [level], [position] od [setSize]',

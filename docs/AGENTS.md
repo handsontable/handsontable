@@ -1250,7 +1250,11 @@ unchecked.
 
 Unit tests: `src/lib/__tests__/headway-bell.test.mjs` (`npm run docs:test:plugins`), against a fake that defers callbacks the way the widget does. The real widget: `tests/headwayBell.spec.ts` (the `functional` project, run by the `functional` job in `.github/workflows/docs.yml` on a hosted runner against the PR preview). It skips when Headway is unreachable, which the job summary's skipped count shows, and the job runs only after the earlier gates are green.
 
-## 2.23 Scrolling code blocks and tables are named Tab stops
+## 2.23 Focus indicators use `--sl-color-focus-ring`, not the accent
+
+Every focus indicator in the docs CSS (an `outline`, a `box-shadow`, or a `border-color` on `:focus`, `:focus-visible`, or `:focus-within`) uses `var(--sl-color-focus-ring)`, set in `src/styles/base/variables.css`. Dark: `#3b82f6` (Blue 300 of the brand palette). Light: the accent, `#1A42E8` (Blue 500). The dark accent (`#2856ea`) stands 2.98:1 against a callout background, under the 3:1 of WCAG 1.4.11, which is why the ring has its own color. `src/lib/__tests__/focus-ring-color.test.mjs` fails on a focus rule that uses `--sl-color-accent`, and checks the dark ring against the dark backgrounds. The reader-visible proof is the docs focus-contrast check: `HOT_A11Y_SITE=docs DOCS_A11Y_BASE_URL=http://localhost:<port>/docs npm --prefix tests run test:a11y-sites -- --project=docs-focus-contrast`.
+
+## 2.24 Scrolling code blocks and tables are named Tab stops
 
 A code block or a Markdown table wider than the content column must be scrollable from the keyboard, so `src/scripts/scrollable-blocks.ts` (loaded from `Head.astro`) makes it a focusable region while it overflows.
 

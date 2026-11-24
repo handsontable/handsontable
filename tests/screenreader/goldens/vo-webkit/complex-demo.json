@@ -6,12 +6,12 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T11:32:21.746Z"
+    "at": "2026-11-23T16:04:56.022Z"
   },
   "steps": {
-    "down-past-hidden-row": "name emily wilson level 1 4 of 38",
-    "up-past-hidden-row": "name jane smith level 1 2 of 38",
-    "up-to-frozen-row": "name john doe level 1 1 of 38",
+    "down-past-hidden-row": "name level 1 4 of 38 emily wilson",
+    "up-past-hidden-row": "name level 1 2 of 38 jane smith",
+    "up-to-frozen-row": "name level 1 1 of 38 john doe",
     "up-to-header": "name menu pop up",
     "up-to-group-i": "i expanded",
     "up-to-group-e": "e expanded",

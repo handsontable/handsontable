@@ -61,8 +61,8 @@
 .vc-selector-trigger[aria-expanded='true'] {
   outline: none;
   outline-offset: 0 !important;
-  border-color: var(--sl-color-accent);
-  box-shadow: 0 0 0 1px var(--sl-color-accent);
+  border-color: var(--sl-color-focus-ring);
+  box-shadow: 0 0 0 1px var(--sl-color-focus-ring);
 }
 .vc-selector-value {
   flex: 1;

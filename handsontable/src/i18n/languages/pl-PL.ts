@@ -183,6 +183,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zablokowane wiersze na dole',
   [C.FREEZE_BAR_COLUMNS_START]: 'Zablokowane kolumny na początku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Zablokowane kolumny na końcu',
+  [C.ARMED_PICK_STARTED]: 'Kliknij lub dotknij cel, aby zakończyć. Naciśnij Escape, aby anulować.',
+  [C.ARMED_PICK_CANCELED]: 'Anulowano.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Poziom [level], [position] z [setSize]',
