@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a click-then-click way to freeze rows and columns with the freeze bars and to resize a selection with its handles, for users who can't drag.",
+  "type": "added",
+  "issueOrPR": 14407,
+  "breaking": false,
+  "framework": "none"
+}

@@ -173,6 +173,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Закреплённые строки снизу',
   [C.FREEZE_BAR_COLUMNS_START]: 'Закреплённые столбцы в начале',
   [C.FREEZE_BAR_COLUMNS_END]: 'Закреплённые столбцы в конце',
+  [C.ARMED_PICK_STARTED]: 'Щёлкните или коснитесь цели, чтобы завершить. Нажмите Escape, чтобы отменить.',
+  [C.ARMED_PICK_CANCELED]: 'Отменено.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Уровень [level], [position] из [setSize]',

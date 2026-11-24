@@ -173,6 +173,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Lignes figées en bas',
   [C.FREEZE_BAR_COLUMNS_START]: 'Colonnes figées au début',
   [C.FREEZE_BAR_COLUMNS_END]: 'Colonnes figées à la fin',
+  [C.ARMED_PICK_STARTED]: 'Cliquez sur la cible ou touchez-la pour terminer. Appuyez sur Échap pour annuler.',
+  [C.ARMED_PICK_CANCELED]: 'Annulé.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] sur [setSize]',
