@@ -505,9 +505,9 @@ The position and the number of siblings come from your data. Rows that the [`Hid
 
 When you collapse or expand a row with the keyboard or with the row header button, Handsontable announces the change through a polite live region: for example, "Expanded row 1, expanded rows shown: 5" or "Collapsed row 1". The row is named after the text its row header shows, the same label sighted users see next to the row, or after its row number when the header is empty. Changes made through the API methods are not announced, so your application can describe them in its own words. With `ariaTags` set to `false`, nothing is announced.
 
-The accessible name of each cell of a row ends with the row's level and position, after the cell's value: for example, "Grape, Level 2, 4 of 6". A parent row adds ", expanded" or ", collapsed". A screen reader reads the level as part of the cell, so the level you hear belongs to the cell you hear, even when you move fast. The cell's text content doesn't change, and the row itself is named by its cell values only. A row that already has an `aria-label` or `aria-labelledby` set by your application keeps it. In a formula cell, the level comes before the formula. With [`navigableHeaders`](@/api/options.md#navigableheaders) turned on, a row header that takes the focus is described by the row's level and position. With `ariaTags` set to `false`, cells get no level.
+When the selection moves to another row, Handsontable also announces the row's level and position, for example "Level 2, 1 of 3". A parent row adds ", expanded" or ", collapsed".
 
-The announcement and level text is translated. To change it, override the `NestedRows:announcement.expanded`, `NestedRows:announcement.collapsed`, `NestedRows:announcement.level`, `NestedRows:announcement.level.expanded`, and `NestedRows:announcement.level.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
+The announcement text is translated. To change it, override the `NestedRows:announcement.expanded`, `NestedRows:announcement.collapsed`, `NestedRows:announcement.level`, `NestedRows:announcement.level.expanded`, and `NestedRows:announcement.level.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
 
 ### Keyboard shortcuts
 

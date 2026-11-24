@@ -6825,7 +6825,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * `afterRenderer` hook callback. Sets the `data-ht-formula` attribute on the cell of a formula, which
-   * `_cell-name-suffix.scss` draws as generated content, so that a screen reader that reads the calculated value
+   * `_formulas.scss` draws as generated content, so that a screen reader that reads the calculated value
    * goes on to read the formula it came from. The cell's own text is not touched, so its `textContent` and
    * `innerText` stay the value. A screen reader drops `title` from a cell that has `aria-describedby`, and
    * an `aria-label` would replace the value instead of adding to it.

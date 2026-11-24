@@ -1,10 +1,9 @@
 /**
  * The attribute that carries the text assistive technology reads after the value of a formula cell. The
- * stylesheet draws it as generated content (`td[data-ht-formula]::after`, `_cell-name-suffix.scss`, in the
- * `::after` it shares with the NestedRows level), which is part of the cell's accessible name and is not
- * part of its `textContent`, `innerText` or the copied text, and it is never drawn. Walkontable recycles cell
- * elements and resets their class and ARIA attributes, but not this one, so a paint always sets it or
- * removes it.
+ * stylesheet draws it as generated content (`td[data-ht-formula]::after`, `_formulas.scss`), which is part
+ * of the cell's accessible name and is not part of its `textContent`, `innerText` or the copied text, and
+ * it is never drawn. Walkontable recycles cell elements and resets their class and ARIA attributes, but not
+ * this one, so a paint always sets it or removes it.
  */
 export const DESCRIPTION_ATTRIBUTE = 'data-ht-formula';
 

@@ -4,8 +4,6 @@ import {
   addCellDescriptionPart,
   applyCellDescription,
   beginCellDescription,
-  getCellDescriptionElementId,
-  isCellBeingPainted,
   removeCellDescriptionPart,
 } from '../cellDescription';
 
@@ -321,45 +319,5 @@ describe('cellDescription', () => {
 
     expect(descriptionOf(hot, inner)).toBe('link');
     expect(descriptionOf(hot, outer)).toBe('read only, merged through row 4 column 3');
-  });
-
-  it('should give an element outside the cells the id of the element a cell with the same text points at', () => {
-    const hot = createHot();
-    const cell = createCell();
-
-    describe_(hot, cell, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
-
-    const id = getCellDescriptionElementId(hot, 'read only');
-
-    expect(cell.getAttribute('aria-describedby')).toBe(id);
-    expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(1);
-  });
-
-  it('should make a hidden element in the root for a text no cell holds yet, and give its id again', () => {
-    const hot = createHot();
-
-    const id = getCellDescriptionElementId(hot, 'Level 1, 2 of 2, collapsed');
-    const element = hot.rootElement.querySelector(`#${id}`);
-
-    expect(id.startsWith(`${CELL_DESCRIPTION_ID_PREFIX}${hot.guid}-`)).toBe(true);
-    expect(element?.textContent).toBe('Level 1, 2 of 2, collapsed');
-    expect(element?.hasAttribute('hidden')).toBe(true);
-    expect(getCellDescriptionElementId(hot, 'Level 1, 2 of 2, collapsed')).toBe(id);
-    expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(1);
-  });
-
-  it('should tell a cell the painter is painting from one it is not', () => {
-    const hot = createHot();
-    const cell = createCell();
-
-    expect(isCellBeingPainted(cell)).toBe(false);
-
-    beginCellDescription(cell);
-
-    expect(isCellBeingPainted(cell)).toBe(true);
-
-    applyCellDescription(hot, cell, true);
-
-    expect(isCellBeingPainted(cell)).toBe(false);
   });
 });

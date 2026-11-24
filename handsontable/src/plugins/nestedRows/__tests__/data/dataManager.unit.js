@@ -18,7 +18,6 @@ function dataManagerWith(data, trimmedRows = []) {
       getNotTrimmedIndexesLength: () => 100 - trimmed.size,
       isTrimmed: row => trimmed.has(row),
     },
-    markAllCellsChanged: jest.fn(),
   };
   const dataManager = new DataManager(null, hot);
 
@@ -361,13 +360,5 @@ describe('DataManager#getRowTreePosition', () => {
 
     expect(dataManager.getRowTreePosition(7)).toBeNull();
     expect(dataManager.getRowTreePosition(-1)).toBeNull();
-  });
-  it('should mark every cell changed when the tree cache is rewritten, so the level each cell shows is painted again', () => {
-    const dataManager = dataManagerWith(sampleTree());
-
-    dataManager.hot.markAllCellsChanged.mockClear();
-    dataManager.rewriteCache();
-
-    expect(dataManager.hot.markAllCellsChanged).toHaveBeenCalledTimes(1);
   });
 });

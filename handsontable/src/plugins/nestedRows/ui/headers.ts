@@ -13,13 +13,6 @@ import {
 } from '../../../helpers/a11y';
 import { createIcon } from '../../../themes/engine/icons';
 import type { RowTreePosition } from '../data/dataManager';
-import {
-  NESTED_ROWS_ANNOUNCEMENT_LEVEL,
-  NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED,
-  NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
-} from '../../../i18n/constants';
-import { getCellDescriptionElementId } from '../../../utils/cellDescription/cellDescription';
-import type { RowNames } from '../utils/rowLevelName';
 
 /**
  * The treegrid attributes this plugin writes on a row's `TR`. Walkontable recycles `TR` elements
@@ -67,7 +60,6 @@ interface NestedRowsDataManager {
   getRowLevel(rowIndex: number): number;
   getRowTreePosition(rowIndex: number): RowTreePosition | null;
   hasChildren(rowObject: Record<string, unknown>): boolean;
-  isParent(rowIndex: number): boolean;
   cache: { levelCount: number };
 }
 
@@ -170,8 +162,6 @@ class HeadersUI extends BaseUI {
       return;
     }
 
-    this.updateHeaderDescription(TH, rowIndex);
-
     const rowLevel = this.dataManager!.getRowLevel(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
@@ -269,65 +259,6 @@ class HeadersUI extends BaseUI {
   }
 
   /**
-   * Builds the text that describes where a row sits in the tree: "Level 2, 1 of 3", with ", expanded" or
-   * ", collapsed" for a parent. Three whole phrases, never a concatenation, so a translation can order them.
-   * The numbers come from `getRowTreePosition()`, the call the row attributes are written from, so the
-   * description and the attributes cannot disagree. Read through `getTranslatedPhrase()` on every call, so
-   * a dictionary registered later takes effect on the next render.
-   *
-   * @private
-   * @param {number} physicalRow Physical row index.
-   * @returns {string|null} `null` for a row the tree does not know.
-   */
-  getRowLevelDescription(physicalRow: number): string | null {
-    const treePosition = this.dataManager!.getRowTreePosition(physicalRow);
-
-    if (!treePosition) {
-      return null;
-    }
-
-    let phrase = NESTED_ROWS_ANNOUNCEMENT_LEVEL;
-
-    if (this.dataManager!.isParent(physicalRow)) {
-      phrase = this.collapsingUI!.areChildrenCollapsed(physicalRow) ?
-        NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED : NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED;
-    }
-
-    return this.hot.getTranslatedPhrase(phrase, { ...treePosition });
-  }
-
-  /**
-   * Points a row header that takes the focus (`navigableHeaders`) at a hidden element that holds the level
-   * text of its row, so the header is described by the same level and position the cells of its row end
-   * their names with. The element comes from the cell description store, never a second copy. Walkontable
-   * strips every `aria-*` from a `TH` on each paint, so this runs on every header paint and writes only when
-   * the value differs.
-   *
-   * @private
-   * @param {HTMLTableCellElement} TH Row header element.
-   * @param {number} physicalRow Physical row index.
-   */
-  updateHeaderDescription(TH: HTMLTableCellElement, physicalRow: number) {
-    const { ariaTags, navigableHeaders } = this.hot.getSettings();
-
-    if (!ariaTags || !navigableHeaders) {
-      return;
-    }
-
-    const text = this.getRowLevelDescription(physicalRow);
-
-    if (typeof text !== 'string' || text === '') {
-      return;
-    }
-
-    const id = getCellDescriptionElementId(this.hot, text);
-
-    if (TH.getAttribute('aria-describedby') !== id) {
-      TH.setAttribute('aria-describedby', id);
-    }
-  }
-
-  /**
    * Removes the treegrid row attributes from every row this instance has rendered.
    *
    * Walks the `TR` elements, not the row headers: the attributes are written from
@@ -342,25 +273,6 @@ class HeadersUI extends BaseUI {
     rows.forEach((TR) => {
       if (this.#isOwnRenderedElement(TR)) {
         clearRowAttributes(TR);
-      }
-    });
-  }
-
-  /**
-   * Removes the level text (`data-ht-row-level`) from the data cells and the row names (`aria-labelledby` and
-   * the hidden element it points at) this plugin wrote on the rows this instance has rendered, in the master
-   * table and every overlay copy. Walkontable never clears a `data-*` attribute of a cell or an `aria-*`
-   * attribute of a row, so once the plugin's hooks are gone nothing else would take them off.
-   *
-   * @private
-   * @param {RowNames} rowNames The store of the row names.
-   */
-  removeRenderedRowLevels(rowNames: RowNames) {
-    const rows = this.hot.rootElement.querySelectorAll<HTMLTableRowElement>('tbody tr');
-
-    rows.forEach((TR) => {
-      if (this.#isOwnRenderedElement(TR)) {
-        rowNames.removeRowLevel(TR);
       }
     });
   }

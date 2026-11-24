@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed screen readers reading the level of another nested row after fast arrow key presses: the level is now part of each cell's accessible name, and the announcer no longer speaks an older message when a newer one arrives within 100 ms.",
+  "title": "Fixed the screen reader announcer speaking an older message when a newer one arrived within 100 ms.",
   "type": "fixed",
   "issueOrPR": 14416,
   "breaking": false,

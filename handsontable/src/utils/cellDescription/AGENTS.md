@@ -16,7 +16,7 @@ and `#describeCell()` after the last `afterRenderer` listener. In between, a plu
   (`CELL_DESCRIPTION_ID_PREFIX`), kept in a `WeakMap` keyed by the root element, with the element itself, so a paint that finds it
   still in the root searches nothing. `n` only grows: an element a host's own markup removed is made again under a new id, and
   an id is never used twice in a root. A grid has a handful of them (read only,
-  link, read only with link, one per distinct merged phrase, and the NestedRows level texts below), never one per cell. They sit in the root, not in the page's
+  link, read only with link, one per distinct merged phrase), never one per cell. They sit in the root, not in the page's
   portal, because an id has to resolve in the tree the cell is in (a grid inside a shadow root). They are `hidden` and never
   in a cell, so `textContent`, `innerText`, the copied text, the cell's box and its accessible **name** do not change.
 - **The cell's `aria-describedby` keeps the column header first.** Walkontable writes `aria-describedby = <column header id>`
@@ -41,18 +41,8 @@ Rules, each from a measured reason:
   of them. Do not move a part to `::after` or `aria-label` without that argument: `aria-label` on a gridcell replaces the
   value, `title` is dropped from a cell that has `aria-describedby`, and `aria-description` loses to the
   `aria-describedby` Walkontable writes.
-- **Another reference to a hidden text in the grid goes through `getCellDescriptionElementId(hot, text)`.**
-  It returns the id of the element for that text, making it the first time, from the same store the cells use.
-  NestedRows is the one caller: a focusable row header (`navigableHeaders`) is described by the plain level text
-  ("Level 2, 1 of 3"). The data cells of a nested row do not use this store: they end their NAME with the same text
-  through generated content (`data-ht-row-level`, `plugins/nestedRows/AGENTS.md`, "Treegrid accessibility": VoiceOver
-  reads a description before the value, so the level is not a part here). Never build a second store of hidden
-  elements. The caller writes its own attribute: the painter only touches
-  `aria-describedby` on data cells. `isCellBeingPainted(TD)` tells such a caller whether the painter is painting the
-  cell now, so an `afterRenderer` listener can skip a measuring table or a ghost cell.
 - **A part with free text per cell does not belong here.** One element per distinct text is only cheap for a short list of
-  phrases. A formula's text is different for every cell, so it stays on the name channel (`::after`) in the Formulas plugin,
-  which shares that `::after` with the NestedRows level (`styles/components/plugins/_cell-name-suffix.scss`).
+  phrases. A formula's text is different for every cell, so it stays on the name channel (`::after`) in the Formulas plugin.
   A read-only formula cell therefore reads `3 Formula: =SUM(A1:B1)` and is described as `read only`.
 - **Every paint rewrites the token.** Walkontable recycles cell elements and resets the header reference, so a paint with
   no part removes our token and a paint with a part adds it. The commonest cell (no part, no token) costs one `includes()`.

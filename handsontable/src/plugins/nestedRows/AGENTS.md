@@ -45,7 +45,6 @@ vanishes from that list while it still filters.
 | `ui/headers.ts` | The `+`/`-` button and the indent markers in row headers |
 | `ui/contextMenu.ts` | "Insert child row" / "Detach from parent", and it overrides `row_above`/`row_below` |
 | `utils/rowMoveController.ts` | Replaces ManualRowMove entirely (see below) |
-| `utils/rowLevelName.ts` | The level text on the cells (`data-ht-row-level`) and the row names (`RowNames`: `aria-labelledby` plus one hidden element per row) (see "Treegrid accessibility") |
 
 Note the file names: `ui/headers.ts` and `ui/contextMenu.ts`, not `headersUI.ts`.
 
@@ -938,118 +937,45 @@ row semantics. Six things look simpler than they are.
   state, and a `button` inside it would nest one interactive element in another (two stops, two names
   for one action). Without `navigableHeaders` nothing in the header takes the focus, which is what the
   <kbd>Shift</kbd>+<kbd>Alt</kbd> chords are for.
-- **The level of a row ends each cell's accessible NAME, never its description and never a live
-  message.** `aria-level`, `aria-posinset` and `aria-setsize` sit on the `TR`, and the tested readers
-  speak none of them while the focus is on a cell of the row. `#onAfterRenderer` therefore writes
-  `data-ht-row-level=", Level 2, 4 of 6"` on every data cell of a row the tree knows, with ", expanded"
-  or ", collapsed" for a parent (three whole phrases, `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a
-  concatenation, so a translation can order them; the keys keep their `announcement.` names because
-  renaming them would break a customer's dictionary), and the stylesheet draws it as visually hidden
-  generated content (`styles/components/plugins/_cell-name-suffix.scss`). The text comes from
-  `HeadersUI#getRowLevelDescription()`, which reads `DataManager#getRowTreePosition()`, the same call
-  `HeadersUI#updateRowAttributes()` writes the attributes from, so the name and the attributes cannot
-  disagree (a filter recounts both). The writes live in `utils/rowLevelName.ts`. Measured in
-  Chromium's accessibility tree (`Accessibility.getPartialAXTree`, pinned by the Chromium describe of
-  `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`): the cell's name is "Grape, Level 2, 4 of 6"
-  (no space before the comma), its description stays the column header (plus "read only" on a read-only cell),
-  its `textContent` stays "Grape", and the row's name is "Grape 12". The target VoiceOver utterance is
-  "Item Grape, Level 2, 4 of 6, column 1, row Grape 12". VoiceOver adds its own space and its own comma:
-  the Guidepup text was "Item Grape , Level 2, 4 of 6, column 1, row Grape 12" (a space between the cell's text and
-  its `::after` text that no CSS removes, and no change to the speech), and with a trailing comma in the level text the
-  caption showed ",," before "column 1". The utterance spec (`tests/screenreader/nested-rows-utterance.spec.ts`)
-  removes the space before a punctuation mark and still fails on a doubled comma. Rules:
-  - **Why not a polite message on each move.** The first version announced the level when the highlight
-    reached another row. VoiceOver (Chromium and Safari) lags behind fast arrow presses: after three
-    quick ArrowDowns it spoke an earlier cell ("Cherry") while the focus and the message were already on
-    a later row ("Grape"), so the name and the level disagreed. The name is part of the cell the reader
-    speaks, so whatever cell it speaks, it speaks that cell's level. The cost is that the level is read on
-    every move, a move between the cells of one row included.
-  - **Why the name and not the description.** The second version put the level in the cell's description
-    (`utils/cellDescription/`). VoiceOver reads a description BEFORE the value, so the user heard "Item,
-    Level 2, 4 of 6, Grape, column 1, row Grape 12". The product requires "Item Grape, Level 2, 4 of 6,
-    column 1, row Grape 12": the level right after the value, and not in the row's name.
-  - **Why generated content and not `aria-labelledby`.** The third version named each cell through
-    `aria-labelledby="<cell id> <hidden level element id>"`. Its name in the tree was right ("Grape , Level
-    2, 4 of 6"), but VoiceOver reads "name, description, content" whenever the name differs from the
-    cell's content, and it said "Grape , Level 2, 4 of 6 Item Grape column 1, row Grape 12": the value
-    twice, and the level before the column header. With the level in the cell's content VoiceOver read
-    the target order (measured with hidden text), and generated content counts as content for the name
-    while it stays out of `textContent`, `innerText` and the copied text. Hidden text inside the cell is
-    ruled out by the product (it changes `textContent` and every name-matching test). In Chromium's tree
-    a static `<td aria-describedby="hdr" data-lvl=", Level 2, 4 of 6">Grape</td>` with that `::after` is
-    named "Grape  , Level 2, 4 of 6", described "Item", with `textContent` "Grape" (measured).
-  - **One `::after` carries both suffixes.** A cell has one `::after`, and the Formulas plugin already
-    draws its `data-ht-formula` there, as do the Comments triangle and the empty first-row guard. The
-    shared stylesheet orders the texts value, level, formula ("3, Level 2, 4 of 6, Formula: =SUM(A1:B1)", the
-    combined rule puts ", " between the last two),
-    and a cell with only one of them gets exactly the content it had alone. Do not give this plugin a
-    stylesheet rule of its own on `::after`.
-  - **The level box is an inline box of zero size after the text, and the text has no trailing comma.**
-    VoiceOver (Chrome) orders a cell's content by the position of its boxes on screen, not by DOM order.
-    An out-of-flow 1px box at the top/inline-start corner read the level BEFORE the value ("Item , Level 2,
-    4 of 6 Grape column 1, row 5"); at the bottom/inline-end corner it read after the value, but Chromium
-    treats any out-of-flow box as a block and joins it to the value with a space, so the name was
-    "Grape , Level 2, 4 of 6" and VoiceOver spoke the space. Only an INLINE `::after` drops it
-    (inline-block keeps it, measured with a Playwright ARIA snapshot), so the box is `display: inline`,
-    `position: static`, and its content is the level text alone, with no leading no-break space (the
-    text starts with its own comma): the name is "Grape, Level 2, 4 of 6". `font-size: 0` and
-    `line-height: 0` give it zero advance width and no line height, so a wrapped value wraps where it
-    did and the row keeps its height: over column widths 50-140px with "Red Grape" every row height
-    matched the out-of-flow box, while the same inline text at the cell's font size grew a row from 29px
-    to 49px. A level cell needs no `position: relative` (only a formula cell keeps it). The text (", Level 2, 4 of 6")
-    has no trailing comma, because VoiceOver adds its own separator before the column header. A commented cell keeps the
-    out-of-flow Comments box at its top/inline-end corner, with the no-break space in front of the level,
-    because the triangle is that box's top border; its name keeps the space ("A-1 , Level 2, 1 of 3").
-    An empty first-row cell keeps the inline box too, over the first-row guard's `display: block`.
-  - **The row is named through `aria-labelledby`, never `aria-label`.** Without a name of its own Chromium
-    builds a row's name from its cells' names, so the level repeated once per column (measured; VoiceOver
-    read "row Grape , Level 2, 4 of 6 12 , Level 2, 4 of 6"). VoiceOver IGNORES a row's `aria-label` and
-    falls back to the row header ("row 5"), and honors `aria-labelledby` ("row Grape 12", measured).
-    `#onAfterViewRender` names each row that holds a cell with the level by its cells' `textContent`,
-    trimmed, the empty ones skipped, joined with a space ("Grape 12"), written into a hidden element the
-    row's `aria-labelledby` points at (`RowNames` in `utils/rowLevelName.ts`). ONE element per `TR` (a
-    `WeakMap`), not one per distinct text, so the count is bounded by the rendered rows, which Walkontable
-    recycles; they live in one hidden container (`hidden` attribute) appended to `hot.rootElement`, like
-    the cell description elements, because an id has to resolve in the tree the row is in (a grid inside a
-    shadow root). Ids are `ht-row-name-<guid>-<n>`. Only the rows with a cell painted in the draw that
-    carries or carried the level are visited (`#rowsToLabel`, filled in `afterRenderer`), the element's
-    text and the attribute are written only when they change, and a row without such a cell (or whose
-    cells are all empty) loses ours, element included. A row that carries an `aria-label`, or an
-    `aria-labelledby` we did not write, keeps it and ours is removed. A grid without `rowHeaders` (no
-    `aria-level` on its rows) is named the same way, because its cells carry the level.
-  - **Walkontable clears neither.** It resets the `aria-*` of a cell before the renderer, never a `data-*`
-    attribute, and never touches a `TR`'s `aria-*`, so a repaint of an unchanged cell writes nothing,
-    and `disablePlugin()` (outside a rebuild) and a rebuild that stops on invalid data walk the rendered
-    rows (`HeadersUI#removeRenderedRowLevels()`, the same `tbody tr` walk and nearest-`handsontable`
-    ownership rule as the row attributes), take the attribute off the cells and our name off the rows,
-    and remove the container (`RowNames#destroy()`); `destroy()` removes it too. A rebuild keeps them
-    (the plugin keeps its `RowNames` across `updatePlugin()`), as it keeps the row attributes, because the
-    next draw writes only what changed.
-  - **Only cells the painter paints.** `isCellBeingPainted()` (`utils/cellDescription/`) answers `false`
-    for a measuring table or a ghost cell, which run `afterRenderer` too and get nothing.
-  - **A row header that takes the focus (`navigableHeaders`) is DESCRIBED by the plain level.**
-    `HeadersUI#updateHeaderDescription()`, called from `appendLevelIndicators()` (`afterGetRowHeader`),
-    writes `aria-describedby` on the `TH` with the id `getCellDescriptionElementId()` gives for the row's
-    plain text ("Level 2, 4 of 6", a hidden element in the cell description store; a flat top level of N
-    rows makes up to N of them over a scroll, and they stay in the root until the grid is destroyed). Walkontable strips every `aria-*` from a `TH` on each paint, so it is written on every header
-    paint, and only when the value differs. Without `navigableHeaders` the header takes no focus and gets
-    nothing. A parent's header also carries `aria-expanded`, so a reader can say the state twice there;
-    that repeat is accepted.
-  - **What repaints a stale level under `renderMode: 'onChange'`.** A collapse, an expand, a filter and a
-    trim change the row index mapper's cache, and Core advances the render epoch on every
-    `cacheUpdated` of it, so those need no mark of their own. A tree change can move a row to another
-    level or position with no index or value change (detaching the last child keeps it at the same
-    physical row), so `DataManager#rewriteCache()` calls `hot.markAllCellsChanged()`. `enablePlugin()`
-    and `disablePlugin()` mark too. Pinned by the `renderMode onChange` cases of
-    `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`; the detach case fails without the mark in
-    `rewriteCache()`.
-  - **One gesture, one message.** Only the toggle announces ("Collapsed row 1", "Expanded row 1, expanded
-    rows shown: 5"). Moving the highlight, the stranded-selection restore after a collapse, and the API
-    announce nothing, so there is no flag to hold a level message back. A whole row selected by a click on
-    its header is announced by the core selection announcer ("Row 3 selected",
-    `core/selectionAnnouncer/`); the level message used to silence it through `getAnnouncementCount()`.
-  - `ariaTags: false` adds nothing: `afterRenderer` only takes the level text off a cell, and the row then
-    loses our name.
+- **The level of a row is announced, because no screen reader reads it from a cell.** `aria-level`,
+  `aria-posinset` and `aria-setsize` sit on the `TR`, and the tested readers speak none of them while
+  the focus is on a cell of the row. `#onHighlightChange` (`afterSelection` and
+  `afterSelectionFocusSet`, one arrow-function field for both) therefore sends ONE polite message when
+  the active highlight reaches a row: "Level 2, 1 of 3", with ", expanded" or ", collapsed" for a parent
+  (three whole phrases, `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a concatenation, so a translation can
+  order them). The numbers come from `DataManager#getRowTreePosition()`, the same call
+  `HeadersUI#updateRowAttributes()` writes the attributes from, so the spoken position and the
+  attributes cannot disagree (a filter recounts both). Six rules:
+  - It fires when the highlight's **record** changed, or when it stepped from the row's header into one
+    of its cells. A move between the cells of one row, and a step from a cell back onto its header, are
+    silent. A move onto another row's header announces too.
+  - The previous position is kept as a PHYSICAL row (`#lastHighlight`), not a visual one: a collapse
+    above the highlight shifts its visual index without the user moving, and a visual comparison read
+    that as a new row on the next left/right move.
+  - **Any selection change while `hot.isListening()` announces, not only a key or a pointer.** The
+    selection source would be the clean test, and it is not complete: the arrow and Tab commands mark
+    `keyboard` and the pointer marks `mouse`, but Enter after an edit (`EditorManager`) and
+    `closeAndSaveByArrowKeys` move the highlight under `unknown`, the same source as `selectCell()`. So
+    the gate is `isListening()` plus a short deny list of the sources that only re-lay an existing
+    selection (`shift`, `refresh`, `loadData`, `updateData`, `deselect`). An application calling
+    `selectCell()` on a grid the user works in is therefore announced; on a grid that does not listen
+    it is not, and `selectCell()` starts listening only AFTER the selection is laid, so the first API
+    selection of an idle grid is silent.
+  - **One gesture, one message.** `toggleParentByUser()` raises `#isUserToggleRunning` around the
+    choke point: a collapse that strands the selection re-selects the collapsed parent (the stranded-selection
+    guard), and without the flag that move added a level message on top of "Collapsed row 1". The
+    highlight is still recorded while the flag is up. `announce()` does not coalesce by itself: two
+    calls within its 100 ms write both messages into the region one after the other.
+  - **The stranded-selection restore never announces, whoever collapsed.** A public `collapseParent()`
+    or `collapseAll()` on a grid that listens re-selects the parent the same way, outside
+    `toggleParentByUser()`, and that announced the parent's level although the public methods do not
+    announce. `CollapsingUI#isRestoringSelection()` answers `true` for the length of that
+    `selectCell()`, and `#shouldAnnounceRowLevel()` reads it. It is a flag, not a selection source:
+    marking the restore `shift` would also stop the viewport from scrolling to the parent
+    (`ignoreScrollSources` in `core.ts`) and skip the editor close that every selection move makes.
+  - `afterDeselect` forgets the position, so selecting the same row again announces it.
+  - `ariaTags: false` announces nothing, and `updatePlugin()` keeps `#lastHighlight` (a plugin field,
+    not a `HeadersUI` one), so a React re-render does not repeat the level of the row the user is on.
 
 ## How it interacts with the rest of the grid
 
@@ -1148,11 +1074,8 @@ row semantics. Six things look simpler than they are.
 | `__tests__/operationSelection.unit.js` | The selection stays on its rows across a row removal, an added child and a detach, with and without a collapsed parent; a removed selected row, a selection changed in between and a whole column keep their own rules (DEV-509) |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
-| `tests/e2e/nested-rows-tree-keys-a11y.spec.ts` | Playwright (Chromium, Firefox, WebKit): the <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chords from a data cell with `navigableHeaders` off and from a row header with it on, the walk from a child to its parent in the same column, the RTL mirror, a multi-row selection and a covered body left alone, and the row level in the cell name and the row name (every cell of a leaf, an expanded and a collapsed parent, a filter, the row header with `navigableHeaders` and none without, a cell left behind by fast presses, a read-only cell, a renderer's own `aria-label`, a row name the application wrote, a frozen column and a second grid, the row named through our `aria-labelledby` and never `aria-label`, no cell `aria-labelledby` and no cell ids, a plain grid, `ariaTags: false`, the plugin switched off, `renderMode: 'onChange'` after a collapse and a detach, and no level in the live region); a Chromium-only describe reads the names and descriptions from Chromium's accessibility tree |
-| `tests/e2e/nested-rows-comment-level.spec.ts` | Playwright (every theme): the level box of a cell is inline with `font-size` and `line-height` 0, and a wrapped value keeps the same row height with and without the level at column widths 50-140px; a commented nested cell keeps the Comments triangle's `::after` box and still ends its name with the level |
-| `tests/e2e/formulas-nested-rows-toggle.spec.ts` (the naming case) | Playwright (both bundles): a nested formula cell is named value, level, formula, and a plain formula cell keeps its own name before and after the toggle |
-| `__tests__/utils/rowLevelName.unit.ts` | The cell level text and the row name: compare before write, one hidden name element per row in one hidden container, the row name from the plain cell texts, a foreign `aria-label` or `aria-labelledby` left alone, an element a host removed made again, removal of ours only, the container removed on destroy |
-| `__tests__/data/dataManager.unit.js` (`getRowTreePosition`) | The level, position and set size the row attributes and the level text share, and the `markAllCellsChanged()` in `rewriteCache()` |
+| `tests/e2e/nested-rows-tree-keys-a11y.spec.ts` | Playwright (Chromium, Firefox, WebKit): the <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chords from a data cell with `navigableHeaders` off and from a row header with it on, the walk from a child to its parent in the same column, the RTL mirror, a multi-row selection and a covered body left alone, and the level announcement (another row, a collapsed parent, silence between the cells of one row, header into cell, one message per toggle, a grid that does not listen, `ariaTags: false`) |
+| `__tests__/data/dataManager.unit.js` (`getRowTreePosition`) | The level, position and set size the row attributes and the level announcement share |
 | `__tests__/filtering.unit.js` | Filtering keeps ancestors and subtrees, widens once per pass, survives collapse/undo, and the hook's normalization on a plain grid (DEV-512) |
 | `tests/e2e/filters-nested-rows.spec.ts` | Playwright: the Filter by value list of a nested grid, and the parent chain and subtree a filter keeps |
 | `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included, with a listener removing rows mid-clear, and when every visible cell is read-only), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |

@@ -16,10 +16,10 @@ import { isGridBodyCovered } from '../../shortcuts/guards';
 import {
   NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
   NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
 } from '../../i18n/constants';
-import { isCellBeingPainted } from '../../utils/cellDescription/cellDescription';
-import { RowNames, removeCellLevel, setCellLevel } from './utils/rowLevelName';
-import type { CellProperties } from '../../settings';
 import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'nestedRows';
@@ -29,6 +29,12 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * The source the fill handle inserts its rows with (`Autofill#addRow()`).
  */
 const AUTOFILL_INSERT_SOURCE = 'Autofill.fill';
+
+/**
+ * The selection sources that re-lay a selection the user already has (a structural shift, a clamp, a
+ * data load). The highlight they report is not a move the user made, so it announces no row level.
+ */
+const SILENT_SELECTION_SOURCES = ['shift', 'refresh', 'loadData', 'updateData', 'deselect'];
 
 /**
  * Error message for the wrong data type error.
@@ -49,6 +55,15 @@ interface CollapsedRowCell {
  */
 interface CollapsedParentsState {
   readonly collapsedRows: readonly number[];
+}
+
+/**
+ * Where the active highlight sat when the plugin last looked: the record under it, and whether it was
+ * on a header of that row.
+ */
+interface HighlightPosition {
+  physicalRow: number | null;
+  isHeader: boolean;
 }
 
 /**
@@ -180,22 +195,6 @@ export class NestedRows extends BasePlugin {
   #isRebuilding = false;
 
   /**
-   * The rows with a cell painted in the current draw that carries or carried the level text. Their name is
-   * brought in step after the draw (`afterViewRender`), once every cell of the row has been painted.
-   *
-   * @type {Set<HTMLTableRowElement>}
-   */
-  #rowsToLabel = new Set<HTMLTableRowElement>();
-
-  /**
-   * The row names (`aria-labelledby` and the hidden elements it points at). Made on enable and kept across a
-   * rebuild, so the rows keep their names; dropped with the names on a disable outside a rebuild and on destroy.
-   *
-   * @type {RowNames|null}
-   */
-  #rowNames: RowNames | null = null;
-
-  /**
    * The row an insert through the Core API was anchored on, recorded in `beforeCreateRow` and consumed
    * by the `beforeDataSplice` call that follows it. See `#onBeforeCreateRow`.
    *
@@ -222,6 +221,23 @@ export class NestedRows extends BasePlugin {
    * @type {boolean}
    */
   #waitsForObjectData = false;
+
+  /**
+   * Where the active highlight sat after the last selection change, or `null` while nothing is
+   * selected. The level announcement compares the next highlight with it, by record and not by visual
+   * row, so a collapse above the highlight does not read as a move.
+   *
+   * @type {HighlightPosition|null}
+   */
+  #lastHighlight: HighlightPosition | null = null;
+
+  /**
+   * `true` while `toggleParentByUser()` changes the tree. A collapse can move the selection onto the
+   * collapsed parent, and that move must not add a level announcement to the one the toggle makes.
+   *
+   * @type {boolean}
+   */
+  #isUserToggleRunning = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -257,7 +273,6 @@ export class NestedRows extends BasePlugin {
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
-    this.#rowNames ??= new RowNames(this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
     this.rowMoveController = new RowMoveController(
       this as unknown as ConstructorParameters<typeof RowMoveController>[0]
@@ -293,12 +308,12 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
-    this.addHook('afterRenderer', this.#onAfterRenderer);
-    this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterSelection', this.#onHighlightChange);
+    this.addHook('afterSelectionFocusSet', this.#onHighlightChange);
+    this.addHook('afterDeselect', this.#onHighlightDeselect);
 
     this.registerShortcuts();
     super.enablePlugin();
-    this.hot.markAllCellsChanged();
   }
 
   /**
@@ -318,7 +333,6 @@ export class NestedRows extends BasePlugin {
 
     this.unregisterShortcuts();
     super.disablePlugin();
-    this.hot.markAllCellsChanged();
 
     // A stash still open here is never applied: a fresh CollapsingUI replaces this one, and the expand
     // it made stays in place. The grow it held is applied now, so a whole-column selection covers the
@@ -329,11 +343,9 @@ export class NestedRows extends BasePlugin {
     // bails while the plugin is disabled, and an enable builds a new CollapsingUI without them.
 
     this.headersUI!.removeRenderedLevelIndicators();
-    this.#rowsToLabel.clear();
 
     if (!this.#isRebuilding) {
       this.headersUI!.removeRenderedRowAttributes();
-      this.#removeRowNames();
     }
   }
 
@@ -378,7 +390,6 @@ export class NestedRows extends BasePlugin {
       // build-up.
       if (!this.#acceptsData(currentSourceData)) {
         this.headersUI!.removeRenderedRowAttributes();
-        this.#removeRowNames();
 
         return;
       }
@@ -534,6 +545,9 @@ export class NestedRows extends BasePlugin {
    * pattern's cell-focus mode: there the arrows only move the focus. The number of rows shown counts
    * rendered rows, so rows the `HiddenRows` plugin hides are left out.
    *
+   * A collapse can move the selection onto the collapsed parent. The level announcement of that move
+   * is held back, so one gesture is confirmed by one message.
+   *
    * @private
    * @param {number} physicalRow Physical index of the parent row.
    * @param {'collapse'|'expand'} action The change to make.
@@ -542,7 +556,15 @@ export class NestedRows extends BasePlugin {
   toggleParentByUser(physicalRow: number, action: 'collapse' | 'expand'): boolean {
     const { rowIndexMapper } = this.hot;
     const rowsBefore = rowIndexMapper.getRenderableIndexesLength();
-    const performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+    let performed = false;
+
+    this.#isUserToggleRunning = true;
+
+    try {
+      performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+    } finally {
+      this.#isUserToggleRunning = false;
+    }
 
     if (performed && this.hot.getSettings().ariaTags) {
       const label = this.#getRowLabel(physicalRow);
@@ -1546,93 +1568,85 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `afterRenderer` hook callback. Ends the accessible name of a data cell of a nested row with the level of the
-   * row, its position among its siblings and a parent's state: the cell carries ", Level 2, 4 of 6" in
-   * `data-ht-row-level`, which the stylesheet draws as visually hidden generated content, so a screen reader
-   * reads the level right after the value, of the cell it speaks, wherever the focus went in the meantime. A
-   * cell painted outside the grid gets nothing, and a grid that writes no ARIA (`ariaTags: false`) loses the
-   * text. The row of a cell that carries or carried the text is named again after the draw.
+   * Reads where a highlight sits, in the terms the level announcement compares.
    *
-   * @param {HTMLTableCellElement} TD The cell element being painted.
-   * @param {number} row Visual row index.
-   * @param {number} column Visual column index.
-   * @param {string|number} prop The column property.
-   * @param {*} value The cell value.
-   * @param {object} cellProperties The cell meta.
+   * @param {CellCoords} highlight The active highlight.
+   * @returns {HighlightPosition}
    */
-  #onAfterRenderer = (
-    TD: HTMLTableCellElement,
-    row: number,
-    column: number,
-    prop: string | number,
-    value: unknown,
-    cellProperties: CellProperties,
-  ) => {
-    if (!isCellBeingPainted(TD)) {
+  #readHighlightPosition(highlight: CellCoords): HighlightPosition {
+    const { row, col } = highlight;
+    const physicalRow = row === null || row < 0 ? null : this.hot.toPhysicalRow(row);
+
+    return { physicalRow, isHeader: col === null || col < 0 };
+  }
+
+  /**
+   * Tells whether a highlight that just changed should announce the level of its row: the grid has
+   * ARIA on and listens to the keyboard, the change is not a re-lay of an existing selection, no
+   * toggle gesture is announcing already, no collapse is putting a stranded selection back on a
+   * parent, and the highlight reached another row or stepped from the
+   * row's header into one of its cells. A move between the cells of one row stays silent.
+   *
+   * @param {HighlightPosition|null} previous Where the highlight sat before.
+   * @param {HighlightPosition} current Where it sits now.
+   * @returns {boolean}
+   */
+  #shouldAnnounceRowLevel(previous: HighlightPosition | null, current: HighlightPosition): boolean {
+    if (this.#isUserToggleRunning || this.collapsingUI!.isRestoringSelection() ||
+        !this.hot.getSettings().ariaTags || !this.hot.isListening() ||
+        SILENT_SELECTION_SOURCES.includes(this.hot.selection.getSelectionSource())) {
+      return false;
+    }
+
+    return previous === null || previous.physicalRow !== current.physicalRow ||
+      (previous.isHeader && !current.isHeader);
+  }
+
+  /**
+   * Announces the level of a row, its position among its siblings, and a parent's state, through the
+   * polite live region. Screen readers do not read `aria-level`, `aria-posinset` and `aria-setsize`
+   * off the row while the focus is on one of its cells, so the same values are spoken here.
+   *
+   * @param {number} physicalRow Physical row index.
+   */
+  #announceRowLevel(physicalRow: number): void {
+    const treePosition = this.dataManager!.getRowTreePosition(physicalRow);
+
+    if (!treePosition) {
       return;
     }
 
-    const TR = TD.parentElement as HTMLTableRowElement | null;
-    const needsRowName = cellProperties.ariaTags ?
-      setCellLevel(TD, this.#getCellLevelText(row)) : removeCellLevel(TD);
+    let phrase = NESTED_ROWS_ANNOUNCEMENT_LEVEL;
 
-    if (needsRowName && TR !== null) {
-      this.#rowsToLabel.add(TR);
+    if (this.dataManager!.isParent(physicalRow)) {
+      phrase = this.collapsingUI!.areChildrenCollapsed(physicalRow) ?
+        NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED : NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED;
+    }
+
+    announce(String(this.hot.getTranslatedPhrase(phrase, { ...treePosition }) ?? ''), 'polite');
+  }
+
+  /**
+   * `afterSelection` and `afterSelectionFocusSet` hook callback. Records where the highlight sits and
+   * announces the level of its row when it reached another row.
+   */
+  #onHighlightChange = () => {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+    const previous = this.#lastHighlight;
+    const current = highlight ? this.#readHighlightPosition(highlight) : null;
+
+    this.#lastHighlight = current;
+
+    if (current && current.physicalRow !== null && this.#shouldAnnounceRowLevel(previous, current)) {
+      this.#announceRowLevel(current.physicalRow);
     }
   };
 
   /**
-   * Returns the text that ends the accessible name of a row's cells, with a leading ", " so a screen reader
-   * pauses between the cell's value and the level, or `null` for a row the tree does not know. It has no
-   * trailing comma: VoiceOver adds its own separator before the column header it reads next, and a comma of
-   * ours would make it say ",,".
-   *
-   * @param {number} row Visual row index.
-   * @returns {string|null}
+   * `afterDeselect` hook callback. Forgets the highlight, so the next selection announces its row.
    */
-  #getCellLevelText(row: number): string | null {
-    const physicalRow = this.hot.toPhysicalRow(row);
-    const text = physicalRow === null ? null : this.headersUI!.getRowLevelDescription(physicalRow);
-
-    if (typeof text !== 'string' || text === '') {
-      return null;
-    }
-
-    return `, ${text}`;
-  }
-
-  /**
-   * Takes the level text off the rendered cells and the row names off the rendered rows, then removes the
-   * hidden elements that held the names.
-   */
-  #removeRowNames() {
-    if (this.#rowNames === null) {
-      return;
-    }
-
-    this.headersUI!.removeRenderedRowLevels(this.#rowNames);
-    this.#rowNames.destroy();
-    this.#rowNames = null;
-  }
-
-  /**
-   * `afterViewRender` hook callback. Names each row with a cell painted in this draw that carries or carried
-   * the level text by the plain texts of its cells, through `aria-labelledby` and a hidden element (VoiceOver
-   * ignores a row's `aria-label`): a row name built from the cell names would repeat the level once per column.
-   * Only the rows painted in the draw are visited.
-   */
-  #onAfterViewRender = () => {
-    if (this.#rowsToLabel.size === 0) {
-      return;
-    }
-
-    const rowNames = this.#rowNames;
-
-    if (rowNames !== null) {
-      this.#rowsToLabel.forEach(TR => rowNames.nameRow(TR));
-    }
-
-    this.#rowsToLabel.clear();
+  #onHighlightDeselect = () => {
+    this.#lastHighlight = null;
   };
 
   /**
@@ -2231,8 +2245,6 @@ export class NestedRows extends BasePlugin {
    */
   destroy() {
     this.#stopWaitingForObjectData();
-    this.#rowNames?.destroy();
-    this.#rowNames = null;
     super.destroy();
   }
 }

@@ -293,16 +293,11 @@ class DataManager {
   /**
    * Rewrite the nested structure cache.
    *
-   * A tree change can move a row to another level or position without changing a cell's value or meta (a
-   * detach, a move), so every cell is marked changed: the level each cell is described by
-   * (`HeadersUI#getRowLevelDescription()`) is painted again under `renderMode: 'onChange'`.
-   *
    * @private
    */
   rewriteCache() {
     this.#shapeVersion += 1;
     this.invalidateSetPositions();
-    this.hot.markAllCellsChanged();
     this.cache = {
       levels: [],
       levelCount: 0,
@@ -818,7 +813,7 @@ class DataManager {
 
   /**
    * Gets where the row with the provided physical index sits in the tree, in the terms the treegrid
-   * row attributes and the cells' level description share: the 1-based depth (`aria-level`), and the
+   * row attributes and the level announcement share: the 1-based depth (`aria-level`), and the
    * position and set size {@link DataManager#getRowSetPosition} answers.
    *
    * @private
