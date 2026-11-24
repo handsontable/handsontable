@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Avbryt',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Ingen tilgjengelige alternativer',
   [C.CONTEXTMENU_LABEL]: 'Kontekstmeny',
   [C.DROPDOWNMENU_LABEL]: 'Kolonnemeny',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Sett inn over',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Opphev sammenslåing',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopier',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopier med overskrift', 'Kopier med overskrifter'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Kopier med gruppeoverskrift',
+    'Kopier med gruppeoverskrifter',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopier bare overskrift', 'Kopier bare overskrifter'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Klipp ut',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Eksporter',
@@ -140,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Ark [name] duplisert som [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'Ark [name] flyttet til posisjon [position] av [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Ark',
+
+  [C.CHECKBOX_CHECKED]: 'Avmerket',
+  [C.CHECKBOX_UNCHECKED]: 'Ikke avmerket',
 
   [C.LOADING_TITLE]: 'Laster...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Lukk',

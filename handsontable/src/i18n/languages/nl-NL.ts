@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuleren',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Geen opties beschikbaar',
   [C.CONTEXTMENU_LABEL]: 'Contextmenu',
   [C.DROPDOWNMENU_LABEL]: 'Kolommenu',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Rij boven invoegen',
@@ -146,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Blad [name] gedupliceerd als [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blad [name] verplaatst naar positie [position] van [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blad',
+
+  [C.CHECKBOX_CHECKED]: 'Aangevinkt',
+  [C.CHECKBOX_UNCHECKED]: 'Uitgevinkt',
 
   [C.LOADING_TITLE]: 'Laden...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',

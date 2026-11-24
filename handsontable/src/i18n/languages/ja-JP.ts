@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'キャンセル',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '利用可能なオプションはありません',
   [C.CONTEXTMENU_LABEL]: 'コンテキストメニュー',
   [C.DROPDOWNMENU_LABEL]: '列メニュー',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '行を上に挿入',
@@ -146,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'シート [name] を [copy] として複製しました',
   [C.SHEETS_BAR_SHEET_MOVED]: 'シート [name] を [count] 中 [position] 番目に移動しました',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'シート',
+
+  [C.CHECKBOX_CHECKED]: 'チェック済み',
+  [C.CHECKBOX_UNCHECKED]: '未チェック',
 
   [C.LOADING_TITLE]: '読み込み中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '閉じる',

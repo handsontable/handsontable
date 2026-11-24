@@ -55,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zrušit sloučení buněk',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopírovat',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopírovat se záhlavím', 'Kopírovat se záhlavími'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Kopírovat se záhlavím skupiny',
+    'Kopírovat se záhlavími skupin',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopírovat pouze záhlaví', 'Kopírovat pouze záhlaví'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Vyjmout',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportovat',
@@ -141,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'List [name] duplikován jako [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] přesunut na pozici [position] z [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
+
+  [C.CHECKBOX_CHECKED]: 'Zaškrtnuto',
+  [C.CHECKBOX_UNCHECKED]: 'Nezaškrtnuto',
 
   [C.LOADING_TITLE]: 'Načítání...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zavřít',

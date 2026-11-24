@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Cancelar',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nenhuma opção disponível',
   [C.CONTEXTMENU_LABEL]: 'Menu de contexto',
   [C.DROPDOWNMENU_LABEL]: 'Menu da coluna',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserir linha acima',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Desfazer mesclagem de células',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copiar',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copiar com cabeçalho', 'Copiar com cabeçalhos'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Copiar com cabeçalho de grupo',
+    'Copiar com cabeçalhos de grupo',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copiar somente o cabeçalho', 'Copiar somente os cabeçalhos'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Recortar',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportar',
@@ -140,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Planilha [name] duplicada como [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'Planilha [name] movida para a posição [position] de [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Planilha',
+
+  [C.CHECKBOX_CHECKED]: 'Marcado',
+  [C.CHECKBOX_UNCHECKED]: 'Desmarcado',
 
   [C.LOADING_TITLE]: 'Carregando...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fechar',

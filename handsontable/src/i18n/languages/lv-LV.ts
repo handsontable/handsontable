@@ -145,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Lapa [name] pārvietota uz [position]. vietu no [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Lapa',
 
+  [C.CHECKBOX_CHECKED]: 'Atzīmēts',
+  [C.CHECKBOX_UNCHECKED]: 'Nav atzīmēts',
+
   [C.LOADING_TITLE]: 'Ielādē...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Aizvērt',
 

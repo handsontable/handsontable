@@ -153,6 +153,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] premešten na poziciju [position] od [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
 
+  [C.CHECKBOX_CHECKED]: 'Označeno',
+  [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
+
   [C.LOADING_TITLE]: 'Učitavanje...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zatvori',
 

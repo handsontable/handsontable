@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: '确认',
   [C.CANCEL]: '取消',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '没有可用选项',
   [C.CONTEXTMENU_LABEL]: '上下文菜单',
   [C.DROPDOWNMENU_LABEL]: '列菜单',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入行',
@@ -143,6 +144,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: '工作表 [name] 已复制为 [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: '工作表 [name] 已移至第 [position] 个位置（共 [count] 个）',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
+
+  [C.CHECKBOX_CHECKED]: '已选中',
+  [C.CHECKBOX_UNCHECKED]: '未选中',
 
   [C.LOADING_TITLE]: '加载中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '关闭',

@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annulla',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nessuna opzione disponibile',
   [C.CONTEXTMENU_LABEL]: 'Menu contestuale',
   [C.DROPDOWNMENU_LABEL]: 'Menu della colonna',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserisci riga sopra',
@@ -143,6 +144,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Foglio [name] duplicato come [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'Foglio [name] spostato in posizione [position] di [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Foglio',
+
+  [C.CHECKBOX_CHECKED]: 'Selezionato',
+  [C.CHECKBOX_UNCHECKED]: 'Deselezionato',
 
   [C.LOADING_TITLE]: 'Caricamento...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Chiudi',

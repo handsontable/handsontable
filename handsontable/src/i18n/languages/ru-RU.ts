@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Отмена',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Нет доступных опций',
   [C.CONTEXTMENU_LABEL]: 'Контекстное меню',
   [C.DROPDOWNMENU_LABEL]: 'Меню столбца',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Разделить ячейки',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Копировать',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Копировать с заголовком', 'Копировать с заголовками'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Копировать с заголовком группы',
+    'Копировать с заголовками групп',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Копировать только заголовок', 'Копировать только заголовки'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Вырезать',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Экспортировать',
@@ -140,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Лист [name] дублирован как [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'Лист [name] перемещён на позицию [position] из [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Лист',
+
+  [C.CHECKBOX_CHECKED]: 'Отмечено',
+  [C.CHECKBOX_UNCHECKED]: 'Не отмечено',
 
   [C.LOADING_TITLE]: 'Загрузка...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
