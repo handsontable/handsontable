@@ -369,5 +369,149 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
       await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_master']);
     });
   }
+  test.describe('tap, then tap', () => {
+    test('a tap on a handle arms it and announces what to do, and changes nothing', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+
+      await expect(mobileGrid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
+      await expect(mobileGrid.politeAnnouncer()).toHaveText('Click or tap the target to finish. Press Escape to cancel.');
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+    });
+
+    test('the next tap on a cell moves the bottom corner there', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await mobileGrid.tapCell(4, 3);
+
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 4, 3]);
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+    });
+
+    test('the next tap on a cell moves the top corner there', async () => {
+      await mobileGrid.tapCell(3, 3);
+      await mobileGrid.selectRange(3, 3, 4, 4);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.topHitArea().tap();
+      await mobileGrid.tapCell(1, 2);
+
+      expect(await mobileGrid.selectedLast()).toEqual([1, 2, 4, 4]);
+    });
+
+    test('Escape cancels it, announces that, and the next tap selects as usual', async ({ page }) => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await page.keyboard.press('Escape');
+
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      await expect(mobileGrid.politeAnnouncer()).toHaveText('Canceled.');
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+
+      await mobileGrid.tapCell(4, 3);
+
+      expect(await mobileGrid.selectedLast()).toEqual([4, 3, 4, 3]);
+    });
+
+    test('a second tap on the same handle disarms it without picking', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await mobileGrid.bottomHitArea().tap();
+
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+    });
+
+    test('destroying the grid while a pick waits leaves the page its taps', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        button.style.cssText = 'position: fixed; bottom: 0; left: 0; width: 120px; height: 48px; z-index: 99999;';
+        (window as any).outsideTaps = 0;
+        button.addEventListener('click', () => { (window as any).outsideTaps += 1; });
+        document.body.append(button);
+      });
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await page.evaluate(() => window.hot.destroy());
+      await page.locator('#outside').tap();
+
+      expect(await page.evaluate(() => (window as any).outsideTaps)).toBe(1);
+    });
+
+    test('a tap outside the grid ends the pick and goes to the page', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        button.style.cssText = 'position: fixed; bottom: 0; left: 0; width: 120px; height: 48px; z-index: 99999;';
+        (window as any).outsideTaps = 0;
+        button.addEventListener('click', () => { (window as any).outsideTaps += 1; });
+        document.body.append(button);
+      });
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.bottomHitArea().tap();
+      await page.locator('#outside').tap();
+
+      expect(await page.evaluate(() => (window as any).outsideTaps)).toBe(1);
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      expect(await mobileGrid.selectedLast()).toEqual([1, 1, 2, 2]);
+    });
+
+    test('a second finger that taps one handle while the first holds the other leaves one pick, not two', async () => {
+      await mobileGrid.tapCell(3, 3);
+      await mobileGrid.selectRange(3, 3, 4, 4);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.tapBottomHandleWhileHoldingTopHandle();
+
+      // the finger that lifted last armed the pick, and the first pick ended
+      await expect(mobileGrid.pickingRoot()).toHaveClass(/ht__picking-selection--top/);
+      await expect(mobileGrid.pickingRoot()).not.toHaveClass(/ht__picking-selection--bottom/);
+
+      await mobileGrid.tapCell(1, 2);
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+      expect(await mobileGrid.selectedLast()).toEqual([1, 2, 4, 4]);
+
+      // a leaked first pick would still be listening and would take this tap instead of letting it select
+      await mobileGrid.tapCell(4, 1);
+
+      expect(await mobileGrid.selectedLast()).toEqual([4, 1, 4, 1]);
+    });
+
+    test('a pick finished while another finger still holds a handle moves its own corner and leaves that drag alone', async () => {
+      await mobileGrid.tapCell(2, 2);
+      await mobileGrid.selectRange(2, 2, 3, 3);
+      await mobileGrid.expectHandlesVisible();
+
+      const stillHeld = await mobileGrid.tapCellWhileHoldingTopHandle(4, 3);
+
+      // the pick was armed with the bottom handle, so the bottom corner moves, not the held top one
+      expect(await mobileGrid.selectedLast()).toEqual([2, 2, 4, 3]);
+      expect(stillHeld).toBe(true);
+    });
+
+    test('a drag of a handle arms nothing', async () => {
+      await mobileGrid.tapCell(1, 1);
+      await mobileGrid.selectRange(1, 1, 2, 2);
+      await mobileGrid.expectHandlesVisible();
+      await mobileGrid.dragBottomHandleToCell(4, 2);
+
+      await expect(mobileGrid.pickingRoot()).toHaveCount(0);
+    });
+  });
 });
 

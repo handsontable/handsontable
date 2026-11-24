@@ -180,6 +180,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Frozen rows at the bottom',
   [C.FREEZE_BAR_COLUMNS_START]: 'Frozen columns at the start',
   [C.FREEZE_BAR_COLUMNS_END]: 'Frozen columns at the end',
+  [C.ARMED_PICK_STARTED]: 'Click or tap the target to finish. Press Escape to cancel.',
+  [C.ARMED_PICK_CANCELED]: 'Canceled.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Expanded row [label], expanded rows shown: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed row [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Level [level], [position] of [setSize]',

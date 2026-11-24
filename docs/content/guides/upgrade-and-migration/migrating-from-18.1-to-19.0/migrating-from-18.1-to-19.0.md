@@ -1610,7 +1610,7 @@ Keys in the 25-character format are not affected, except `'ht68e-1f2b7-47158-70b
 
 ### How to migrate
 
-Before you upgrade, check the [`licenseKey`](@/api/options.md#licensekey) value you pass. Pass the whole key, exactly as you received it - the text and the bracketed block, with nothing after the block. Spaces and line breaks in the key are ignored, so a key that an email client wrapped across lines keeps working. For where to keep the key, see [License key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys).
+Before you upgrade, check the [`licenseKey`](@/api/options.md#licensekey) value you pass. Pass the whole key, exactly as you received it - the text and the bracketed block, with nothing after the block. Spaces and line breaks in an entitlement key are ignored, so a key that an email client wrapped across lines keeps working. A key in the 25-character format is not read that way: only spaces and line breaks around the whole key are trimmed, and a space between its groups makes it invalid. For where to keep the key, see [License key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys).
 
 ## 30. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + arrow keys on a row header expand and collapse row groups
 

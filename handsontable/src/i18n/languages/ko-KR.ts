@@ -173,6 +173,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: '하단의 고정된 행',
   [C.FREEZE_BAR_COLUMNS_START]: '시작 쪽 고정된 열',
   [C.FREEZE_BAR_COLUMNS_END]: '끝 쪽 고정된 열',
+  [C.ARMED_PICK_STARTED]: '대상을 클릭하거나 탭하여 완료하세요. 취소하려면 Esc 키를 누르세요.',
+  [C.ARMED_PICK_CANCELED]: '취소되었습니다.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '수준 [level], [setSize]개 중 [position]번째',

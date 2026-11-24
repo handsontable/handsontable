@@ -287,6 +287,7 @@ This option applies at the grid level and defaults to `false`.
 **Limitations:**
 
 - Handles appear on desktop only. Touch devices keep their existing native selection handles and are not affected by this option.
+- To resize without dragging, click a handle, then click the cell where the edge goes. The next click doesn't select that cell. The handle stays visible while you move to the cell. Click the handle again or press <kbd>**Escape**</kbd> to cancel. A click outside the grid cancels it too and goes to the page, and so does any change of the selection, such as a key press that moves it. A screen reader announces that the handle waits for a click and that you canceled it. On a touchscreen, the round handles on the corners of the selection work the same way: tap a handle, then tap the cell.
 - The option has no effect when [`selectionMode`](@/api/options.md#selectionmode) is `'single'`.
 - Handles are not shown for full-row, full-column, or select-all selections.
 - A handle is not shown on an edge that is flush with the grid boundary or that lands on a frozen-pane line ([`fixedRowsTop`](@/api/options.md#fixedrowstop), [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom), [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)).
