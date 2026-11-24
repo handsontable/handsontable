@@ -1498,7 +1498,7 @@ These header-focused shortcuts work only when a column header is focused. Enable
 When a user sorts a column by pressing its header or by using the keyboard shortcuts above, Handsontable announces the result in a polite live region. The message names the column and its new order, for example `Sorted by Age, ascending`, `Sorted by Age, descending`, or `Sorting removed from Age`.
 
 - The name of the column is the text of its header. A column with an empty header is named by its letter, such as `B`.
-- With `MultiColumnSorting`, the message names the column that the user pressed, not the whole sort queue.
+- With `MultiColumnSorting`, the message names the column that the user pressed, not the whole sort queue. While more than one column is sorted, it also says the column's place in the sort, the number that the header shows, for example `Sorted by Age, ascending, sort priority 2`.
 - A sort made through the API (`sort()`, `setSortConfig()`, `clearSort()`) or through the `initialConfig` option is not announced.
 - A [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook that returns `false` without changing the sort states is not announced. A hook that writes the states with `setSortConfig()` and then returns `false`, as server-side sorting does, is announced.
 - A grid with [`ariaTags`](@/api/options.md#ariatags) set to `false` announces nothing, the same as it writes no `aria-sort` attribute.

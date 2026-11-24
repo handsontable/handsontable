@@ -122,15 +122,20 @@
 
 /* Copy button in code blocks — match the "Copy Markdown" action button style */
 .expressive-code .copy button {
-  background-color: transparent;
+  background-color: var(--sl-color-gray-5);
   border: 1px solid transparent;
   border-radius: 0;
   opacity: 0;
   transition: opacity 0.15s, border-color 0.15s;
 }
 
-.expressive-code figure:hover .copy button {
+.expressive-code figure:hover .copy button,
+.expressive-code .copy button:focus-visible {
   opacity: 1;
+}
+
+:root[data-theme] .expressive-code .copy button:focus-visible:not(:hover) {
+  border-color: transparent;
 }
 
 .expressive-code .copy button div {
@@ -143,6 +148,7 @@
 }
 
 .expressive-code .copy button:hover {
+  background-color: var(--sl-color-gray-4);
   border-color: var(--sl-color-gray-5);
 }
 

@@ -154,10 +154,9 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
     const { corner, rowHeaders } = await grid.cornerAndRowHeaders();
 
     expect(corner).toEqual({
-      role: 'gridcell button',
+      role: 'gridcell',
       tabindex: '-1',
       'aria-colindex': '1',
-      'aria-label': 'Select whole grid',
     });
     expect(rowHeaders.length).toBeGreaterThan(0);
     rowHeaders.forEach((attributes) => {
@@ -180,10 +179,9 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
     await grid.updateSettings({ rowHeaders: true });
 
     expect(await grid.masterCorner()).toEqual({
-      role: 'gridcell button',
+      role: 'gridcell',
       tabindex: '-1',
       'aria-colindex': '1',
-      'aria-label': 'Select whole grid',
     });
   });
 

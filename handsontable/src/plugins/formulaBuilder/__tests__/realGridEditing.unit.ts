@@ -11,7 +11,6 @@ import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
-
 type CoreModule = typeof import('hyperformula-ui');
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
@@ -1461,25 +1460,13 @@ describe('FormulaBuilder editing on a real grid', () => {
     // HyperFormula's message for `=1+` lists every token it expected, one per line.
     const PARSE_ERROR_FORMULA = '=1+';
 
-    it('describes the cell with the first sentence only, while the popup mark keeps the whole message', () => {
+    it('keeps the whole message in the popup mark and writes no aria-description', () => {
       createGrid({ data: [[PARSE_ERROR_FORMULA, 1]] });
 
       const cell = hot.getCell(0, 0)!;
-      const mark = cell.getAttribute('data-hfe-error') ?? '';
-      const description = cell.getAttribute('aria-description') ?? '';
 
-      expect(mark).toContain('NumberLiteral');
-      expect(description).toBe('#ERROR! — Parsing error.');
-    });
-
-    it('caps a long single-sentence message at a word boundary', () => {
-      createGrid({ data: [[`=${'VERYLONGFUNCTIONNAME'.repeat(10)}(1)`, 1]] });
-
-      const description = hot.getCell(0, 0)!.getAttribute('aria-description') ?? '';
-
-      expect(description.length).toBeLessThanOrEqual(121);
-      expect(description.startsWith('#NAME? — Function name')).toBe(true);
-      expect(description.endsWith('…')).toBe(true);
+      expect(cell.getAttribute('data-hfe-error')).toContain('NumberLiteral');
+      expect(cell.hasAttribute('aria-description')).toBe(false);
     });
 
     it('announces the first sentence only when an edit commits the error', async() => {

@@ -102,8 +102,8 @@
       - gridcell "R10C8"
       - gridcell "R10C9"
   - rowgroup:
-    - row "Select whole grid A B C D E F G H I":
-      - gridcell "Select whole grid"
+    - row "A B C D E F G H I":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
@@ -136,8 +136,8 @@
     - row "10":
       - rowheader "10"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
   - textbox "B, row 2"
 # portal

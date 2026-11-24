@@ -11,7 +11,7 @@
   "steps": {
     "arrow-left-row-checkbox": "select row 1",
     "space-select-row": "row 1 selected",
-    "arrow-up-corner": "select whole grid select all rows 1 of 5 selected",
+    "arrow-up-corner": "select all rows 1 of 5 selected",
     "space-select-all": "5 of 5 rows selected",
     "space-clear-all": "0 of 5 rows selected",
     "arrow-down-row-header": "select row 1",

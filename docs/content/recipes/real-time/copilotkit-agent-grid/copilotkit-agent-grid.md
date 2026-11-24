@@ -6,7 +6,6 @@ description: Let an AI agent edit a Handsontable DataGrid through CopilotKit too
 permalink: /recipes/real-time/copilotkit-agent-grid
 canonicalUrl: /recipes/real-time/copilotkit-agent-grid
 framework: react
-menuTag: new
 tags:
   - copilotkit
   - generative-ui

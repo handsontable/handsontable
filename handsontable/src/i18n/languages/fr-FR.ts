@@ -190,6 +190,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Trié par [label], ordre croissant',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Trié par [label], ordre décroissant',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Tri supprimé pour [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Trié par [label], ordre croissant, priorité de tri [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Trié par [label], ordre décroissant, priorité de tri [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Sélection de la colonne [startColumn], ligne [startRow] à la colonne [endColumn], ligne [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Toutes les cellules sélectionnées',

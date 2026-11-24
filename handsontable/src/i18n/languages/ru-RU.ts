@@ -190,6 +190,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Сортировка по [label], по возрастанию',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Сортировка по [label], по убыванию',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Сортировка по [label] снята',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Сортировка по [label], по возрастанию, приоритет сортировки [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Сортировка по [label], по убыванию, приоритет сортировки [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Выбор от столбца [startColumn], строки [startRow] до столбца [endColumn], строки [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Все ячейки выбраны',

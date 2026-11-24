@@ -192,7 +192,6 @@
       "title": "The formula builder's error cell points aria-errormessage at its error popup, a tooltip with no live region, which axe rejects",
       "tracker": "DEV-4032",
       "match": [
-        { "source": "axe", "axeIssues": ["formula-builder-error-message-reference"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-valid-attr-value"], "where": ["^td\\.hfe-cell--error"] }
       ]
     },
@@ -333,24 +332,13 @@
     },
     {
       "id": "status-messages",
-      "title": "A range extension, Ctrl+A selecting every cell, the place in the order of a column added to a multi-column sort, and a nested row's level are not announced: no status message reaches the screen reader. The level is announced since #14355, and NVDA reads it; the VoiceOver rows of those steps have a cluster of their own",
+      "title": "A range extension, Ctrl+A selecting every cell, the place in the order of a column added to a multi-column sort, and a nested row's level are not announced: no status message reaches the screen reader. The level is announced since #14355, as part of the cell's description, and NVDA reads it",
       "tracker": ["DEV-2957", "DEV-2954", "DEV-4013"],
       "match": [
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again)$"] },
         { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^select-all-cells$"] },
         { "source": "reader", "kinds": ["token-missing"], "pages": ["shared-demo"], "where": ["^add-to-sort$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] }
-      ]
-    },
-    {
-      "id": "voiceover-row-level-replaces-cell",
-      "title": "On VoiceOver the nested rows level message (`Level 1, 1 of 38`) replaces the cell's own announcement when the focus reaches another row, so the cell's value is not read: with WebKit on the nested rows page in every run and on the complex demo in one run of two (the audit of 2026-11-23 heard the message alone, the recording run after it the cell and then the message), with Chromium on the move into a frozen row; NVDA reads both",
-      "tracker": "DEV-4152",
-      "match": [
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row|up-to-frozen-row)$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] },
-        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^up-to-frozen-row$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row|up-to-frozen-row)$"] }
       ]
     },
     {
@@ -438,8 +426,8 @@
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "where": ["^(arrow-right|arrow-down|arrow-left|arrow-up|reselect-cell)$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["default-mode", "handsontable-editor", "select-editor", "virtualization", "nested-headers"], "where": ["^(tab-into-grid|to-row-end|to-row-start|commit-row|commit-option|page-down-again|to-first-row|arrow-up-to-header)$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] },
-        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row)$"] },
-        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] }
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row)$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] }
       ]
     },
     {
@@ -461,8 +449,8 @@
     },
     {
       "id": "voiceover-error-cell-description-silent",
-      "title": "VoiceOver, with Chromium and with WebKit, does not read the message a formula error cell carries in aria-description (`Function name NOPE not recognized.`): it says the error value and that the data is invalid, where NVDA reads the message too",
-      "tracker": "DEV-4032",
+      "title": "VoiceOver, with Chromium and with WebKit, does not read a formula error cell's message (`Function name NOPE not recognized.`): it says the error value and that the data is invalid, where NVDA reads the message too",
+      "tracker": "DEV-4181",
       "match": [
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["formula-builder"], "where": ["^error-cell$"] }
       ]
@@ -659,7 +647,7 @@
     {
       "id": "docs-copy-button-hidden-focus",
       "title": "A code block's copy button stays invisible when it has the keyboard focus",
-      "tracker": "DEV-4018",
+      "tracker": "DEV-4174",
       "match": [
         { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^div\\.copy button$"] }
       ]
@@ -715,7 +703,7 @@
     {
       "id": "docs-sticky-header-hides-focus",
       "title": "The sticky header hides a focused link when Shift+Tab scrolls it to the top of the window",
-      "tracker": "DEV-4018",
+      "tracker": "DEV-4174",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-obscured"] }
       ]

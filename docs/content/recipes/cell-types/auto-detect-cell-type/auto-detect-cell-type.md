@@ -18,7 +18,6 @@ vue:
 searchCategory: Recipes
 category: Cell Types
 type: tutorial
-menuTag: new
 ---
 
 In this tutorial, you will build a grid that picks a cell's type from the value a user enters. Type `42` into a text cell and it becomes numeric. Type `2026-12-31` and it becomes a date. Clear the cell, or type text, and it goes back to text.

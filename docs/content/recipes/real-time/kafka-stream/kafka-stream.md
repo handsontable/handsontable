@@ -5,7 +5,6 @@ metaTitle: Stream Kafka topics into the grid | Handsontable DataGrid for JavaScr
 description: Stream an Apache Kafka topic into Handsontable DataGrid through a Server-Sent Events bridge, apply hundreds of updates a second, and write cell edits back to Kafka.
 permalink: /recipes/real-time/kafka-stream
 canonicalUrl: /recipes/real-time/kafka-stream
-menuTag: new
 tags:
   - kafka
   - apache kafka
@@ -18,6 +17,7 @@ tags:
   - recipes
 searchCategory: Recipes
 category: Real-time & Integrations
+menuTag: updated
 ---
 
 In this tutorial, you will build a live inventory grid fed by [Apache Kafka](https://kafka.apache.org/). A small Node.js bridge reads two Kafka topics and streams them to the browser with Server-Sent Events. Handsontable DataGrid applies hundreds of updates a second without losing the user's sort or filter. When the user edits a cell, the edit goes back to Kafka, so every open grid sees it.

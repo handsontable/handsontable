@@ -223,6 +223,10 @@ export const COLUMN_SORTING_NAMESPACE = 'ColumnSorting:';
 export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.ascending`;
 export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.descending`;
 export const COLUMN_SORTING_ANNOUNCEMENT_REMOVED = `${COLUMN_SORTING_NAMESPACE}announcement.removed`;
+export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY =
+  `${COLUMN_SORTING_NAMESPACE}announcement.ascending.priority`;
+export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY =
+  `${COLUMN_SORTING_NAMESPACE}announcement.descending.priority`;
 
 export const SELECTION_NAMESPACE = 'Selection:';
 export const SELECTION_ANNOUNCEMENT_RANGE = `${SELECTION_NAMESPACE}announcement.range`;

@@ -3,7 +3,6 @@ export const A11Y_TABINDEX = (val: number | string): [string, string | number] =
 export const A11Y_TREEGRID = (): [string, string] => ['role', 'treegrid'];
 export const A11Y_PRESENTATION = (): [string, string] => ['role', 'presentation'];
 export const A11Y_GRIDCELL = (): [string, string] => ['role', 'gridcell'];
-export const A11Y_GRIDCELL_BUTTON = (): [string, string] => ['role', 'gridcell button'];
 export const A11Y_ROWHEADER = (): [string, string] => ['role', 'rowheader'];
 export const A11Y_ROWGROUP = (): [string, string] => ['role', 'rowgroup'];
 export const A11Y_COLUMNHEADER = (): [string, string] => ['role', 'columnheader'];
@@ -26,7 +25,6 @@ export const A11Y_TEXT = (): [string, string] => ['type', 'text'];
 export const A11Y_LABEL = (val: string): [string, string] => ['aria-label', val];
 export const A11Y_LABELED_BY = (val: string): [string, string] => ['aria-labelledby', val];
 export const A11Y_DESCRIBED_BY = (val: string): [string, string] => ['aria-describedby', val];
-export const A11Y_DESCRIPTION = (val: string): [string, string] => ['aria-description', val];
 export const A11Y_HIDDEN = (): [string, string] => ['aria-hidden', 'true'];
 export const A11Y_DISABLED = (val: boolean | string = true): [string, string | boolean] => ['aria-disabled', val];
 export const A11Y_MULTISELECTABLE = (): [string, string] => ['aria-multiselectable', 'true'];

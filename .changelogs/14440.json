@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where replacing the grid's data with `updateSettings()`, `updateData()` or `loadData()` moved the keyboard focus from a control outside the grid into the grid.",
+  "type": "fixed",
+  "issueOrPR": 14440,
+  "breaking": false,
+  "framework": "none"
+}

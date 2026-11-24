@@ -190,6 +190,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已依 [label] 升序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '已依 [label] 降序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '已取消 [label] 的排序',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '已依 [label] 升序排序,優先順序 [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '已依 [label] 降序排序,優先順序 [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '已選取從第 [startColumn] 欄、第 [startRow] 列到第 [endColumn] 欄、第 [endRow] 列的範圍',
   [C.SELECTION_ANNOUNCEMENT_ALL]: '已選取所有儲存格',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '已選取第 [column] 欄',

@@ -23,7 +23,6 @@ angular:
 vue:
 searchCategory: Recipes
 category: Themes
-menuTag: updated
 ---
 
 This tutorial shows you how to integrate Handsontable DataGrid into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.

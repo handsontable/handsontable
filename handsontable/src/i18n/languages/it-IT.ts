@@ -193,6 +193,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Ordinato per [label], crescente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Ordinato per [label], decrescente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Ordinamento rimosso da [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Ordinato per [label], crescente, priorità di ordinamento [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Ordinato per [label], decrescente, priorità di ordinamento [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Selezione dalla colonna [startColumn], riga [startRow] alla colonna [endColumn], riga [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Tutte le celle selezionate',
