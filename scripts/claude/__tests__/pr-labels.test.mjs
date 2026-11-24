@@ -222,7 +222,10 @@ function fakeExec({ prBase, diff }, calls) {
 
     if (line.startsWith('gh pr view')) {
       if (prBase === null) {
-        throw new Error('no pull requests found');
+        throw new Error('no pull requests found for branch "feature/x"');
+      }
+      if (prBase instanceof Error) {
+        throw prBase;
       }
 
       return JSON.stringify({ baseRefName: prBase });
@@ -291,4 +294,17 @@ test('run: --base overrides the PR base', async() => {
   });
 
   assert.deepEqual(calls, ['origin/feature/x...HEAD']);
+});
+
+test('run: a gh failure other than "no PR" stops the run instead of falling back to develop', async() => {
+  const calls = [];
+
+  await assert.rejects(
+    run([], {
+      exec: fakeExec({ prBase: new Error('HTTP 401: Bad credentials'), diff: '' }, calls),
+      read: async() => '{}',
+    }),
+    /Cannot read the PR base, pass --base: HTTP 401/,
+  );
+  assert.deepEqual(calls, []);
 });

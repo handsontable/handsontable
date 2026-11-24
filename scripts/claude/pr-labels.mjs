@@ -323,8 +323,12 @@ export async function run(argv, {
   if (!values.base) {
     try {
       prBaseRef = JSON.parse(await exec('gh', ['pr', 'view', '--json', 'baseRefName'])).baseRefName;
-    } catch {
-      // No PR for this branch yet: fall back to develop.
+    } catch (error) {
+      // No PR for this branch yet: fall back to develop. Any other failure (auth, network) stops
+      // the run, because a silent develop base gives a release or stacked PR the wrong set.
+      if (!/no pull requests found/i.test(`${error.message} ${error.stderr ?? ''}`)) {
+        throw new Error(`Cannot read the PR base, pass --base: ${error.message}`);
+      }
     }
   }
 
