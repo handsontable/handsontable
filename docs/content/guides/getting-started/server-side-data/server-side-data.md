@@ -236,7 +236,7 @@ When you enable [`filters`](@/api/options.md#filters), add the parameters your b
 
 ## CodeSandbox examples
 
-Runnable projects under the Handsontable examples monorepo (Devbox):
+Runnable projects under the Handsontable examples monorepo (Devbox). Each project has its license key line commented out, and a grid without a valid key opens locked. Uncomment the line and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
 
 **End-to-end backends (Node servers + UI)**
 
