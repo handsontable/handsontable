@@ -8813,6 +8813,11 @@ export default (): Record<string, unknown> => {
      * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
      * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
+     * When <kbd>**Tab**</kbd> moves the selection past the grid's edge, the focus leaves the grid. This works
+     * for a move across columns and for a move down or up only (`{ row: 1, col: 0 }`). With
+     * [`autoWrapRow`](#autowraprow) or [`autoWrapCol`](#autowrapcol) on, the selection wraps instead, and
+     * <kbd>**Tab**</kbd> leaves the grid from the last cell (<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>: from the first cell).
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
