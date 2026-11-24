@@ -13,22 +13,20 @@
 ## Accessibility (WCAG 2.2 AA)
 
 The bar is WCAG 2.2 Level A and AA, the target level; the published conformance report states
-conformance per criterion. The
-`handsontable-a11y` skill holds the patterns and the build rules; check the diff against them.
+conformance per criterion. The rule text lives once, in the `handsontable-a11y` skill: check the diff
+against its build rules (`.claude/skills/handsontable-a11y/SKILL.md`, each tagged with its defect
+class) and its class table (`references/classes.md`), which names the check that proves each rule and
+where it runs. A change to rendering, selection, headers or frozen areas meets the rule that the grid
+keeps its own ARIA (`role`, `aria-rowcount`, `aria-colcount`, `aria-rowindex`, `aria-colindex`,
+`aria-selected`). The short suite of the checks beyond axe reports on the pull request, but the
+forced-colors, axe discovery, docs, website and screen reader checks run only in the weekly audit,
+so for a rule they enforce this review is the only gate before it. On top of that, what only a
+reviewer can judge:
 
-1. **Keyboard navigation, both modes:**
-   - Spreadsheet mode: `navigableHeaders: false`, `tabNavigation: true`.
-   - Data grid mode: `navigableHeaders: true`, `tabNavigation: false`.
-   - New interactive elements are reachable and operable by keyboard alone, keys register in a shortcut context (never a raw `keydown` listener), and a drag also has a single-pointer alternative that needs no dragging (2.5.7); a keyboard path alone does not meet 2.5.7.
-2. **ARIA semantics:** changes to rendering, selection, headers, frozen areas, menus or merged cells preserve correct roles and attributes: `role`, `aria-rowcount`, `aria-colcount`, `aria-rowindex`, `aria-colindex`, `aria-selected`, `aria-label`. Roles and attributes go through `src/helpers/a11y.ts`.
-3. **Required structure:** every role has the parents and children it requires (`menuitem` in `menu`, `option` in `listbox`); a widget role drawn with table markup has `role="presentation"` on the table rows in between; no interactive element inside another; `aria-selected` and the other states only on roles that support them.
-4. **Names:** every control has an accessible name from an i18n phrase, never hard-coded English, and the visible text is part of the name (2.5.3). Decorative icons are `aria-hidden`.
-5. **Semantic HTML:** `<button>` for actions, not `<div>` with click handlers.
-6. **Color contrast and size, in all three themes:** 4.5:1 for normal text, 3:1 for large text and for icons, borders and focus rings (1.4.11); pointer targets at least 24 by 24 CSS pixels (2.5.8). Colors and sizes come from theme tokens.
-7. **Focus management:** a surface that takes focus registers a focus scope; after cell editing, menu open/close, and dialog dismiss, focus returns to a logical position, stays visible, and is not hidden under a sticky overlay (2.4.11).
-8. **Announcements:** a change without a focus move is announced through `announce()`, once per user action. `announce()` defaults to `'assertive'`, so a status message passes `'polite'`; assertive is for errors only.
-9. **`ariaTags`:** no behavior reads an `aria-*` attribute or depends on one existing.
-10. **Proof:** a change that adds or alters something a user operates (keys, focus, a control, a name, an announcement) ships a keyboard-only Playwright flow asserting focus and accessible names; a color or size change proves itself with the axe scan in all three themes. The `A11y / axe report` check shows no new or grown finding; a new plugin or editor has its entry in `tests/a11y/coverage.mjs` and, with UI, a page in `tests/a11y/pages.mjs`. A finding the change caused is fixed, not added to `tests/a11y/axe-baseline.json`.
+1. **Keyboard navigation, both modes:** spreadsheet mode (`navigableHeaders: false`, `tabNavigation: true`) and data grid mode (`navigableHeaders: true`, `tabNavigation: false`). A new interactive element is reachable and operable by keyboard alone in both.
+2. **A name that means something:** the scan sees that a name exists, not what it says. Read each new name as a screen reader user hears it, out of context, and in another language file.
+3. **A focus order that makes sense:** where focus lands on open, where it returns on close, and the order Tab walks fit the task, not only exist.
+4. **The plan and the proof:** the pull request carries the skill's accessibility plan and the proofs it names (`references/proving.md`): a keyboard-only Playwright flow for what a user operates, the axe scan in all three themes for a color or size, and, for a class whose check runs weekly only, that check run on the branch. The `A11y / axe report` check shows no new or grown finding and the `A11y / <check> report` check runs no regression or new finding the change caused; such a finding is fixed, not added to `tests/a11y/axe-baseline.json`.
 
 ## References
 

@@ -93,6 +93,7 @@ Walkontable has its own runner, separate from the main E2E pipeline.
 - Run: `npm run test:walkontable --prefix handsontable`
 - Location: `src/3rdparty/walkontable/test/`
 - Test with frozen rows and columns enabled to cover overlay edge cases.
+- Walkontable draws every cell, header and overlay clone, so what renders per band, and in which order, is what a screen reader reads (`aria-rowindex`, `aria-colindex`, the clone rows). A change here follows the `handsontable-a11y` skill, "The grid keeps its own ARIA through a rendering change", and updates the tree golden in the same pull request.
 - A change to viewport calculation, overlay positioning, row/column sizing, or scroll sync gets an engine-tier spec. Existing Jasmine specs under `src/3rdparty/walkontable/test/` may be edited; new coverage goes to `tests/e2e/walkontable/*.spec.ts` with a page object in `tests/fixtures/pages/walkontable/` (tier reference: `frozen-column-row-heights.spec.ts` + `FrozenTallCellPage.ts`). A page-object method that scrolls ends on a render-state probe (first rendered row, a draw counter) instead of `scrollTop`, because the redraw is rAF-batched and lands after the scroll position settles. Copy `OverlaysPage.scrollToEnd()` (ends on the last cell being rendered); `FrozenTallCellPage.scrollVerticallyTo()` ends on `scrollTop`, so its spec polls `masterFirstRenderedRow()` itself after every scroll. Rules: `handsontable-playwright-e2e`, `references/determinism.md`.
 
 ## Key source files

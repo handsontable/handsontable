@@ -22,6 +22,7 @@ docs/content/guides/category/feature/
 - 25-60 lines per example, one concept each. Number by complexity: `example1` basic setup, `example2` a configuration variation, `example3` advanced.
 - Write the `.ts` / `.tsx` file first. From `docs/`, generate the JS variant with `npm run docs:code-examples:generate-js -- <path-to-ts-file>` (path relative to `docs/`); generated JS files are overwritten, so change the TS source. Vue has no JS variant.
 - Use `createSpreadsheetData()` or domain-appropriate data (product names, dates, currencies).
+- An example is part of a docs page, and the weekly audit reads only the JavaScript variant of most pages (its keyboard and focus checks a 16-page sample), so for most examples these rules are the only check: its fields have labels, its images a text alternative, its colors clear contrast, and its grid lets Tab leave (`docs/AGENTS.md`, "Accessible pages").
 
 ## Required in every example
 

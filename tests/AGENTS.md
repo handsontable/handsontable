@@ -2579,7 +2579,7 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   different times and in no fixed order, and a cluster's trend on the page has one series per nightly for the same reason.
 - **The catalog sorts every row into one root-cause cluster, and every merge re-sorts.** `a11y/issues.json`
   extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
-  the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
+  the problem is, a `defectClass` (next bullet), an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
   never printed on the page, which says only that a cluster is tracked), or instead an optional `notDefect`
   (the class that says why its findings are not a defect), optional `formerIds` (the ids it had before a
   rename, so its history follows it: "A11y: fix progress over time" below), and `match` rules. A rule names its
@@ -2606,11 +2606,26 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
       {
         "id": "dialogs-leak-tab",
         "title": "Tab walks out of an open modal dialog to the content behind it",
+        "defectClass": "C06",
         "match": [{ "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-leaves-modal"] }]
       }
     ]
   }
   ```
+
+- **Every cluster names its defect class, the rule its findings break.** `defectClass` is a class id of the
+  accessibility skill (`.claude/skills/handsontable-a11y/rules.json`, read as a table in its
+  `references/classes.md`): the mechanism that produces the defect, the build rule against it, and the check
+  that enforces that rule and where it runs. A fix reads the class to find the rule and the proof, and the
+  learning routine counts new findings by class. A cluster with `notDefect` takes a `record-only` class, so
+  every cluster has exactly one and the routine counts what no rule can prevent too. A class is not a cluster:
+  the classes are few and stable, the clusters many and renamed, so the skill binds its rules to classes,
+  never to cluster ids. The field is never called `class`, which is what `notDefect` holds. `lib/a11y-issues.mjs`
+  checks only its shape (`C` and two digits) and keeps it optional, because the ledger's test fixtures carry
+  none and this folder never reads the skill (the verdict jobs check out `tests/lib` alone); the root
+  `test:tooling` test `scripts/__tests__/a11y-skill-rules.test.mjs` fails on a committed cluster without one,
+  on one the skill does not list, and on a `notDefect` cluster whose class is not record-only, or the other
+  way round. A new cluster therefore picks its class in the change that adds it.
 
 - **One cluster per finding, and the triage count is exact.** A finding no rule matches lands in
   `needs-triage`, which the page lists by shape (check, kind, rule and where, widest first). A finding that

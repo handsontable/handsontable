@@ -34,6 +34,8 @@ import * as C from '../../i18n/constants';
 const label = this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
 ```
 
+Accessible names, descriptions, `aria-valuetext` and announcements are phrases too, and a name contains its control's visible text (the `handsontable-a11y` skill, "Native element first, and every control has a name"). A phrase with a count is a plural array, as above, in every language file.
+
 ## RTL
 
 `layoutDirection: 'rtl'`. Use logical CSS properties (`inset-inline-start` in place of `left`). Test with `ar-AR` or `fa-IR`.
