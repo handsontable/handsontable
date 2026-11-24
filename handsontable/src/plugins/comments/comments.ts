@@ -16,6 +16,7 @@ import { CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
+import { CommentResize } from './commentResize';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorHeight, getEditorAnchorWidth, getSelectionBorderOverhang } from './utils';
 import {
@@ -261,6 +262,12 @@ export class Comments extends BasePlugin {
    */
   #displaySwitch: DisplaySwitch | null = null;
   /**
+   * The ways to resize the editor without dragging its grip: the arrow keys, and "click, then click".
+   *
+   * @type {CommentResize|null}
+   */
+  #resize: CommentResize | null = null;
+  /**
    * Prevents showing/hiding editor that reacts on the logic triggered by the "mouseover" events.
    *
    * @type {boolean}
@@ -335,6 +342,7 @@ export class Comments extends BasePlugin {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor?.addLocalHook('resize',
         (width: number, height: number) => this.#onEditorResize(width, height));
+      this.#resize = new CommentResize(this.hot, this.#editor);
     }
 
     // Registered on every enable, not only when the editor is first built: tracked hooks are
@@ -443,6 +451,8 @@ export class Comments extends BasePlugin {
       runOnlyIf: (): boolean => !!(this.hot.getSelectedRangeActive()?.highlight.isCell()),
       group: SHORTCUTS_GROUP,
     });
+
+    this.#resize?.registerShortcuts(pluginContext, SHORTCUTS_GROUP);
 
     pluginContext.addShortcut({
       keys: [['Escape']],
@@ -564,6 +574,10 @@ export class Comments extends BasePlugin {
         'mousedown',
         this.#onInputElementMouseDown
       );
+
+      if (this.#resize) {
+        this.eventManager.addEventListener(inputElement, 'mouseup', this.#resize.onInputMouseUp as EventListener);
+      }
     }
   }
 
@@ -785,6 +799,7 @@ export class Comments extends BasePlugin {
    * Hides the comment editor.
    */
   hide(): void {
+    this.#resize?.cancel();
     this.#editor?.hide();
   }
 
@@ -1117,6 +1132,7 @@ export class Comments extends BasePlugin {
    */
   #onInputElementMouseDown = (event: Event) => {
     event.stopPropagation();
+    this.#resize?.onInputMouseDown(event as MouseEvent);
 
     // Only the primary button starts a gesture the editor has to survive. The flag below is
     // cleared by the document's "mouseup", and a secondary-button press is the shape most likely

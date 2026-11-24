@@ -182,6 +182,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Frozen columns at the end',
   [C.ARMED_PICK_STARTED]: 'Click or tap the target to finish. Press Escape to cancel.',
   [C.ARMED_PICK_CANCELED]: 'Canceled.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Resizing the column. Use the Left and Right Arrow keys to change the width, Enter to apply, Escape to cancel.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Resizing the row. Use the Up and Down Arrow keys to change the height, Enter to apply, Escape to cancel.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Resizing the comment box. Use the arrow keys to change the size, Enter to apply, Escape to cancel.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Width: [size] pixels',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Height: [size] pixels',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Expanded row [label], expanded rows shown: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed row [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Level [level], [position] of [setSize]',

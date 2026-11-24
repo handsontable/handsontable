@@ -191,6 +191,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznuti stupci na kraju',
   [C.ARMED_PICK_STARTED]: 'Kliknite ili dodirnite cilj za dovršetak. Pritisnite Escape za otkazivanje.',
   [C.ARMED_PICK_CANCELED]: 'Otkazano.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Promjena širine stupca. Strelicama lijevo i desno mijenjate širinu, Enter primjenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Promjena visine retka. Strelicama gore i dolje mijenjate visinu, Enter primjenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Promjena veličine okvira komentara. Strelicama mijenjate veličinu, Enter primjenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Širina: [size] piksela',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Visina: [size] piksela',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen redak [label], prikazani prošireni retci: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sažet redak [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Razina [level], [position] od [setSize]',

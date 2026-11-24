@@ -67,6 +67,10 @@ export const DRAG_OPERATIONS = [
     fixture: 'manual-resize-contextmenu.html', expect: 'resizes',
     drag: [{ hover: { colHeader: 1 } }, { drag: { from: { selector: '.manualColumnResizer' }, by: [60, 0] } }],
     alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+R from a cell starts the resize, the arrow keys change the width and Enter keeps it',
+        steps: [{ select: [1, 1] }, { press: ['ControlOrMeta+Alt+r', 'ArrowRight', 'ArrowRight', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the handle, then a click on the grid, sets the width to the distance from the column to the click',
+        steps: [{ hover: { colHeader: 1 } }, { click: { selector: '.manualColumnResizer' } }, { click: { cell: [3, 4] } }] },
       { input: 'single-pointer', covers: 'partial', how: 'A double-click on the handle fits the column to its content, never to another width',
         prepare: [{ api: 'colWidth', index: 1, size: 200 }], steps: [{ hover: { colHeader: 1 } }, { dblclick: { selector: '.manualColumnResizer' } }] },
     ],
@@ -76,6 +80,10 @@ export const DRAG_OPERATIONS = [
     fixture: 'manual-resize-contextmenu.html', expect: 'resizes',
     drag: [{ hover: { rowHeader: 1 } }, { drag: { from: { selector: '.manualRowResizer' }, by: [0, 30] } }],
     alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+R from a selected row starts the resize, the arrow keys change the height and Enter keeps it',
+        steps: [{ click: { rowHeader: 1 } }, { press: ['ControlOrMeta+Alt+r', 'ArrowDown', 'ArrowDown', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the handle, then a click on the grid, sets the height to the distance from the row to the click',
+        steps: [{ hover: { rowHeader: 1 } }, { click: { selector: '.manualRowResizer' } }, { click: { cell: [4, 3] } }] },
       { input: 'single-pointer', covers: 'partial', how: 'A double-click on the handle fits the row to its content, never to another height',
         prepare: [{ api: 'rowHeight', index: 1, size: 80 }], steps: [{ hover: { rowHeader: 1 } }, { dblclick: { selector: '.manualRowResizer' } }] },
     ],
@@ -179,7 +187,12 @@ export const DRAG_OPERATIONS = [
     id: 'comment-resize', plugin: 'comments', gesture: 'drag', operation: 'Resize the comment editor by dragging the grip in its corner',
     page: 'comments', expect: 'resizes',
     drag: [{ drag: { from: { selector: '.htCommentTextArea', at: 'corner-end' }, by: [60, 40] } }],
-    alternatives: [],
+    alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+R in the editor starts the resize, the arrow keys change the width and the height and Enter keeps them',
+        steps: [{ press: ['ControlOrMeta+Alt+r', 'ArrowRight', 'ArrowDown', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the grip, then a click on the grid, puts the corner of the editor there',
+        steps: [{ click: { selector: '.htCommentTextArea', at: 'corner-end' } }, { click: { cell: [7, 4] } }] },
+    ],
   },
   // Picking a reference into a formula: the catalog page opens C1 (=A1+B1) with Enter, and every path
   // types `+` first, so the caret sits after an operator and the pick is inserted there; without it a

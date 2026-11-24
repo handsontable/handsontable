@@ -179,6 +179,15 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Nofiksētās kolonnas beigās',
   [C.ARMED_PICK_STARTED]: 'Noklikšķiniet vai pieskarieties mērķim, lai pabeigtu. Nospiediet Escape, lai atceltu.',
   [C.ARMED_PICK_CANCELED]: 'Atcelts.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Kolonnas platuma maiņa. Platumu maina ar kreiso un labo bultiņu taustiņiem, Enter to lieto, Escape atceļ.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Rindas augstuma maiņa. Augstumu maina ar augšupvērsto un lejupvērsto bultiņu taustiņiem, Enter to lieto, Escape ' +
+    'atceļ.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Komentāra lodziņa izmēra maiņa. Izmēru maina ar bultiņu taustiņiem, Enter to lieto, Escape atceļ.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Platums: [size] pikseļi',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Augstums: [size] pikseļi',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Līmenis [level], [position] no [setSize]',

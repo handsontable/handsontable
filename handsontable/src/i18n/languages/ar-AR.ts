@@ -177,6 +177,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'الأعمدة المجمّدة في النهاية',
   [C.ARMED_PICK_STARTED]: 'انقر أو المس الهدف للإنهاء. اضغط Escape للإلغاء.',
   [C.ARMED_PICK_CANCELED]: 'تم الإلغاء.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'تغيير عرض العمود. استخدم مفتاحي السهم الأيسر والأيمن لتغيير العرض، وEnter للتطبيق، وEscape للإلغاء.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'تغيير ارتفاع الصف. استخدم مفتاحي السهم لأعلى ولأسفل لتغيير الارتفاع، وEnter للتطبيق، وEscape للإلغاء.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'تغيير حجم مربع التعليق. استخدم مفاتيح الأسهم لتغيير الحجم، وEnter للتطبيق، وEscape للإلغاء.',
+  [C.MANUAL_RESIZE_WIDTH]: 'العرض: [size] بكسل',
+  [C.MANUAL_RESIZE_HEIGHT]: 'الارتفاع: [size] بكسل',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'المستوى [level]، [position] من [setSize]',

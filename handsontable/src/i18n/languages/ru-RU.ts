@@ -175,6 +175,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Закреплённые столбцы в конце',
   [C.ARMED_PICK_STARTED]: 'Щёлкните или коснитесь цели, чтобы завершить. Нажмите Escape, чтобы отменить.',
   [C.ARMED_PICK_CANCELED]: 'Отменено.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Изменение ширины столбца. Стрелками влево и вправо меняйте ширину, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Изменение высоты строки. Стрелками вверх и вниз меняйте высоту, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Изменение размера поля комментария. Стрелками меняйте размер, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Ширина: [size] пикселей',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Высота: [size] пикселей',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Уровень [level], [position] из [setSize]',

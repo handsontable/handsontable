@@ -134,6 +134,7 @@ export class ManualRowResize extends BasePlugin {
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
 
     this.#gesture.bindEvents(this.eventManager);
+    this.#gesture.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -176,6 +177,7 @@ export class ManualRowResize extends BasePlugin {
   disablePlugin() {
     // Leaves a drag in flight alone on purpose - see `ResizeGesture#detach()`.
     this.#gesture.detach();
+    this.#gesture.unregisterShortcuts();
 
     if (this.#disposeMapObserver) {
       this.#disposeMapObserver();
@@ -468,6 +470,7 @@ export class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#gesture.unregisterShortcuts();
     this.#gesture.destroy();
     super.destroy();
   }
