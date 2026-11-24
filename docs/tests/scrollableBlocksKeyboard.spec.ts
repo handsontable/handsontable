@@ -263,6 +263,14 @@ test.describe('Code blocks', () => {
       await expect(page.getByRole('region', { name: 'Code: Configure sorting', exact: true })).toHaveCount(1);
     });
 
+    await test.step('the source code blocks of an example above it take no number', async() => {
+      const [afterExamples] = await blocksBelow(
+        page, 'set-an-initial-multi-column-sort-order', CODE_BLOCK, { overflowing: true, count: 1 }
+      );
+
+      await expect(afterExamples).toHaveAccessibleName('Code: Set an initial multi-column sort order');
+    });
+
     await test.step('every region of the page has its own name', async() => {
       await expectUniqueRegionNames(page);
     });
