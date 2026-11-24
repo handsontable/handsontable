@@ -53,7 +53,9 @@ describe('CopyPaste', () => {
 
     it('should disable copyPaste only in particular table', async() => {
       const hot1 = handsontable();
-      const hot2 = spec().$container2.handsontable({ copyPaste: false }).handsontable('getInstance');
+      const hot2 = spec().$container2
+        .handsontable({ licenseKey: TEST_LICENSE_KEY, copyPaste: false })
+        .handsontable('getInstance');
 
       expect(hot1.getPlugin('CopyPaste').isEnabled()).toBe(true);
       expect(hot2.getPlugin('CopyPaste').isEnabled()).toBe(false);
@@ -61,14 +63,14 @@ describe('CopyPaste', () => {
 
     it('should not create HandsontableCopyPaste element until the table will be selected', async() => {
       handsontable();
-      spec().$container2.handsontable();
+      spec().$container2.handsontable({ licenseKey: TEST_LICENSE_KEY });
 
       expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
     it('should not touch focusable element borrowed from cell editors', async() => {
       const hot1 = handsontable();
-      const hot2 = spec().$container2.handsontable().handsontable('getInstance');
+      const hot2 = spec().$container2.handsontable({ licenseKey: TEST_LICENSE_KEY }).handsontable('getInstance');
 
       hot1.selectCell(0, 0);
       hot2.selectCell(0, 0);

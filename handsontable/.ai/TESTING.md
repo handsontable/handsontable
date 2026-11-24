@@ -719,6 +719,29 @@ it('should maintain selections after render', async() => {
 - `keyDownUp(key)` -- Simulate full keydown+keyup sequence
 - Key names: `'enter'`, `'esc'`, `'tab'`, `'arrowdown'`, `'arrowup'`, `'arrowleft'`, `'arrowright'`, `'ctrl'`, `'shift'`, `'space'`, `'backspace'`, `'delete'`, etc.
 
+## The license key every test grid takes
+
+Since 19.0 a grid built without a valid key mounts behind the license lock. API calls still work, so a test
+that only reads the grid passes, while its clicks, focus moves, screenshots and axe scans meet the lock. Every
+grid a test builds therefore takes the internal test key, from its suite's constant:
+`TEST_LICENSE_KEY` (`test/helpers/licenseKey.js`; a global in Jasmine specs, imported in Jest), and
+`window.htTestLicenseKey` in a Playwright fixture. The Jasmine `handsontable()` helper adds it unless
+`explicitOptions` is `true`. Only a test of the license behavior itself builds another key, or none.
+
+Three guards hold it, one per runner, because no single check sees every runner:
+
+- **Jasmine and fixture pages: a static scan.** `scripts/__tests__/test-license-key.test.mjs` (root
+  `test:tooling`) fails on a grid constructor (`new Handsontable(`, `new Handsontable.Core(`, `new Core(`,
+  jQuery's `.handsontable(`) whose options do not name `licenseKey`, unless they are a variable, a spread or
+  `Object.assign()` in a file that sets a key. A runtime check cannot do this job in Jasmine: the whole suite
+  shares one page, and the core prints the legacy key message once per page.
+- **Jest: the console.** `test/jestExpectedConsole.js` fails a unit test whose grid logged a missing, invalid
+  or expired key message, unless its file is listed in `LICENSE_TEST_FILES`. The message prints once per
+  test file, so the guard fails the first keyless grid of a file. A `Core` built without the root symbol
+  never checks the key and logs nothing; it shows no lock either.
+- **Playwright: the page.** The `page` fixture in `tests/fixtures/test.ts` fails a passing test that left a
+  `.ht-license-lock` on its page (`tests/AGENTS.md`, "Fixture contract").
+
 ## Bootstrap and Setup
 
 **Test Bootstrap** (`handsontable/test/bootstrap.js`):

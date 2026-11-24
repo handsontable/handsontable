@@ -16,6 +16,7 @@ import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
 import {
   injectLicenseKey,
   isExecutedExampleId,
+  isKeyedSiteScriptId,
   previewLicenseKeyCheck,
   resolvePreviewLicenseKey,
 } from './src/plugins/preview-license-key.mjs';
@@ -189,7 +190,19 @@ function resolveMonorepoPackages() {
     // A staging or preview build first writes the internal test key over the
     // license placeholder of each executed example (preview-license-key.mjs).
     async transform(source, id) {
-      if (!id.includes('/content/')) return null;
+      if (!id.includes('/content/')) {
+        // A site script that builds a grid (the 404 page's game) gets the key the same way.
+        if (!previewLicenseKey || !isKeyedSiteScriptId(id)) return null;
+
+        const keyed = injectLicenseKey(source, previewLicenseKey);
+
+        if (keyed === source) return null;
+
+        licenseKeyRewrittenIds.add(id);
+
+        // Vite's own TypeScript transform runs after this `pre` plugin; the line count is unchanged.
+        return { code: keyed, map: null };
+      }
 
       // Runs first, on the source, before the JSX and Angular transpiles drop
       // the placeholder comments.

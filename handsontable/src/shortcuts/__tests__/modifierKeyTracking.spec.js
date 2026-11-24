@@ -48,7 +48,7 @@ describe('ShortcutManager modifier-key tracking across instances (#12707)', () =
 
     await sleep(50);
 
-    $iframeContainer.handsontable({ data: createSpreadsheetData(5, 5) });
+    $iframeContainer.handsontable({ licenseKey: TEST_LICENSE_KEY, data: createSpreadsheetData(5, 5) });
 
     const iframeHot = $iframeContainer.handsontable('getInstance');
 

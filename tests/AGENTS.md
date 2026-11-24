@@ -369,6 +369,15 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
 
 ## Fixture contract (never get these wrong)
 
+- **Every grid takes the internal test key, and a lock fails the test.** A fixture loads
+  `/tests/fixtures/demo/test-license-key.js` before the grid and passes `licenseKey: window.htTestLicenseKey`,
+  and so does a grid a spec builds in `page.evaluate`. Since 19.0 a grid without a valid key mounts behind
+  the license lock: API reads pass while clicks, focus, screenshots and axe scans meet the lock. The `page`
+  fixture in `fixtures/test.ts` fails a test that passed with a `.ht-license-lock` on its page, in any frame.
+  A page asks for a license state on purpose in one of two ways: it is one of the license pages
+  (`license-branding`, `license-bar`, `license-capabilities`, `xlsx-license`), or it is opened with a
+  `?license=` value other than `test` (`trusted-types.html?license=invalid`). A new page that needs a lock
+  takes the second way.
 - Fixtures are standalone HTML under `fixtures/demo/`, served statically. Every
   fixture MUST copy the fail-loud param block from `demo/grid.html`:
   `?theme=`/`?bundle=` map through fixed allowlists to LITERALS (no XSS); an
@@ -516,6 +525,22 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `LICENSE` getter so its `tiers` also list the presets that include it. A case
   no tier can express (a plugin without what it requires, which the generator
   refuses) belongs in a unit test, not here; no license spec is skipped.
+- **`e2e/license-built-bundle.spec.ts` is the one plugin spec on the build's real tiers, on purpose.**
+  Every other license spec either redefines the plugins' tiers or runs in jsdom on the
+  sources, so only it can see what the shipped bundle does: the static `LICENSE` of each
+  sold plugin against the manifest (`soldPluginLicenses()`), a key naming each real tier
+  (`manifestTiers()`, `featureTiers()`, never a name written out), a perpetual key against
+  the release date the build inlined (`releaseKeyUntil()`, with the date read from
+  `hot.config.js`, never from the bundle, so a build that inlined no date fails), and the
+  `*.handsontable.com` bypass (`LicenseBuildPage.goto({ host })` serves the fixture under
+  another host through `page.route()`, so the core reads that host from `location.host`).
+  A host with more than one label before `handsontable.com` is left unpinned until the
+  product decides whether it is bypassed. It declares `BUNDLES_TAG`, because minification
+  is what could drop a token or inline the date wrong. Both page objects of
+  `demo/license-capabilities.html` (`LicenseCapabilitiesPage`, `LicenseBuildPage`) extend
+  `fixtures/pages/LicenseFixturePage.ts`, which owns the fixture URL, the waits, the license surfaces,
+  the console capture and the host routing: a change to the fixture's contract goes there once, or one of
+  the two specs keeps passing on a stale wait or locator.
 
 ## Two clicks on the same cell are a double click
 
