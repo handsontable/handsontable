@@ -25,6 +25,7 @@ import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/s
 import { AGENT_NOTE_MD } from './src/agent-note.mjs';
 import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
+import { socialImageHead } from './src/lib/social-image.mjs';
 import { resolveSentryRelease } from './src/lib/sentry-release.mjs';
 import { buildVersionList, createCommonJsonHooks, toMinor } from './src/lib/docs-versions.mjs';
 import { resolve, dirname } from 'path';
@@ -759,15 +760,8 @@ export default defineConfig({
             'utf8'
           ),
         },
-        // Social preview image. Starlight emits og:title/description and
-        // twitter:card=summary_large_image but no image, so LinkedIn, Slack, and X
-        // showed a blank card for every docs link. Absolute URL: crawlers don't
-        // resolve relative og:image paths.
-        { tag: 'meta', attrs: { property: 'og:image', content: `${SITE_URL}/docs/handsontable-docs-cover.png` } },
-        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
-        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
-        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Handsontable Documentation' } },
-        { tag: 'meta', attrs: { name: 'twitter:image', content: `${SITE_URL}/docs/handsontable-docs-cover.png` } },
+        // Social preview image for link previews (LinkedIn, Slack, X).
+        ...socialImageHead(),
         {
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
