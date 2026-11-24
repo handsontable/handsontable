@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-23T21:01:57.904Z",
+  "updatedAt": "2026-11-24T14:12:02.411Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-webkit",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 521,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": "DEV-4110 until 2026-12-18 — read before the scroll settles",
+      "source": "ci",
+      "runId": "45407668695",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45407668695",
+      "workflow": "Tests",
+      "branch": "feature/DEV-4018_Docs-theme-contrast-forced-colors",
+      "headSha": "35b9c96f283703bc7e6dafc7eac29427c91d5463",
+      "event": "pull_request",
+      "seenAt": "2026-11-24T14:11:04Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-webkit",
