@@ -51,7 +51,7 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 <code-block title="Angular">
 
 ```html
-<hot-table [settings]="settings" licenseKey="00000-00000-00000-00000-00000"></hot-table>
+<hot-table [settings]="{ licenseKey: '00000-00000-00000-00000-00000' }"></hot-table>
 ```
 
 </code-block>
@@ -488,7 +488,7 @@ A **missing or invalid key** blocks the grid. Handsontable covers it with a moda
 
 The modal covers only the grid. The rest of your page keeps working. The modal does not appear on this site, so this page shows it as an image.
 
-An **expired key** does not block anything, and every feature keeps working. A perpetual key and a key in the 25-character format show a message below the table and in the console. A lapsed subscription shows its message in the console only.
+An **expired key** does not block the grid, and every feature keeps working, with one exception: a trial key blocks the grid once its grace period passes. See [Trial keys](#trial-keys). A perpetual key and a key in the 25-character format show a message below the table and in the console. A lapsed subscription shows its message in the console only.
 
 A **key that does not include a feature** your grid uses blocks nothing either. The feature stays off, and its message appears below the table and in the console. See [Keys that name a tier](#keys-that-name-a-tier).
 
@@ -512,9 +512,15 @@ Since Handsontable 19.0, the `non-commercial-and-evaluation` key, and its second
 
 ### Expired license key
 
-For a perpetual key and a key in the 25-character format, the message is shown below the table and in the console. The console prints an error for a perpetual key and a warning for a 25-character key:
+For a perpetual key and a key in the 25-character format, the message is shown below the table and in the console. The console prints an error for a perpetual key and a warning for a 25-character key. The wording differs slightly by key type. A 25-character key says:
 
-_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
+_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_date]`. If you need any help, contact us at `[email]`._
+
+A perpetual key says:
+
+_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`. Renew your license key or downgrade to a version released on or before `[expiration_date]`. If you need any help, contact us at `[email]`._
+
+A trial key shows its own message next to the badge and below the grid, and the console prints an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. See [Trial keys](#trial-keys).
 
 A lapsed subscription prints this error in the console only:
 
