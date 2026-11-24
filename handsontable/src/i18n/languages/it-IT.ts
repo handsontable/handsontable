@@ -176,6 +176,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Righe bloccate in basso',
   [C.FREEZE_BAR_COLUMNS_START]: 'Colonne bloccate all\'inizio',
   [C.FREEZE_BAR_COLUMNS_END]: 'Colonne bloccate alla fine',
+  [C.ARMED_PICK_STARTED]: 'Fai clic o tocca la destinazione per terminare. Premi Esc per annullare.',
+  [C.ARMED_PICK_CANCELED]: 'Annullato.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Livello [level], [position] di [setSize]',

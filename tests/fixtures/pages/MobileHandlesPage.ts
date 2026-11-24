@@ -132,6 +132,27 @@ export class MobileHandlesPage {
   }
 
   /**
+   * The hit area of the top-left mobile selection handle, scoped to the master overlay.
+   */
+  topHitArea(): Locator {
+    return this.page.locator('.ht_master .htBorders .topSelectionHandle-HitArea:visible').first();
+  }
+
+  /**
+   * The root while a tap on a handle waits for the tap that picks where the corner goes.
+   */
+  pickingRoot(): Locator {
+    return this.page.locator('[class*="ht__picking-selection--"]');
+  }
+
+  /**
+   * The polite live region the announcements go to.
+   */
+  politeAnnouncer(): Locator {
+    return this.page.locator('[role="status"][aria-live="polite"]');
+  }
+
+  /**
    * Assert both mobile selection handles are attached and visible with a
    * non-zero rendered size.
    */
@@ -661,6 +682,74 @@ export class MobileHandlesPage {
     }
 
     await this.#dispatchTouch('touchEnd');
+  }
+
+  /**
+   * Taps the bottom handle with a second finger while a first finger still holds the top handle, then lifts the first
+   * finger without moving it. Playwright's `touchscreen` is a single finger, so this goes through the DevTools protocol.
+   */
+  async tapBottomHandleWhileHoldingTopHandle(): Promise<void> {
+    if (!this.#cdp) {
+      this.#cdp = await this.page.context().newCDPSession(this.page);
+    }
+
+    const topBox = await this.topHitArea().boundingBox();
+    const bottomBox = await this.bottomHitArea().boundingBox();
+
+    expect(topBox, 'the top handle hit area must be laid out').not.toBeNull();
+    expect(bottomBox, 'the bottom handle hit area must be laid out').not.toBeNull();
+
+    // a small radius keeps Chromium's touch adjustment from moving the touch to a cell beside the hit area
+    const first = { x: topBox!.x + (topBox!.width / 2), y: topBox!.y + (topBox!.height / 2), radiusX: 1, radiusY: 1, force: 1, id: 1 };
+    const second = { x: bottomBox!.x + (bottomBox!.width / 2), y: bottomBox!.y + (bottomBox!.height / 2), radiusX: 1, radiusY: 1, force: 1, id: 2 };
+
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [first] });
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [first, second] });
+    // a touchEnd lists the fingers that lift: the second one first, then the one that held the top handle
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [second] });
+    await this.#cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [first] });
+  }
+
+  /**
+   * Holds the top handle with one finger, arms a pick with the bottom handle by tapping it with a second, clicks a cell
+   * with a mouse click while the first still holds, and returns whether the first finger's drag was still live afterwards.
+   * Then lifts the first finger.
+   *
+   * @param row The row of the cell the third finger taps.
+   * @param col The column of the cell the third finger taps.
+   */
+  async tapCellWhileHoldingTopHandle(row: number, col: number): Promise<boolean> {
+    if (!this.#cdp) {
+      this.#cdp = await this.page.context().newCDPSession(this.page);
+    }
+
+    const topBox = await this.topHitArea().boundingBox();
+    const bottomBox = await this.bottomHitArea().boundingBox();
+    const cellBox = await this.cell(row, col).boundingBox();
+
+    expect(topBox, 'the top handle hit area must be laid out').not.toBeNull();
+    expect(bottomBox, 'the bottom handle hit area must be laid out').not.toBeNull();
+    expect(cellBox, 'the target cell must be laid out').not.toBeNull();
+
+    const point = (box: { x: number, y: number, width: number, height: number }, id: number) => ({
+      x: box.x + (box.width / 2), y: box.y + (box.height / 2), radiusX: 1, radiusY: 1, force: 1, id,
+    });
+    const first = point(topBox!, 1);
+    const second = point(bottomBox!, 2);
+    const third = point(cellBox!, 3);
+    const send = (type: string, touchPoints: unknown[]) => this.#cdp!.send('Input.dispatchTouchEvent', { type, touchPoints } as never);
+
+    await send('touchStart', [first]);
+    await send('touchStart', [first, second]);
+    await send('touchEnd', [second]);
+    // a touch that comes while two others are down makes no click in Chromium, so a mouse click finishes the pick
+    await this.page.mouse.click(third.x, third.y);
+
+    const stillHeld = await this.page.evaluate(() => window.hot.getPlugin('multipleSelectionHandles').isDragged());
+
+    await send('touchEnd', [first]);
+
+    return stillHeld;
   }
 
   /**

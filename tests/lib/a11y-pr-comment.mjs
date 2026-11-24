@@ -11,9 +11,9 @@
  *
  * The scan is compared with the pull request's own baseline, so a pull request that adds entries
  * to it reads as clean. `baselineGrowth()` compares the base commit's baseline (`baseCommit()`,
- * `readBaseBaseline()`) with the pull request's, and the comment lists what the pull request
- * added or raised, by issue: debt it accepts, in front of the reviewer. The check run does not
- * read the base; it judges the scan alone.
+ * `readBaseBaseline()`) with the pull request's, the baseline guard (`lib/a11y-baseline-guard.mjs`)
+ * judges each entry it adds as inherited, an approved exception or the pull request's own, and the
+ * comment lists them, by issue, own first, as the check run does; an own entry turns that check run red.
  *
  * The ClickUp GitHub integration attaches every task id it finds in a pull request
  * comment, permanently (root `AGENTS.md`, one-id rule). The comment prints issue
@@ -36,6 +36,9 @@ const GROWTH_SHOWN = 10;
 const RULES_SHOWN = 12;
 const BAR_WIDTH = 20;
 const LABELS = { new: '✖ New', grown: '▲ Grown', improved: '▼ Improved', fixed: '✔ Fixed' };
+// The baseline guard's kinds (`lib/a11y-baseline-guard.mjs`), as the comment and the check run label them. Kept here,
+// not in the guard module, because that module imports this one.
+export const KIND_LABELS = { own: '✖ Own finding', exception: '⚠ Approved exception', inherited: '✔ Inherited' };
 // The partial blocks of a text bar, one eighth of a character each.
 const EIGHTHS = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
 
@@ -169,15 +172,16 @@ export function baselineGrowth(base, head) {
  * @param {object} [growth] What `baselineGrowth()` returned.
  * @returns {string} The tail.
  */
-function growthHeadline(growth) {
+function growthHeadline(growth, judged) {
   if (!growth || growth.error || growth.added.length + growth.raised.length === 0) {
     return '';
   }
 
+  const own = (judged ?? []).filter(item => item.kind === 'own').length;
   const parts = [[growth.added.length, 'added'], [growth.raised.length, 'raised']]
     .filter(([count]) => count > 0).map(([count, label]) => `${count} ${label}`);
 
-  return ` · this pull request grows the baseline: ${parts.join(', ')}`;
+  return ` · this pull request grows the baseline: ${parts.join(', ')}${own > 0 ? ` (${own} its own)` : ''}`;
 }
 
 /**
@@ -188,9 +192,10 @@ function growthHeadline(growth) {
  * @param {object} [growth] What `baselineGrowth()` returned.
  * @param {Map<string, string>} titles The issue titles by id.
  * @param {(value: string) => string} text The escaping every value goes through.
+ * @param {object} [guard] The baseline guard's judgment: when given, each row says its kind, own entries first.
  * @returns {string[]} Markdown lines, none when there is nothing to say.
  */
-function renderGrowth(growth, titles, text) {
+function renderGrowth(growth, titles, text, guard) {
   if (!growth) {
     return [];
   }
@@ -198,10 +203,11 @@ function renderGrowth(growth, titles, text) {
     return ['', `> **Baseline growth unknown:** ${text(growth.error)}, so this comment cannot say whether this pull request adds findings to the baseline.`];
   }
 
-  const rows = [
-    ...growth.raised.map(item => [item, `${item.nodes} (was ${item.baseNodes})`]),
-    ...growth.added.map(item => [item, String(item.nodes)]),
-  ];
+  const judged = guard?.judged ?? [];
+  const elementsOf = item => (item.baseNodes === undefined ? String(item.nodes) : `${item.nodes} (was ${item.baseNodes})`);
+  const rows = judged.length > 0
+    ? judged.map(item => [item, elementsOf(item), KIND_LABELS[item.kind]])
+    : [...growth.raised, ...growth.added].map(item => [item, elementsOf(item)]);
 
   if (rows.length === 0) {
     return renderMoves(growth.moved ?? [], titles, text);
@@ -218,19 +224,29 @@ function renderGrowth(growth, titles, text) {
   growth.added.forEach(item => count(item, 'added'));
   growth.raised.forEach(item => count(item, 'raised'));
 
+  const own = judged.filter(item => item.kind === 'own').length;
   const lines = [
     '', '#### Added to the baseline in this pull request', '',
     `These findings are in this pull request's \`${BASELINE_PATH}\` and not in the base branch's, or with a higher count there, `
-      + 'so the scan counts them as known. Approving this pull request accepts them as known debt.',
+      + 'so the scan counts them as known.',
+    ...(judged.length > 0
+      ? ['', `An entry is allowed when it is inherited (a page this pull request adds shows a finding the base baseline has on another page) or an `
+        + `approved exception (its issue names a tracker, and the \`${guard.label}\` label, which a person adds by hand, covers it). `
+        + (own > 0
+          ? `**${own} ${own === 1 ? 'entry is' : 'entries are'} this pull request's own finding${own === 1 ? '' : 's'}**, so the \`A11y / axe report\` `
+            + 'check run is red: fix each one here and delete its entry.'
+          : 'Every entry here is one of the two.')]
+      : []),
     '', '| Known issue | Added | Raised |', '|---|--:|--:|',
   ];
 
   for (const row of [...byIssue.values()].sort((a, b) => (b.added + b.raised) - (a.added + a.raised) || a.title.localeCompare(b.title))) {
     lines.push(`| ${text(row.title)} | ${row.added} | ${row.raised} |`);
   }
-  lines.push('', '| Page | Theme | Rule | Element | Elements | Known issue |', '|---|---|---|---|---|---|');
-  for (const [item, elements] of rows.slice(0, GROWTH_SHOWN)) {
-    lines.push(`| ${text(item.page)} | ${text(item.theme)} | ${text(item.rule)} | <code>${text(item.target)}</code> | ${elements} `
+  lines.push('', `| ${judged.length > 0 ? 'Kind | ' : ''}Page | Theme | Rule | Element | Elements | Known issue |`,
+    `|${judged.length > 0 ? '---|' : ''}---|---|---|---|---|---|`);
+  for (const [item, elements, kind] of rows.slice(0, GROWTH_SHOWN)) {
+    lines.push(`| ${kind ? `${kind} | ` : ''}${text(item.page)} | ${text(item.theme)} | ${text(item.rule)} | <code>${text(item.target)}</code> | ${elements} `
       + `| ${text(titles.get(item.issue) ?? item.issue)} |`);
   }
   if (rows.length > GROWTH_SHOWN) {
@@ -303,15 +319,21 @@ function scanLine(comparison, growth, text) {
  * @param {string} [links.runUrl] The workflow run.
  * @param {string} [links.checkUrl] The check run.
  * @param {object} [links.growth] What `baselineGrowth()` returned; without it the comment says nothing about growth.
+ * @param {object} [links.guard] The baseline guard's judgment (`baselineGuard()`), which carries the growth and replaces
+ * `growth`: each row then says its kind.
  * @returns {string} Markdown.
  */
-export function renderComment(comparison, { reportUrl, runUrl, checkUrl, growth } = {}) {
+export function renderComment(comparison, { reportUrl, runUrl, checkUrl, growth: plainGrowth, guard } = {}) {
+  const growth = guard ? (guard.error ? { error: guard.error } : guard.growth) : plainGrowth;
   const counts = verdictCounts(comparison);
   const problems = comparison.problems ?? [];
   const text = value => neutralizeTaskIds(escapeMarkdownText(value));
   const titles = new Map((comparison.issues ?? []).map(issue => [issue.id, issue.title]));
-  const tail = growthHeadline(growth);
-  const mark = problems.length > 0 || (counts.action > 0 && comparison.mode === 'block') ? '❌' : (counts.action > 0 || tail ? '⚠️' : '✅');
+  const tail = guard?.error ? ' · the baseline growth could not be judged' : growthHeadline(growth, guard?.judged);
+  // Red whenever the check run is red for the baseline: an own entry, or growth the guard could not judge.
+  const ownEntry = (guard?.judged ?? []).some(item => item.kind === 'own');
+  const red = problems.length > 0 || ownEntry || Boolean(guard?.error) || (counts.action > 0 && comparison.mode === 'block');
+  const mark = red ? '❌' : (counts.action > 0 || tail ? '⚠️' : '✅');
   const lines = [COMMENT_MARKER, `### ♿ A11y / axe: ${mark} ${text(headline(comparison))}${tail}`, ''];
 
   if (counts.action > 0) {
@@ -353,7 +375,7 @@ export function renderComment(comparison, { reportUrl, runUrl, checkUrl, growth 
       lines.push('', `…and ${rows.length - ROWS_SHOWN} more in the report.`);
     }
   }
-  lines.push(...renderGrowth(growth, titles, text));
+  lines.push(...renderGrowth(growth, titles, text, guard?.error ? undefined : guard));
   lines.push(...renderRuleChart(comparison, text));
 
   const footer = [
@@ -402,28 +424,30 @@ export async function baseCommit({ request, repoApi, checkedOut, payloadBase }) 
 
 /**
  * Reads the base commit's baseline through the contents API, raw, so a file of any size arrives
- * whole (the JSON shape cuts the content off above 1 MB).
+ * whole (the JSON shape cuts the content off above 1 MB). The baseline guard reads the base commit's
+ * page list the same way (`file`).
  *
  * @param {object} input The request.
  * @param {Function} input.request The REST client: `(url, {method, payload, raw})`, rejecting with
  * an error that carries `status` on an error status.
  * @param {string} input.repoApi The repository's API URL.
  * @param {string} [input.sha] The base commit.
+ * @param {string} [input.file] The file, from the repository root; the baseline by default.
  * @returns {Promise<{text: string}|{error: string}>} The file's text, or why there is none.
  */
-export async function readBaseBaseline({ request, repoApi, sha }) {
+export async function readBaseBaseline({ request, repoApi, sha, file = BASELINE_PATH }) {
   if (!sha) {
     return { error: 'no base commit was given (A11Y_BASE_SHA)' };
   }
 
   try {
-    return { text: await request(`${repoApi}/contents/${BASELINE_PATH}?ref=${encodeURIComponent(sha)}`, { raw: true }) };
+    return { text: await request(`${repoApi}/contents/${file}?ref=${encodeURIComponent(sha)}`, { raw: true }) };
   } catch (error) {
     if (error.status === 404) {
-      return { error: `the base commit ${sha.slice(0, 12)} has no ${BASELINE_PATH}` };
+      return { error: `the commit ${sha.slice(0, 12)} has no ${file}` };
     }
 
-    return { error: `reading the base commit's ${BASELINE_PATH} ${error.status ? `answered ${error.status}` : `failed (${error.message})`}` };
+    return { error: `reading ${file} at ${sha.slice(0, 12)} ${error.status ? `answered ${error.status}` : `failed (${error.message})`}` };
   }
 }
 

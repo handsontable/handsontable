@@ -179,6 +179,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: '下部の 固定された行',
   [C.FREEZE_BAR_COLUMNS_START]: '先頭の 固定された列',
   [C.FREEZE_BAR_COLUMNS_END]: '末尾の 固定された列',
+  [C.ARMED_PICK_STARTED]: '移動先をクリックまたはタップして完了します。キャンセルするには Esc キーを押します。',
+  [C.ARMED_PICK_CANCELED]: 'キャンセルしました。',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'レベル [level]、[setSize] 件中 [position] 件目',

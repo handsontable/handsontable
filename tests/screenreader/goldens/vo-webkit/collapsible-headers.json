@@ -3,18 +3,18 @@
   "scenario": "collapsible-headers",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-05T11:01:57.357Z"
+    "at": "2026-11-23T11:31:08.028Z"
   },
   "steps": {
     "arrow-up-to-lower-header": "",
     "arrow-up-to-group": "b expanded",
-    "enter-collapse": "b collapsed column 2 row 6",
+    "enter-collapse": "b collapsed column 2 row 6 collapsed column group b",
     "arrow-right-after-collapse": "f",
     "arrow-left-back": "b collapsed",
-    "enter-expand": "",
+    "enter-expand": "b expanded column 2 row 6 expanded column group b",
     "arrow-down-to-lower": "b menu pop up"
   }
 }
