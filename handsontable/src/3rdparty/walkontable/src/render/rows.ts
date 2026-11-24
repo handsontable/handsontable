@@ -93,8 +93,9 @@ export class RowsRenderer extends BaseRenderer {
   }
 
   /**
-   * Tells whether the number of column header rows changed since the last draw. The first draw, and a grid that
-   * writes no ARIA, answer `false`.
+   * Tells whether the number of column header rows changed since the last draw that painted rows. The first draw,
+   * a draw with no rows (the change waits for the draw that shows them), and a grid that writes no ARIA, answer
+   * `false`.
    *
    * @returns {boolean}
    */
@@ -102,6 +103,10 @@ export class RowsRenderer extends BaseRenderer {
     if (!this.table.isAriaEnabled()) {
       this.#lastColumnHeadersCount = null;
 
+      return false;
+    }
+
+    if (this.table.rowsToRender === 0) {
       return false;
     }
 

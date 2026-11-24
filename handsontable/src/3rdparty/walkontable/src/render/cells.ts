@@ -156,9 +156,9 @@ export class CellsRenderer extends BaseRenderer {
   }
 
   /**
-   * Tells whether the offsets that position the cells changed since the last draw: the number of row headers
-   * (`aria-colindex`) and of column headers (`aria-rowindex` of the rows). The first draw, and a grid that
-   * writes no ARIA, answer `false`.
+   * Tells whether the offsets that position the cells changed since the last draw that painted cells: the number of
+   * row headers (`aria-colindex`) and of column headers (`aria-rowindex` of the rows). The first draw, a draw with
+   * no cells (the change waits for the draw that shows them), and a grid that writes no ARIA, answer `false`.
    *
    * @param {boolean} ariaEnabled Whether the grid writes accessibility attributes.
    * @param {number} ariaColIndexOffset The offset of the cells' `aria-colindex`.
@@ -169,6 +169,10 @@ export class CellsRenderer extends BaseRenderer {
     if (!ariaEnabled) {
       this.#lastPositionOffsets = null;
 
+      return false;
+    }
+
+    if (this.table.rowsToRender === 0 || this.table.columnsToRender === 0) {
       return false;
     }
 

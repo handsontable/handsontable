@@ -7,6 +7,7 @@ interface Fixture {
   tbody: HTMLElement;
   state: {
     ariaEnabled: boolean;
+    rowsToRender: number;
     rowHeadersCount: number;
     columnHeadersCount: number;
     texts: Map<string, string>;
@@ -28,6 +29,7 @@ function createFixture(): Fixture {
   const tbody = document.createElement('tbody');
   const state = {
     ariaEnabled: true,
+    rowsToRender: 3,
     rowHeadersCount: 0,
     columnHeadersCount: 0,
     texts: new Map<string, string>(),
@@ -37,7 +39,9 @@ function createFixture(): Fixture {
   const cells = new CellsRenderer();
   const table = {
     rootDocument: document,
-    rowsToRender: 3,
+    get rowsToRender() {
+      return state.rowsToRender;
+    },
     columnsToRender: 2,
     rows,
     rowHeaders,
@@ -251,5 +255,41 @@ describe('RowsRenderer announcing a change of the column header count', () => {
     draw();
 
     expect(removals()).toBe(0);
+  });
+});
+
+describe('a header count change that waits for the draw that shows rows', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+  });
+
+  it('should rebuild the cells and the rows once the rows come back after a draw with none', () => {
+    const { tbody, draw, state, watchRoles } = createFixture();
+
+    document.body.append(tbody);
+    draw();
+
+    state.rowsToRender = 0;
+    state.columnHeadersCount = 1;
+    draw();
+
+    const take = watchRoles();
+    let rowRemovals = 0;
+    const nativeRemove = Element.prototype.removeAttribute;
+
+    jest.spyOn(Element.prototype, 'removeAttribute').mockImplementation(function(this: Element, name: string) {
+      if (name === 'role' && this.nodeName === 'TR') {
+        rowRemovals += 1;
+      }
+
+      nativeRemove.call(this, name);
+    });
+
+    state.rowsToRender = 3;
+    draw();
+
+    expect(take()).toHaveLength(6);
+    expect(rowRemovals).toBe(3);
   });
 });
