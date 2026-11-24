@@ -6457,8 +6457,11 @@ export default function Core(
           // the source itself on its normal path but not when it throws, and a source stuck at
           // `updateData` makes every later selection skip its scroll, its editor close and its
           // `prepareEditor()` for the rest of the instance's life (DEV-2831 review).
+          //
+          // The selection is laid again, not moved by the user, so an element outside the grid that holds the
+          // focus (an option of an example, a button) keeps it.
           try {
-            selection.refresh();
+            focusGridManager.keepForeignFocusWhile(() => selection.refresh());
           } finally {
             selection.markEndSource();
           }
@@ -6600,9 +6603,10 @@ export default function Core(
         grid.adjustRowsAndCols();
         selection.markSource('loadData');
 
-        // Paired, for the reason `updateData()` gives above.
+        // Paired, for the reason `updateData()` gives above. The selection is laid again, not moved by the
+        // user, so an element outside the grid that holds the focus keeps it.
         try {
-          selection.refresh();
+          focusGridManager.keepForeignFocusWhile(() => selection.refresh());
         } finally {
           selection.markEndSource();
         }

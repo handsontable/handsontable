@@ -341,3 +341,174 @@ describe('FocusGridManager deferred focus', () => {
     expect(grid.td.focus).not.toHaveBeenCalled();
   });
 });
+
+describe('FocusGridManager.keepForeignFocusWhile', () => {
+  /**
+   * Builds a grid whose highlighted cell is rendered and a focused input outside of it.
+   *
+   * @returns {object} The grid from `makeDeferredFocusGrid()` and the outside input.
+   */
+  function makeGridWithOutsideInput() {
+    const grid = makeDeferredFocusGrid();
+    const input = document.createElement('input');
+
+    grid.state.rendered = true;
+    document.body.appendChild(input);
+    input.focus();
+
+    return { grid, input };
+  }
+
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+  });
+
+  it('keeps the focus on an input outside the grid when the selection is laid again inside the scope', () => {
+    const { grid, input } = makeGridWithOutsideInput();
+    const blur = jest.spyOn(input, 'blur');
+
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.run('afterRender');
+
+    expect(document.activeElement).toBe(input);
+    expect(blur).not.toHaveBeenCalled();
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it('keeps the focus on a button outside the grid, which the suspension does not cover', () => {
+    const grid = makeDeferredFocusGrid();
+    const button = document.createElement('button');
+
+    grid.state.rendered = true;
+    document.body.appendChild(button);
+    button.focus();
+
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.run('afterRender');
+
+    expect(document.activeElement).toBe(button);
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it('moves the focus to the cell when the same change is made outside the scope', () => {
+    const { grid, input } = makeGridWithOutsideInput();
+
+    grid.run('afterSelection');
+    grid.run('afterRender');
+
+    expect(document.activeElement).not.toBe(input);
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('still focuses the cell inside the scope when nothing holds the focus', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.state.rendered = true;
+    (document.activeElement as HTMLElement | null)?.blur();
+
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.run('afterRender');
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('still focuses the cell inside the scope when the grid held the focus', () => {
+    const grid = makeDeferredFocusGrid();
+    const inside = document.createElement('input');
+
+    grid.state.rendered = true;
+    inside.dataset.hotInput = 'true';
+    document.querySelector('.handsontable')?.appendChild(inside);
+    inside.focus();
+
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.run('afterRender');
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets a later selection change made outside the scope take the focus', () => {
+    const { grid, input } = makeGridWithOutsideInput();
+
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.run('afterSelection');
+    grid.run('afterRender');
+
+    expect(document.activeElement).not.toBe(input);
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets an unscoped change that waits for the render keep its right to the focus', () => {
+    const { grid, input } = makeGridWithOutsideInput();
+
+    grid.run('afterSelection');
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.run('afterRender');
+
+    expect(document.activeElement).not.toBe(input);
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the foreign focus when every change that waits for the render is scoped', () => {
+    const { grid, input } = makeGridWithOutsideInput();
+
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelection'));
+    grid.run('afterRender');
+
+    expect(document.activeElement).toBe(input);
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it('applies to the nested scopes and ends with the outermost one', () => {
+    const { grid, input } = makeGridWithOutsideInput();
+
+    grid.manager.keepForeignFocusWhile(() => {
+      grid.manager.keepForeignFocusWhile(() => {});
+      grid.run('afterSelection');
+    });
+    grid.run('afterRender');
+
+    expect(document.activeElement).toBe(input);
+
+    grid.run('afterSelection');
+    grid.run('afterRender');
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends the scope when the action throws and returns what the action returns', () => {
+    const { grid, input } = makeGridWithOutsideInput();
+
+    expect(grid.manager.keepForeignFocusWhile(() => 42)).toBe(42);
+    expect(() => grid.manager.keepForeignFocusWhile(() => {
+      throw new Error('boom');
+    })).toThrow('boom');
+
+    grid.run('afterSelection');
+    grid.run('afterRender');
+
+    expect(document.activeElement).not.toBe(input);
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the editor input alone in the mixed focus mode while the focus is outside the grid', () => {
+    const grid = makeDeferredFocusGrid({ imeFastEdit: true });
+    const refocus = jest.spyOn(grid.manager, 'refocusToEditorTextarea').mockImplementation(() => {});
+    const input = document.createElement('input');
+
+    grid.state.rendered = true;
+    Object.defineProperty(grid.td, 'nodeName', { value: 'TD' });
+    document.body.appendChild(input);
+    input.focus();
+
+    grid.manager.keepForeignFocusWhile(() => grid.run('afterSelectionEnd'));
+
+    expect(refocus).not.toHaveBeenCalled();
+
+    grid.run('afterSelectionEnd');
+
+    expect(refocus).toHaveBeenCalledTimes(1);
+  });
+});
