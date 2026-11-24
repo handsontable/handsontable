@@ -72,6 +72,21 @@ test.describe('settings update with the focus outside the grid', { tag: CROSS_BR
     await expect.poll(() => grid.focusState()).toMatchObject({ option: true, inGrid: false });
   });
 
+  test('a column layout change with a filter condition set keeps the focus on a button outside the grid', async({ page, theme, bundle }) => {
+    const grid = new SettingsUpdateOutsideFocusPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.enableFilterWithCondition();
+    await grid.selectCell(1, 2);
+    await grid.action.focus();
+    await expect(grid.action).toBeFocused();
+
+    await grid.dropMiddleColumn();
+
+    await expect(grid.action).toBeFocused();
+    await expect.poll(() => grid.focusState()).toMatchObject({ action: true, inGrid: false });
+  });
+
   test('Space on the option checkbox updates the settings and leaves the focus on the checkbox', async({ page, theme, bundle }) => {
     const grid = new SettingsUpdateOutsideFocusPage(page, theme, bundle);
 

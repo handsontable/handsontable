@@ -95,6 +95,33 @@ export class SettingsUpdateOutsideFocusPage {
   }
 
   /**
+   * Turns the Filters plugin on over five explicit columns and keeps a condition on the first one, so a
+   * later change of the column layout has a condition set to clear.
+   */
+  async enableFilterWithCondition(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ filters: true, columns: [{}, {}, {}, {}, {}] });
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(0, 'neq', ['A2']);
+      filters.filter();
+    });
+  }
+
+  /**
+   * Sends the instance's own data with a `columns` option that drops the middle column, the way a wrapper does
+   * when a `<HotColumn>` is removed.
+   */
+  async dropMiddleColumn(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({
+        data: window.hot.getSourceData(),
+        columns: [{ data: 0 }, { data: 1 }, { data: 3 }, { data: 4 }],
+      });
+    });
+  }
+
+  /**
    * Which element holds the focus, and whether it is the highlighted cell.
    */
   async focusState(): Promise<SettingsUpdateFocusState> {

@@ -8133,7 +8133,8 @@ export default function Core(
         pendingColumnLayoutCheck = null;
       }
 
-      clearRowStateAfterDataUpdate();
+      // The filter that clears the conditions selects a cell again, which belongs to the same data update.
+      focusGridManager.keepForeignFocusWhile(() => clearRowStateAfterDataUpdate());
 
     } else if (settings.columns !== undefined) {
       datamap.createMap();
