@@ -44,7 +44,8 @@ export interface PluginRestoreContext {
   direction?: 'undo' | 'redo';
   /**
    * `true` when the restore replayed row or column insertions or removals first. The grid's live state
-   * is then numbered like the restored side, not like `other`, so the two cannot be compared.
+   * is then numbered like the restored side, not like `other`, so the two cannot be compared without
+   * `toRestoredIndex`.
    */
   reordered?: boolean;
   /**

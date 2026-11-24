@@ -191,19 +191,19 @@ function mapRecordedMerge(
 }
 
 /**
- * Tells whether two captured merges name the same physical cells, by their anchor rows and their columns.
+ * Returns a key for the physical cells a captured merge names (its anchor rows, its anchor column and its
+ * columns), so two merges with the same key name the same cells. A merge with no anchor or no recorded columns
+ * has none.
  *
- * @param {object} left One merge.
- * @param {object} right The other merge.
- * @returns {boolean}
+ * @param {object} entry The captured merge.
+ * @returns {string | null}
  */
-function isSameFootprint(left: MergeStateEntry, right: MergeStateEntry): boolean {
-  const leftColumns = left.physicalColumns;
-  const rightColumns = right.physicalColumns;
+function getFootprintKey(entry: MergeStateEntry): string | null {
+  if (entry.anchor === null || entry.physicalColumns === undefined) {
+    return null;
+  }
 
-  return left.anchor !== null && areAnchorsEqual(left.anchor, right.anchor) &&
-    leftColumns !== undefined && rightColumns !== undefined && leftColumns.length === rightColumns.length &&
-    leftColumns.every((column, index) => column === rightColumns[index]);
+  return `${entry.anchor.physicalRows.join(',')}|${entry.anchor.physicalColumn}|${entry.physicalColumns.join(',')}`;
 }
 
 /**
@@ -2127,13 +2127,16 @@ export class MergeCells extends BasePlugin {
     toRestoredIndex: NonNullable<PluginRestoreContext['toRestoredIndex']>,
   ) {
     const mapped = other.map(entry => mapRecordedMerge(entry, toRestoredIndex));
-    const left = mapped.filter(entry => !state.some(restoredEntry => isSameFootprint(entry, restoredEntry)));
+    const keysOf = (entries: readonly MergeStateEntry[]) => new Set(entries.map(getFootprintKey));
+    const restoredKeys = keysOf(state);
+    const left = mapped.filter(entry => getFootprintKey(entry) === null || !restoredKeys.has(getFootprintKey(entry)));
 
     if (left.length === 0) {
       return;
     }
 
-    const restored = state.filter(entry => !mapped.some(otherEntry => isSameFootprint(entry, otherEntry)));
+    const mappedKeys = keysOf(mapped);
+    const restored = state.filter(entry => getFootprintKey(entry) === null || !mappedKeys.has(getFootprintKey(entry)));
 
     this.#clearMergeKeysOfReleasedCells(
       this.#collectRecordedCoveredCells(left),

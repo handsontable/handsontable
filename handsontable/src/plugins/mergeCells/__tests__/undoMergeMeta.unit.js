@@ -339,6 +339,25 @@ describe('MergeCells cell meta after the undo of a merge', () => {
       expect(hot.getCopyableText(0, 0, 7, 7)).toBe(plainText());
     });
 
+    it.each([
+      ['a row', () => hot.alter('insert_row_above', 2)],
+      ['a column', () => hot.alter('insert_col_start', 2)],
+    ])('takes the keys off the cells after a merge and an insertion of %s inside it in one batch', (_, alter) => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
+
+      // The undo removes the inserted row or column, so part of the merge it recorded maps to nothing.
+      hot.batch(() => {
+        hot.getPlugin('mergeCells').merge(1, 1, 3, 3);
+        alter();
+      });
+      readMeta([0, 0, hot.countRows() - 1, hot.countCols() - 1]);
+      hot.getPlugin('undoRedo').undo();
+
+      expect(merges()).toEqual([]);
+      expect(storedMergeKeys(ALL_CELLS)).toEqual([]);
+      expect(hot.getCopyableText(0, 0, 7, 7)).toBe(plainText());
+    });
+
     it('keeps the cells clean through a redo and a second undo', () => {
       createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
 
