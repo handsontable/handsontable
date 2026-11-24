@@ -6,11 +6,11 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T11:33:00.001Z"
+    "at": "2026-11-24T11:27:33.707Z"
   },
   "steps": {
-    "arrow-right-pending": "name old aloading website cell busy table 4 columns",
-    "value-resolves": "",
+    "arrow-right-pending": "",
+    "value-resolves": "name new a",
     "arrow-down-pending": "name old bloading website cell busy",
     "request-fails": "price service unavailable",
     "arrow-up-resolved": "name new a",
