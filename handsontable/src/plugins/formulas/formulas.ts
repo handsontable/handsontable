@@ -9178,6 +9178,11 @@ export class Formulas extends BasePlugin {
    * `afterDetachChild` hook callback.
    * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
    *
+   * The engine rewrites the references of every row the detach moves, while `#nestedRowsDetachPending`
+   * keeps the source data on the old text. Once the guard is down, the engine's text is written back
+   * into the source data, inside the detach's operation: the undo journal then holds the write, and a
+   * resync or a redo that reloads the sheet from the source data reads the new text.
+   *
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
    * @param {number} finalElementRowIndex The final row index of the detached element.
@@ -9186,6 +9191,8 @@ export class Formulas extends BasePlugin {
                          finalElementRowIndex: number, source?: string) => {
     this.#markStructureChanged();
     this.#syncedContent = null;
+
+    let rowsWritten = false;
 
     try {
       if (isBlockedSource(source)) {
@@ -9222,6 +9229,8 @@ export class Formulas extends BasePlugin {
           });
         });
       });
+
+      rowsWritten = true;
     } finally {
       // Both flags are opened by this span – `#nestedRowsDetachPending` in `#onBeforeDetachChild`
       // and `#internalOperationPending` on the first line of the `try` – so both have to close
@@ -9230,6 +9239,10 @@ export class Formulas extends BasePlugin {
       // `beforeGetCellMeta` listener, or the engine itself.
       this.#internalOperationPending = false;
       this.#nestedRowsDetachPending = false;
+    }
+
+    if (rowsWritten) {
+      this.#syncFormulasToSourceData();
     }
   };
 }

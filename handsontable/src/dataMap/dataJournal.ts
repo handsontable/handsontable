@@ -147,7 +147,7 @@ export interface MetaJournalOp {
 /**
  * Cell meta rows inserted or removed without a row insertion or removal around them – by a plugin
  * that restructures the rows by hand (NestedRows), or through `spliceCellsMeta()`. The data does not
- * move with them.
+ * move with them, unless `movesData` says so.
  */
 export interface MetaRowsJournalOp {
   type: 'metaRows';
@@ -161,6 +161,12 @@ export interface MetaRowsJournalOp {
    * The removed rows' own key states, so an undo can put them back. Empty for an insertion.
    */
   metas: CellMetaKeyStateEntry[];
+  /**
+   * `true` when the data rows moved with the meta rows (a NestedRows detach takes the rows out of
+   * the tree and puts them back elsewhere). The cell writes recorded after the entry then address
+   * the moved rows, so a restore maps them through it like a row removal or insertion.
+   */
+  movesData?: boolean;
 }
 
 /**
@@ -297,8 +303,11 @@ export function recordCellChange(scope: OperationScope, delta: CellDelta, run?: 
  * @param {boolean} insert `true` for inserted meta rows, `false` for removed ones.
  * @param {number} physicalRow The first physical row of the shift.
  * @param {number} amount The number of meta rows.
+ * @param {boolean} [movesData] `true` when the data rows move with the meta rows.
  */
-export function recordMetaRowsShift(hot: HotInstance, insert: boolean, physicalRow: number, amount: number) {
+export function recordMetaRowsShift(
+  hot: HotInstance, insert: boolean, physicalRow: number, amount: number, movesData = false,
+) {
   const scope = hot._getOperationScope();
 
   if (scope.getRecordingTransaction() === null || amount <= 0) {
@@ -315,7 +324,9 @@ export function recordMetaRowsShift(hot: HotInstance, insert: boolean, physicalR
     }
   }
 
-  scope.record({ type: 'metaRows', insert, physicalRow, amount, metas });
+  scope.record(movesData ?
+    { type: 'metaRows', insert, physicalRow, amount, metas, movesData } :
+    { type: 'metaRows', insert, physicalRow, amount, metas });
 }
 
 /**

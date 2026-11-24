@@ -337,7 +337,10 @@ They are written in different places and can drift. Keep this in mind:
   would translate a second time. Qualify the class when you name the mover: `RowMoveController` has
   its own, unrelated `moveCellsMeta()` for the row-move path, and the two are not interchangeable —
   it *preserves* the moved rows' meta (snapshot through `getCellMetaAtRow()`, re-insert through
-  `spliceCellsMeta()`) where the `DataManager` one blanks it. That one is also the standing example
+  `spliceCellsMeta()`) where the `DataManager` one blanks it. The `DataManager` one journals its
+  removal and insertion with `movesData: true` (`recordMetaRowsShift()`), so UndoRedo maps the
+  detach's later cell writes through the move; keep that flag on a caller that moves data rows, and
+  off for a meta-only shift. The `RowMoveController` one is also the standing example
   of the double translation this rule forbids: it reads physical (`getCellMetaAtRow()`) and writes
   visual (`spliceCellsMeta()`) with the same indexes, so its meta lands on the wrong rows as soon as
   a collapsed or trimmed row makes visual and physical diverge. Do not copy it, and do not "fix" the

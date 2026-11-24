@@ -529,6 +529,20 @@ rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, inc
 by `trimRows`. A visual translation reported that row as `-1`, and `engine.removeRows()` threw in the middle
 of the detach (DEV-138).
 
+**A NestedRows detach writes the rewritten formulas back into the source data at its end.** The
+detach reaches the engine as a row removal and a row insertion, and the engine rewrites the references
+of every row that moves up. `#nestedRowsDetachPending` keeps `#syncFormulasToSourceData()` out of the
+span between the two (a `#REF!` there is transient), so `#onAfterDetachChild` runs the write-back once
+the guard is down, inside the detach's operation. Without it the source kept the old text: a redo, an
+`updateSettings({})` (every wrapper re-render) or any reload from the source then put `=A3*2` back on a
+row that now reads `A2`, and the values moved to other rows. The undo journal holds the write, and
+UndoRedo maps it through the detach's row move (`movesData` in `../undoRedo/AGENTS.md`, "Known gaps").
+Pinned by `__tests__/nestedRowsDetachUndo.unit.js` and `tests/e2e/formulas-nested-rows-detach-undo.spec.ts`.
+**Known limit:** the moved rows themselves are written into the engine from their source text, which
+still names the cells by their rows before the move, so a formula in the detached row reads another row
+after the detach (`=A3*10` in the child reads row 3, which now holds the next record). Fixing it means
+sending the detach to the engine as a `moveRows()` instead of a removal and an insertion.
+
 **`#onBeforeRemoveRow` relies on NestedRows expanding the removal list first.** NestedRows rewrites the
 `beforeRemoveRow` list by reference to cover the removed parent's whole subtree. It registers that listener
 with `orderIndex: -1`, so this plugin's listener (priority 260) sees the expanded list, and both the engine

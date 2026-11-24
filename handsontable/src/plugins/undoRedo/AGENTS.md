@@ -442,10 +442,15 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
 
 ## Known gaps
 
-- A multi-operation step on a NestedRows grid that MOVES rows (a detach, a row move) and edits cells
-  can put an edit on another row. The cell writes are mapped to the restored tree shape through the
-  step's `insertRows`/`removeRows` entries only; a move is journaled as `metaRows` entries, which
-  `spliceCellsMeta()` also records for a meta-only shift, so they cannot be read as data moves.
+- A multi-operation step on a NestedRows grid that MOVES rows with a row move and edits cells can
+  put an edit on another row. The cell writes are mapped to the restored tree shape through the
+  step's `insertRows`/`removeRows` entries and the `metaRows` entries marked `movesData`; the row
+  move journals plain `metaRows` entries, which `spliceCellsMeta()` also records for a meta-only
+  shift, so they cannot be read as data moves. A detach is mapped: `DataManager#moveCellsMeta()`
+  records its two entries with `movesData: true`, and `restoredCells.ts` reads such a pair as a row
+  removal and insertion, with a row inside the moved block mapped to the same offset on the other
+  side. The formula text Formulas writes back after a detach depends on it (pinned by
+  `__tests__/restoredCells.unit.ts` and `../formulas/__tests__/nestedRowsDetachUndo.unit.js`).
 - The value maps and the row and column order of a structural step are restored from its snapshot,
   so a size or an order set outside any step after the step (a `manualColumnResize` or
   `manualColumnMove` settings update) is lost on undo. Trims and hides are kept (step 4 of the
