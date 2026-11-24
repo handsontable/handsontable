@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { readClipboardText } from '../clipboard';
 import { awaitBundle } from '../bundle';
 
 /**
@@ -239,6 +240,6 @@ export class TwoGridsPage {
    * @returns {Promise<string>}
    */
   async clipboardText(): Promise<string> {
-    return this.page.evaluate(() => navigator.clipboard.readText());
+    return readClipboardText(this.page);
   }
 }

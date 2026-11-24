@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { readClipboardText } from '../clipboard';
 import { awaitBundle } from '../bundle';
 import './windowTypes';
 
@@ -69,6 +70,6 @@ export class FormulasShowFormulasPage {
 
   /** Read the page clipboard (requires the `clipboard-read` permission). */
   async clipboardText(): Promise<string> {
-    return this.page.evaluate(() => navigator.clipboard.readText());
+    return readClipboardText(this.page);
   }
 }

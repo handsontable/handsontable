@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { readClipboardText } from '../clipboard';
 
 /**
  * Page Object for the Handsontable demo fixture.
@@ -123,7 +124,7 @@ export class GridPage {
 
   /** Read the page clipboard (requires clipboard-read permission). */
   async clipboardText(): Promise<string> {
-    return this.page.evaluate(() => navigator.clipboard.readText());
+    return readClipboardText(this.page);
   }
 
   /**
