@@ -181,6 +181,18 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Vastgezette kolommen aan het einde',
   [C.ARMED_PICK_STARTED]: 'Klik of tik op het doel om te voltooien. Druk op Escape om te annuleren.',
   [C.ARMED_PICK_CANCELED]: 'Geannuleerd.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Kolombreedte wijzigen. Gebruik de pijltoetsen links en rechts om de breedte te wijzigen, ' +
+    'Enter om toe te passen, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Rijhoogte wijzigen. Gebruik de pijltoetsen omhoog en omlaag om de hoogte te wijzigen, Enter om toe te passen, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Grootte van het opmerkingenvak wijzigen. Gebruik de pijltoetsen om de grootte te wijzigen, Enter om toe te ' +
+    'passen, Escape om te annuleren.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Breedte: [size] pixels',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Hoogte: [size] pixels',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] van [setSize]',

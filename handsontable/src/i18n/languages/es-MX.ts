@@ -181,6 +181,17 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Columnas inmovilizadas al final',
   [C.ARMED_PICK_STARTED]: 'Haga clic o toque el destino para terminar. Presione Escape para cancelar.',
   [C.ARMED_PICK_CANCELED]: 'Cancelado.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Cambiar el ancho de la columna. Use las flechas izquierda y derecha para cambiar el ancho, Enter para aplicar, ' +
+    'Escape para cancelar.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Cambiar el alto de la fila. Use las flechas arriba y abajo para cambiar el alto, Enter para aplicar, ' +
+    'Escape para cancelar.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Cambiar el tamaño del cuadro de comentario. Use las flechas para cambiar el tamaño, Enter para aplicar, Escape ' +
+    'para cancelar.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Ancho: [size] píxeles',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Alto: [size] píxeles',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivel [level], [position] de [setSize]',

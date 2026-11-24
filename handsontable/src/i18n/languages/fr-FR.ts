@@ -175,6 +175,18 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Colonnes figées à la fin',
   [C.ARMED_PICK_STARTED]: 'Cliquez sur la cible ou touchez-la pour terminer. Appuyez sur Échap pour annuler.',
   [C.ARMED_PICK_CANCELED]: 'Annulé.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Redimensionnement de la colonne. Utilisez les flèches gauche et droite pour changer la largeur, Entrée pour ' +
+    'appliquer, Échap pour annuler.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Redimensionnement de la ligne. Utilisez les flèches haut et bas pour changer la hauteur, Entrée pour appliquer, ' +
+    'Échap pour annuler.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Redimensionnement de la zone de commentaire. Utilisez les flèches pour changer la taille, ' +
+    'Entrée pour appliquer, ' +
+    'Échap pour annuler.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Largeur : [size] pixels',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Hauteur : [size] pixels',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] sur [setSize]',

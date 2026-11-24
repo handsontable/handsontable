@@ -309,6 +309,7 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments/co
 | Windows                                                 | macOS                                                      | Action                                                                     |  Excel  | Sheets  |
 |---------------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------------------| :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>⌥</kbd>+<kbd>**M**</kbd> | Add or edit a comment                                                      | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd> | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**R**</kbd> | Resize the comment box with the arrow keys (<kbd>**Enter**</kbd> keeps the size, <kbd>**Escape**</kbd> cancels), while the comment has the focus | &cross; | &cross; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment                                          | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving                                    | &cross; | &cross; |
 | <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                         | Save and exit the current comment, move the selection to the next cell     | &cross; | &cross; |
@@ -388,6 +389,23 @@ These keyboard shortcuts work in the formula editor of the [`FormulaBuilder`](@/
 
 Point mode is on in a formula when a reference is valid at the caret, for example right after `=`, an operator, an argument separator, or an opening parenthesis.
 
+
+### Column and row resize keyboard shortcuts
+
+These keyboard shortcuts resize a column or a row without dragging. To activate them, enable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin, the [`ManualRowResize`](@/api/manualRowResize.md) plugin, or both.
+
+<kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd> starts the resize. The handle and the guide show the new size, and the arrow keys, <kbd>**Enter**</kbd>, and <kbd>**Escape**</kbd> work until you end the resize. Any other key cancels the resize and does what it normally does. The shortcut resizes the column of the selected cell or the focused column header. To resize a row, select the whole row or focus its row header first. When you select whole columns or rows, the resize applies to all of them.
+
+| Windows                                                                           | macOS                                                                     | Action                                                                                                      |  Excel  | Sheets  |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd>                           | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**R**</kbd>                                | Start resizing the column of the selected cell or header, or the selected row                               | &cross; | &cross; |
+| <kbd>**←**</kbd> / <kbd>**→**</kbd>                                               | <kbd>**←**</kbd> / <kbd>**→**</kbd>                                       | While you resize a column, change the width by 10 pixels                                                    | &cross; | &cross; |
+| <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                               | <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                       | While you resize a row, change the height by 10 pixels                                                      | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**arrow**</kbd>                                         | <kbd>⇧</kbd>+<kbd>**arrow**</kbd>                                         | Change the size by 1 pixel                                                                                  | &cross; | &cross; |
+| <kbd>**Enter**</kbd>                                                              | <kbd>**Enter**</kbd>                                                      | Keep the new size. The resize is one undo step, and the resize hooks run as they do after a drag.          | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                                             | <kbd>**Escape**</kbd>                                                     | Cancel the resize and keep the old size                                                                     | &cross; | &cross; |
+
+In a right-to-left layout, the horizontal arrows swap. A screen reader announces the size at each key press, in pixels.
 
 ### Freeze bar keyboard shortcuts
 

@@ -175,6 +175,17 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Fixierte Spalten am Ende',
   [C.ARMED_PICK_STARTED]: 'Klicken oder tippen Sie auf das Ziel, um abzuschliessen. Escape bricht ab.',
   [C.ARMED_PICK_CANCELED]: 'Abgebrochen.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Spaltenbreite ändern. Mit den Pfeiltasten nach links und rechts ändern Sie die Breite, Enter wendet sie an, ' +
+    'Escape bricht ab.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Zeilenhöhe ändern. Mit den Pfeiltasten nach oben und unten ändern Sie die Höhe, Enter wendet sie an, Escape ' +
+    'bricht ab.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Grösse des Kommentarfelds ändern. Mit den Pfeiltasten ändern Sie die Grösse, Enter wendet sie an, Escape bricht ' +
+    'ab.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Breite: [size] Pixel',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Höhe: [size] Pixel',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Zeile [label] aufgeklappt, angezeigte aufgeklappte Zeilen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zeile [label] zugeklappt',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Ebene [level], [position] von [setSize]',

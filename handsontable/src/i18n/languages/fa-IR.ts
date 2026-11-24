@@ -183,6 +183,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'ستون‌های ثابت در انتها',
   [C.ARMED_PICK_STARTED]: 'برای پایان، روی مقصد کلیک یا ضربه بزنید. برای لغو، کلید Escape را فشار دهید.',
   [C.ARMED_PICK_CANCELED]: 'لغو شد.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'تغییر عرض ستون. با کلیدهای جهت چپ و راست عرض را تغییر دهید، با Enter اعمال کنید و با Escape لغو کنید.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'تغییر ارتفاع ردیف. با کلیدهای جهت بالا و پایین ارتفاع را تغییر دهید، با Enter اعمال کنید و با Escape لغو کنید.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'تغییر اندازه کادر نظر. با کلیدهای جهت اندازه را تغییر دهید، با Enter اعمال کنید و با Escape لغو کنید.',
+  [C.MANUAL_RESIZE_WIDTH]: 'عرض: [size] پیکسل',
+  [C.MANUAL_RESIZE_HEIGHT]: 'ارتفاع: [size] پیکسل',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'سطح [level]، [position] از [setSize]',

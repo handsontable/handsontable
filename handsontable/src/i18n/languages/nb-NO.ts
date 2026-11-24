@@ -175,6 +175,18 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Frosne kolonner på slutten',
   [C.ARMED_PICK_STARTED]: 'Klikk eller trykk på målet for å fullføre. Trykk Escape for å avbryte.',
   [C.ARMED_PICK_CANCELED]: 'Avbrutt.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Endrer bredden på kolonnen. Bruk piltastene venstre og høyre for å endre bredden, Enter for å bruke den, Escape ' +
+    'for å avbryte.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Endrer høyden på raden. Bruk piltastene opp og ned for å endre høyden, Enter for å bruke den, Escape for å ' +
+    'avbryte.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Endrer størrelsen på kommentarfeltet. Bruk piltastene for å endre størrelsen, Enter for å bruke den, ' +
+    'Escape for å ' +
+    'avbryte.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Bredde: [size] piksler',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Høyde: [size] piksler',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivå [level], [position] av [setSize]',

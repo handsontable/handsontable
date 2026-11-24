@@ -176,6 +176,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Ukotvené sloupce na konci',
   [C.ARMED_PICK_STARTED]: 'Kliknutím nebo klepnutím na cíl akci dokončíte. Stisknutím klávesy Escape ji zrušíte.',
   [C.ARMED_PICK_CANCELED]: 'Zrušeno.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Změna šířky sloupce. Šířku měníte šipkami doleva a doprava, Enter ji použije, Escape ji zruší.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Změna výšky řádku. Výšku měníte šipkami nahoru a dolů, Enter ji použije, Escape ji zruší.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Změna velikosti pole komentáře. Velikost měníte šipkami, Enter ji použije, Escape ji zruší.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Šířka: [size] pixelů',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Výška: [size] pixelů',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Úroveň [level], [position] z [setSize]',
