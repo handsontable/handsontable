@@ -309,3 +309,16 @@ export function redescribeRenderedCell(
   partsOfCell.set(TD, parts);
   applyCellDescription(hot, TD, enabled);
 }
+
+/**
+ * Returns every cell element of a grid that points at its level description. A cell in a frozen corner is drawn
+ * in up to four tables, and a paint adds the description to each copy, so taking it away has to find them all.
+ *
+ * @param {CellDescriptionHost} hot The Handsontable instance.
+ * @returns {HTMLTableCellElement[]}
+ */
+export function findCellsWithLevelDescription(hot: CellDescriptionHost): HTMLTableCellElement[] {
+  return Array.from(hot.rootElement.querySelectorAll<HTMLTableCellElement>(
+    `td[${DESCRIBED_BY}*="${CELL_DESCRIPTION_ID_PREFIX}${hot.guid}-level"]`,
+  ));
+}

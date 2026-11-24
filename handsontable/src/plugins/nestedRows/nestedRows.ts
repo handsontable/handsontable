@@ -15,6 +15,7 @@ import { announce } from '../../utils/a11yAnnouncer';
 import {
   addCellDescriptionPart,
   CELL_DESCRIPTION_RANK,
+  findCellsWithLevelDescription,
   redescribeRenderedCell,
 } from '../../utils/cellDescription/cellDescription';
 import { isGridBodyCovered } from '../../shortcuts/guards';
@@ -1693,17 +1694,17 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Writes the level description onto the elements that show a cell now, or takes it off them. A
-   * selection change draws with a fast draw, which runs no cell renderer, so the description cannot wait
-   * for a paint: the render the selection makes right after this is the one the focus follows, and the
-   * description has to be on the cell before that. A cell that is not drawn yet is painted later with
-   * the description, by `#onAfterRenderer`. The master table and the overlay that holds the cell, when
-   * it has one, are two elements.
+   * Writes the level description onto the elements that show a cell now. A selection change draws with
+   * a fast draw, which runs no cell renderer, so the description cannot wait for a paint: the render the
+   * selection makes right after this is the one the focus follows, and the description has to be on the
+   * cell before that. A cell that is not drawn yet is painted later with the description, by
+   * `#onAfterRenderer`. The master table and the overlay that holds the cell, when it has one, are two
+   * elements. The copies a frozen corner adds sit under that overlay and are not the focus.
    *
    * @param {LevelCell} cell The cell, by its physical coordinates.
-   * @param {string|null} text The description, or `null` to take it off.
+   * @param {string} text The description.
    */
-  #writeLevelDescription(cell: LevelCell, text: string | null): void {
+  #writeLevelDescription(cell: LevelCell, text: string): void {
     const visualRow = this.hot.toVisualRow(cell.physicalRow);
     const visualColumn = this.hot.toVisualColumn(cell.physicalColumn);
 
@@ -1724,7 +1725,9 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Takes the level description off the cell it was given to.
+   * Takes the level description off the cell it was given to, on every copy of it. A paint adds the
+   * description to each copy a frozen corner draws (up to four tables), so the copies are found by the
+   * reference they hold and not by the coordinates of the cell.
    */
   #clearLevelDescription(): void {
     const cell = this.#levelCell;
@@ -1732,7 +1735,11 @@ export class NestedRows extends BasePlugin {
     this.#levelCell = null;
 
     if (cell !== null) {
-      this.#writeLevelDescription(cell, null);
+      findCellsWithLevelDescription(this.hot).forEach((TD) => {
+        redescribeRenderedCell(
+          this.hot, TD, CELL_DESCRIPTION_RANK.ROW_LEVEL, null, !!this.hot.getSettings().ariaTags,
+        );
+      });
     }
   }
 

@@ -292,6 +292,28 @@ test.describe('NestedRows level description', { tag: CROSS_BROWSER_TAG }, () => 
     expect(await nestedRows.forcedRenders()).toBe(0);
   });
 
+  test('a cell in a frozen corner loses the description on every copy it is drawn in',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto({ navigableHeaders: 'off' });
+      await page.evaluate(() => window.hot.updateSettings({ fixedRowsTop: 1, fixedColumnsStart: 1 }));
+      await page.evaluate(() => {
+        window.hot.selectCell(1, 0);
+        window.hot.listen();
+      });
+      await expect.poll(() => nestedRows.selectedCell()).toEqual([1, 0]);
+      await page.keyboard.press('ArrowUp');
+      await expect.poll(() => nestedRows.selectedCell()).toEqual([0, 0]);
+      // A full render paints the description onto every copy of the cell, as a data change or a scroll does.
+      await page.evaluate(() => window.hot.render());
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowDown');
+      await expect.poll(() => nestedRows.selectedCell()).toEqual([2, 0]);
+
+      await expect.poll(() => nestedRows.levelDescribedCells()).toEqual(['cell-2-0']);
+    });
+
   test('a toggle key that changes nothing leaves the description as it was', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 

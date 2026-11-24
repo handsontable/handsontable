@@ -4,6 +4,7 @@ import {
   addCellDescriptionPart,
   applyCellDescription,
   beginCellDescription,
+  findCellsWithLevelDescription,
   redescribeRenderedCell,
   removeCellDescriptionPart,
 } from '../cellDescription';
@@ -155,6 +156,27 @@ describe('cellDescription', () => {
       redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 1, 1 of 2', true);
 
       expect(descriptionsOf(hot, cell)).toEqual(['Level 1, 1 of 2']);
+    });
+
+    it('should be found on every copy of a cell a frozen corner draws, and on no other cell', () => {
+      const hot = createHot();
+      const copies = [createCell('1', 'ht_a-colheader-0'), createCell('1', 'ht_a-colheader-0')];
+      const other = createCell('2', 'ht_a-colheader-1');
+      const table = document.createElement('table');
+
+      [...copies, other].forEach((cell) => {
+        const row = document.createElement('tr');
+
+        row.appendChild(cell);
+        table.appendChild(row);
+      });
+      hot.rootElement.appendChild(table);
+      describe_(hot, other, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+      copies.forEach((cell) => {
+        redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 1, 1 of 2', true);
+      });
+
+      expect(findCellsWithLevelDescription(hot)).toEqual(copies);
     });
 
     it('should write nothing when the grid writes no ARIA', () => {

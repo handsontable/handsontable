@@ -247,6 +247,21 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * The test ids of every cell element that points at the level description, copies in the overlays
+   * included, sorted and without repeats. A cell in a frozen corner is drawn in four tables, and the
+   * level belongs on the cell the highlight is on only.
+   */
+  levelDescribedCells(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const root = window.hot.rootElement;
+      const ids = Array.from(root.querySelectorAll('td[aria-describedby*="-level"]'))
+        .map(td => td.getAttribute('data-testid') ?? '');
+
+      return Array.from(new Set(ids)).sort();
+    });
+  }
+
+  /**
    * Start recording the description each data cell has at the moment the browser focus lands on it. A
    * screen reader reads a description when the focus arrives, so a description added a moment later is
    * not read, which polling the cell afterwards cannot tell.
