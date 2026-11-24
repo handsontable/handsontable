@@ -138,6 +138,20 @@ export class FocusGridManager {
    */
   #isSuspended = false;
   /**
+   * How many `keepForeignFocusWhile()` calls are running. While it is above zero, a selection that is laid again
+   * does not take the browser focus from an element outside the grid.
+   *
+   * @type {number}
+   */
+  #keepForeignFocusDepth = 0;
+  /**
+   * Whether the selection change that is waiting for the next render happened inside `keepForeignFocusWhile()`.
+   * Written by every selection change, so a later change made outside the scope takes the focus as usual.
+   *
+   * @type {boolean}
+   */
+  #pendingKeepsForeignFocus = false;
+  /**
    * Plugin-owned elements outside the grid's root element that a press inside does not deselect
    * (see `registerOutsideClickExemptElement()`).
    *
@@ -356,6 +370,28 @@ export class FocusGridManager {
   }
 
   /**
+   * Runs `action`, and keeps the browser focus on an element outside the grid while it runs. A selection laid
+   * again by the action (a data update re-lays the selection it already holds) then does not move the focus into
+   * the grid, whatever the outside element is: an input, a button or a link. The grid takes the focus back only when
+   * it, or nothing, held it. `<body>` counts as nothing.
+   *
+   * Unlike `suspend()`, it leaves an outer suspension alone and protects any focused element, not only form fields.
+   *
+   * @since 19.0.0
+   * @param {Function} action The work that may lay the selection again.
+   * @returns {*} What `action` returns.
+   */
+  keepForeignFocusWhile<T>(action: () => T): T {
+    this.#keepForeignFocusDepth += 1;
+
+    try {
+      return action();
+    } finally {
+      this.#keepForeignFocusDepth -= 1;
+    }
+  }
+
+  /**
    * Get the element to be used when refocusing the browser after a delay in case of the focus mode being 'mixed'.
    *
    * @returns {HTMLTextAreaElement|HTMLElement|undefined}
@@ -570,14 +606,32 @@ export class FocusGridManager {
   }
 
   /**
+   * Gets the deepest focused element, or `null` when it is not an `HTMLElement`.
+   *
+   * @returns {HTMLElement | null}
+   */
+  #getActiveElement(): HTMLElement | null {
+    const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
+
+    return isHTMLElement(deepActiveElement) ? deepActiveElement : null;
+  }
+
+  /**
    * Manage the browser's focus after each cell selection change.
    *
    * @param {boolean} suspended Whether focus management was suspended when the selection changed.
+   * @param {boolean} keepsForeignFocus Whether the selection changed inside `keepForeignFocusWhile()`, so an element
+   * outside the grid keeps the focus it holds.
    */
-  #focusCell(suspended: boolean) {
+  #focusCell(suspended: boolean, keepsForeignFocus: boolean) {
     this.#getSelectedCell('focusCell', (selectedCell) => {
-      const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
-      const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
+      const activeElement = this.#getActiveElement();
+
+      // A selection laid again by a data update is not the user moving into the grid, so an element outside
+      // the grid that holds the focus keeps it (WCAG 3.2.2). Nothing is blurred and nothing is focused.
+      if (keepsForeignFocus && this.isForeignFocusTarget(activeElement)) {
+        return;
+      }
 
       // When focus management is suspended and an external focusable element (outside Handsontable)
       // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
@@ -614,12 +668,18 @@ export class FocusGridManager {
     // owns focus, fall through so the default `imeFastEdit` behavior still moves focus to the
     // editor textarea (existing per-editor IME support tests rely on this). See #10038.
     if (this.#isSuspended) {
-      const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
-      const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
+      const activeElement = this.#getActiveElement();
 
       if (activeElement && isOutsideInput(activeElement)) {
         return;
       }
+    }
+
+    // Same rule as `#focusCell()`: the debounced refocus of the editor input must not take the focus from an
+    // element outside the grid either.
+    // It reads the live scope, not a captured flag: `afterSelectionEnd` runs synchronously inside the scope.
+    if (this.#keepForeignFocusDepth > 0 && this.isForeignFocusTarget(this.#getActiveElement())) {
+      return;
     }
 
     this.#getSelectedCell('focusEditorElement', (selectedCell) => {
@@ -641,6 +701,11 @@ export class FocusGridManager {
       return;
     }
 
+    // With the render held back (`batch()`, `suspendRender()`), an earlier change made outside the scope is still
+    // waiting for it, and it keeps the right to take the focus: only a scoped change that follows nothing, or
+    // another scoped change, keeps the foreign focus.
+    this.#pendingKeepsForeignFocus = this.#keepForeignFocusDepth > 0 &&
+      (this.#pendingFocus === null || this.#pendingKeepsForeignFocus);
     this.#pendingFocus = this.#isSuspended;
 
     // Work waiting for another cell is stale now. A selection that stays on the same cell keeps it.
@@ -661,8 +726,11 @@ export class FocusGridManager {
       return;
     }
 
+    const keepsForeignFocus = this.#pendingKeepsForeignFocus;
+
     this.#pendingFocus = null;
-    this.#focusCell(suspended);
+    this.#pendingKeepsForeignFocus = false;
+    this.#focusCell(suspended, keepsForeignFocus);
   }
 
   /**

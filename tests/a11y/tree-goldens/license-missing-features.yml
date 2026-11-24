@@ -11,8 +11,8 @@
       - gridcell "Gamma"
       - gridcell "30"
   - rowgroup:
-    - row "Select whole grid Name Value":
-      - gridcell "Select whole grid"
+    - row "Name Value":
+      - gridcell
       - columnheader "Name"
       - columnheader "Value"
   - rowgroup
@@ -24,8 +24,8 @@
     - row "3":
       - rowheader "3"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
 - text: "The license key for Handsontable does not include these features: Filters. They are turned off. To add them, contact"
 - link "sales@handsontable.com":

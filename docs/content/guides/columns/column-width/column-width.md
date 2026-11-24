@@ -257,6 +257,13 @@ Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `t
 
 You can adjust the size of one or multiple columns simultaneously, even if the selected columns are not placed next to each other.
 
+To resize without dragging, use one of these ways:
+
+- Click the handle, then click the grid. The width becomes the distance from the start of the column to the point you click. The handle stays highlighted until you click. The click doesn't select the cell. Press <kbd>**Escape**</kbd>, click the handle again, or press outside the grid to cancel. On a touchscreen, tap the handle, then tap the grid.
+- Select a cell in the column, or focus its column header, and press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd>. The arrow keys change the width by 10 pixels, or by 1 pixel with <kbd>**Shift**</kbd>. <kbd>**Enter**</kbd> keeps the width and <kbd>**Escape**</kbd> cancels. For all the keys, see [Column and row resize keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-and-row-resize-keyboard-shortcuts).
+
+Both ways store the width in one undo step and run the [`beforeColumnResize`](@/api/hooks.md#beforecolumnresize) and [`afterColumnResize`](@/api/hooks.md#aftercolumnresize) hooks. A screen reader announces the width in pixels.
+
 ### Minimum column width
 
 When the column headers render the menu button (the grid shows column headers, with [`colHeaders`](@/api/options.md#colheaders) or [`nestedHeaders`](@/api/options.md#nestedheaders), and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled), a column can't get narrower than the button needs. The minimum width is the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`), so it depends on your [theme](@/guides/styling/themes/themes.md):

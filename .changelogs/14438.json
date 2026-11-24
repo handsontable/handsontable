@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the screen reader announcement of a sort on several columns leaving out the column's place in the sort.",
+  "type": "fixed",
+  "issueOrPR": 14438,
+  "breaking": false,
+  "framework": "none"
+}

@@ -196,6 +196,17 @@ export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
 export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
 export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
 
+export const ARMED_PICK_NAMESPACE = 'ArmedPick:';
+export const ARMED_PICK_STARTED = `${ARMED_PICK_NAMESPACE}started`;
+export const ARMED_PICK_CANCELED = `${ARMED_PICK_NAMESPACE}canceled`;
+
+export const MANUAL_RESIZE_NAMESPACE = 'ManualResize:';
+export const MANUAL_RESIZE_COLUMN_STARTED = `${MANUAL_RESIZE_NAMESPACE}columnStarted`;
+export const MANUAL_RESIZE_ROW_STARTED = `${MANUAL_RESIZE_NAMESPACE}rowStarted`;
+export const MANUAL_RESIZE_COMMENT_STARTED = `${MANUAL_RESIZE_NAMESPACE}commentStarted`;
+export const MANUAL_RESIZE_WIDTH = `${MANUAL_RESIZE_NAMESPACE}width`;
+export const MANUAL_RESIZE_HEIGHT = `${MANUAL_RESIZE_NAMESPACE}height`;
+
 export const CELL_DESCRIPTION_NAMESPACE = 'CellDescription:';
 export const CELL_DESCRIPTION_READ_ONLY = `${CELL_DESCRIPTION_NAMESPACE}readOnly`;
 export const CELL_DESCRIPTION_LINK = `${CELL_DESCRIPTION_NAMESPACE}link`;
@@ -219,6 +230,10 @@ export const COLUMN_SORTING_NAMESPACE = 'ColumnSorting:';
 export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.ascending`;
 export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.descending`;
 export const COLUMN_SORTING_ANNOUNCEMENT_REMOVED = `${COLUMN_SORTING_NAMESPACE}announcement.removed`;
+export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY =
+  `${COLUMN_SORTING_NAMESPACE}announcement.ascending.priority`;
+export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY =
+  `${COLUMN_SORTING_NAMESPACE}announcement.descending.priority`;
 
 export const SELECTION_NAMESPACE = 'Selection:';
 export const SELECTION_ANNOUNCEMENT_RANGE = `${SELECTION_NAMESPACE}announcement.range`;

@@ -182,6 +182,7 @@ starlight-toc {
 /* Right sidebar — match header height */
 .right-sidebar {
   padding-top: var(--sl-nav-height) !important;
+  scroll-padding-top: calc(var(--sl-nav-height) + 1.5rem);
 }
 
 @media (max-width: 71.99rem) {

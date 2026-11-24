@@ -128,7 +128,7 @@ The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differ
 
 For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8867).
 
-#### Before
+### Before
 
 - [`populateFromArray()`](@/api/core.md#populatefromarray) performed a separate [`spliceRow`](@/api/options.md#splicerow) action for each populated row, and a separate `spliceColumn` action for each populated column.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks trigger multiple times, separately for each populated row and column.
@@ -162,7 +162,7 @@ new Handsontable(element, {
 
 :::
 
-#### Now
+### Now
 
 - [`populateFromArray()`](@/api/core.md#populatefromarray) populates rows and columns with one large operation.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered only once, for all populated rows and columns.

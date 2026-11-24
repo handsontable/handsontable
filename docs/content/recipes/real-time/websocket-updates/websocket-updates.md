@@ -20,6 +20,7 @@ vue:
 searchCategory: Recipes
 category: Real-time & Integrations
 type: how-to
+menuTag: updated
 ---
 
 In this tutorial, you will connect Handsontable DataGrid to a WebSocket and update individual cells in real time. You will learn how to use `setDataAtCell` to apply streaming updates without re-rendering the entire grid.

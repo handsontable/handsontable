@@ -202,6 +202,12 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   compares states by identity to decide what a step changed; a fresh equal object makes every step look
   like it changed the plugin, and the restore then re-applies it on every undo.
 - **`restoreState()` must be hook-silent for what it re-applies** - the hooks fired when the user acted.
+- **`restoreState()` runs after the journal replay, so a cleanup there cannot key on meta the journal also
+  writes.** A key the plugin stored through `setCellMeta()` is already back to its value before the step when
+  `restoreState()` runs; a key a hook wrote straight onto the stored meta is in no journal and still there.
+  MergeCells gated its undo cleanup on its own `hidden`/`spanned` marks, which the journal had already removed,
+  and left `rowspan`, `colspan` and `copyable: false` on the cells of an undone merge. Key such a cleanup on the
+  recorded state (`context.other`) instead.
 - **Derived index maps are never captured** (`autoRowSize`, `autoColumnSize`, `stretchColumns`, the
   NestedHeaders widths, `Pagination`, `AsyncValues`, `*.columnMeta` - `DERIVED_INDEX_MAP_NAMES`). They are rebuilt
   from the rest. `AsyncValues` is there because it holds in-flight requests, which an undo must not bring back. Pagination is there because it recomputes its page map on every index cache update:

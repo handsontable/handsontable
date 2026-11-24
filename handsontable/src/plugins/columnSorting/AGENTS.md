@@ -643,6 +643,14 @@ only place that announces.
   DataProvider plugin does) is announced, before its rows arrive, and stays announced if the fetch fails. Pinned by
   "server-side beforeColumnSort" in the test below. With MultiColumnSorting it names the column the user pressed,
   not the whole queue; naming the queue needs more phrases per language.
+- **While more than one column is sorted, the message says the pressed column's place in the sort (DEV-4013).**
+  The header draws that number as CSS content, so a reader that does not read the header again after the gesture
+  (NVDA and VoiceOver with Chromium) never said it. `#announceSortOrder()` then takes the `..._PRIORITY` phrases
+  (`Sorted by Age, ascending, sort priority 2`) with `[order]` from `getIndexOfColumnInSortQueue() + 1`, the same
+  source as the header's `sort-<n>` class, so the two cannot disagree. A Ctrl+click or `Shift+Enter` on a column
+  that is already sorted moves it to the END of the sort (`getNextSortConfig()`, append strategy), so its number
+  changes with its direction: the message is right to say `2` there. One sorted column keeps the old phrases, and
+  so does a removal. A custom language pack without the two phrases gets the English ones for these messages.
 - **A language pack without the phrases falls back to English**, like every other phrase, so a custom pack is never
   silent.
 - **The column is named by the rendered header text** (`.colHeader` `textContent`, `<br>` read as a space), which is
@@ -650,7 +658,7 @@ only place that announces.
   involved. A header that is not rendered (virtualized out) is read from `getColHeader()` and reduced the same way
   (`htmlToPlainText()`, `<br>` as a space), and an empty label is named by its spreadsheet letter. Pinned by "not rendered" in the test below.
 - **It is gated on `ariaTags`**, like `aria-sort`, and it is `polite`: `assertive` is for errors.
-- The phrases are `COLUMN_SORTING_ANNOUNCEMENT_*` in `i18n/constants.ts`, in all 22 language files. A new
+- The phrases are `COLUMN_SORTING_ANNOUNCEMENT_*` in `i18n/constants.ts`, in all 22 language files (the two `..._PRIORITY` phrases included). A new
   gesture that sorts goes through `sortByUser()`, or it is silent to a screen reader.
 
 Pinned by `__tests__/a11y/sortAnnouncement.unit.js` (both plugins) and `tests/e2e/column-sorting-announcement.spec.ts`.

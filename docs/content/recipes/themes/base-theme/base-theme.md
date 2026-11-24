@@ -22,7 +22,6 @@ angular:
 vue:
 searchCategory: Recipes
 category: Themes
-menuTag: updated
 ---
 
 This tutorial shows you how to integrate Handsontable DataGrid into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.

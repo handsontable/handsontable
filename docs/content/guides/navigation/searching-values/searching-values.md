@@ -17,6 +17,7 @@ vue:
   metaTitle: Searching values | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Enable the [`Search`](@/api/search.md) plugin in Handsontable DataGrid and call [`query()`](@/api/search.md#query) on each keystroke to highlight matching cells across the grid.
 

@@ -37,6 +37,8 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 ## Examples
 
+Each example has its license key line commented out, and a grid without a valid key opens locked. Uncomment the line and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+
 <div class="boxes-list gray">
 
 - [Angular](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version={{$currentVersion}})

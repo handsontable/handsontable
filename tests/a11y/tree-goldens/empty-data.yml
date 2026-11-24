@@ -2,8 +2,8 @@
 - treegrid:
   - rowgroup
   - rowgroup:
-    - row "Select whole grid Company name Country Name Sell date Order ID In stock Qty":
-      - gridcell "Select whole grid"
+    - row "Company name Country Name Sell date Order ID In stock Qty":
+      - gridcell
       - columnheader "Company name"
       - columnheader "Country"
       - columnheader "Name"
@@ -14,8 +14,8 @@
   - rowgroup
   - rowgroup
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
 - group "No data available There’s nothing to display yet.":
   - heading "No data available" [level=2]
