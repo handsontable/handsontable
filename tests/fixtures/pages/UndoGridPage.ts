@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { readClipboardText } from '../clipboard';
 import type { CellValue, FixtureSortConfig } from './windowTypes';
 import { dragFillHandle, dragResizeHandle } from '../gestures';
 import { awaitBundle } from '../bundle';
@@ -716,6 +717,24 @@ export class UndoGridPage {
    */
   async undoWithKeyboard(): Promise<void> {
     await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /**
+   * Select a range through the API, then copy it with the keyboard shortcut: `Cmd`+`C` on macOS,
+   * `Ctrl`+`C` elsewhere.
+   */
+  async copyWithKeyboard(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate((cellRange) => {
+      window.hot.selectCells([cellRange]);
+    }, range);
+    await this.page.keyboard.press('ControlOrMeta+c');
+  }
+
+  /**
+   * The text on the browser clipboard (needs the `clipboard-read` permission).
+   */
+  async clipboardText(): Promise<string> {
+    return readClipboardText(this.page);
   }
 
   /**
