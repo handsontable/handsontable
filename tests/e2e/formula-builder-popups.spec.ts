@@ -198,6 +198,78 @@ test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BU
   });
 });
 
+// The error popup follows the error of the cell it points at. A commit that keeps the focus on the
+// cell gives the focus back before the render clears the mark, so only the mark tells the popup.
+// Engines: real keys and focus.
+test.describe('formulaBuilder error popup follows the cell error', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle);
+    await grid.goto();
+    await grid.updateGridSettings({ enterMoves: { row: 0, col: 0 } });
+    await grid.setDataAt(3, 2, '=1/0');
+    await grid.expectCell(3, 2, '#DIV/0!');
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.press('ArrowRight');
+    await expect(grid.cell(3, 2)).toBeFocused();
+    await expect(grid.errorPopup).toContainText('#DIV/0!');
+  });
+
+  test('clearing the error cell in its editor closes the popup', async({ page }) => {
+    await page.keyboard.press('Enter');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.editorInput).toHaveValue('=1/0');
+
+    for (let i = 0; i < 4; i++) {
+      await page.keyboard.press('Backspace');
+    }
+
+    await expect(grid.editorInput).toHaveValue('');
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    await expect(grid.cell(3, 2)).toBeFocused();
+    await expect(grid.cell(3, 2)).not.toHaveAttribute('data-hfe-error', /.*/);
+    await expect(grid.errorPopup).toBeHidden();
+  });
+
+  test('replacing the error with a valid formula in its editor closes the popup', async({ page }) => {
+    await page.keyboard.press('Enter');
+    await expect(grid.editorInput).toBeFocused();
+
+    for (let i = 0; i < 4; i++) {
+      await page.keyboard.press('Backspace');
+    }
+
+    await page.keyboard.type('=2+2');
+    await expect(grid.editorInput).toHaveValue('=2+2');
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    await grid.expectCell(3, 2, '4');
+    await expect(grid.cell(3, 2)).toBeFocused();
+    await expect(grid.errorPopup).toBeHidden();
+  });
+
+  test('a value written into the focused error cell closes the popup, and a new error opens it again', async() => {
+    await grid.setDataAt(3, 2, 5);
+    await grid.expectCell(3, 2, '5');
+    await expect(grid.errorPopup).toBeHidden();
+
+    await grid.setDataAt(3, 2, '=FOO(1)');
+    await grid.expectCell(3, 2, '#NAME?');
+    await expect(grid.errorPopup).toContainText('#NAME?');
+  });
+
+  test('another error written into the focused cell replaces the popup message', async() => {
+    await grid.setDataAt(3, 2, '=FOO(1)');
+    await grid.expectCell(3, 2, '#NAME?');
+    await expect(grid.errorPopup).toContainText('#NAME?');
+    await expect(grid.errorPopup).not.toContainText('#DIV/0!');
+  });
+});
+
 /**
  * The color an element paints for a property, beside the color the design value resolves to in the same
  * place: a probe inside the element, where the theme class and its color scheme apply. The popups
