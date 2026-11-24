@@ -139,7 +139,6 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean, root?: boolean
     destroyed: false,
     requested: [] as Array<[number, number]>,
     replacement: null as HTMLElement | null,
-    coords: null as { row: number, col: number } | null,
   };
 
   root.className = 'handsontable';
@@ -165,7 +164,6 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean, root?: boolean
       return state.highlight ? { highlight: state.highlight } : undefined;
     },
     getActiveEditor: () => undefined,
-    getCoords: (element: HTMLElement) => (element === td ? (state.coords ?? state.highlight) : null),
     getCell: (row: number, col: number) => {
       state.requested.push([row, col]);
 
@@ -489,6 +487,7 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
      */
     function focusAndRecord(grid: ReturnType<typeof makeDeferredFocusGrid>) {
       grid.td.setAttribute('role', 'gridcell');
+      grid.td.className = 'current';
       grid.td.tabIndex = -1;
       grid.td.textContent = 'before';
       grid.state.rendered = true;
@@ -537,9 +536,9 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
     it('builds it for the element the grid drew the selected cell into, which a jump to a new row does', () => {
       const grid = makeDeferredFocusGrid();
 
-      grid.state.coords = { row: 3, col: 0 };
+      grid.state.highlight = { row: 3, col: 0 };
       focusAndRecord(grid);
-      grid.state.coords = { row: 50, col: 0 };
+      grid.state.highlight = { row: 50, col: 0 };
 
       const log = logRoleAndFocus(grid.td);
 
@@ -553,7 +552,7 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
 
       focusAndRecord(grid);
       grid.td.textContent = 'another row';
-      grid.state.coords = { row: 10, col: 0 };
+      grid.td.classList.remove('current');
 
       const log = logRoleAndFocus(grid.td);
 

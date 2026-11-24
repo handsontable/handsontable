@@ -2152,15 +2152,17 @@ values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
   Those grids still record the cell, so a checkbox toggled in a menu list is read again.
 - **The focused cell or header changes in place, or the grid draws the selected cell into it**
   (`FocusGridManager#announceChangeInPlace`, `focusManager/grid.ts`, on `afterRender`): when the element that holds
-  the focus shows the selected cell, `hasCellChangedSinceAnnounced()` compares it with the record. The record holds
+  the focus shows the selected cell (it carries the selection's `current` class), `hasCellChangedSinceAnnounced()`
+  compares it with the record. The record holds
   what the cell showed and where it was (`readCellAnnouncementSignature()`: markup, form control state, `aria-*`
   attributes) when it took the focus, not what it showed before this draw, because the browser can change the
   state before the draw (a checkbox flipped by Space). A different signature, row or column rebuilds it. The
   selection check is what keeps a scroll quiet: a wheel scroll with the selection fixed recycles the focused
   element for rows the user is not on, and the old paint-time check rebuilt it for each of them. A jump to a row the
   grid renders only then (`Ctrl+ArrowDown`) draws the selected cell into the element that keeps the focus, so the
-  row in the record is what tells it from a repeated paint, and the readers read the cell as a move. Only the one
-  focused element is looked at, so a draw pays one `getCoords()`. An element whose markup changes on every paint (a
+  row in the record is what tells it from a repeated paint, and the readers read the cell as a move. The coordinates are the
+  selection's highlight, never `getCoords()`: looking an element up fires the public `modifyGetCoordsElement` hook,
+  which a legacy spec counts. Only the one focused element is looked at. An element whose markup changes on every paint (a
   generated id, an animated bar) reads as changed on every draw, so such a cell is read again each time.
 - **The offsets that position the cells change** (`#hasPositionOffsetChanged` in `render/cells.ts`, and the same
   question for the column header count in `render/rows.ts`): when the number of row headers or column headers

@@ -13,6 +13,12 @@ import { debounce } from '../helpers/function';
 import { isRootInstance } from '../utils/rootInstance';
 
 /**
+ * The class the selection puts on the cell that holds the focus highlight, after the draw that shows it. A focused
+ * element without it shows another cell than the selected one (the grid recycled it).
+ */
+const FOCUS_HIGHLIGHT_CLASS_NAME = 'current';
+
+/**
  * Possible focus modes.
  * - CELL - The browser's focus stays on the lastly selected cell element.
  * - MIXED - The browser's focus switches from the lastly selected cell element to the currently active editor's
@@ -412,7 +418,7 @@ export class FocusGridManager {
       return;
     }
 
-    const coords = this.#readCoords(elementToBeFocused);
+    const coords = this.#readHighlight();
 
     if (coords === null) {
       return;
@@ -434,17 +440,16 @@ export class FocusGridManager {
   }
 
   /**
-   * Reads where an element sits in the grid.
+   * Reads the cell the selection highlights, which is the cell that gets the browser focus. It asks the selection
+   * and not the element, because looking an element up fires the public `modifyGetCoordsElement` hook.
    *
-   * @param {HTMLElement} element The cell or header.
-   * @returns {{ row: number, col: number } | null} The visual coordinates, `null` for an element that is not
-   * rendered in the grid or has no row or column.
+   * @returns {{ row: number, col: number } | null} The visual coordinates, `null` without a selection.
    */
-  #readCoords(element: HTMLElement): { row: number, col: number } | null {
-    const coords = this.#hot.getCoords(element);
+  #readHighlight(): { row: number, col: number } | null {
+    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
 
-    return coords !== null && coords.row !== null && coords.col !== null
-      ? { row: coords.row, col: coords.col }
+    return highlight && highlight.row !== null && highlight.col !== null
+      ? { row: highlight.row, col: highlight.col }
       : null;
   }
 
@@ -452,8 +457,9 @@ export class FocusGridManager {
    * Makes a screen reader read the focused cell or header again when what it shows changed in place, or when the
    * grid drew another cell into the element that holds the focus (a jump to a row that is rendered only then).
    * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
-   * hears nothing or a name that changed. It only counts when the element shows the selected cell: a scroll
-   * that recycles the focused element for a cell the user is not on says nothing.
+   * hears nothing or a name that changed. It only counts when the element shows the selected cell (it carries the
+   * selection's `current` class): a scroll that recycles the focused element for a cell the user is not on says
+   * nothing.
    */
   #announceChangeInPlace(): void {
     const activeElement = getDeepActiveElement(this.#hot.rootDocument);
@@ -461,19 +467,15 @@ export class FocusGridManager {
     if (
       !isHTMLElement(activeElement) ||
       (activeElement.nodeName !== 'TD' && activeElement.nodeName !== 'TH') ||
-      !this.#hot.rootElement.contains(activeElement)
+      !this.#hot.rootElement.contains(activeElement) ||
+      !activeElement.classList.contains(FOCUS_HIGHLIGHT_CLASS_NAME)
     ) {
       return;
     }
 
-    const coords = this.#readCoords(activeElement);
-    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
+    const coords = this.#readHighlight();
 
-    if (coords === null || !highlight || coords.row !== highlight.row || coords.col !== highlight.col) {
-      return;
-    }
-
-    if (hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col)) {
+    if (coords !== null && hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col)) {
       rebuildAccessibilityObject(activeElement);
     }
   }
