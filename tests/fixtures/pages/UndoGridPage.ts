@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { readClipboardText } from '../clipboard';
 import type { CellValue, FixtureSortConfig } from './windowTypes';
 import { dragFillHandle, dragResizeHandle, pointerLeavesBody } from '../gestures';
 import { awaitBundle } from '../bundle';
@@ -730,7 +731,7 @@ export class UndoGridPage {
    * The text on the browser clipboard (needs the `clipboard-read` permission).
    */
   async clipboardText(): Promise<string> {
-    return this.page.evaluate(() => navigator.clipboard.readText());
+    return readClipboardText(this.page);
   }
 
   /**
