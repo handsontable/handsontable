@@ -1,5 +1,4 @@
 import {
-  getDeepActiveElement,
   hasClass,
   removeInlineStyle,
 } from '../../../../helpers/dom/element';
@@ -11,7 +10,6 @@ import {
   A11Y_DESCRIBED_BY,
   A11Y_GRIDCELL,
   A11Y_TABINDEX,
-  hasCellChangedSinceAnnounced,
   rebuildAccessibilityObject
 } from '../../../../helpers/a11y';
 import {
@@ -218,11 +216,6 @@ export class CellsRenderer extends BaseRenderer {
     // A reader keeps the position it learned for a cell. When the headers that shift every cell's position
     // appear or go, each painted cell gets a new accessibility object, once, so the reader counts again.
     const rebuildAllCells = this.#hasPositionOffsetChanged(ariaEnabled, ariaColIndexOffset, hasColumnHeaders);
-    // The element that holds the focus, resolved once per draw. A reader reads the focused cell again only when
-    // its accessibility object is replaced, which a repaint with the same attributes does not do.
-    const focusedElement = ariaEnabled && this.table.rootDocument.hasFocus()
-      ? getDeepActiveElement(this.table.rootDocument)
-      : null;
 
     for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -286,12 +279,7 @@ export class CellsRenderer extends BaseRenderer {
         if (ariaEnabled) {
           restoreCellAriaAttributes(TD, ariaColIndex, columnHeaderId);
 
-          // Only the one cell that holds the focus is read. It is compared with what the reader knows of it, which
-          // is what it showed when it took the focus, so a change made before the paint (a click on a checkbox)
-          // counts too.
-          const hasChangedInPlace = TD === focusedElement && hasCellChangedSinceAnnounced(TD);
-
-          if (rebuildAllCells || hasChangedInPlace) {
+          if (rebuildAllCells) {
             rebuildAccessibilityObject(TD);
           }
         }

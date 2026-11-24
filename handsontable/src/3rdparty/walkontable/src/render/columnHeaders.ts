@@ -1,6 +1,5 @@
 import {
   addClass,
-  getDeepActiveElement,
   hasClass,
   removeClass,
   removeInlineStyle,
@@ -15,8 +14,6 @@ import {
   A11Y_LABEL,
   A11Y_SCOPE_COL,
   A11Y_TABINDEX,
-  hasCellChangedSinceAnnounced,
-  rebuildAccessibilityObject,
 } from '../../../../helpers/a11y';
 import {
   clearStaleAriaAttributes,
@@ -168,9 +165,6 @@ export class ColumnHeadersRenderer extends BaseRenderer {
     // and the frozen-column count the ownership check needs (a mapper-walking function in core).
     const ariaEnabled = this.table.isAriaEnabled();
     const columnHeaderIdPrefix = ariaEnabled ? this.table.getAriaColumnHeaderIdPrefix() : '';
-    const focusedElement = ariaEnabled && this.table.rootDocument.hasFocus()
-      ? getDeepActiveElement(this.table.rootDocument)
-      : null;
     const fixedColumnsStart = columnHeaderIdPrefix ? this.table.getFixedColumnsStart() : 0;
     const firstFixedEndColumn = columnHeaderIdPrefix ? this.table.getFirstFixedEndColumn() : Infinity;
 
@@ -226,12 +220,6 @@ export class ColumnHeadersRenderer extends BaseRenderer {
         }
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
-
-        // A header the user holds the focus on (a "select all" checkbox in it) is read again when it changes in
-        // place, as a data cell is (see `render/cells.ts`).
-        if (TH === focusedElement && hasCellChangedSinceAnnounced(TH)) {
-          rebuildAccessibilityObject(TH);
-        }
 
         // The LAST of this row's `rowHeadersCount` corner cells: it owns the head row's copy of the
         // seam to column 0, which the theme rule colors. CSS cannot pick it out - a corner is a `th`

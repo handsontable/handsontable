@@ -2150,16 +2150,18 @@ values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
   editors build are grids of their own, a reader reaches their options through the editor that keeps the focus,
   and a rebuilt option lost the speech of the list (autocomplete and dropdown arrow keys, the intl date editor).
   Those grids still record the cell, so a checkbox toggled in a menu list is read again.
-- **The focused cell or header changes in place** (`render/cells.ts`, `render/columnHeaders.ts`): after the paint, `hasCellChangedSinceAnnounced()`
-  compares the one focused element with that record. `readCellAnnouncementSignature()` reads its markup, form
-  control state (`checked` and `value` are properties, not markup) and `aria-*` attributes, and a difference
-  rebuilds it. The record is what the cell showed when it took the focus, not what it showed before this paint,
-  because the browser can change the state before the draw (a checkbox flipped by Space or a click). Only the
-  one focused element is read, so a draw pays one read. Three limits. An element the grid recycles for another
-  column or row is not the cell the user is on and is not rebuilt (the `aria-colindex` and the row's
-  `aria-rowindex` in the record): a jump to a row the grid renders only then, or a scroll with the selection
-  fixed, recycles the focused element, and the focus move that follows announces the real cell. A renderer whose markup changes on every paint (a generated id, an animated bar) makes the
-  focused cell read as changed on every draw, so such a cell is read again each time.
+- **The focused cell or header changes in place, or the grid draws the selected cell into it**
+  (`FocusGridManager#announceChangeInPlace`, `focusManager/grid.ts`, on `afterRender`): when the element that holds
+  the focus shows the selected cell, `hasCellChangedSinceAnnounced()` compares it with the record. The record holds
+  what the cell showed and where it was (`readCellAnnouncementSignature()`: markup, form control state, `aria-*`
+  attributes) when it took the focus, not what it showed before this draw, because the browser can change the
+  state before the draw (a checkbox flipped by Space). A different signature, row or column rebuilds it. The
+  selection check is what keeps a scroll quiet: a wheel scroll with the selection fixed recycles the focused
+  element for rows the user is not on, and the old paint-time check rebuilt it for each of them. A jump to a row the
+  grid renders only then (`Ctrl+ArrowDown`) draws the selected cell into the element that keeps the focus, so the
+  row in the record is what tells it from a repeated paint, and the readers read the cell as a move. Only the one
+  focused element is looked at, so a draw pays one `getCoords()`. An element whose markup changes on every paint (a
+  generated id, an animated bar) reads as changed on every draw, so such a cell is read again each time.
 - **The offsets that position the cells change** (`#hasPositionOffsetChanged`): when the number of row headers
   or column headers changes, every painted cell is rebuilt once, so a reader that learned the old positions
   counts again (NVDA with Firefox read the first rows of a grid that got column headers one row too low). A grid
@@ -2170,7 +2172,7 @@ NVDA or VoiceOver with Chromium, which were silent on these steps before DEV-410
 The readers' speech is not testable in Chromium: the specs pin the mechanism (a `MutationObserver` on `role`), and
 the `Screen reader nightly` lanes (`vo-webkit`, `nvda-firefox`) show whether the reader says it.
 
-Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `test/unit/renderer/cellsAnnounce.unit.ts`, `helpers/__tests__/a11y.unit.ts`,
+Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `test/unit/renderer/cellsAnnounce.unit.ts` (the header counts), `helpers/__tests__/a11y.unit.ts`,
 `focusManager/__tests__/grid.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
 from the same attributes on a new and a recycled element, a redraw plus a vertical scroll write no

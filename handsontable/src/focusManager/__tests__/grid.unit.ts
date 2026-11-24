@@ -139,10 +139,12 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean, root?: boolean
     destroyed: false,
     requested: [] as Array<[number, number]>,
     replacement: null as HTMLElement | null,
+    coords: null as { row: number, col: number } | null,
   };
 
   root.className = 'handsontable';
-  document.body.append(root, td);
+  document.body.append(root);
+  root.append(td);
   jest.spyOn(td, 'focus');
 
   const hot = {
@@ -163,6 +165,7 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean, root?: boolean
       return state.highlight ? { highlight: state.highlight } : undefined;
     },
     getActiveEditor: () => undefined,
+    getCoords: (element: HTMLElement) => (element === td ? (state.coords ?? state.highlight) : null),
     getCell: (row: number, col: number) => {
       state.requested.push([row, col]);
 
@@ -476,5 +479,103 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
     (grid.td.firstChild as HTMLInputElement).checked = true;
 
     expect(hasCellChangedSinceAnnounced(grid.td)).toBe(true);
+  });
+
+  describe('the focused cell changes while it keeps the focus', () => {
+    /**
+     * Focuses the highlighted cell, the way the manager does after a selection, so the cell is recorded.
+     *
+     * @param {object} grid The grid from `makeDeferredFocusGrid()`.
+     */
+    function focusAndRecord(grid: ReturnType<typeof makeDeferredFocusGrid>) {
+      grid.td.setAttribute('role', 'gridcell');
+      grid.td.tabIndex = -1;
+      grid.td.textContent = 'before';
+      grid.state.rendered = true;
+      grid.manager.focusOnHighlightedCell();
+    }
+
+    it('builds a new accessibility object for a cell that shows something else', () => {
+      const grid = makeDeferredFocusGrid();
+
+      focusAndRecord(grid);
+      grid.td.textContent = 'after';
+
+      const log = logRoleAndFocus(grid.td);
+
+      grid.run('afterRender');
+
+      expect(log).toEqual(['remove role', 'set role=gridcell']);
+    });
+
+    it('builds it once: the next draw of the same state is quiet', () => {
+      const grid = makeDeferredFocusGrid();
+
+      focusAndRecord(grid);
+      grid.td.textContent = 'after';
+      grid.run('afterRender');
+
+      const log = logRoleAndFocus(grid.td);
+
+      grid.run('afterRender');
+
+      expect(log).toEqual([]);
+    });
+
+    it('leaves a cell that shows the same thing alone', () => {
+      const grid = makeDeferredFocusGrid();
+
+      focusAndRecord(grid);
+
+      const log = logRoleAndFocus(grid.td);
+
+      grid.run('afterRender');
+
+      expect(log).toEqual([]);
+    });
+
+    it('builds it for the element the grid drew the selected cell into, which a jump to a new row does', () => {
+      const grid = makeDeferredFocusGrid();
+
+      grid.state.coords = { row: 3, col: 0 };
+      focusAndRecord(grid);
+      grid.state.coords = { row: 50, col: 0 };
+
+      const log = logRoleAndFocus(grid.td);
+
+      grid.run('afterRender');
+
+      expect(log).toEqual(['remove role', 'set role=gridcell']);
+    });
+
+    it('leaves the element alone when the grid drew a cell into it that is not the selected one', () => {
+      const grid = makeDeferredFocusGrid();
+
+      focusAndRecord(grid);
+      grid.td.textContent = 'another row';
+      grid.state.coords = { row: 10, col: 0 };
+
+      const log = logRoleAndFocus(grid.td);
+
+      grid.run('afterRender');
+
+      expect(log).toEqual([]);
+    });
+
+    it('leaves it alone when another element holds the focus', () => {
+      const grid = makeDeferredFocusGrid();
+      const other = document.createElement('input');
+
+      focusAndRecord(grid);
+      grid.td.textContent = 'after';
+      document.body.append(other);
+      other.focus();
+
+      const log = logRoleAndFocus(grid.td);
+
+      grid.run('afterRender');
+
+      expect(log).toEqual([]);
+    });
   });
 });

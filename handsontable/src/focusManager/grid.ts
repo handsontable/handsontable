@@ -1,6 +1,6 @@
 import type { HotInstance } from '../core/types';
 import EventManager from '../eventManager';
-import { rebuildAccessibilityObject, rememberAnnouncedCell } from '../helpers/a11y';
+import { hasCellChangedSinceAnnounced, rebuildAccessibilityObject, rememberAnnouncedCell } from '../helpers/a11y';
 import { warn } from '../helpers/console';
 import {
   getDeepActiveElement,
@@ -412,10 +412,16 @@ export class FocusGridManager {
       return;
     }
 
+    const coords = this.#hot.getCoords(elementToBeFocused);
+
+    if (coords === null) {
+      return;
+    }
+
     if (getDeepActiveElement(this.#hot.rootDocument) === elementToBeFocused) {
       // The browser focused an element that was pressed before the grid selected it. Nothing moved, but the draw that
       // follows needs a record of what it showed, to tell a change from a repeated paint.
-      rememberAnnouncedCell(elementToBeFocused, true);
+      rememberAnnouncedCell(elementToBeFocused, coords.row, coords.col, true);
 
       return;
     }
@@ -424,7 +430,37 @@ export class FocusGridManager {
       rebuildAccessibilityObject(elementToBeFocused);
     }
 
-    rememberAnnouncedCell(elementToBeFocused);
+    rememberAnnouncedCell(elementToBeFocused, coords.row, coords.col);
+  }
+
+  /**
+   * Makes a screen reader read the focused cell or header again when what it shows changed in place, or when the
+   * grid drew another cell into the element that holds the focus (a jump to a row that is rendered only then).
+   * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
+   * hears nothing or a name that changed. It only counts when the element shows the selected cell: a scroll
+   * that recycles the focused element for a cell the user is not on says nothing.
+   */
+  #announceChangeInPlace(): void {
+    const activeElement = getDeepActiveElement(this.#hot.rootDocument);
+
+    if (
+      !isHTMLElement(activeElement) ||
+      (activeElement.nodeName !== 'TD' && activeElement.nodeName !== 'TH') ||
+      !this.#hot.rootElement.contains(activeElement)
+    ) {
+      return;
+    }
+
+    const coords = this.#hot.getCoords(activeElement);
+    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
+
+    if (coords === null || !highlight || coords.row !== highlight.row || coords.col !== highlight.col) {
+      return;
+    }
+
+    if (hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col)) {
+      rebuildAccessibilityObject(activeElement);
+    }
   }
 
   /**
@@ -695,11 +731,17 @@ export class FocusGridManager {
    * Focuses the cell after the render event when the selection has changed.
    */
   #onAfterRender() {
-    const suspended = this.#pendingFocus;
-
     // A listener from the settings runs before this one, and the hook run keeps walking its listeners
     // after such a listener destroyed the grid.
-    if (suspended === null || this.#hot.isDestroyed) {
+    if (this.#hot.isDestroyed) {
+      return;
+    }
+
+    this.#announceChangeInPlace();
+
+    const suspended = this.#pendingFocus;
+
+    if (suspended === null) {
       return;
     }
 

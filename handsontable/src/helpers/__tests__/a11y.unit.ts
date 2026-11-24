@@ -128,93 +128,77 @@ describe('hasCellChangedSinceAnnounced', () => {
   it('does not report a cell it has no record of, and records it', () => {
     const TD = createCell('a');
 
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(false);
+    expect(hasCellChangedSinceAnnounced(TD, 1, 1)).toBe(false);
 
     TD.innerHTML = 'b';
 
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(true);
+    expect(hasCellChangedSinceAnnounced(TD, 1, 1)).toBe(true);
   });
 
   it('reports a change of what the cell shows since the cell took the focus', () => {
     const TD = createCell('a');
 
-    rememberAnnouncedCell(TD);
+    rememberAnnouncedCell(TD, 1, 1);
     TD.innerHTML = 'b';
 
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(true);
+    expect(hasCellChangedSinceAnnounced(TD, 1, 1)).toBe(true);
   });
 
-  it('reports a checkbox that was toggled before the paint, which a read before and after the paint cannot see', () => {
+  it('reports a checkbox that was toggled before the paint', () => {
     const TD = createCell('<input type="checkbox">');
 
-    rememberAnnouncedCell(TD);
+    rememberAnnouncedCell(TD, 1, 1);
     (TD.firstChild as HTMLInputElement).checked = true;
 
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(true);
+    expect(hasCellChangedSinceAnnounced(TD, 1, 1)).toBe(true);
+  });
+
+  it('reports the same element drawn for another row or column, which is what a jump to a new row does', () => {
+    const TD = createCell('a');
+
+    rememberAnnouncedCell(TD, 1, 1);
+
+    expect(hasCellChangedSinceAnnounced(TD, 199, 1)).toBe(true);
+
+    expect(hasCellChangedSinceAnnounced(TD, 199, 3)).toBe(true);
   });
 
   it('reports a change once: the next paint of the same state is quiet', () => {
     const TD = createCell('a');
 
-    rememberAnnouncedCell(TD);
+    rememberAnnouncedCell(TD, 1, 1);
     TD.innerHTML = 'b';
-    hasCellChangedSinceAnnounced(TD);
+    hasCellChangedSinceAnnounced(TD, 1, 1);
 
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(false);
+    expect(hasCellChangedSinceAnnounced(TD, 1, 1)).toBe(false);
   });
 
-  it('stays quiet for a cell that shows the same thing', () => {
+  it('stays quiet for a cell that shows the same thing in the same place', () => {
     const TD = createCell('a');
 
-    rememberAnnouncedCell(TD);
+    rememberAnnouncedCell(TD, 1, 1);
 
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(false);
-  });
-
-  it('does not report an element that was recycled for another column', () => {
-    const TD = createCell('a');
-
-    TD.setAttribute('aria-colindex', '2');
-    rememberAnnouncedCell(TD);
-    TD.innerHTML = 'b';
-    TD.setAttribute('aria-colindex', '5');
-
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(false);
+    expect(hasCellChangedSinceAnnounced(TD, 1, 1)).toBe(false);
   });
 
   it('keeps one cell: the focus moving to another element replaces the record', () => {
     const first = createCell('a');
     const second = createCell('b');
 
-    rememberAnnouncedCell(first);
-    rememberAnnouncedCell(second);
+    rememberAnnouncedCell(first, 1, 1);
+    rememberAnnouncedCell(second, 2, 2);
     first.innerHTML = 'changed';
 
-    expect(hasCellChangedSinceAnnounced(first)).toBe(false);
+    expect(hasCellChangedSinceAnnounced(first, 1, 1)).toBe(false);
   });
 
-  it('does not report an element that was recycled for another row, the row the parent writes', () => {
-    const TR = document.createElement('tr');
-    const TD = createCell('A1');
+  it('keeps the record of the same element when asked to', () => {
+    const TD = createCell('a');
 
-    TR.setAttribute('aria-rowindex', '2');
-    TR.append(TD);
-    rememberAnnouncedCell(TD);
-    TR.setAttribute('aria-rowindex', '200');
-    TD.innerHTML = 'A200';
+    rememberAnnouncedCell(TD, 1, 1);
+    TD.innerHTML = 'b';
+    rememberAnnouncedCell(TD, 1, 1, true);
 
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(false);
-  });
-
-  it('reports a change of a cell that stays in its row', () => {
-    const TR = document.createElement('tr');
-    const TD = createCell('A1');
-
-    TR.setAttribute('aria-rowindex', '2');
-    TR.append(TD);
-    rememberAnnouncedCell(TD);
-    TD.innerHTML = 'changed';
-
-    expect(hasCellChangedSinceAnnounced(TD)).toBe(true);
+    expect(hasCellChangedSinceAnnounced(TD, 1, 1)).toBe(true);
   });
 });

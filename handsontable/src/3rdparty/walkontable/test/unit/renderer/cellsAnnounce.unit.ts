@@ -2,7 +2,6 @@ import { CellsRenderer } from 'walkontable/render/cells';
 import { RowsRenderer } from 'walkontable/render/rows';
 import { RowHeadersRenderer } from 'walkontable/render/rowHeaders';
 import type { TableRenderer } from 'walkontable/render/tableRenderer';
-import { rememberAnnouncedCell } from '../../../../../helpers/a11y';
 
 interface Fixture {
   tbody: HTMLElement;
@@ -98,91 +97,6 @@ function createFixture(): Fixture {
     },
   };
 }
-
-/**
- * Gives the browser focus to a cell, the way the focus manager does: the cell is focused and its state recorded.
- *
- * @param {HTMLElement} TD The cell.
- */
-function focusCell(TD: HTMLElement): void {
-  TD.tabIndex = -1;
-  TD.focus();
-  rememberAnnouncedCell(TD);
-}
-
-describe('CellsRenderer announcing a change of the focused cell', () => {
-  beforeEach(() => {
-    jest.spyOn(document, 'hasFocus').mockReturnValue(true);
-  });
-
-  afterEach(() => {
-    document.body.replaceChildren();
-    jest.restoreAllMocks();
-  });
-
-  it('should rebuild the role of the focused cell that shows something else after a draw', () => {
-    const { tbody, draw, state, watchRoles } = createFixture();
-
-    document.body.append(tbody);
-    draw();
-
-    const focused = tbody.rows[1].cells[0];
-
-    focusCell(focused);
-    state.texts.set('1,0', 'changed');
-
-    const take = watchRoles();
-
-    draw();
-
-    expect(take()).toEqual([focused]);
-  });
-
-  it('should not rebuild the focused cell when a draw leaves it as it was', () => {
-    const { tbody, draw, watchRoles } = createFixture();
-
-    document.body.append(tbody);
-    draw();
-    focusCell(tbody.rows[1].cells[0]);
-
-    const take = watchRoles();
-
-    draw();
-
-    expect(take()).toEqual([]);
-  });
-
-  it('should not rebuild a cell that changed while another one holds the focus', () => {
-    const { tbody, draw, state, watchRoles } = createFixture();
-
-    document.body.append(tbody);
-    draw();
-    focusCell(tbody.rows[1].cells[0]);
-    state.texts.set('2,1', 'changed elsewhere');
-
-    const take = watchRoles();
-
-    draw();
-
-    expect(take()).toEqual([]);
-  });
-
-  it('should not rebuild anything for a grid that writes no ARIA attributes', () => {
-    const { tbody, draw, state, watchRoles } = createFixture();
-
-    state.ariaEnabled = false;
-    document.body.append(tbody);
-    draw();
-    focusCell(tbody.rows[1].cells[0]);
-    state.texts.set('1,0', 'changed');
-
-    const take = watchRoles();
-
-    draw();
-
-    expect(take()).toEqual([]);
-  });
-});
 
 describe('CellsRenderer announcing a change of the header counts', () => {
   afterEach(() => {
