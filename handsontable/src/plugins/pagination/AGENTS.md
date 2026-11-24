@@ -41,10 +41,11 @@ guards it. Size the array from the map's own `getLength()`:
 hooks, as a page change should. With `pageSize: 'auto'` the same method also runs from `afterViewRender` on
 every render, and there the write goes through core's private `_batchExecutionWithoutHooks()`: a
 `batch()` that writes a cell otherwise fired a second cycle on its closing render, and a plain `render()`
-fired one. `#isRecomputingOnRender` marks that path, set only around the `#refreshUI()` call in
-`#onAfterViewRender` and reset in a `finally`. Do not key it on `#internalRenderCall`: that flag stays set
-until the next `afterViewRender`, so a `setPage()` in between would go silent. Pinned by the Pagination cases
-in `src/__tests__/core/executionSuspendHooks.unit.js`.
+fired one. `#onAfterViewRender` asks for that path with `#computeAndApplyState(false)`, an argument of that
+one call. Do not turn it into a flag held around the `hot.render()` that follows, and do not key it on
+`#internalRenderCall`: listeners run inside that render, and `#internalRenderCall` stays set until the next
+`afterViewRender`, so a `setPage()` made there would go silent. Pinned by the Pagination cases in
+`src/__tests__/core/executionSuspendHooks.unit.js`.
 
 ## Hard conflicts, declared at module scope in this file
 

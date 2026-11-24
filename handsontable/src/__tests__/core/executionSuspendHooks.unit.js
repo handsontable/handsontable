@@ -351,6 +351,27 @@ describe('execution suspend hooks', () => {
       expect(hot.isExecutionSuspended()).toBe(false);
     });
 
+    it('should fire each pair once for a page change a listener makes in the render of the recompute', () => {
+      hot = createHot(container, { autoRowSize: true, pagination: { pageSize: 'auto' } });
+
+      const log = recordExecutionHooks(hot);
+      let isPageChanged = false;
+
+      // The recompute renders the grid, so the first `afterRender` of a render comes from inside it.
+      hot.addHook('afterRender', () => {
+        if (!isPageChanged) {
+          isPageChanged = true;
+          log.push('setPage');
+          hot.getPlugin('pagination').setPage(1);
+        }
+      });
+
+      hot.render();
+
+      expect(log).toEqual(['setPage', ...FULL_CYCLE]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
     it('should suspend the execution and apply the callback\'s writes in a silent batch', () => {
       hot = createHot(container, { autoColumnSize: true });
 

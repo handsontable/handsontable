@@ -280,13 +280,6 @@ export class Pagination extends BasePlugin {
    */
   #internalRenderCall = false;
   /**
-   * Flag indicating that the state is recomputed for a render with an `'auto'` page size. The paged rows
-   * are then stored with no execution hooks fired.
-   *
-   * @type {boolean}
-   */
-  #isRecomputingOnRender = false;
-  /**
    * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive()` is true.
    * Dropped whenever the state is computed with no DataProvider backing the grid.
    *
@@ -1123,8 +1116,11 @@ export class Pagination extends BasePlugin {
 
   /**
    * Applies the current pagination state to the internal index mapper and updates the UI.
+   *
+   * @param {boolean} [firesExecutionHooks=true] `false` for the recompute an `'auto'` page size does on each
+   * render, which stores the paged rows with no execution hooks fired.
    */
-  #computeAndApplyState() {
+  #computeAndApplyState(firesExecutionHooks = true) {
     this.#internalExecutionCall = true;
     this.#pagedRowsMap?.clear();
 
@@ -1190,10 +1186,10 @@ export class Pagination extends BasePlugin {
 
       // The recompute an `'auto'` page size does on each render is bookkeeping, like the sizes the auto-size
       // plugins store there, so it fires no execution hooks. A page change a caller asks for still does.
-      if (this.#isRecomputingOnRender) {
-        this.hot._batchExecutionWithoutHooks(storePagedRows, true);
-      } else {
+      if (firesExecutionHooks) {
         this.hot.batchExecution(storePagedRows, true);
+      } else {
+        this.hot._batchExecutionWithoutHooks(storePagedRows, true);
       }
     } else if (!externalPagedMode) {
       this.hot.rowIndexMapper.updateCache(true);
@@ -1444,13 +1440,10 @@ export class Pagination extends BasePlugin {
     }
 
     this.#internalRenderCall = true;
-    this.#isRecomputingOnRender = true;
-
-    try {
-      this.#refreshUI();
-    } finally {
-      this.#isRecomputingOnRender = false;
-    }
+    // Only the recompute is silent. The render that follows runs listeners, and a page change one of them
+    // asks for fires the execution hooks.
+    this.#computeAndApplyState(false);
+    this.hot.render();
   };
 
   /**
