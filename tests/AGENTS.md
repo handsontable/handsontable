@@ -376,8 +376,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   fixture in `fixtures/test.ts` fails a test that passed with a `.ht-license-lock` on its page, in any frame.
   A page asks for a license state on purpose in one of two ways: it is one of the license pages
   (`license-branding`, `license-bar`, `license-capabilities`, `xlsx-license`), or it is opened with a
-  `?license=` value other than `test` (`side-layout-slots.html?license=trial`,
-  `trusted-types.html?license=invalid`). A new page that needs a lock takes the second way.
+  `?license=` value other than `test` (`trusted-types.html?license=invalid`). A new page that needs a lock
+  takes the second way.
 - Fixtures are standalone HTML under `fixtures/demo/`, served statically. Every
   fixture MUST copy the fail-loud param block from `demo/grid.html`:
   `?theme=`/`?bundle=` map through fixed allowlists to LITERALS (no XSS); an
