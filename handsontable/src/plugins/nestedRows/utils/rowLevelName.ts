@@ -23,7 +23,7 @@ const LABELLED_BY = 'aria-labelledby';
  * only when it changes, so a paint that changes nothing writes nothing.
  *
  * @param {HTMLTableCellElement} TD The cell element.
- * @param {string|null} text The text read after the cell's value (", Level 2, 4 of 6,").
+ * @param {string|null} text The text read after the cell's value (", Level 2, 4 of 6").
  * @returns {boolean} `true` when the cell carries or carried the attribute, so its row needs a look.
  */
 export function setCellLevel(TD: HTMLTableCellElement, text: string | null): boolean {

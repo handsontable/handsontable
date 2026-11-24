@@ -1,14 +1,12 @@
 // Handsontable cell name suffixes (Formulas, NestedRows)
 
 // The text a plugin adds to a data cell's accessible name, after the cell's value:
-// - `data-ht-row-level` (NestedRows): the level of the cell's row, ", Level 2, 4 of 6,". The trailing
-//   comma makes VoiceOver pause before the column header it reads next.
+// - `data-ht-row-level` (NestedRows): the level of the cell's row, ", Level 2, 4 of 6". It has no trailing
+//   comma: VoiceOver adds its own separator before the column header it reads next, and a comma of ours
+//   would make it say ",,".
 // - `data-ht-formula` (Formulas): "Formula: =SUM(A1:B1)".
 // Generated content joins the cell's accessible name and stays out of its text, so `textContent`,
-// `innerText` and a copy do not change. It is clipped to nothing, so it is never drawn. It starts with
-// a no-break space: Chromium joins the value and a block with a space on its own, but Safari with
-// VoiceOver read `3Formula: =SUM(A1:B1)` with a plain space in front, which that name drops.
-// `white-space: pre` keeps the space in the box.
+// `innerText` and a copy do not change. It is never drawn. `white-space: pre` keeps its spaces.
 
 // A cell has ONE `::after`, so both suffixes share it, and two other rules draw into it too: the
 // Comments indicator (`.htCommentCell::after`) and the guard that keeps an empty first-row cell open
@@ -17,43 +15,67 @@
 
 // The level comes first, right after the value: the row's level describes the value the reader just
 // spoke, and a formula can be long (up to 120 characters), so the level would come late after it. A
-// cell with both reads "3, Level 2, 4 of 6, Formula: =SUM(A1:B1)" (the level's own trailing comma
-// separates the two). A cell with one attribute gets the same content it had with that attribute alone.
+// cell with both reads "3, Level 2, 4 of 6, Formula: =SUM(A1:B1)" (the combined rule puts ", " between
+// the two, because the level has no trailing comma). A cell with one attribute gets the same content it
+// had with that attribute alone.
 
-// VoiceOver reads the content of a cell in the order of its boxes on screen, not in DOM order. A level
-// box at the top/inline-start corner was read BEFORE the cell's text ("Item , Level 2, 4 of 6 Grape"),
-// so a cell with the level puts its box at the bottom/inline-end corner, after the text. The
-// formula-only box stays where it was.
+// An out-of-flow box (the formula box, the Comments triangle) starts with a no-break space: Chromium
+// joins the value and a block with a space on its own, but Safari with VoiceOver read
+// `3Formula: =SUM(A1:B1)` with a plain space in front, which that name drops.
+
+// The level box of a cell without a comment is an INLINE box after the cell's text, not an out-of-flow
+// one:
+// - Chromium treats an out-of-flow box as a block and joins it to the value with a space, so the name
+//   was "Grape , Level 2, 4 of 6" and VoiceOver spoke that space. An inline box is joined with
+//   nothing, so its content has no leading space (the level text starts with its own comma) and the
+//   name is "Grape, Level 2, 4 of 6". An inline-block box still gets the space. VoiceOver itself still
+//   joins the cell's text and this box with its own space ("Grape , Level 2"), which the speech ignores.
+// - VoiceOver reads a cell's content in the order of its boxes on screen, and an inline box after the
+//   text always comes after the value.
+// - `font-size: 0` and `line-height: 0` give the box zero advance width and no line height, so the
+//   value wraps where it did without the level and the row keeps its height. Measured in Chromium with
+//   the wrapped value "Red Grape" over column widths 50-140px: every row height matched the
+//   out-of-flow box, while the same inline text at the cell's font size grew a row from 29px to 49px.
 
 // Writes the content for each combination of the two attributes. `$cell` is the compound selector
-// of the cell in front of the attribute, `$state` what follows it.
-@mixin suffix-content($cell, $state: "") {
+// of the cell in front of the attribute, `$state` what follows it. `$inline-level` drops the leading
+// no-break space of a level box that is inline.
+@mixin suffix-content($cell, $state: "", $inline-level: false) {
   #{$cell}[data-ht-formula]#{$state}::after {
     content: "\00a0" attr(data-ht-formula);
   }
 
-  #{$cell}[data-ht-row-level]#{$state}::after {
-    content: "\00a0" attr(data-ht-row-level);
-  }
+  @if $inline-level {
+    #{$cell}[data-ht-row-level]#{$state}::after {
+      content: attr(data-ht-row-level);
+    }
 
-  #{$cell}[data-ht-row-level][data-ht-formula]#{$state}::after {
-    content: "\00a0" attr(data-ht-row-level) " " attr(data-ht-formula);
+    #{$cell}[data-ht-row-level][data-ht-formula]#{$state}::after {
+      content: attr(data-ht-row-level) ", " attr(data-ht-formula);
+    }
+  } @else {
+    #{$cell}[data-ht-row-level]#{$state}::after {
+      content: "\00a0" attr(data-ht-row-level);
+    }
+
+    #{$cell}[data-ht-row-level][data-ht-formula]#{$state}::after {
+      content: "\00a0" attr(data-ht-row-level) ", " attr(data-ht-formula);
+    }
   }
 }
 
 @mixin output {
   .handsontable {
-    // The cell is positioned so that the box has its own origin: left at its static position it would
-    // sit after the cell's text, and a result wider than its cell would grow the width the grid scrolls.
-    td[data-ht-formula],
-    td[data-ht-row-level] {
+    // The formula cell is positioned so that the formula box has its own origin: left at its static
+    // position it would sit after the cell's text, and a result wider than its cell would grow the width
+    // the grid scrolls. The level box is inline, so a cell with the level only needs no positioning.
+    td[data-ht-formula] {
       position: relative;
     }
 
-    @include suffix-content("td", ":not(.htCommentCell)");
+    @include suffix-content("td", ":not(.htCommentCell)", $inline-level: true);
 
-    td[data-ht-formula]:not(.htCommentCell)::after,
-    td[data-ht-row-level]:not(.htCommentCell)::after {
+    td[data-ht-formula]:not(.htCommentCell)::after {
       position: absolute;
       top: 0;
       inset-inline-start: 0;
@@ -71,17 +93,28 @@
       unicode-bidi: isolate;
     }
 
+    // Also wins for a cell with both attributes: its box holds the level first, so it takes the level's
+    // inline form.
     td[data-ht-row-level]:not(.htCommentCell)::after {
-      top: auto;
-      bottom: 0;
-      inset-inline-start: auto;
-      inset-inline-end: 0;
+      position: static;
+      inset: auto;
+      display: inline;
+      width: auto;
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      font-size: 0;
+      line-height: 0;
+      clip-path: inset(50%);
+      white-space: pre;
+      user-select: none;
+      direction: ltr;
+      unicode-bidi: isolate;
     }
 
     // The Comments indicator is a triangle made of a zero-size box with borders. The text goes inside
-    // that box and is clipped away, so the triangle keeps its shape and its place. The triangle is the
-    // box's top border, so a commented cell keeps the box at the top/inline-end corner even with the
-    // level: moved to the bottom, the triangle would move with it.
+    // that box and is clipped away, so the triangle keeps its shape and its place at the top/inline-end
+    // corner.
     @include suffix-content("td.htCommentCell");
 
     td.htCommentCell[data-ht-formula]::after,
@@ -95,13 +128,19 @@
       unicode-bidi: isolate;
     }
 
-    // Wins over the first-row guard, which sets `content: ""` on an empty cell (a formula that returns
-    // "", an empty cell of a nested row).
-    @include suffix-content("tr:first-of-type > td:first-child:empty");
+    // Wins over the first-row guard, which sets `content: ""` and `display: block` on an empty cell (a
+    // formula that returns "", an empty cell of a nested row). The level box stays inline there too, so
+    // the cell's own line keeps the row's height.
+    @include suffix-content("tr:first-of-type > td:first-child:empty", ":not(.htCommentCell)", $inline-level: true);
+    @include suffix-content("tr:first-of-type > td:first-child:empty.htCommentCell");
 
     tr:first-of-type > td:first-child:empty[data-ht-formula]::after,
     tr:first-of-type > td:first-child:empty[data-ht-row-level]::after {
       min-height: 0;
+    }
+
+    tr:first-of-type > td:first-child:empty[data-ht-row-level]:not(.htCommentCell)::after {
+      display: inline;
     }
   }
 }

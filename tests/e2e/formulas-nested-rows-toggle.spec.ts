@@ -144,9 +144,9 @@ test.describe('Formulas across a nestedRows runtime toggle', { tag: BUNDLES_TAG 
 
     await grid.setNestedRows(true);
 
-    expect(await grid.chromiumAccessibleName(1, 1)).toBe('A-1 , Level 2, 1 of 2, Formula: =UPPER(A2)');
-    expect(await grid.chromiumAccessibleName(3, 1)).toBe('ROOT A , Level 1, 2 of 2, Formula: =UPPER(A1)');
-    expect(await grid.chromiumAccessibleName(1, 0)).toBe('A-1 , Level 2, 1 of 2,');
+    expect(await grid.chromiumAccessibleName(1, 1)).toBe('A-1, Level 2, 1 of 2, Formula: =UPPER(A2)');
+    expect(await grid.chromiumAccessibleName(3, 1)).toBe('ROOT A, Level 1, 2 of 2, Formula: =UPPER(A1)');
+    expect(await grid.chromiumAccessibleName(1, 0)).toBe('A-1, Level 2, 1 of 2');
     await expect(grid.cell(1, 1)).toHaveText('A-1');
 
     const rowName = await grid.chromiumRowName(1);

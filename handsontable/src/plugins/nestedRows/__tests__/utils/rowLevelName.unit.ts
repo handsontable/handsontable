@@ -72,26 +72,26 @@ describe('NestedRows rowLevelName', () => {
   it('should write the level text on a cell and leave its text content alone', () => {
     const [TD] = cellsOf(createRow(['Grape']));
 
-    expect(setCellLevel(TD, ', Level 2, 4 of 6,')).toBe(true);
-    expect(TD.getAttribute(ROW_LEVEL_ATTRIBUTE)).toBe(', Level 2, 4 of 6,');
+    expect(setCellLevel(TD, ', Level 2, 4 of 6')).toBe(true);
+    expect(TD.getAttribute(ROW_LEVEL_ATTRIBUTE)).toBe(', Level 2, 4 of 6');
     expect(TD.textContent).toBe('Grape');
   });
 
   it('should write nothing when the cell already carries the same text', () => {
     const [TD] = cellsOf(createRow(['Grape']));
 
-    setCellLevel(TD, ', Level 2, 4 of 6,');
+    setCellLevel(TD, ', Level 2, 4 of 6');
 
     const setAttribute = jest.spyOn(TD, 'setAttribute');
 
-    expect(setCellLevel(TD, ', Level 2, 4 of 6,')).toBe(true);
+    expect(setCellLevel(TD, ', Level 2, 4 of 6')).toBe(true);
     expect(setAttribute).not.toHaveBeenCalled();
   });
 
   it('should take the text off a cell that has no level any more, and report whether it had one', () => {
     const [TD] = cellsOf(createRow(['Grape']));
 
-    setCellLevel(TD, ', Level 2, 4 of 6,');
+    setCellLevel(TD, ', Level 2, 4 of 6');
 
     expect(setCellLevel(TD, null)).toBe(true);
     expect(TD.hasAttribute(ROW_LEVEL_ATTRIBUTE)).toBe(false);
@@ -104,7 +104,7 @@ describe('NestedRows rowLevelName', () => {
     const rowNames = new RowNames(host);
     const TR = createRow([' Grape ', '', '12']);
 
-    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6,');
+    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6');
     rowNames.nameRow(TR);
 
     const element = nameElementOf(TR);
@@ -122,8 +122,8 @@ describe('NestedRows rowLevelName', () => {
     const first = createRow(['Grape', '12']);
     const second = createRow(['Cherry', '7']);
 
-    setCellLevel(cellsOf(first)[0], ', Level 2, 4 of 6,');
-    setCellLevel(cellsOf(second)[0], ', Level 2, 5 of 6,');
+    setCellLevel(cellsOf(first)[0], ', Level 2, 4 of 6');
+    setCellLevel(cellsOf(second)[0], ', Level 2, 5 of 6');
     rowNames.nameRow(first);
     rowNames.nameRow(second);
     rowNames.nameRow(first);
@@ -137,7 +137,7 @@ describe('NestedRows rowLevelName', () => {
     const rowNames = new RowNames(createHost());
     const TR = createRow(['Grape', '12']);
 
-    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6,');
+    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6');
     rowNames.nameRow(TR);
 
     const element = nameElementOf(TR)!;
@@ -166,7 +166,7 @@ describe('NestedRows rowLevelName', () => {
 
     expect(TR.hasAttribute('aria-labelledby')).toBe(false);
 
-    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6,');
+    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6');
     rowNames.nameRow(TR);
 
     const element = nameElementOf(TR)!;
@@ -182,7 +182,7 @@ describe('NestedRows rowLevelName', () => {
     const rowNames = new RowNames(createHost());
     const TR = createRow(['', ' ']);
 
-    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6,');
+    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6');
     rowNames.nameRow(TR);
 
     expect(TR.hasAttribute('aria-labelledby')).toBe(false);
@@ -193,7 +193,7 @@ describe('NestedRows rowLevelName', () => {
     const TR = createRow(['Grape', '12']);
 
     TR.setAttribute('aria-label', 'Custom');
-    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6,');
+    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6');
     rowNames.nameRow(TR);
 
     expect(TR.getAttribute('aria-label')).toBe('Custom');
@@ -210,12 +210,12 @@ describe('NestedRows rowLevelName', () => {
     const overwritten = createRow(['Cherry', '7']);
 
     foreign.setAttribute('aria-labelledby', 'app-name');
-    setCellLevel(cellsOf(foreign)[0], ', Level 2, 4 of 6,');
+    setCellLevel(cellsOf(foreign)[0], ', Level 2, 4 of 6');
     rowNames.nameRow(foreign);
 
     expect(foreign.getAttribute('aria-labelledby')).toBe('app-name');
 
-    setCellLevel(cellsOf(overwritten)[0], ', Level 2, 5 of 6,');
+    setCellLevel(cellsOf(overwritten)[0], ', Level 2, 5 of 6');
     rowNames.nameRow(overwritten);
 
     const element = nameElementOf(overwritten)!;
@@ -232,7 +232,7 @@ describe('NestedRows rowLevelName', () => {
     const rowNames = new RowNames(host);
     const TR = createRow(['Grape', '12']);
 
-    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6,');
+    setCellLevel(cellsOf(TR)[0], ', Level 2, 4 of 6');
     rowNames.nameRow(TR);
 
     const firstId = TR.getAttribute('aria-labelledby');
@@ -250,8 +250,8 @@ describe('NestedRows rowLevelName', () => {
     const TR = createRow(['Grape', '12']);
     const [first, second] = cellsOf(TR);
 
-    setCellLevel(first, ', Level 2, 4 of 6,');
-    setCellLevel(second, ', Level 2, 4 of 6,');
+    setCellLevel(first, ', Level 2, 4 of 6');
+    setCellLevel(second, ', Level 2, 4 of 6');
     rowNames.nameRow(TR);
 
     const element = nameElementOf(TR)!;

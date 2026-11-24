@@ -941,7 +941,7 @@ row semantics. Six things look simpler than they are.
 - **The level of a row ends each cell's accessible NAME, never its description and never a live
   message.** `aria-level`, `aria-posinset` and `aria-setsize` sit on the `TR`, and the tested readers
   speak none of them while the focus is on a cell of the row. `#onAfterRenderer` therefore writes
-  `data-ht-row-level=", Level 2, 4 of 6,"` on every data cell of a row the tree knows, with ", expanded"
+  `data-ht-row-level=", Level 2, 4 of 6"` on every data cell of a row the tree knows, with ", expanded"
   or ", collapsed" for a parent (three whole phrases, `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a
   concatenation, so a translation can order them; the keys keep their `announcement.` names because
   renaming them would break a customer's dictionary), and the stylesheet draws it as visually hidden
@@ -950,10 +950,14 @@ row semantics. Six things look simpler than they are.
   `HeadersUI#updateRowAttributes()` writes the attributes from, so the name and the attributes cannot
   disagree (a filter recounts both). The writes live in `utils/rowLevelName.ts`. Measured in
   Chromium's accessibility tree (`Accessibility.getPartialAXTree`, pinned by the Chromium describe of
-  `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`): the cell's name is "Grape", a no-break space and
-  ", Level 2, 4 of 6,", its description stays the column header (plus "read only" on a read-only cell),
+  `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`): the cell's name is "Grape, Level 2, 4 of 6"
+  (no space before the comma), its description stays the column header (plus "read only" on a read-only cell),
   its `textContent` stays "Grape", and the row's name is "Grape 12". The target VoiceOver utterance is
-  "Item Grape, Level 2, 4 of 6, column 1, row Grape 12". Rules:
+  "Item Grape, Level 2, 4 of 6, column 1, row Grape 12". VoiceOver adds its own space and its own comma:
+  the Guidepup text was "Item Grape , Level 2, 4 of 6, column 1, row Grape 12" (a space between the cell's text and
+  its `::after` text that no CSS removes, and no change to the speech), and with a trailing comma in the level text the
+  caption showed ",," before "column 1". The utterance spec (`tests/screenreader/nested-rows-utterance.spec.ts`)
+  removes the space before a punctuation mark and still fails on a doubled comma. Rules:
   - **Why not a polite message on each move.** The first version announced the level when the highlight
     reached another row. VoiceOver (Chromium and Safari) lags behind fast arrow presses: after three
     quick ArrowDowns it spoke an earlier cell ("Cherry") while the focus and the message were already on
@@ -976,16 +980,27 @@ row semantics. Six things look simpler than they are.
     named "Grape  , Level 2, 4 of 6", described "Item", with `textContent` "Grape" (measured).
   - **One `::after` carries both suffixes.** A cell has one `::after`, and the Formulas plugin already
     draws its `data-ht-formula` there, as do the Comments triangle and the empty first-row guard. The
-    shared stylesheet orders the texts value, level, formula ("3 , Level 2, 4 of 6, Formula: =SUM(A1:B1)"),
+    shared stylesheet orders the texts value, level, formula ("3, Level 2, 4 of 6, Formula: =SUM(A1:B1)", the
+    combined rule puts ", " between the last two),
     and a cell with only one of them gets exactly the content it had alone. Do not give this plugin a
     stylesheet rule of its own on `::after`.
-  - **The level box sits at the cell's bottom/inline-end corner, and the text ends with a comma.**
+  - **The level box is an inline box of zero size after the text, and the text has no trailing comma.**
     VoiceOver (Chrome) orders a cell's content by the position of its boxes on screen, not by DOM order.
-    With the 1px box at the top/inline-start corner it read the level BEFORE the value ("Item , Level 2,
-    4 of 6 Grape column 1, row 5"); moved to the bottom/inline-end corner it reads "Item Grape , Level 2,
-    4 of 6 column 1, …" (measured). The trailing comma in the text (", Level 2, 4 of 6,") makes it pause
-    before "column 1". A commented cell keeps the box at the Comments triangle's top/inline-end corner,
-    because the triangle is that box's top border. A formula-only cell keeps its box where it was.
+    An out-of-flow 1px box at the top/inline-start corner read the level BEFORE the value ("Item , Level 2,
+    4 of 6 Grape column 1, row 5"); at the bottom/inline-end corner it read after the value, but Chromium
+    treats any out-of-flow box as a block and joins it to the value with a space, so the name was
+    "Grape , Level 2, 4 of 6" and VoiceOver spoke the space. Only an INLINE `::after` drops it
+    (inline-block keeps it, measured with a Playwright ARIA snapshot), so the box is `display: inline`,
+    `position: static`, and its content is the level text alone, with no leading no-break space (the
+    text starts with its own comma): the name is "Grape, Level 2, 4 of 6". `font-size: 0` and
+    `line-height: 0` give it zero advance width and no line height, so a wrapped value wraps where it
+    did and the row keeps its height: over column widths 50-140px with "Red Grape" every row height
+    matched the out-of-flow box, while the same inline text at the cell's font size grew a row from 29px
+    to 49px. A level cell needs no `position: relative` (only a formula cell keeps it). The text (", Level 2, 4 of 6")
+    has no trailing comma, because VoiceOver adds its own separator before the column header. A commented cell keeps the
+    out-of-flow Comments box at its top/inline-end corner, with the no-break space in front of the level,
+    because the triangle is that box's top border; its name keeps the space ("A-1 , Level 2, 1 of 3").
+    An empty first-row cell keeps the inline box too, over the first-row guard's `display: block`.
   - **The row is named through `aria-labelledby`, never `aria-label`.** Without a name of its own Chromium
     builds a row's name from its cells' names, so the level repeated once per column (measured; VoiceOver
     read "row Grape , Level 2, 4 of 6 12 , Level 2, 4 of 6"). VoiceOver IGNORES a row's `aria-label` and
@@ -1134,7 +1149,7 @@ row semantics. Six things look simpler than they are.
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
 | `tests/e2e/nested-rows-tree-keys-a11y.spec.ts` | Playwright (Chromium, Firefox, WebKit): the <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chords from a data cell with `navigableHeaders` off and from a row header with it on, the walk from a child to its parent in the same column, the RTL mirror, a multi-row selection and a covered body left alone, and the row level in the cell name and the row name (every cell of a leaf, an expanded and a collapsed parent, a filter, the row header with `navigableHeaders` and none without, a cell left behind by fast presses, a read-only cell, a renderer's own `aria-label`, a row name the application wrote, a frozen column and a second grid, the row named through our `aria-labelledby` and never `aria-label`, no cell `aria-labelledby` and no cell ids, a plain grid, `ariaTags: false`, the plugin switched off, `renderMode: 'onChange'` after a collapse and a detach, and no level in the live region); a Chromium-only describe reads the names and descriptions from Chromium's accessibility tree |
-| `tests/e2e/nested-rows-comment-level.spec.ts` | Playwright (every theme): the level box of a cell sits at its bottom/inline-end corner, 1px and clipped; a commented nested cell keeps the Comments triangle's `::after` box and still ends its name with the level |
+| `tests/e2e/nested-rows-comment-level.spec.ts` | Playwright (every theme): the level box of a cell is inline with `font-size` and `line-height` 0, and a wrapped value keeps the same row height with and without the level at column widths 50-140px; a commented nested cell keeps the Comments triangle's `::after` box and still ends its name with the level |
 | `tests/e2e/formulas-nested-rows-toggle.spec.ts` (the naming case) | Playwright (both bundles): a nested formula cell is named value, level, formula, and a plain formula cell keeps its own name before and after the toggle |
 | `__tests__/utils/rowLevelName.unit.ts` | The cell level text and the row name: compare before write, one hidden name element per row in one hidden container, the row name from the plain cell texts, a foreign `aria-label` or `aria-labelledby` left alone, an element a host removed made again, removal of ours only, the container removed on destroy |
 | `__tests__/data/dataManager.unit.js` (`getRowTreePosition`) | The level, position and set size the row attributes and the level text share, and the `markAllCellsChanged()` in `rewriteCache()` |

@@ -9,14 +9,19 @@ import { VOICEOVER_SETTINGS, markStepBoundary } from './voiceover';
  * (`screenreader.spec.ts`, `scenarios/nested-rows.scenario.json`) is report-only and matches token groups
  * in any order; this spec fails until VoiceOver says the required sentence word for word, in order:
  *
- *   `Item Grape, Level 2, 4 of 6, column 1, row Grape 12`
+ *   `Item Grape, Level 2, 4 of 6 column 1, row Grape 12`
  *
  * on `fixtures/demo/nested-rows-utterance.html`, after `selectCell(0, 0)` (Fruit) and four ArrowDown
  * presses, and the same shape for Banana after two.
  *
+ * - **The comma before `column 1`**: VoiceOver puts a pause between the cell and its column header, and
+ *   its caption panel writes it as a comma (`4 of 6, column 1`), but the phrase Guidepup reads has no
+ *   comma there. So the required text has none: a comma in Guidepup's phrase at that place comes from the
+ *   page (a level text that ends with a comma), and the caption then shows it doubled (`4 of 6,, column 1`).
+ *
  * - **What is compared**: the phrases VoiceOver spoke for the last ArrowDown press, joined with `, `, then
  *   normalized by `normalizeUtterance()` (whitespace collapsed and trimmed, no space before punctuation,
- *   lower case). Order, words and duplicates must match.
+ *   lower case). Order, words, punctuation and duplicates must match: a doubled comma (`,,`) is a failure.
  * - **Which phrases belong to a press**: the runner's VoiceOver capture. Before each press VoiceOver speaks
  *   the step boundary and the spec waits until that is its last phrase (`markStepBoundary()`); Guidepup's
  *   `capture()` then polls VoiceOver's last phrase from the press until it holds still, and joins every new
@@ -46,8 +51,8 @@ const PHRASE_JOINER = ', ';
  * What VoiceOver must say for each cell, after how many ArrowDown presses from Fruit.
  */
 const REQUIRED = [
-  { cell: 'Banana', presses: 2, utterance: 'Item Banana, Level 2, 2 of 6, column 1, row Banana 6' },
-  { cell: 'Grape', presses: 4, utterance: 'Item Grape, Level 2, 4 of 6, column 1, row Grape 12' },
+  { cell: 'Banana', presses: 2, utterance: 'Item Banana, Level 2, 2 of 6 column 1, row Banana 6' },
+  { cell: 'Grape', presses: 4, utterance: 'Item Grape, Level 2, 4 of 6 column 1, row Grape 12' },
 ] as const;
 
 type HotWindow = Window & {
@@ -84,8 +89,10 @@ function voiceOverSkipReason(): string | null {
 
 /**
  * An utterance as the comparison reads it: whitespace runs collapsed to one space and trimmed, no
- * whitespace before a punctuation mark (`Banana , Level` reads `Banana, Level`), and lower case. Nothing
- * else changes: the order, the words and the duplicates stay.
+ * whitespace before a punctuation mark (`Banana , Level` reads `Banana, Level`), and lower case. VoiceOver
+ * joins a cell's text and its `::after` text with its own space (`Grape , Level 2`), while Chromium's
+ * computed name has none (`Grape, Level 2`), and the speech does not change. Nothing else changes: the
+ * order, the words and the duplicates stay, and a doubled comma (`,,`) still fails.
  *
  * @param utterance The spoken or the required text.
  * @returns The normalized text.
@@ -152,12 +159,15 @@ async function openFixture(page: Page): Promise<void> {
 base('the utterance comparison is strict about order, words and duplicates', () => {
   const required = normalizeUtterance(REQUIRED[0].utterance);
 
-  expect(normalizeUtterance('  item banana ,  Level 2 , 2 of 6, column 1, row Banana 6 ')).toBe(required);
+  expect(normalizeUtterance('  item banana,  Level 2,  2 of 6 column 1, row Banana 6 ')).toBe(required);
+  expect(normalizeUtterance('Item Banana , Level 2, 2 of 6 column 1, row Banana 6')).toBe(required);
+  expect(normalizeUtterance('Item Banana, Level 2, 2 of 6, column 1, row Banana 6')).not.toBe(required);
+  expect(normalizeUtterance('Item Banana, Level 2, 2 of 6,, column 1, row Banana 6')).not.toBe(required);
   expect(normalizeUtterance('Banana , Level 2, 2 of 6 Item Banana, column 1, row Banana 6')).not.toBe(required);
   expect(normalizeUtterance('Level 2, 2 of 6, Item Banana, column 1, row Banana 6')).not.toBe(required);
   expect(normalizeUtterance('Item Banana, Level 2, 2 of 6, column 1, row Banana 6, Level 2')).not.toBe(required);
   expect(normalizeUtterance('Item Banana, Level 2, 2 of 6, column 1, row 3')).not.toBe(required);
-  expect(phrasesOf('Step boundary. Item Banana. Level 2, 2 of 6, column 1, row Banana 6').join(PHRASE_JOINER)).toBe(REQUIRED[0].utterance);
+  expect(phrasesOf('Step boundary. Item Banana. Level 2, 2 of 6 column 1, row Banana 6').join(PHRASE_JOINER)).toBe(REQUIRED[0].utterance);
 });
 
 const skipReason = voiceOverSkipReason();

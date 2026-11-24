@@ -521,8 +521,9 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   /**
    * The accessible name of every copy of a data cell, built the way the stylesheet builds it: the cell's
    * content, then the level text the cell carries in `data-ht-row-level`, which `::after` draws as generated
-   * content after a no-break space. Runs of white space read as one space, as a screen reader hears them. The
-   * read throws when the copies disagree or when a copy carries `aria-labelledby` (a name that would replace
+   * content: an inline box joined to the content with nothing (the level text starts with its own comma), or,
+   * in a commented cell, the out-of-flow Comments box that starts with a no-break space. Runs of white space
+   * read as one space, as a screen reader hears them. The read throws when the copies disagree or when a copy carries `aria-labelledby` (a name that would replace
    * the content).
    *
    * @param row Visual row index.
@@ -536,7 +537,8 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
         }
 
         const level = element.getAttribute('data-ht-row-level');
-        const text = level === null ? element.textContent ?? '' : `${element.textContent ?? ''}\u00a0${level}`;
+        const separator = element.classList.contains('htCommentCell') ? '\u00a0' : '';
+        const text = level === null ? element.textContent ?? '' : `${element.textContent ?? ''}${separator}${level}`;
 
         return text.replace(/\s+/g, ' ').trim();
       };
@@ -739,7 +741,10 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
         throw new Error(`Cell ${visualRow}, ${visualColumn} of the second grid is not rendered`);
       }
 
-      return `${TD.textContent ?? ''}\u00a0${TD.getAttribute('data-ht-row-level') ?? ''}`.replace(/\s+/g, ' ').trim();
+      const separator = TD.classList.contains('htCommentCell') ? '\u00a0' : '';
+
+      return `${TD.textContent ?? ''}${separator}${TD.getAttribute('data-ht-row-level') ?? ''}`
+        .replace(/\s+/g, ' ').trim();
     }, [row, column]);
   }
 

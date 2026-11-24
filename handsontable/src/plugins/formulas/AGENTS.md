@@ -1325,13 +1325,15 @@ measured reason:
   draw into it, and `_cell-name-suffix.scss` has a rule for each that puts the text inside their box. Do not give a theme or plugin
   rule an `::after` on `td[data-ht-formula]`. **NestedRows shares the same `::after`** for the level of the cell's row
   (`data-ht-row-level`, `plugins/nestedRows/AGENTS.md`): the shared file draws the value, then the level, then the formula
-  (`3 , Level 2, 4 of 6, Formula: =SUM(A1:B1)`), with one content rule per combination of the two attributes, so a formula
-  cell outside a nested grid keeps exactly the content it had (`"\00a0" attr(data-ht-formula)`). The level text ends with
-  its own comma (`, Level 2, 4 of 6,`, a VoiceOver pause before the column header), so the combined rule joins the two
-  with a plain space, not `", "`. A cell that carries the level also moves the box to its bottom/inline-end corner,
-  because VoiceOver reads a cell's content in on-screen box order and read a top/inline-start box before the value; a
-  formula-only cell keeps its box at top/inline-start, unchanged. A commented cell keeps the Comments triangle's corner
-  whatever it carries, because the triangle is that box's top border. A change to the formula
+  (`3, Level 2, 4 of 6, Formula: =SUM(A1:B1)`), with one content rule per combination of the two attributes, so a formula
+  cell outside a nested grid keeps exactly the content it had (`"\00a0" attr(data-ht-formula)`). The level text has no
+  trailing comma (`, Level 2, 4 of 6`: VoiceOver adds its own separator before the column header, and a comma of ours
+  showed as ",," in its caption), so the combined rule joins the two with `", "` (exactly one comma before "Formula:"). A cell that carries the level turns the box into the level's form: an inline box of zero
+  size (`display: inline`, `font-size: 0`, `line-height: 0`) with no leading no-break space, because Chromium joins an
+  out-of-flow box to the value with a space and only an inline one with nothing (details in `plugins/nestedRows/AGENTS.md`).
+  A formula-only cell keeps its absolutely positioned box at top/inline-start, unchanged. A commented cell keeps the
+  Comments triangle's out-of-flow box and its no-break space whatever it carries, because the triangle is that box's top
+  border. A change to the formula
   rules goes into that file, for all three variants (plain, Comments indicator, empty first-row cell).
 - **The attribute is written only when it changes** (`describeFormulaCell()` compares first), like the ARIA
   attributes of the cell. A paint that changes nothing writes nothing.

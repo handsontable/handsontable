@@ -1583,8 +1583,9 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Returns the text that ends the accessible name of a row's cells, with a leading ", " so a screen reader
-   * pauses between the cell's value and the level, and a trailing "," so VoiceOver pauses again before the column
-   * header it reads next, or `null` for a row the tree does not know.
+   * pauses between the cell's value and the level, or `null` for a row the tree does not know. It has no
+   * trailing comma: VoiceOver adds its own separator before the column header it reads next, and a comma of
+   * ours would make it say ",,".
    *
    * @param {number} row Visual row index.
    * @returns {string|null}
@@ -1597,7 +1598,7 @@ export class NestedRows extends BasePlugin {
       return null;
     }
 
-    return `, ${text},`;
+    return `, ${text}`;
   }
 
   /**
