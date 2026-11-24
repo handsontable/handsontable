@@ -197,6 +197,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sorted by [label], ascending',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sorted by [label], descending',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sorting removed from [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sorted by [label], ascending, sort priority [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sorted by [label], descending, sort priority [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Selection from column [startColumn], row [startRow] to column [endColumn], row [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'All cells selected',

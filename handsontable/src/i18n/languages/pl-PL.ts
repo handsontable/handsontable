@@ -200,6 +200,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Posortowano według [label], rosnąco',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Posortowano według [label], malejąco',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Usunięto sortowanie z [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Posortowano według [label], rosnąco, priorytet sortowania [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Posortowano według [label], malejąco, priorytet sortowania [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Zaznaczenie od kolumny [startColumn], wiersza [startRow] do kolumny [endColumn], wiersza [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Zaznaczono wszystkie komórki',

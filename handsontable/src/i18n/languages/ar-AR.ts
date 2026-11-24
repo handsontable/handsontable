@@ -192,6 +192,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'تم الفرز حسب [label]، تصاعديًا',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'تم الفرز حسب [label]، تنازليًا',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'تمت إزالة الفرز من [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'تم الفرز حسب [label]، تصاعديًا، أولوية الفرز [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'تم الفرز حسب [label]، تنازليًا، أولوية الفرز [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'تم تحديد من العمود [startColumn]، الصف [startRow] إلى العمود [endColumn]، الصف [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'تم تحديد كل الخلايا',

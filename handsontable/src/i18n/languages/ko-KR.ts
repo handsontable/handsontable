@@ -190,6 +190,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] 기준 오름차순 정렬',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '[label] 기준 내림차순 정렬',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '[label] 정렬 해제',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '[label] 기준 오름차순 정렬, 우선순위 [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '[label] 기준 내림차순 정렬, 우선순위 [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '[startColumn]열 [startRow]행에서 [endColumn]열 [endRow]행까지 선택됨',
   [C.SELECTION_ANNOUNCEMENT_ALL]: '모든 셀 선택됨',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '[column]열 선택됨',
