@@ -457,7 +457,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v46';
+const LOADER_VERSION = 'v47';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -526,9 +526,12 @@ const FRAMEWORK_TITLE_NAMES = {
  * `<title> | Handsontable DataGrid for <Framework>`. Starlight titles a page
  * `<title> | <site title>`, so the four framework variants of a page would
  * share one title, and a tab or a history list could not tell them apart
- * (WCAG 2.4.2). The title is built from `title`, not from `metaTitle`, so it
- * always holds the page's heading: the changelog and migration pages keep an
- * older `metaTitle` shape that differs from it.
+ * (WCAG 2.4.2). The framework's own `metaTitle` (the top-level one for
+ * JavaScript, `<framework>.metaTitle` for the others) is used when it already
+ * ends with that suffix, because it tells apart pages that share a `title`
+ * (the guides' and the API reference's "Introduction"). Otherwise the title is
+ * built from `title`: the changelog and migration pages keep an older
+ * `metaTitle` shape on purpose.
  *
  * @param {Record<string, any>} frontmatter The page's frontmatter.
  * @param {string} framework One of `FRAMEWORKS`.
@@ -541,11 +544,15 @@ export function withFrameworkTitle(frontmatter, framework) {
     return frontmatter;
   }
 
+  const suffix = ` | Handsontable DataGrid for ${FRAMEWORK_TITLE_NAMES[framework]}`;
+  const rawMetaTitle = framework === 'javascript' ? frontmatter.metaTitle : frontmatter[framework]?.metaTitle;
+  const metaTitle = typeof rawMetaTitle === 'string' ? rawMetaTitle.trim() : '';
+  const content = metaTitle.endsWith(suffix) && metaTitle.length > suffix.length ? metaTitle : `${title}${suffix}`;
   const head = (frontmatter.head ?? []).filter(entry => entry?.tag !== 'title');
 
   return {
     ...frontmatter,
-    head: [...head, { tag: 'title', content: `${title} | Handsontable DataGrid for ${FRAMEWORK_TITLE_NAMES[framework]}` }],
+    head: [...head, { tag: 'title', content }],
   };
 }
 

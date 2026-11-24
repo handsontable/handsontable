@@ -895,6 +895,68 @@ test('titles each framework variant of a page after the page and its framework',
   }
 });
 
+test('titles a page after its framework metaTitle when it names that framework', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-metatitle-'));
+  const contentDir = join(root, 'content');
+  const apiDir = join(contentDir, 'api');
+  const guideDir = join(contentDir, 'guides', 'introduction');
+
+  mkdirSync(apiDir, { recursive: true });
+  mkdirSync(guideDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(join(apiDir, 'introduction.md'), [
+    '---',
+    'title: Introduction',
+    'metaTitle: API reference | Handsontable DataGrid for JavaScript',
+    'permalink: /api',
+    'react:',
+    '  metaTitle: API reference | Handsontable DataGrid for React',
+    'angular:',
+    '  metaTitle: API reference | Handsontable DataGrid for Angular',
+    '---',
+    '',
+    'Body.',
+    '',
+  ].join('\n'));
+  writeFileSync(join(guideDir, 'introduction.md'), [
+    '---',
+    'title: Introduction',
+    'metaTitle: Documentation | Handsontable DataGrid for JavaScript',
+    'permalink: /introduction',
+    'react:',
+    '  metaTitle: Documentation | Handsontable DataGrid for React',
+    'angular:',
+    '  metaTitle: Documentation | Handsontable DataGrid for Angular',
+    'vue:',
+    '  metaTitle: Documentation | Handsontable DataGrid for Vue',
+    '---',
+    '',
+    'Body.',
+    '',
+  ].join('\n'));
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const titleOf = id => store.get(id).data.head.filter(entry => entry.tag === 'title').map(entry => entry.content);
+
+    assert.deepEqual(titleOf('javascript-data-grid/api'), ['API reference | Handsontable DataGrid for JavaScript']);
+    assert.deepEqual(titleOf('react-data-grid/api'), ['API reference | Handsontable DataGrid for React']);
+    assert.deepEqual(titleOf('angular-data-grid/api'), ['API reference | Handsontable DataGrid for Angular']);
+    assert.deepEqual(
+      titleOf('vue-data-grid/api'),
+      ['Introduction | Handsontable DataGrid for Vue'],
+      'a framework with no metaTitle of its own falls back to the title'
+    );
+    assert.deepEqual(titleOf('javascript-data-grid/introduction'), ['Documentation | Handsontable DataGrid for JavaScript']);
+    assert.deepEqual(titleOf('vue-data-grid/introduction'), ['Documentation | Handsontable DataGrid for Vue']);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('a callout is a note named by its title, not a complementary landmark', async () => {
   const html = await loadPageWithBody('::: warning Source data format\nKeep one object per row.\n:::\n\n::: tip\nShort.\n:::');
 
