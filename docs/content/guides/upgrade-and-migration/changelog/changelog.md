@@ -6,6 +6,8 @@ description:
   See the full history of changes made to Handsontable in each major, minor, and patch release.
 permalink: /changelog
 canonicalUrl: /changelog
+tableOfContents:
+  maxHeadingLevel: 2
 tags:
   - change log
   - changelog

@@ -5,6 +5,8 @@ metaTitle: Changelog 9.x - JavaScript Data Grid | Handsontable
 description: See the full history of changes made to Handsontable 9.x in each minor and patch release.
 permalink: /changelog-9
 canonicalUrl: /changelog-9
+tableOfContents:
+  maxHeadingLevel: 2
 react:
   metaTitle: Changelog 9.x - React Data Grid | Handsontable
 angular:

@@ -5,6 +5,8 @@ metaTitle: Older versions - JavaScript Data Grid | Handsontable
 description: See the full history of changes made to older versions of Handsontable.
 permalink: /changelog-older
 canonicalUrl: /changelog-older
+tableOfContents:
+  maxHeadingLevel: 2
 react:
   metaTitle: Older versions - React Data Grid | Handsontable
 angular:

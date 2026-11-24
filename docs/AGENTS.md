@@ -508,7 +508,7 @@ would be a frozen unmaintained snapshot.
 
 `content/guides/upgrade-and-migration/changelog-<N>/changelog-<N>.md` is hand-written: the release
 workflow writes the root `CHANGELOG.md` and the rolling `changelog/changelog.md`, and someone copies
-the version's section into the per-major page by hand. The category headings stay `###` (`### Added`), one level under the `## <version>` heading: a `####` skips a level in the page outline (WCAG 1.3.1). `changelog-parser.mjs` still reads a `####` one the same way.
+the version's section into the per-major page by hand. The category headings stay `###` (`### Added`), one level under the `## <version>` heading: a `####` skips a level in the page outline (WCAG 1.3.1). `changelog-parser.mjs` still reads a `####` one the same way. Every changelog page sets `tableOfContents: { maxHeadingLevel: 2 }` in its frontmatter, because Starlight's "On this page" list takes h2 and h3 by default and would repeat "Added", "Fixed", and "Changed" under every version; a new `changelog-<N>` page copies it.
 
 **When you create the page for a new major, move the design system date with it.** The newest
 `changelog-<N>` page carries a hidden `data-design-system-updated` block under its intro line, filled
