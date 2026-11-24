@@ -716,6 +716,24 @@ export class UndoGridPage {
   }
 
   /**
+   * Select a range through the API, then copy it with the keyboard shortcut: `Cmd`+`C` on macOS,
+   * `Ctrl`+`C` elsewhere.
+   */
+  async copyWithKeyboard(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate((cellRange) => {
+      window.hot.selectCells([cellRange]);
+    }, range);
+    await this.page.keyboard.press('ControlOrMeta+c');
+  }
+
+  /**
+   * The text on the browser clipboard (needs the `clipboard-read` permission).
+   */
+  async clipboardText(): Promise<string> {
+    return this.page.evaluate(() => navigator.clipboard.readText());
+  }
+
+  /**
    * The value of a cell, by its visual coordinates.
    */
   async cellValue(visualRow: number, visualColumn: number): Promise<CellValue> {

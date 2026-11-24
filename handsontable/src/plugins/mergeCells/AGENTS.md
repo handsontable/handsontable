@@ -312,7 +312,14 @@ hooks). Six rules keep it narrow:
   changed merges cover is skipped. A cell an unchanged merge covers is not looked at, so it may be cleaned and
   `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
   merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
-  recorded sides already hold the answer. It does nothing
+  recorded sides already hold the answer. **This path does not wait for an own `hidden` or `spanned`**, as the
+  move paths do: the merge stored both through `setCellMeta()`, so on the undo of a merge the UndoRedo journal,
+  replayed before `restoreState()`, has already taken them back, while the `copyable: false`, `rowspan` and
+  `colspan` the hook wrote are in no journal. Gated on the marks, the undo of a merge left them all on the cells,
+  and a copy of the area dropped the covered cells' values. So each released cell loses `hidden`/`spanned` where
+  they are still own, and `copyable`, `rowspan` and `colspan` unless recorded (the `wasInMerge` argument of
+  `#clearCoveredFlagsOfTopLeftCell` and `#clearSpanKeysOfCell`). Pinned by `__tests__/undoMergeMeta.unit.js` and
+  `tests/e2e/merge-cells-undo-copy.spec.ts`. The cleanup does nothing
   without a recorded other side (no `context.other`), for a merge captured with no `physicalColumns`, or when
   the replay inserted or removed rows or columns (`context.reordered`): the recorded physical indexes are
   numbered like the grid before that replay. A row move's redo was already clean, because dropping the live merge cleans it by the
@@ -359,7 +366,9 @@ hooks). Six rules keep it narrow:
     `#settleMergesAfterAxisMove` (only while a row is trimmed), and the top and bottom of `restoreState()`. UndoRedo replays the cell meta journal before it restores plugin states, so the cleanup is
     not overwritten by a replayed `spanned`.
   - **It cleans only where `#clearSpanKeysOfCell` does** (an own `spanned`), so a cell that was never a top-left
-    is untouched whatever ends up in the diff, and a stale recording mostly misses a cleanup.
+    is untouched whatever ends up in the diff, and a stale recording mostly misses a cleanup. The released cells of
+    an undo step are the one exception: `#clearCoveredFlagsOfCellsReleasedByStep` passes `wasInMerge`, because the
+    journal has already taken `spanned` back there.
   - **An intermediate diff can clean a cell the final state draws from, and the next read puts the keys back.**
     UndoRedo restores the index maps, which fires the mapper diff against the merges that are not restored yet,
     and a row move runs that diff before `translateAfterAxisMove` replaces the anchors. `afterGetCellMeta`

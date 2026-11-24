@@ -2029,6 +2029,11 @@ export class MergeCells extends BasePlugin {
    * A cell the restored side's changed merges cover is left alone. One an unchanged merge covers may be
    * cleaned, and `afterGetCellMeta` stores the flags again on the next read.
    *
+   * The span keys go too, and neither removal waits for the `hidden` or `spanned` mark. The merge stored both
+   * marks through `setCellMeta()`, so on the undo of a merge the UndoRedo journal has already taken them back,
+   * while the `copyable`, `rowspan` and `colspan` the hook wrote are not in the journal. The recorded other side
+   * is the proof that a merge covered the cell. A recorded `copyable`, `rowspan` or `colspan` still stays.
+   *
    * @param {Array} state The merges on the restored side of the step.
    * @param {Array} other The merges on the other side of the step.
    */
@@ -2046,7 +2051,11 @@ export class MergeCells extends BasePlugin {
         return;
       }
 
-      this.#clearCoveredFlagsOfTopLeftCell(Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE), key % DRAWN_CELL_COLUMN_STRIDE);
+      const physicalRow = Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE);
+      const physicalColumn = key % DRAWN_CELL_COLUMN_STRIDE;
+
+      this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn, true);
+      this.#clearSpanKeysOfCell(physicalRow, physicalColumn, true);
     });
   }
 
@@ -3312,18 +3321,25 @@ export class MergeCells extends BasePlugin {
    * applies it again on the next read.
    * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
    *
+   * A caller that knows from a recorded undo step that a merge covered the cell skips the `spanned` check: the
+   * UndoRedo journal takes `spanned` back before `restoreState()` runs, and it never held `rowspan` or `colspan`.
+   *
    * @param {number} physicalRow The physical row of the cell.
    * @param {number} physicalColumn The physical column of the cell.
+   * @param {boolean} [wasInMerge=false] `true` when a recorded undo step shows that a merge covered the cell.
    */
-  #clearSpanKeysOfCell(physicalRow: number, physicalColumn: number) {
+  #clearSpanKeysOfCell(physicalRow: number, physicalColumn: number, wasInMerge = false) {
     const metaManager = this.hot._getMetaManager();
     const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+    const hasMark = !!storedMeta && hasOwnProperty(storedMeta, 'spanned');
 
-    if (!storedMeta || !hasOwnProperty(storedMeta, 'spanned')) {
+    if (!storedMeta || (!wasInMerge && !hasMark)) {
       return;
     }
 
-    metaManager.removeCellMeta(physicalRow, physicalColumn, 'spanned');
+    if (hasMark) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'spanned');
+    }
 
     ['rowspan', 'colspan'].forEach((key) => {
       if (!metaManager.getCellMetaKeyState(physicalRow, physicalColumn, key).hadOwn) {
@@ -3505,18 +3521,25 @@ export class MergeCells extends BasePlugin {
    * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
    * The check costs one meta lookup per merge and no lookup in the merge collection.
    *
+   * A caller that knows from a recorded undo step that a merge covered the cell skips the `hidden` check: the
+   * UndoRedo journal takes `hidden` back before `restoreState()` runs, and it never held `copyable`.
+   *
    * @param {number} physicalRow The physical row of the cell the merge is drawn from.
    * @param {number} physicalColumn The physical column of the cell the merge is drawn from.
+   * @param {boolean} [wasInMerge=false] `true` when a recorded undo step shows that a merge covered the cell.
    */
-  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number) {
+  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number, wasInMerge = false) {
     const metaManager = this.hot._getMetaManager();
     const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+    const hasMark = !!storedMeta && hasOwnProperty(storedMeta, 'hidden');
 
-    if (!storedMeta || !hasOwnProperty(storedMeta, 'hidden')) {
+    if (!storedMeta || (!wasInMerge && !hasMark)) {
       return;
     }
 
-    metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+    if (hasMark) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+    }
 
     // The merge stores `hidden` through `setCellMeta()`, but the hook writes `copyable` straight onto the stored
     // object and never records it. A recorded `copyable` is left alone (a recorded `true` was already overwritten by the hook).
