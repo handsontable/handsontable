@@ -5,29 +5,39 @@ const TOC_LINK = '.right-sidebar a[href^="#"]';
 const EXAMPLE_BUTTONS = ['button#sort', '.hot-example-source-btn', '.hot-example-runner-btn', '.hot-example-github-btn'];
 
 /**
- * Focuses the tab stop right before the first element that matches the selector, then presses Tab once,
- * so the element takes the focus from the keyboard.
+ * Moves the keyboard focus onto the first element that matches the selector with one key press: Tab from the
+ * tab stop before it, or Shift+Tab from the tab stop after it when an example grid sits between the element and
+ * the stop before it. A grid takes Tab for its own cells, so the press must not cross one.
  *
  * @param {Page} page The page.
  * @param {string} selector The selector of the element to reach.
  */
 async function tabInto(page: Page, selector: string): Promise<void> {
-  const ready = await page.evaluate((sel) => {
+  const key = await page.evaluate((sel) => {
     const target = document.querySelector<HTMLElement>(sel);
     const stops = [...document.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]')]
       .filter(element => element.tabIndex >= 0 && !element.hasAttribute('disabled') && element.getClientRects().length > 0);
     const index = target ? stops.indexOf(target) : -1;
+    const gridBetween = (first: HTMLElement, second: HTMLElement) => [...document.querySelectorAll('.ht-root-wrapper')]
+      .some(grid => (first.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING)
+        && (grid.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING));
 
-    if (index < 1) {
-      return false;
+    if (index > 0 && !gridBetween(stops[index - 1], target!)) {
+      stops[index - 1].focus();
+
+      return 'Tab';
     }
-    stops[index - 1].focus();
+    if (index >= 0 && index + 1 < stops.length && !gridBetween(target!, stops[index + 1])) {
+      stops[index + 1].focus();
 
-    return true;
+      return 'Shift+Tab';
+    }
+
+    return null;
   }, selector);
 
-  expect(ready, `a tab stop comes before ${selector}`).toBe(true);
-  await page.keyboard.press('Tab');
+  expect(key, `a tab stop next to ${selector} has no grid in between`).not.toBeNull();
+  await page.keyboard.press(key!);
   await expect(page.locator(selector).first()).toBeFocused();
 }
 
