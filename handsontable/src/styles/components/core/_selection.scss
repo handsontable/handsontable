@@ -111,12 +111,26 @@
     &.ht__resizing-selection--top .wtSelectionHandle--top,
     &.ht__resizing-selection--bottom .wtSelectionHandle--bottom,
     &.ht__resizing-selection--start .wtSelectionHandle--start,
-    &.ht__resizing-selection--end .wtSelectionHandle--end {
+    &.ht__resizing-selection--end .wtSelectionHandle--end,
+    // the handle that waits for the click that picks where the edge goes is styled as a held one
+    &.ht__picking-selection--top .wtSelectionHandle--top,
+    &.ht__picking-selection--bottom .wtSelectionHandle--bottom,
+    &.ht__picking-selection--start .wtSelectionHandle--start,
+    &.ht__picking-selection--end .wtSelectionHandle--end {
       background: color-mix(
         in srgb,
         var(--ht-cell-selection-handle-border-color) 30%,
         var(--ht-cell-selection-handle-background-color)
       );
+    }
+
+    // A ring besides the boosted background, so the armed state does not rest on a subtle color change alone.
+    &.ht__picking-selection--top .wtSelectionHandle--top,
+    &.ht__picking-selection--bottom .wtSelectionHandle--bottom,
+    &.ht__picking-selection--start .wtSelectionHandle--start,
+    &.ht__picking-selection--end .wtSelectionHandle--end {
+      outline: var(--ht-sizing-size-0-5, 2px) solid var(--ht-accent-color);
+      outline-offset: 1px;
     }
 
     // The `.wtMoveGhost` drop-target preview (moveCells option) has no rule here on purpose: the

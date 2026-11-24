@@ -6,12 +6,12 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T11:06:00.258Z"
+    "at": "2026-11-23T16:10:58.050Z"
   },
   "steps": {
-    "collapse-parent": "collapsed row 1",
+    "collapse-parent": "1 collapsed column 1 row 6 collapsed row 1",
     "expand-parent": "1 expanded column 1 row 11 expanded row 1 expanded rows shown 5",
-    "into-parent-cell": "level 1 1 of 2 expanded",
-    "down-to-child": "level 2 1 of 3"
+    "into-parent-cell": "name level 1 1 of 2 expanded root a",
+    "down-to-child": "name level 2 1 of 3 a 1"
   }
 }

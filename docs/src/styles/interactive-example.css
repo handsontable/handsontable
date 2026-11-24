@@ -214,7 +214,7 @@
 :root .hot-example-preview > button:focus-visible,
 .ht-dialog__content button.hot-doc-dialog-html-button:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 2px var(--sl-color-accent);
+  box-shadow: inset 0 0 0 2px var(--sl-color-focus-ring);
 }
 
 /* Dialog guide: HTML `content` buttons sit below paragraph copy */
@@ -265,7 +265,7 @@
 .example-controls-container input[type="search"]:focus,
 .example-controls-container input[type="number"]:focus {
   outline: none;
-  border-color: var(--sl-color-accent);
+  border-color: var(--sl-color-focus-ring);
 }
 
 .example-controls-container label {
@@ -347,7 +347,7 @@
 
 .hot-example-source-btn:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 2px var(--sl-color-accent);
+  box-shadow: inset 0 0 0 2px var(--sl-color-focus-ring);
 }
 
 .hot-example-source-btn.is-open {
@@ -394,7 +394,7 @@
 .hot-example-runner-btn:focus-visible,
 .hot-example-github-btn:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 2px var(--sl-color-accent);
+  box-shadow: inset 0 0 0 2px var(--sl-color-focus-ring);
 }
 
 /* ── Code section (hidden by default, toggled by Source code btn) ──────── */

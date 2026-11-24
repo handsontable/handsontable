@@ -27,7 +27,7 @@ We require you to specify which terms apply to your usage, by passing a license 
 
 ## Commercial license
 
-If you use the paid version of Handsontable, pass the string of numbers delivered to you after the purchase. Note that the license key is a string, so you need to wrap it in quotes `''`.
+If you use the paid version of Handsontable, pass the license key delivered to you after the purchase. The license key is a string, so wrap it in quotes `''`.
 
 ::: only-for javascript
 
@@ -44,21 +44,14 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 <code-block title="React" active>
 
 ```jsx
-<HotTable settings={settings} licenseKey="00000-00000-00000-00000-00000" />
+<HotTable {...settings} licenseKey="00000-00000-00000-00000-00000" />
 ```
 
 </code-block>
 <code-block title="Angular">
 
 ```html
-<hot-table [settings]="settings" licenseKey="00000-00000-00000-00000-00000"></hot-table>
-```
-
-</code-block>
-<code-block title="Vue 2">
-
-```html
-<hot-table :settings="settings" licenseKey="00000-00000-00000-00000-00000" />
+<hot-table [settings]="{ licenseKey: '00000-00000-00000-00000-00000' }"></hot-table>
 ```
 
 </code-block>
@@ -467,7 +460,7 @@ prints one console warning that names what it skipped. An import also reports ea
 
 ## Result
 
-Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
+Your grid is now licensed. A valid commercial key shows no license lock and no expiry notice.
 
 ## The validation process
 
@@ -495,7 +488,7 @@ A **missing or invalid key** blocks the grid. Handsontable covers it with a moda
 
 The modal covers only the grid. The rest of your page keeps working. The modal does not appear on this site, so this page shows it as an image.
 
-An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
+An **expired key** does not block the grid, and every feature keeps working, with one exception: a trial key blocks the grid once its grace period passes. See [Trial keys](#trial-keys). A perpetual key and a key in the 25-character format show a message below the table and in the console. A lapsed subscription shows its message in the console only.
 
 A **key that does not include a feature** your grid uses blocks nothing either. The feature stays off, and its message appears below the table and in the console. See [Keys that name a tier](#keys-that-name-a-tier).
 
@@ -519,9 +512,19 @@ Since Handsontable 19.0, the `non-commercial-and-evaluation` key, and its second
 
 ### Expired license key
 
-Shown below the table and in the console:
+For a perpetual key and a key in the 25-character format, the message is shown below the table and in the console. The console prints an error for a perpetual key and a warning for a 25-character key. The wording differs slightly by key type. A 25-character key says:
 
-_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
+_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_date]`. If you need any help, contact us at `[email]`._
+
+A perpetual key says:
+
+_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`. Renew your license key or downgrade to a version released on or before `[expiration_date]`. If you need any help, contact us at `[email]`._
+
+A trial key shows its own message next to the badge and below the grid, and the console prints an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. See [Trial keys](#trial-keys).
+
+A lapsed subscription prints this error in the console only:
+
+_Your Handsontable subscription license expired on `[expiration_date]` (UTC). To continue using the software, contact sales@handsontable.com to purchase a valid license key._
 
 ### Feature not included in the license key
 
@@ -542,15 +545,71 @@ In the console, `[features]` lists each missing feature as its name and token, f
 
 ### How do I update the license key in many tables at once?
 
-There's no built-in method to update all existing instances automatically. You have two options:
+There's no built-in method to update all existing instances automatically. You have two options.
 
-- **Before creating any instances:** set the key globally so every new instance picks it up.
+**Before creating any instances:** keep the key in one place, so every new instance picks it up. A grid created without a key shows the license lock.
 
-  ```js
-  Handsontable.defaults.licenseKey = 'your-new-key';
-  ```
+::: only-for javascript
 
-- **For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The tiers a key names are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the features of its tiers and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
+Handsontable has no global default for `licenseKey`. Store the key in a constant and pass it to every grid:
+
+```js
+const LICENSE_KEY = 'your-new-key';
+
+let hot1 = new Handsontable(container1, { ...settings1, licenseKey: LICENSE_KEY });
+let hot2 = new Handsontable(container2, { ...settings2, licenseKey: LICENSE_KEY });
+```
+
+:::
+
+::: only-for react
+
+Handsontable has no global default for `licenseKey`. Store the key in a constant and pass it to every `HotTable`:
+
+```jsx
+const LICENSE_KEY = 'your-new-key';
+
+<>
+  <HotTable {...settings1} licenseKey={LICENSE_KEY} />
+  <HotTable {...settings2} licenseKey={LICENSE_KEY} />
+</>
+```
+
+:::
+
+::: only-for angular
+
+Pass the key as `license` in the `HOT_GLOBAL_CONFIG` provider. Every `hot-table` in the application picks it up, except a table that sets its own `licenseKey` in its `settings`:
+
+```ts
+import { ApplicationConfig } from '@angular/core';
+import { HOT_GLOBAL_CONFIG } from '@handsontable/angular-wrapper';
+
+export const appConfig: ApplicationConfig = {
+  providers: [{ provide: HOT_GLOBAL_CONFIG, useValue: { license: 'your-new-key' } }],
+};
+```
+
+:::
+
+::: only-for vue
+
+Handsontable has no global default for `licenseKey`. Store the key in a constant and pass it to every `HotTable`:
+
+```html
+<script setup>
+const LICENSE_KEY = 'your-new-key';
+</script>
+
+<template>
+  <hot-table :settings="settings1" :license-key="LICENSE_KEY" />
+  <hot-table :settings="settings2" :license-key="LICENSE_KEY" />
+</template>
+```
+
+:::
+
+**For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The tiers a key names are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the features of its tiers and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
 
 ::: only-for javascript
 
@@ -577,18 +636,20 @@ The wrapper component creates its instance once, when it mounts. A later change 
 What you can do depends on your license type:
 
 - **Subscription license:** once your subscription expires, you can no longer use Handsontable. Renew your subscription to keep using the grid.
-- **Perpetual license:** you can keep using any version of Handsontable that was released _before_ your license expired. You won't be able to upgrade to versions released after that date.
+- **Perpetual license:** you can keep using any version of Handsontable that was released on or before the day your license expired. You won't be able to upgrade to versions released after that date.
 
-If you load a version that your license doesn't cover, you'll see a [console warning](#expired-license-key) and a watermark on the grid. To keep support and access to updates, keep your license up to date.
+If you load a version that your license doesn't cover, what you see depends on your license type. A perpetual license shows a console error and a [notice bar](#expired-license-key) below the grid. A key in the 25-character format shows a console warning and the same notice bar. A lapsed subscription shows a console error only. To keep support and access to updates, keep your license up to date.
 
 ### What will I see if I update to a newer version with a stale key?
 
-If your license key is expired and you update to a version of Handsontable released after it expired, you'll see:
+If your perpetual license key, or your key in the 25-character format, is expired and you update to a version of Handsontable released after it expired, you'll see:
 
-- A watermark below the table saying the license is invalid.
-- A warning in the browser console (see [Expired license key](#expired-license-key)).
+- A message in the browser console (see [Expired license key](#expired-license-key)): an error for a perpetual key, a warning for a 25-character key.
+- A notice bar below the table saying the license key expired.
 
-All features still work, but you're not entitled to use that version under an expired license. To remove the warning and watermark, either downgrade to the last version released while your license was still active, or renew the license.
+A lapsed subscription works differently: see the previous question.
+
+All features still work, but you're not entitled to use that version under an expired license. To remove the message and the notice bar, either downgrade to the last version released while your license was still active, or renew the license.
 
 ## Related articles
 

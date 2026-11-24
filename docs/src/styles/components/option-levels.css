@@ -89,7 +89,7 @@
 }
 
 .option-levels-search input:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid var(--sl-color-focus-ring);
   outline-offset: 1px;
 }
 

@@ -189,6 +189,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti retci na dnu',
   [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznuti stupci na početku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznuti stupci na kraju',
+  [C.ARMED_PICK_STARTED]: 'Kliknite ili dodirnite cilj za dovršetak. Pritisnite Escape za otkazivanje.',
+  [C.ARMED_PICK_CANCELED]: 'Otkazano.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen redak [label], prikazani prošireni retci: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sažet redak [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Razina [level], [position] od [setSize]',

@@ -176,6 +176,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: '底部冻结的行',
   [C.FREEZE_BAR_COLUMNS_START]: '起始冻结的列',
   [C.FREEZE_BAR_COLUMNS_END]: '末尾冻结的列',
+  [C.ARMED_PICK_STARTED]: '单击或点按目标以完成。按 Esc 键取消。',
+  [C.ARMED_PICK_CANCELED]: '已取消。',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展开行 [label]，显示的展开行数：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已折叠行 [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '第 [level] 级，第 [position] 项，共 [setSize] 项',

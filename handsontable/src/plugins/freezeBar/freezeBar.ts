@@ -5,6 +5,8 @@ import { getDeepActiveElement, getTrimmingContainer, setAttribute } from '../../
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { getMaxFittingFrozenCount, MIN_SCROLLABLE_SIZE } from '../../utils/frozenAreaFit';
 import { getElementScaleFactor, normalizeVisualDelta } from '../../utils/manualResize/utils';
+import { armPick, type ArmedPick } from '../../utils/armedPick';
+import { announce } from '../../utils/a11yAnnouncer';
 import { resolveFreezeCount } from './snapResolver';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from './types';
 import { LICENSE } from './feature.generated';
@@ -49,6 +51,19 @@ interface Rect {
   right: number;
   top: number;
   bottom: number;
+}
+
+/**
+ * What a drag, or a pick, works from.
+ */
+interface FreezeSession {
+  scale: number;
+  rootRect: DOMRect;
+  visibleRect: Rect;
+  maxCount: number;
+  trackSizes: number[];
+  headerSize: number;
+  fromLeft: boolean;
 }
 
 interface OverlayLike {
@@ -163,6 +178,24 @@ export class FreezeBar extends BasePlugin {
    * Ends the drag in progress without storing anything.
    */
   #abortDrag: (() => void) | null = null;
+  /**
+   * The "click, then click" gesture in progress: a click on a bar armed it, and the next click on the grid picks where
+   * the freeze line goes.
+   */
+  #pick: ArmedPick | null = null;
+  /**
+   * The edge whose bar armed the pick in progress.
+   */
+  #pickEdge: FreezeEdge | null = null;
+  /**
+   * Whether the press that is being released came while a pick was armed, which makes its click end the pick instead
+   * of arming it again.
+   */
+  #pressedWhileArmed = false;
+  /**
+   * Whether the press that is being released became a drag, which makes its click arm nothing.
+   */
+  #pressBecameDrag = false;
   /**
    * The measurements of the render being synchronized.
    */
@@ -484,6 +517,7 @@ export class FreezeBar extends BasePlugin {
    */
   #onBeforeDataReplace = () => {
     this.#abortDrag?.();
+    this.#pick?.cancel();
   };
 
   /**
@@ -758,10 +792,14 @@ export class FreezeBar extends BasePlugin {
 
       if (!segment) {
         segment = this.hot.rootDocument.createElement('div');
-        segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment`;
+        // a piece created while a pick waits (a clone that appeared on scroll) is drawn as the rest of the bar is
+        segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment${
+          this.#pickEdge === edge ? ' ht-freeze-bar--armed' : ''
+        }`;
         segment.setAttribute('aria-hidden', 'true');
         segment.addEventListener('wheel', this.#onWheel, { passive: false });
         segment.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
+        segment.addEventListener('click', () => this.#onBarClick(edge));
         segment.addEventListener('pointerenter', () => this.#setHover(edge, true));
         segment.addEventListener('pointerleave', () => this.#setHover(edge, false));
         pieces.set(name, segment);
@@ -942,6 +980,7 @@ export class FreezeBar extends BasePlugin {
     // the bar only draws and takes the pointer, the separator next to the grid is what assistive technology meets
     bar.setAttribute('aria-hidden', 'true');
     bar.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
+    bar.addEventListener('click', () => this.#onBarClick(edge));
     bar.addEventListener('wheel', this.#onWheel, { passive: false });
     bar.addEventListener('pointerenter', () => this.#setHover(edge, true));
     bar.addEventListener('pointerleave', () => this.#setHover(edge, false));
@@ -999,6 +1038,12 @@ export class FreezeBar extends BasePlugin {
       return;
     }
 
+    // a press on a bar while a pick is armed ends the pick. On the bar that armed it, its release must not arm it again;
+    // on another bar it arms that one.
+    this.#pressedWhileArmed = this.#pick !== null && this.#pickEdge === edge;
+    this.#pressBecameDrag = false;
+    this.#pick?.cancel();
+
     event.preventDefault();
     event.stopPropagation();
 
@@ -1008,18 +1053,9 @@ export class FreezeBar extends BasePlugin {
     this.hot.getActiveEditor()?.finishEditing(false);
 
     const doc = this.hot.rootDocument;
-    const columns = isColumnEdge(edge);
     const { pointerId, clientX: startX, clientY: startY } = event;
     // what the drag works from, measured when the pointer first moves (see `begin`)
-    let session: {
-      scale: number,
-      rootRect: DOMRect,
-      visibleRect: Rect,
-      maxCount: number,
-      trackSizes: number[],
-      headerSize: number,
-      fromLeft: boolean,
-    } | null = null;
+    let session: FreezeSession | null = null;
 
     const startCount = this.#getDrawnCount(edge);
 
@@ -1050,23 +1086,8 @@ export class FreezeBar extends BasePlugin {
     const begin = () => {
       // the drag shows its own indicators, and the bar goes back to its plain color until it is released
       this.#setHover(edge, false);
-      this.#scrollToEdge(edge);
       this.#drag!.started = true;
-
-      const rootRect = this.hot.rootElement.getBoundingClientRect();
-      // A count above what fits keeps its room, so a wobble of the pointer cannot lower a count the user did not touch.
-      const maxCount = Math.max(this.#getMaxCount(edge), this.#getDrawnCount(edge));
-
-      session = {
-        scale: getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical'),
-        rootRect,
-        visibleRect: this.#measureFrame(rootRect).rendered,
-        maxCount,
-        trackSizes: this.#getTrackSizes(edge, { maxTracks: maxCount }),
-        // the pointer distance is measured from the edge of the data area, past the headers
-        headerSize: this.#getBandOrigin(edge),
-        fromLeft: columns && growsFromStart(edge) !== this.hot.isRtl(),
-      };
+      session = this.#measureSession(edge);
     };
     const onMove = (moveEvent: PointerEvent) => {
       if (moveEvent.pointerId !== pointerId) {
@@ -1106,6 +1127,7 @@ export class FreezeBar extends BasePlugin {
       this.#setActive(edge, false);
       this.#drag = null;
       this.#abortDrag = null;
+      this.#pressBecameDrag = session !== null;
 
       // a release that never passed the threshold is a click, and writes nothing (the count may have changed since
       // the press, by an undo for example). A gesture that ends where it began changes nothing either, so it must not
@@ -1137,6 +1159,144 @@ export class FreezeBar extends BasePlugin {
     doc.addEventListener('pointercancel', onCancel);
     doc.addEventListener('keydown', onKey, true);
     this.#abortDrag = () => finish(false);
+  }
+
+  /**
+   * Measures what a drag or a pick works from: the root, the part of it in view, the tracks a count can take, and
+   * where the pointer distance starts.
+   *
+   * @param {string} edge The edge.
+   * @returns {FreezeSession}
+   */
+  #measureSession(edge: FreezeEdge): FreezeSession {
+    const columns = isColumnEdge(edge);
+
+    this.#scrollToEdge(edge);
+
+    const rootRect = this.hot.rootElement.getBoundingClientRect();
+    // A count above what fits keeps its room, so a wobble of the pointer cannot lower a count the user did not touch.
+    const maxCount = Math.max(this.#getMaxCount(edge), this.#getDrawnCount(edge));
+
+    return {
+      scale: getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical'),
+      rootRect,
+      visibleRect: this.#measureFrame(rootRect).rendered,
+      maxCount,
+      trackSizes: this.#getTrackSizes(edge, { maxTracks: maxCount }),
+      // the pointer distance is measured from the edge of the data area, past the headers
+      headerSize: this.#getBandOrigin(edge),
+      fromLeft: columns && growsFromStart(edge) !== this.hot.isRtl(),
+    };
+  }
+
+  /**
+   * Arms the "click, then click" gesture, the single-pointer way to do what a drag of the bar does. A click on the bar
+   * that did not drag it arms the gesture, and a second click on the bar, a press on a bar, `Escape` or the next click
+   * on the grid ends it. That click names the last track of the band (`#getPickedCount()`), where the release of a drag
+   * names the boundary after it.
+   *
+   * @param {string} edge The edge.
+   */
+  #onBarClick(edge: FreezeEdge) {
+    const wasArmed = this.#pressedWhileArmed;
+    const wasDragged = this.#pressBecameDrag;
+
+    this.#pressedWhileArmed = false;
+    this.#pressBecameDrag = false;
+
+    if (wasArmed || wasDragged || this.#pick || !this.#isEdgeAvailable(edge)) {
+      return;
+    }
+
+    this.#startPick(edge);
+  }
+
+  /**
+   * Starts waiting for the click that picks the freeze line of an edge.
+   *
+   * @param {string} edge The edge.
+   */
+  #startPick(edge: FreezeEdge) {
+    // a press on any bar is left to the bar: it ends the pick, and on another bar it starts that one
+    const isAnchor = (target: EventTarget | null) => target instanceof Node && EDGES.some(
+      other => [this.#bars[other], ...(this.#segments[other]?.values() ?? [])].some(piece => piece?.contains(target))
+    );
+
+    this.#pickEdge = edge;
+    this.#setPickArmed(edge, true);
+    this.#setHover(edge, true);
+    this.#pick = armPick({
+      doc: this.hot.rootDocument,
+      root: this.hot.rootElement,
+      isAnchor,
+      onPick: (event) => {
+        const count = this.#getPickedCount(edge, event);
+
+        // a pick that ends where it began changes nothing, as a drag that ends where it began
+        if (count !== null && count !== this.#getDrawnCount(edge)) {
+          this.#applyCount(edge, count, 'drag');
+        }
+      },
+      onEnd: (reason) => {
+        this.#pick = null;
+        this.#pickEdge = null;
+        this.#setPickArmed(edge, false);
+        this.#setHover(edge, false);
+
+        if (reason === 'escape') {
+          announce(String(this.hot.getTranslatedPhrase(C.ARMED_PICK_CANCELED) ?? ''), 'polite');
+        }
+      },
+    });
+
+    announce(String(this.hot.getTranslatedPhrase(C.ARMED_PICK_STARTED) ?? ''), 'polite');
+  }
+
+  /**
+   * Reads the count a pick names from the click: the band ends with the clicked row or column, counted from the edge
+   * the band grows from. The cell is read from the click, not from where the pointer is, so the grid does not have to
+   * scroll to bring the first or the last tracks into view, and a hidden track before the clicked one is frozen with it.
+   * A click that is not on a cell or a header of the grid, or is on a header across the axis (a row header for a column
+   * band), names nothing.
+   *
+   * @param {string} edge The edge.
+   * @param {MouseEvent} event The click.
+   * @returns {number | null} The count, or `null` when the click names none.
+   */
+  #getPickedCount(edge: FreezeEdge, event: MouseEvent): number | null {
+    const origin = event.composedPath?.()[0] ?? event.target;
+    const cell = origin instanceof Element ? origin.closest<HTMLElement>('td, th') : null;
+
+    if (!cell || !this.hot.rootElement.contains(cell)) {
+      return null;
+    }
+
+    const coords = this.hot.getCoords(cell);
+    const columns = isColumnEdge(edge);
+    const index = columns ? coords?.col : coords?.row;
+
+    if (index === undefined || index === null || index < 0) {
+      return null;
+    }
+
+    const count = growsFromStart(edge) ? index + 1 : (columns ? this.hot.countCols() : this.hot.countRows()) - index;
+
+    // A track past what fits can not end the band, and a drag can not reach it either: it scrolls to the edge first, so
+    // the tracks it can name are the first (or last) ones. The pick names nothing, and the count stays as the user left
+    // it, instead of becoming a smaller count than the one that was clicked.
+    return count > Math.max(this.#getMaxCount(edge), this.#getDrawnCount(edge)) ? null : count;
+  }
+
+  /**
+   * Marks the bar of an edge, and its pieces, as waiting for the click that picks the freeze line.
+   *
+   * @param {string} edge The edge.
+   * @param {boolean} armed Whether the pick is armed.
+   */
+  #setPickArmed(edge: FreezeEdge, armed: boolean) {
+    [this.#bars[edge], ...(this.#segments[edge]?.values() ?? [])].forEach((piece) => {
+      piece?.classList.toggle('ht-freeze-bar--armed', armed);
+    });
   }
 
   /**
@@ -1444,9 +1604,12 @@ export class FreezeBar extends BasePlugin {
     const pieces = [this.#bars[edge], ...(this.#segments[edge]?.values() ?? [])]
       .filter((piece): piece is HTMLElement => !!piece);
 
-    this.#hoveredEdge = hovered ? edge : null;
+    // the bar that waits for a pick keeps its mark while the pointer is on the grid
+    const shown = hovered || this.#pickEdge === edge;
 
-    if (!hovered || this.#drag) {
+    this.#hoveredEdge = shown ? edge : null;
+
+    if (!shown || this.#drag) {
       pieces.forEach(piece => piece.classList.remove('ht-freeze-bar--hover'));
 
       return;
@@ -1688,6 +1851,7 @@ export class FreezeBar extends BasePlugin {
    */
   #teardown() {
     this.#abortDrag?.();
+    this.#pick?.cancel();
     this.#hideGuide();
     this.#drag = null;
     this.#hoveredEdge = null;

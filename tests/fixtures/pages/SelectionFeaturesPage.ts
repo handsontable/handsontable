@@ -1154,6 +1154,40 @@ export class SelectionFeaturesPage {
     });
   }
 
+  /**
+   * Click the middle of a selection handle with the real mouse: a press and a release that do not move.
+   */
+  async clickHandle(edge: 'top' | 'bottom' | 'start' | 'end'): Promise<void> {
+    const box = await this.handle(edge).boundingBox();
+
+    if (!box) {
+      throw new Error(`The ${edge} selection handle is not rendered.`);
+    }
+
+    await this.page.mouse.click(box.x + (box.width / 2), box.y + (box.height / 2));
+  }
+
+  /**
+   * Click the middle of a cell with the real mouse.
+   */
+  async clickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click();
+  }
+
+  /**
+   * The root while a click on a handle waits for the click that picks the edge.
+   */
+  pickingRoot(): Locator {
+    return this.page.locator('[class*="ht__picking-selection--"]');
+  }
+
+  /**
+   * The polite live region the announcements go to.
+   */
+  politeAnnouncer(): Locator {
+    return this.page.locator('[role="status"][aria-live="polite"]');
+  }
+
   /** Hover a cell with the real pointer (drives the handle-visibility logic). */
   async hoverCell(row: number, col: number): Promise<void> {
     await this.cell(row, col).hover();
