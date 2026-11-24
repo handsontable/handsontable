@@ -413,7 +413,8 @@ Optional methods, found by `typeof plugin.captureState === 'function'` once, on 
   `state` (and falls back to a full rebuild when `reordered` or when a merge to remove is not where
   it was, or when a merge to put back overlaps a live merge the step did not make) and clears the
   merge keys of the cells `other` covered and `state` does not: by the recorded physical columns (a
-  redo of a column move), or, when `reordered`, by its live merges before and after the restore. Formulas reads
+  redo of a column move), or, when `reordered`, by `other` mapped to the restored grid through
+  `context.toRestoredIndex`. Formulas reads
   the peer rewrites from `other` on undo. No context is passed when the restore puts back a state no
   step changed.
 - `getShownRowsTrimmingMaps()` - the row trimming maps whose change only changes which rows are

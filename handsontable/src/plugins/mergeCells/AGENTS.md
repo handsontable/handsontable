@@ -332,8 +332,9 @@ hooks). Six rules keep it narrow:
   other side through the rows and columns the step inserted or removed (`toFinalIndex()` in
   `../undoRedo/restoredCells.ts`). `#clearMergeKeysOfCellsReleasedByReplay()` maps every recorded merge's
   anchor rows and `physicalColumns` with it (`mapRecordedMerge()`), leaves out the merges whose mapped cells
-  equal a restored merge's (`isSameFootprint()`: the step left them alone, and checking them would cost the
-  area of every merge on every structural undo), and runs the same per-cell rule
+  equal a restored merge's (`getFootprintKey()`, matched through a `Set` so the match stays linear in the
+  merge count: the step left them alone, and checking them would cost the area of every merge on every
+  structural undo), and runs the same per-cell rule
   (`#clearMergeKeysOfReleasedCells()`) as the path above. **Never read the live merges here**: the replay runs
   in the physical order and the column order is restored before `restoreState()`, so a live merge's visual
   columns name other physical columns once a column was moved, and a column `alter()` in the replay
