@@ -158,7 +158,7 @@ const hot = new Handsontable(container, {
   columnSorting: true,
 
   afterGetColHeader(col, TH) {
-    if (!TH.hasAttribute('aria-sort')) {
+    if (col >= 0 && !TH.hasAttribute('aria-sort')) {
       TH.setAttribute('aria-sort', 'none');
     }
   },
@@ -172,6 +172,8 @@ The `afterGetColHeader` hook fires every time Handsontable renders a column head
 The `aria-sort` attribute on a column header tells screen readers whether the column is sorted and in which direction. WCAG 2.2 Success Criterion 1.3.1 requires that sort state is conveyed programmatically, not just visually.
 
 The check `!TH.hasAttribute('aria-sort')` avoids overwriting `aria-sort` when the `ColumnSorting` plugin has already set it. With `columnSorting` enabled and `ariaTags` on, the plugin sets `aria-sort` on every column header it renders: `"none"` before sorting, `"ascending"` or `"descending"` after. The hook is a safety net for a header the plugin does not own, for example one you render yourself. Screen readers do not announce a change of the sort order yet; see the known limitations in the [Accessibility](@/guides/accessibility/accessibility/accessibility.md#known-limitations) guide.
+
+The check `col >= 0` skips the corner above the row headers, where `col` is `-1`. The corner is a plain grid cell, and `aria-sort` is not allowed on a grid cell.
 
 ## How It Works - Complete Flow
 
