@@ -14,8 +14,8 @@
       - gridcell "Old C"
       - gridcell "20"
   - rowgroup:
-    - row "Select whole grid SKU Name Price":
-      - gridcell "Select whole grid"
+    - row "SKU Name Price":
+      - gridcell
       - columnheader "SKU"
       - columnheader "Name"
       - columnheader "Price"
@@ -28,8 +28,8 @@
     - row "3":
       - rowheader "3"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
 # portal
 - status

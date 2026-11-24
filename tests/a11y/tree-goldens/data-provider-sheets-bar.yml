@@ -17,8 +17,8 @@
       - gridcell "ORD-05"
       - gridcell "#1"
   - rowgroup:
-    - row "Select whole grid ID Fetch":
-      - gridcell "Select whole grid"
+    - row "ID Fetch":
+      - gridcell
       - columnheader "ID"
       - columnheader "Fetch"
   - rowgroup
@@ -34,8 +34,8 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
   - textbox "ID, row 1"
 - button "Add sheet"

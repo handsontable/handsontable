@@ -11,7 +11,7 @@
   "steps": {
     "arrow-up-unchecked": "",
     "space-select-row": "row 1 selected",
-    "arrow-up-to-header": "select all rows 2 of 5 selected done column 3 row select whole grid task select all rows 2 of 5 selected done",
+    "arrow-up-to-header": "select all rows 2 of 5 selected done column 3 row task select all rows 2 of 5 selected done",
     "space-select-all": "5 of 5 rows selected",
     "space-clear-all": "0 of 5 rows selected",
     "arrow-down-cleared": "select all rows 0 of 5 selected done unchecked column 2 row task 0 unchecked",

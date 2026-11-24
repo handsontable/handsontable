@@ -959,4 +959,206 @@ test.describe('selectionHandles hover', { tag: THEMES_TAG }, () => {
     await expect.poll(() => grid.handlesHoveredLayer()).toBeNull();
     expect(await grid.verticalScrollOffset()).toBe(steps * step);
   });
+
+  test.describe('click, then click', () => {
+    test('a click on a handle arms it and announces what to do, and changes nothing', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+
+      await expect(grid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
+      await expect(grid.politeAnnouncer()).toHaveText('Click or tap the target to finish. Press Escape to cancel.');
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 3, end: 3 });
+    });
+
+    test('the next click on a cell moves the edge there, whichever edge was clicked', async () => {
+      const cases = [
+        { edge: 'top', row: 0, col: 2, expected: { top: 0, start: 1, bottom: 3, end: 3 } },
+        { edge: 'bottom', row: 5, col: 2, expected: { top: 1, start: 1, bottom: 5, end: 3 } },
+        { edge: 'start', row: 2, col: 0, expected: { top: 1, start: 0, bottom: 3, end: 3 } },
+        { edge: 'end', row: 2, col: 5, expected: { top: 1, start: 1, bottom: 3, end: 5 } },
+      ] as const;
+
+      for (const { edge, row, col, expected } of cases) {
+        await grid.initGrid();
+        await grid.selectCells(1, 1, 3, 3);
+        await grid.hoverCell(2, 2);
+        await grid.clickHandle(edge);
+        await grid.clickCell(row, col);
+
+        expect(await grid.selectedBounds()).toEqual(expected);
+        await expect(grid.pickingRoot()).toHaveCount(0);
+      }
+    });
+
+    test('keeps the edge on the other side of the selection when the click lands across it', async () => {
+      await grid.selectCells(2, 1, 4, 3);
+      await grid.hoverCell(3, 2);
+      await grid.clickHandle('bottom');
+      await grid.clickCell(0, 2);
+
+      // the bottom edge can not cross the top one, so the range shrinks to its first row
+      expect(await grid.selectedBounds()).toEqual({ top: 2, start: 1, bottom: 2, end: 3 });
+    });
+
+    test('the click that picks does not select the cell it lands on', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.clickCell(5, 5);
+
+      // the column of the picked cell is not part of a bottom edge move
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 5, end: 3 });
+    });
+
+    test('Escape cancels it, announces that, and the next click selects as usual', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.page.keyboard.press('Escape');
+
+      await expect(grid.pickingRoot()).toHaveCount(0);
+      await expect(grid.politeAnnouncer()).toHaveText('Canceled.');
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 3, end: 3 });
+
+      await grid.clickCell(5, 5);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 5, start: 5, bottom: 5, end: 5 });
+    });
+
+    test('a second click on the same handle disarms it without picking', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.clickHandle('bottom');
+
+      await expect(grid.pickingRoot()).toHaveCount(0);
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 3, end: 3 });
+    });
+
+    test('a click on another handle moves the pick to it', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.clickHandle('end');
+
+      await expect(grid.pickingRoot()).toHaveClass(/ht__picking-selection--end/);
+      await grid.clickCell(2, 5);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 3, end: 5 });
+    });
+
+    test('a drag of a handle arms nothing', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.dragHandleToCell('bottom', 5, 2);
+
+      await expect(grid.pickingRoot()).toHaveCount(0);
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 5, end: 3 });
+
+      await grid.clickCell(4, 5);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 4, start: 5, bottom: 4, end: 5 });
+    });
+
+    test('the armed handle stays while the pointer moves to a cell outside the selection', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.hoverCell(5, 5);
+
+      await expect(grid.handle('bottom')).toBeVisible();
+      await expect(grid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
+
+      await grid.clickCell(5, 2);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 5, end: 3 });
+    });
+
+    test('a key that changes the selection ends the pick, so the next click is not lost', async ({ page }) => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await page.evaluate(() => window.hot.listen());
+      await page.keyboard.press('ArrowRight');
+
+      await expect(grid.pickingRoot()).toHaveCount(0);
+
+      await grid.clickCell(5, 5);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 5, start: 5, bottom: 5, end: 5 });
+    });
+
+    test('a click outside the grid ends the pick and goes to the page', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await page.locator('#outside').click();
+
+      expect(await page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+      await expect(grid.pickingRoot()).toHaveCount(0);
+    });
+
+    test('destroying the grid while a pick waits leaves the page its clicks', async ({ page }) => {
+      await page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.destroyGrid();
+      await page.locator('#outside').click();
+
+      expect(await page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+    });
+
+    test('a click on a handle that slips a pixel or two still arms the pick for the selection it was made on', async ({ page }) => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+
+      const box = (await grid.handle('bottom').boundingBox())!;
+      const x = box.x + (box.width / 2);
+      const y = box.y + (box.height / 2);
+
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + 1, y + 2);
+      await page.mouse.up();
+
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 3, end: 3 });
+      await expect(grid.pickingRoot()).toHaveClass(/ht__picking-selection--bottom/);
+
+      await grid.clickCell(5, 2);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 1, start: 1, bottom: 5, end: 3 });
+    });
+
+    test('turning the plugin off ends the pick', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+      await grid.hoverCell(2, 2);
+      await grid.clickHandle('bottom');
+      await grid.setPluginEnabled('selectionHandles', false);
+
+      await expect(grid.pickingRoot()).toHaveCount(0);
+
+      await grid.clickCell(5, 5);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 5, start: 5, bottom: 5, end: 5 });
+    });
+  });
 });

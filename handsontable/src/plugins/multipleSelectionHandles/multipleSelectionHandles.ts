@@ -1,4 +1,7 @@
-import { eventTargetEl, hasClass } from '../../helpers/dom/element';
+import { addClass, eventTargetEl, hasClass, removeClass } from '../../helpers/dom/element';
+import { armPick, type ArmedPick } from '../../utils/armedPick';
+import { announce } from '../../utils/a11yAnnouncer';
+import * as C from '../../i18n/constants';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { getFirstChangedTouch, getTouchPointById } from '../../helpers/dom/event';
 import { isMobileOrIpadOS } from '../../helpers/browser';
@@ -13,6 +16,14 @@ export const PLUGIN_PRIORITY = 160;
  * How far the finger must travel, in pixels, before its position is resolved to a cell again.
  */
 const TOUCH_MOVE_THRESHOLD = 2;
+
+/**
+ * How far the finger on a handle may travel, in pixels, and still be a tap. A tap on a handle arms the "click, then
+ * click" way to move the edge.
+ */
+const TAP_THRESHOLD = 6;
+
+const HANDLE_HIT_AREA_SELECTOR = '.topSelectionHandle-HitArea, .bottomSelectionHandle-HitArea';
 
 /**
  * @private
@@ -57,6 +68,20 @@ export class MultipleSelectionHandles extends BasePlugin {
    * touch event be matched to the finger it is about, rather than to whatever else is on the screen.
    */
   #dragTouches: Map<number, string> = new Map();
+  /**
+   * Where each finger that grabbed a handle touched down, and whether it has moved since, keyed by `Touch.identifier`.
+   * A finger that lifts without having moved tapped the handle.
+   */
+  #presses: Map<number, { startX: number; startY: number; moved: boolean; onArmedHandle: boolean }> = new Map();
+  /**
+   * The "click, then click" gesture in progress: a tap on a handle armed it, and the next tap on the grid picks where
+   * the corner goes.
+   */
+  #pick: ArmedPick | null = null;
+  /**
+   * The handle that armed the pick in progress.
+   */
+  #pickHandle: string | null = null;
 
   /**
    * Check if the plugin is enabled. There is no setting: the plugin turns on for a mobile
@@ -77,6 +102,7 @@ export class MultipleSelectionHandles extends BasePlugin {
     }
 
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('afterSelection', this.#onAfterSelection);
     this.registerListeners();
     super.enablePlugin();
   }
@@ -89,9 +115,21 @@ export class MultipleSelectionHandles extends BasePlugin {
    * unrelated finger handed a stale id would pass `isDraggedBy()` and start scrolling the grid.
    */
   disablePlugin() {
+    this.#pick?.cancel();
     this.#resetDrag();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Destroys the plugin. A pick that waits for a tap listens on the document, so it has to end here too, or it would
+   * outlive the grid and swallow the page's own presses.
+   */
+  destroy() {
+    this.#pick?.cancel();
+    this.#resetDrag();
+
+    super.destroy();
   }
 
   /**
@@ -148,6 +186,14 @@ export class MultipleSelectionHandles extends BasePlugin {
 
       this.#dragTouches.set(touch.identifier, handle);
       this.dragged.push(handle);
+      this.#presses.set(touch.identifier, {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        moved: false,
+        // a tap on the handle that armed a pick ends it, and must not arm it again
+        onArmedHandle: this.#pick !== null && this.#pickHandle === handle,
+      });
+      this.#pick?.cancel();
 
       return true;
     };
@@ -162,9 +208,19 @@ export class MultipleSelectionHandles extends BasePlugin {
      */
     const releaseLiftedTouches = (event: Event) => {
       let released = false;
+      let tappedHandle: string | null = null;
+      const startRange = this.touchStartRange;
 
       for (const [identifier, handle] of [...this.#dragTouches]) {
         if (getTouchPointById(event, identifier) === null) {
+          const press = this.#presses.get(identifier);
+
+          // a finger that did not move tapped the handle, unless the system took the touch away
+          if (press && !press.moved && !press.onArmedHandle && event.type !== 'touchcancel') {
+            tappedHandle = handle;
+          }
+
+          this.#presses.delete(identifier);
           this.#dragTouches.delete(identifier);
           removeFromDragged(handle);
           released = true;
@@ -180,6 +236,10 @@ export class MultipleSelectionHandles extends BasePlugin {
 
       if (this.dragged.length === 0) {
         this.touchStartRange = undefined;
+      }
+
+      if (tappedHandle !== null && startRange !== undefined) {
+        this.#startPick(tappedHandle, startRange);
       }
     };
 
@@ -257,6 +317,24 @@ export class MultipleSelectionHandles extends BasePlugin {
       const point = this.#getDragTouchPoint(event);
 
       if (point === null) {
+        return;
+      }
+
+      // each finger is measured from where it touched down, by its own identifier
+      this.#presses.forEach((press, identifier) => {
+        const touchPoint = getTouchPointById(event, identifier);
+
+        if (!press.moved && touchPoint !== null
+          && Math.hypot(touchPoint.clientX - press.startX, touchPoint.clientY - press.startY) >= TAP_THRESHOLD) {
+          press.moved = true;
+        }
+      });
+
+      // A finger that has not left its tap range has not started a drag: a wobble must not resize the selection
+      // before the release is known to be a tap.
+      if (![...this.#presses.values()].some(press => press.moved)) {
+        event.preventDefault();
+
         return;
       }
 
@@ -478,9 +556,77 @@ export class MultipleSelectionHandles extends BasePlugin {
   #resetDrag(): void {
     this.dragged.splice(0, this.dragged.length);
     this.#dragTouches.clear();
+    this.#presses.clear();
     this.touchStartRange = undefined;
     this.#lastTouchPosition = null;
     this.#lastTargetCoords = null;
+  }
+
+  /**
+   * Starts waiting for the tap that picks where the corner of the selection goes. The selection is the one the handle
+   * was tapped on: a key that changes it first ends the pick's effect, because the handle is no longer on that corner.
+   *
+   * @param {string} handle Which handle was tapped.
+   * @param {object} startRange The size and direction of the range when the handle was touched.
+   * @param {number} startRange.width The width, in cells.
+   * @param {number} startRange.height The height, in cells.
+   * @param {string} startRange.direction The direction the range was selected in.
+   */
+  #startPick(handle: string, startRange: { width: number; height: number; direction: string }): void {
+    const readCorners = () => {
+      const range = this.hot.getSelectedRangeActive();
+
+      if (!range) {
+        return null;
+      }
+
+      const topStart = range.getTopStartCorner();
+      const bottomEnd = range.getBottomEndCorner();
+
+      return `${topStart.row},${topStart.col},${bottomEnd.row},${bottomEnd.col}`;
+    };
+    const armedCorners = readCorners();
+    const root = this.hot.rootElement;
+
+    // A second finger can tap while the first still holds the other handle, so a pick may already wait. Two picks
+    // would leave the first one's listeners on the document for good.
+    this.#pick?.cancel();
+
+    if (armedCorners === null) {
+      return;
+    }
+
+    this.#pickHandle = handle;
+    addClass(root, `ht__picking-selection--${handle}`);
+    this.#pick = armPick({
+      doc: this.hot.rootDocument,
+      root,
+      // a tap on a handle is left to the handle: it ends the pick, and on the other handle it starts that one
+      isAnchor: target => target instanceof Element && target.closest(HANDLE_HIT_AREA_SELECTOR) !== null,
+      onPick: (event) => {
+        if (readCorners() !== armedCorners) {
+          return;
+        }
+
+        // The pick extends with its own handle and range. The shared drag state belongs to a finger that may still hold
+        // the other handle, so it is neither read nor changed here. The de-duplication on the last target is reset
+        // on both sides, because it follows that finger.
+        this.#lastTargetCoords = null;
+        this.#extendSelection(event.clientX, event.clientY, handle, startRange);
+        this.#lastTargetCoords = null;
+      },
+      onEnd: (reason) => {
+        this.#pick = null;
+        this.#pickHandle = null;
+        removeClass(root, `ht__picking-selection--${handle}`);
+
+        if (reason === 'escape') {
+          announce(String(this.hot.getTranslatedPhrase(C.ARMED_PICK_CANCELED) ?? ''), 'polite');
+        }
+      },
+    });
+
+    announce(String(this.hot.getTranslatedPhrase(C.ARMED_PICK_STARTED) ?? ''), 'polite');
   }
 
   /**
@@ -505,6 +651,14 @@ export class MultipleSelectionHandles extends BasePlugin {
 
     return null;
   }
+
+  /**
+   * Ends a waiting pick when the selection changes (a key moved it, or the pick itself resized it): the handle it was
+   * armed on no longer sits on the range, and the tap it waits for would be lost.
+   */
+  #onAfterSelection = (): void => {
+    this.#pick?.cancel();
+  };
 
   /**
    * Carries the drag on after DragToScroll moves the viewport.
@@ -536,11 +690,21 @@ export class MultipleSelectionHandles extends BasePlugin {
    *
    * @param {number} clientX The finger's viewport X coordinate.
    * @param {number} clientY The finger's viewport Y coordinate.
+   * @param {string} [handle] The handle that moves. The one a finger holds, unless a pick passes its own.
+   * @param {object} [startRange] The range the gesture started from. The drag's, unless a pick passes its own.
+   * @param {number} startRange.width The width, in cells.
+   * @param {number} startRange.height The height, in cells.
+   * @param {string} startRange.direction The direction the range was selected in.
    */
-  #extendSelection(clientX: number, clientY: number): void {
+  #extendSelection(
+    clientX: number,
+    clientY: number,
+    handle: string = this.dragged[0],
+    startRange: { width: number; height: number; direction: string } | undefined = this.touchStartRange,
+  ): void {
     const selectedRange = this.hot.getSelectedRangeActive();
 
-    if (!selectedRange || this.touchStartRange === undefined) {
+    if (!selectedRange || startRange === undefined) {
       return;
     }
 
@@ -573,9 +737,9 @@ export class MultipleSelectionHandles extends BasePlugin {
     const newRangeCoords = this.getCurrentRangeCoords(
       selectedRange,
       target,
-      this.touchStartRange.direction,
+      startRange.direction,
       rangeDirection,
-      this.dragged[0]
+      handle
     );
 
     if (newRangeCoords.start !== null) {

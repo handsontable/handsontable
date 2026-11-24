@@ -2141,6 +2141,25 @@ from the same attributes on a new and a recycled element, and a redraw plus a ve
 accessibility attribute on an element that already holds it (a `MutationObserver`, with a horizontal scroll
 as the positive control).
 
+## The corner header is a plain `gridcell` with no name of its own
+
+The column header row's cells above the row headers (one per row-header column, in every overlay that draws
+them) get `role="gridcell"`, `aria-colindex` and `tabindex` from `getCornerAriaAttributes` in
+`render/columnHeaders.ts`, and nothing else: no `aria-label`, no `scope`, no `id`. They are not column headers
+(a `columnheader` there would be counted as one), and they have no action of their own to name.
+
+- **A control rendered into the corner names itself.** RowSelection puts its "select all" checkbox there, with
+  its own translated `aria-label` and `aria-checked`. A label on the cell would replace the name the cell takes
+  from that content, so a screen reader would announce the cell's label instead of the checkbox. The cell
+  used to carry `role="gridcell button"` and an English `aria-label="Select whole grid"`, which did exactly that.
+- **A recycled header needs no extra removal.** `syncAriaAttributes` clears every `aria-*` and `role` attribute
+  the kept set does not hold before it writes, so a TH that was a corner with a label, or a column header, sheds
+  what it carried on the next draw. `scope` and `id` are not in that clearing pass and are removed explicitly
+  (`writeColumnHeaderAriaAttributes`).
+
+Pinned by `tests/e2e/corner-header-role.spec.ts` (every overlay's copy, the RowSelection checkbox as the cell's
+name, `ariaTags: false`, and row selection toggled on and off) and `src/__tests__/a11y/headers.spec.js`.
+
 ## A data cell names its column header through `aria-describedby`, and the owner is per column
 
 So a screen reader announces the header with the cell ("Position, C1", not "C1"), `render/cells.ts`

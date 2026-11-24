@@ -179,6 +179,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Vastgezette rijen onderaan',
   [C.FREEZE_BAR_COLUMNS_START]: 'Vastgezette kolommen aan het begin',
   [C.FREEZE_BAR_COLUMNS_END]: 'Vastgezette kolommen aan het einde',
+  [C.ARMED_PICK_STARTED]: 'Klik of tik op het doel om te voltooien. Druk op Escape om te annuleren.',
+  [C.ARMED_PICK_CANCELED]: 'Geannuleerd.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] van [setSize]',

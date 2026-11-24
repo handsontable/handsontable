@@ -181,6 +181,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'ردیف‌های ثابت در پایین',
   [C.FREEZE_BAR_COLUMNS_START]: 'ستون‌های ثابت در ابتدا',
   [C.FREEZE_BAR_COLUMNS_END]: 'ستون‌های ثابت در انتها',
+  [C.ARMED_PICK_STARTED]: 'برای پایان، روی مقصد کلیک یا ضربه بزنید. برای لغو، کلید Escape را فشار دهید.',
+  [C.ARMED_PICK_CANCELED]: 'لغو شد.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'سطح [level]، [position] از [setSize]',

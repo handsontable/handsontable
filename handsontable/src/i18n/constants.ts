@@ -196,6 +196,10 @@ export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
 export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
 export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
 
+export const ARMED_PICK_NAMESPACE = 'ArmedPick:';
+export const ARMED_PICK_STARTED = `${ARMED_PICK_NAMESPACE}started`;
+export const ARMED_PICK_CANCELED = `${ARMED_PICK_NAMESPACE}canceled`;
+
 export const CELL_DESCRIPTION_NAMESPACE = 'CellDescription:';
 export const CELL_DESCRIPTION_READ_ONLY = `${CELL_DESCRIPTION_NAMESPACE}readOnly`;
 export const CELL_DESCRIPTION_LINK = `${CELL_DESCRIPTION_NAMESPACE}link`;

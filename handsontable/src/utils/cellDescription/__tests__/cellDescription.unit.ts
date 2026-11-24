@@ -4,6 +4,8 @@ import {
   addCellDescriptionPart,
   applyCellDescription,
   beginCellDescription,
+  findCellsWithLevelDescription,
+  redescribeRenderedCell,
   removeCellDescriptionPart,
 } from '../cellDescription';
 
@@ -76,6 +78,115 @@ describe('cellDescription', () => {
     ]);
 
     expect(descriptionOf(hot, cell)).toBe('read only, link, merged through row 4 column 3');
+  });
+
+  describe('the level of a row', () => {
+    const descriptionsOf = (hot: ReturnType<typeof createHot>, cell: HTMLTableCellElement): string[] => {
+      return (cell.getAttribute('aria-describedby') ?? '')
+        .split(' ')
+        .filter(token => token.startsWith(CELL_DESCRIPTION_ID_PREFIX))
+        .map(id => hot.rootElement.querySelector(`#${id}`)?.textContent ?? '');
+    };
+
+    it('should be read after every other part, as a description of its own', () => {
+      const hot = createHot();
+      const cell = createCell();
+
+      describe_(hot, cell, [
+        [CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 2, 1 of 3'],
+        [CELL_DESCRIPTION_RANK.MERGED, 'merged through row 4 column 3'],
+        [CELL_DESCRIPTION_RANK.READ_ONLY, 'read only'],
+      ]);
+
+      expect(descriptionsOf(hot, cell)).toEqual(['read only, merged through row 4 column 3', 'Level 2, 1 of 3']);
+    });
+
+    it('should share one element between the rows it describes, whatever their number', () => {
+      const hot = createHot();
+      const cell = createCell();
+
+      for (let row = 1; row <= 50; row++) {
+        describe_(hot, cell, [[CELL_DESCRIPTION_RANK.ROW_LEVEL, `Level 1, ${row} of 50`]]);
+      }
+
+      expect(descriptionsOf(hot, cell)).toEqual(['Level 1, 50 of 50']);
+      expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(1);
+    });
+
+    it('should be set on a painted cell without a paint, and keep the parts the cell was painted with', () => {
+      const hot = createHot();
+      const cell = createCell();
+
+      describe_(hot, cell, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+      redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 2, 1 of 3', true);
+
+      expect(descriptionsOf(hot, cell)).toEqual(['read only', 'Level 2, 1 of 3']);
+    });
+
+    it('should be taken off a painted cell without a paint, and leave the other parts', () => {
+      const hot = createHot();
+      const cell = createCell();
+
+      describe_(hot, cell, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+      redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 2, 1 of 3', true);
+      redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, null, true);
+
+      expect(descriptionsOf(hot, cell)).toEqual(['read only']);
+    });
+
+    it('should leave no reference on a cell that only carried the level once it is taken off', () => {
+      const hot = createHot();
+      const cell = createCell('3', 'ht_a-colheader-0');
+
+      redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 1, 1 of 2', true);
+
+      expect(cell.getAttribute('aria-describedby')).toContain(CELL_DESCRIPTION_ID_PREFIX);
+
+      redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, null, true);
+
+      expect(cell.getAttribute('aria-describedby')).toBe('ht_a-colheader-0');
+    });
+
+    it('should not come back from the parts of an earlier paint once the cell is painted without parts', () => {
+      const hot = createHot();
+      const cell = createCell();
+
+      describe_(hot, cell, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+      describe_(hot, cell, []);
+      redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 1, 1 of 2', true);
+
+      expect(descriptionsOf(hot, cell)).toEqual(['Level 1, 1 of 2']);
+    });
+
+    it('should be found on every copy of a cell a frozen corner draws, and on no other cell', () => {
+      const hot = createHot();
+      const copies = [createCell('1', 'ht_a-colheader-0'), createCell('1', 'ht_a-colheader-0')];
+      const other = createCell('2', 'ht_a-colheader-1');
+      const table = document.createElement('table');
+
+      [...copies, other].forEach((cell) => {
+        const row = document.createElement('tr');
+
+        row.appendChild(cell);
+        table.appendChild(row);
+      });
+      hot.rootElement.appendChild(table);
+      describe_(hot, other, [[CELL_DESCRIPTION_RANK.READ_ONLY, 'read only']]);
+      copies.forEach((cell) => {
+        redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 1, 1 of 2', true);
+      });
+
+      expect(findCellsWithLevelDescription(hot)).toEqual(copies);
+    });
+
+    it('should write nothing when the grid writes no ARIA', () => {
+      const hot = createHot();
+      const cell = createCell();
+
+      redescribeRenderedCell(hot, cell, CELL_DESCRIPTION_RANK.ROW_LEVEL, 'Level 1, 1 of 2', false);
+
+      expect(cell.hasAttribute('aria-describedby')).toBe(false);
+    });
   });
 
   it('should keep the reference to the column header first', () => {

@@ -174,6 +174,8 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Ukotvené řádky dole',
   [C.FREEZE_BAR_COLUMNS_START]: 'Ukotvené sloupce na začátku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Ukotvené sloupce na konci',
+  [C.ARMED_PICK_STARTED]: 'Kliknutím nebo klepnutím na cíl akci dokončíte. Stisknutím klávesy Escape ji zrušíte.',
+  [C.ARMED_PICK_CANCELED]: 'Zrušeno.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Úroveň [level], [position] z [setSize]',

@@ -54,7 +54,7 @@ const ExampleComponentContent = () => {
           />
         </div>
         <h3>Redux store dump</h3>
-        <pre id="redux-preview" className="table-container">
+        <pre id="redux-preview" className="table-container" tabIndex={0} role="region" aria-label="Redux store dump">
           {isHotData && (
             <div>
               <strong>data:</strong>
