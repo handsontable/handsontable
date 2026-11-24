@@ -26,7 +26,7 @@
       "id": "up-to-frozen-row",
       "action": {"press": "ArrowUp"},
       "expect": [["john doe"]],
-      "note": "John Doe's row is frozen at the top (fixedRowsTop) and drawn in its own overlay. Finding: VoiceOver with Chromium reads only the nested rows level message (`Level 1, 1 of 38`), which replaces the cell's own announcement, as nested-rows records for VoiceOver with WebKit. VoiceOver with WebKit read the message alone on this scenario's three moves in the 2026-11-23 audit, and the cell and then the message in the recording run after it."
+      "note": "John Doe's row is frozen at the top (fixedRowsTop) and drawn in its own overlay. Required: the value. The nested rows level (`Level 1, 1 of 38`) is part of the cell's description, so a reader speaks it with the cell, here and on the two moves above."
     },
     {
       "id": "up-to-header",
