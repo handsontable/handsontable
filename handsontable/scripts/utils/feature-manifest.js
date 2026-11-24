@@ -64,8 +64,13 @@ const TIER_TOKEN_PREFIX = 'tier:';
 // listed here may be missing from `tiers.json` and from the record of released ids, and may not come back.
 // Add a name only with a business decision to drop the tier, and never to rename one.
 const REMOVED_TIERS = Object.freeze({
-  // DataGrid has a single tier, named `professional`, that unlocks every feature. `standard` was removed. Keys that
-  // name only `tier:standard` were issued on myHOT staging and sandbox only, and unlock nothing now.
+  // Handsontable has a single tier, named `professional`, that unlocks every feature. `standard` was removed. A
+  // key that names only `tier:standard` unlocks nothing and must be reissued with `tier:professional`. The
+  // removal is non-breaking because it is picked to `release/19.0.0` before 19.0.0 GA, so no stable release lists
+  // `standard`. By the myHOT side, myHOT production never issued tier tokens: tiers exist only on myHOT staging
+  // (since DEV-4142) and in the HubSpot sandbox. myHOT must stop selling `standard` before this merges to develop,
+  // because the `experimental` build publishes from develop and the portal refuses a build that lacks a tier it
+  // sells.
   standard: 'DEV-4198',
 });
 const STATUSES = ['stable', 'planned'];

@@ -205,14 +205,17 @@ because a record never loses a value.
   tier it sells, and keys that name the tier are already issued. Add a tier; do not rename one.
   `released-tokens.json` records each tier as its key token (`"tier:professional": ["tier"]`): `checkReleased()`
   refuses sources that lack a recorded tier, and `--check-base` refuses a record that drops one, the same way both
-  protect a sold feature id. **The exception is `standard` (DEV-4198).** The business decided that DataGrid has a
+  protect a sold feature id. **The exception is `standard` (DEV-4198).** The business decided that Handsontable has a
   single tier, named `professional`, which unlocks every feature, so `standard` was removed from `tiers.json`, from
   every entry's `tiers` (the six `xlsx:` entries that listed only `professional` are unchanged), and from the
-  record. It is the one name in `REMOVED_TIERS` (`scripts/utils/feature-manifest.js`): `checkReleased()` and
-  `--check-base` accept a missing `tier:standard` line, and the checks refuse to list `standard` in `tiers.json`
+  record. It is the one name in `REMOVED_TIERS` (`scripts/utils/feature-manifest.js`): `--check-base` accepts a
+  record that drops `tier:standard`, `checkReleased()` accepts a `tier:standard` line whose tier is no longer in
+  `tiers.json`, and the checks refuse to list `standard` in `tiers.json`
   again. A key that names only `tier:standard` is a restricted key whose tier no feature lists, so it unlocks
-  nothing and must be reissued with `tier:professional`; the license portal must stop selling `standard` before a
-  build without it is published. Do not add a name to `REMOVED_TIERS` to rename a tier, or without a business
+  nothing and must be reissued with `tier:professional`; myHOT must stop selling `standard` before this change
+  merges to develop, because the `experimental` build publishes from develop right after a merge. The removal is
+  non-breaking only because it is picked to `release/19.0.0` before 19.0.0 GA; no stable release lists `standard`.
+  By the myHOT side, myHOT production never issued tier tokens, and tiers exist only on myHOT staging and in the HubSpot sandbox. Do not add a name to `REMOVED_TIERS` to rename a tier, or without a business
   decision to drop it.
 - **Public text says "tier"**, never "plan": the key token is `tier:<name>`, the manifest field is `tiers`, and
   "plan" already names a support product.

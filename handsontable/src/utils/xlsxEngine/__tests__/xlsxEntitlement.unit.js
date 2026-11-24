@@ -198,11 +198,13 @@ describe('xlsxEngine/xlsxEntitlement', () => {
       expect(resolveXlsxEntitlement(['zz_unknown']).export).toBe(false);
     });
 
-    // DEV-4198: DataGrid has a single tier, `professional`, that unlocks every feature. The `standard` tier was
-    // removed, so every xlsx feature (number formats, comments, styles, conditional formatting, data validation,
-    // protection included) belongs to `professional`, and a key naming only `tier:standard` unlocks nothing.
-    it('unlocks every gated xlsx feature for the single tier, "professional"', () => {
-      const { tiers } = _getLicenseState(keyWithTier(['professional']));
+    // DEV-4198: Handsontable has a single tier that unlocks every feature. The `standard` tier was removed, so
+    // every xlsx feature (number formats, comments, styles, conditional formatting, data validation, protection
+    // included) belongs to that tier, and a key naming only `tier:standard` unlocks nothing. The tier's name is
+    // read from the generated table, so a later rename does not break this test.
+    it('unlocks every gated xlsx feature for the single tier', () => {
+      const [singleTier] = XLSX_TIERS_BY_ID['xlsx:import'];
+      const { tiers } = _getLicenseState(keyWithTier([singleTier]));
       const entitlement = resolveXlsxEntitlement(tiers);
 
       expect(entitlement.missing).toEqual([]);
@@ -210,7 +212,7 @@ describe('xlsxEngine/xlsxEntitlement', () => {
         'xlsx:number_formats', 'xlsx:comments', 'xlsx:styles', 'xlsx:conditional_formatting',
         'xlsx:data_validation', 'xlsx:protection',
       ].forEach((id) => {
-        expect([id, XLSX_TIERS_BY_ID[id]]).toEqual([id, ['professional']]);
+        expect([id, XLSX_TIERS_BY_ID[id]]).toEqual([id, [singleTier]]);
       });
     });
 

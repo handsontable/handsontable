@@ -321,11 +321,11 @@ the bar takes its room from the grid, as the pagination bar does.
 
 ## Keys that name a tier
 
-An entitlement key can name one or more tiers. The grid turns on the features of those tiers and
-keeps every other feature off. A key that names no tier turns on every feature, as every key did
+An entitlement key can name a tier. Handsontable has one tier, Professional, and it includes every
+feature. The grid turns on the features of the tiers the key names and keeps every other feature off. A key that names no tier turns on every feature, as every key did
 before 19.0. The 25-character keys also turn on every feature.
 
-The table lists the tiers that include each feature. For prices, see the
+The table lists the tier that includes each feature. For prices, see the
 [pricing page](https://handsontable.com/pricing).
 
 <!-- license-tiers:start -->
@@ -440,6 +440,9 @@ a tier, so a key that names only that tier turns off the plugins and the parts o
 the table, and reports them as missing. The grid itself keeps working. To use the key, upgrade to a
 Handsontable version released after the tier was added.
 
+A key that names only a tier that was removed, such as `standard`, unlocks nothing in any version.
+Reissue the key with `tier:professional`.
+
 The `handsontable` package lists every feature with the tiers that include it in
 `dist/manifest.json`.
 
@@ -448,15 +451,14 @@ The `handsontable` package lists every feature with the tiers that include it in
 An additional add-on extends Excel import and export. Available as a bundle, it carries formulas,
 styles, layout (column widths, row heights, merged cells, and frozen panes), number formats,
 comments, conditional formatting, data validation, and sheet protection into and out of `.xlsx`
-files. The tier your key names decides which parts of the add-on are on. The table in
-[Keys that name a tier](#keys-that-name-a-tier) lists them in the rows that start with `XLSX`. See the
+files. The Professional tier includes the whole add-on. The table in
+[Keys that name a tier](#keys-that-name-a-tier) lists it in the rows that start with `XLSX`. See the
 [pricing page](https://handsontable.com/pricing) for prices.
 
 A key that names no tier includes the whole add-on, so keys issued before 19.0 work as before. When
-your tier leaves out part of the add-on, an import or export skips that part, does the rest, and
-prints one console warning that names what it skipped. An import also reports each skipped part on
-`result.dropped` as a `license:xlsx:<id>` entry. See the
-[Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
+your key names only a tier that your version does not know, the add-on is off: the import and
+export methods throw, and `supportsImportFormat('xlsx')` and `supportsExportFormat('xlsx')` return
+`false`.
 
 ## Result
 

@@ -410,9 +410,9 @@ describe('feature manifest', () => {
       expect(checkReleased({ ...sources, tiers: [...sources.tiers, 'added_tier'] })).toEqual([]);
     });
 
-    it('should have a single tier, "professional", and record no tier that was removed', () => {
-      expect(sources.tiers).toEqual(['professional']);
-      expect(Object.keys(sources.released).filter(id => id.startsWith('tier:'))).toEqual(['tier:professional']);
+    it('should have a single tier and record no tier that was removed', () => {
+      expect(sources.tiers).toHaveLength(1);
+      expect(Object.keys(sources.released).filter(id => id.startsWith('tier:'))).toEqual([`tier:${sources.tiers[0]}`]);
       expect(sources.released['tier:standard']).toBeUndefined();
     });
 
@@ -421,6 +421,17 @@ describe('feature manifest', () => {
       // Without the removal list, a record that still held the tier would refuse sources that drop it.
       expect(checkReleased({ ...sources, released: { ...sources.released, 'tier:standard': ['tier'] } }))
         .toEqual([]);
+    });
+
+    it('should not report a tier name that only exists on Object.prototype as removed', () => {
+      // `constructor` is inherited from `Object.prototype`: only an own property of `REMOVED_TIERS` is a removed tier.
+      const problems = checkSources({
+        ...sources,
+        tiers: [...sources.tiers, 'constructor'],
+        tiersFile: { ...sources.tiersFile, tiers: [...sources.tiers, 'constructor'] },
+      });
+
+      expect(problems.filter(problem => problem.includes('was removed'))).toEqual([]);
     });
 
     it('should refuse to bring a removed tier back', () => {
@@ -668,6 +679,10 @@ describe('feature manifest', () => {
 
     it('should accept a record that drops "tier:standard", the one tier removed on purpose', () => {
       expect(checkRecordAgainstBase({ ...record, 'tier:standard': ['tier'] }, record)).toEqual([]);
+    });
+
+    it('should refuse a record that drops an id that only starts like a tier token', () => {
+      expect(checkRecordAgainstBase({ ...record, 'feat:standard': ['token'] }, record)).toHaveLength(1);
     });
 
     it('should refuse a record that loses a value the base recorded', () => {

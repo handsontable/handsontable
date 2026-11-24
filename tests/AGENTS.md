@@ -514,15 +514,17 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   does not list", whose key unlocks nothing. DataGrid has a single tier, `professional`, so
   no real key can leave an xlsx feature out. The xlsx license specs
   still run on the build's real tiers, read from the manifest, because a fixture
-  cannot add a made-up tier to the bundle's XLSX tier table: each picks its tier by
-  the feature it needs off or on, and fails with the reason when no tier fits.
-  That is a prompt to move the case to the unit suite. `fixtures/licenseTiers.ts` holds
+  cannot add a made-up tier to the bundle's XLSX tier table: the specs read the manifest only to
+  pick a tier that includes every xlsx feature they need on, and fail with the reason when no tier fits.
+  That is a prompt to move the case to the unit suite. Handsontable has one tier, so the partial-tier
+  gate cases (a feature left out, the console warning and the dropped entry) run in the unit suite only,
+  on the sources with the built-in engine; they have no run on the built bundles or on ExcelJS, and
+  those cases come back to the specs the day a second tier can leave an xlsx feature out. `fixtures/licenseTiers.ts` holds
   the presets (`LICENSE_PRESETS`: a made-up tier, the feature ids it includes,
   and the key flags), builds a preset's key (`presetKey()`, through
   `keyWithTier()`) and its query (`presetLicenseQuery()`, `presetQuery()`), and
   reads the build's real tiers from `handsontable/dist/manifest.json` only to
-  pick one with or without a feature (`requiredTierWithout()`,
-  `requiredTierWithEvery()`, `tiersLeavingOut()`), so rebuild the core before
+  pick one that includes every feature (`requiredTierWithEvery()`), so rebuild the core before
   you trust a run. `demo/license-capabilities.html` applies the made-up tiers of
   `?presets=` before the grid is built, by redefining each sold plugin's static
   `LICENSE` getter so its `tiers` also list the presets that include it. A case
