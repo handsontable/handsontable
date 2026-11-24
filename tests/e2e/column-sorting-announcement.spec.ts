@@ -86,7 +86,7 @@ test.describe('Column sorting announcements', () => {
     });
   }
 
-  test('multiColumnSorting: Shift+Enter and Ctrl+click announce the column that was acted on', async({ page }) => {
+  test('multiColumnSorting: Shift+Enter and Ctrl+click announce the column and its place in the sort', async({ page }) => {
     await grid.goto({ plugin: 'multiColumnSorting' });
     await grid.header(0).click();
     await expect(grid.politeAnnouncer()).toHaveText('Sorted by Name, ascending');
@@ -94,11 +94,11 @@ test.describe('Column sorting announcements', () => {
     await grid.cell(0, 1).click();
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('Shift+Enter');
-    await expect(grid.politeAnnouncer()).toHaveText(`Sorted by ${AGE}, ascending`);
+    await expect(grid.politeAnnouncer()).toHaveText(`Sorted by ${AGE}, ascending, sort priority 2`);
     await expect(grid.header(0)).toHaveAttribute('aria-sort', 'ascending');
     await expect(grid.header(1)).toHaveAttribute('aria-sort', 'ascending');
 
     await grid.header(2).click({ modifiers: ['ControlOrMeta'] });
-    await expect(grid.politeAnnouncer()).toHaveText('Sorted by Tag, ascending');
+    await expect(grid.politeAnnouncer()).toHaveText('Sorted by Tag, ascending, sort priority 3');
   });
 });

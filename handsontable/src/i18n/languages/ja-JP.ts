@@ -196,6 +196,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] で昇順に並べ替えました',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '[label] で降順に並べ替えました',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '[label] の並べ替えを解除しました',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '[label] で昇順に並べ替えました(優先順位 [order])',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '[label] で降順に並べ替えました(優先順位 [order])',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '列 [startColumn]、行 [startRow] から列 [endColumn]、行 [endRow] までを選択しました',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'すべてのセルを選択しました',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '列 [column] を選択しました',
