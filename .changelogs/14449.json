@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed formula results that showed values of other rows after a redo of \"Detach from parent\" in nested rows, or after a settings update that followed the detach.",
+  "type": "fixed",
+  "issueOrPR": 14449,
+  "breaking": false,
+  "framework": "none"
+}
