@@ -17,6 +17,7 @@ tags:
   - recipes
 searchCategory: Recipes
 category: Real-time & Integrations
+menuTag: updated
 ---
 
 In this tutorial, you will put a Handsontable DataGrid on top of a Google Sheet without moving the data. The grid reads the sheet, writes the user's edits back, and picks up edits other people make in Google Sheets. The app runs in the browser only: the user signs in with Google, and the grid calls the Google Sheets API directly, with no backend.

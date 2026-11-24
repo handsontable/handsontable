@@ -17,6 +17,7 @@ tags:
   - recipes
 searchCategory: Recipes
 category: Real-time & Integrations
+menuTag: updated
 ---
 
 In this tutorial, you will build a live inventory grid fed by [Apache Kafka](https://kafka.apache.org/). A small Node.js bridge reads two Kafka topics and streams them to the browser with Server-Sent Events. Handsontable DataGrid applies hundreds of updates a second without losing the user's sort or filter. When the user edits a cell, the edit goes back to Kafka, so every open grid sees it.
