@@ -759,6 +759,15 @@ export default defineConfig({
             'utf8'
           ),
         },
+        // Social preview image. Starlight emits og:title/description and
+        // twitter:card=summary_large_image but no image, so LinkedIn, Slack, and X
+        // showed a blank card for every docs link. Absolute URL: crawlers don't
+        // resolve relative og:image paths.
+        { tag: 'meta', attrs: { property: 'og:image', content: `${SITE_URL}/docs/handsontable-docs-cover.png` } },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Handsontable Documentation' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: `${SITE_URL}/docs/handsontable-docs-cover.png` } },
         {
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
