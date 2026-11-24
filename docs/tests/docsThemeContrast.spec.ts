@@ -63,7 +63,7 @@ async function openIn(page: Page, baseURL: string | undefined, path: string, the
  * ancestor (or itself). Colors are resolved through a canvas, so `oklch()` and
  * `color-mix()` values compare as the sRGB the screen shows.
  */
-async function contrastOf(page: Page, foreground: string, property: 'color' | 'borderTopColor', background: string) {
+async function contrastOf(page: Page, foreground: string, property: 'color' | 'borderTopColor' | 'outlineColor', background: string) {
   return page.evaluate(({ foregroundSelector, colorProperty, backgroundSelector }) => {
     const toRgb = (color: string) => {
       const canvas = document.createElement('canvas');
@@ -130,8 +130,80 @@ for (const theme of THEMES) {
       expect(await contrastOf(page, '.placeholder-input', 'borderTopColor', '.placeholder-input'))
         .toBeGreaterThanOrEqual(3);
     });
+
+    test(`a focused example text field on ${path} draws an outline that stands 3:1 from the page in the ${theme} theme`, async({ page, baseURL }) => {
+      await openIn(page, baseURL, path, theme);
+
+      const field = page.locator('.placeholder-input').filter({ visible: true }).first();
+
+      await field.focus();
+      await expect(field).toBeFocused();
+      await expect(field).toHaveCSS('outline-style', 'solid');
+      await expect(field).toHaveCSS('outline-width', '2px');
+
+      expect(await contrastOf(page, '.placeholder-input', 'outlineColor', '.placeholder-input'))
+        .toBeGreaterThanOrEqual(3);
+    });
   }
 }
+
+/**
+ * Reads the cue of the current entry of a table of contents and where the text
+ * of the current entry and of a non-current entry at the same level starts.
+ */
+async function tocEntryCues(page: Page, currentSelector: string) {
+  await page.evaluate(() => window.scrollTo(0, 1500));
+  await expect(page.locator(currentSelector).first()).toBeAttached();
+
+  return page.evaluate((selector) => {
+    const textStart = (element: Element) => {
+      const range = document.createRange();
+
+      range.selectNodeContents(element);
+
+      return Math.round(range.getClientRects()[0].left);
+    };
+    const current = [...document.querySelectorAll(selector)]
+      .find(link => link.getBoundingClientRect().width > 0)!;
+    const other = [...current.closest('li')!.parentElement!.children]
+      .map(item => item.querySelector(':scope > a'))
+      .find(link => link && !link.hasAttribute('aria-current') && link.getBoundingClientRect().width > 0)!;
+    const style = getComputedStyle(current);
+
+    return {
+      weight: style.fontWeight,
+      border: style.borderInlineStartWidth,
+      textStart: textStart(current),
+      otherTextStart: textStart(other),
+    };
+  }, currentSelector);
+}
+
+test('in forced colors, the current table of contents entry keeps its text in line with the others', async({ page, baseURL }) => {
+  await page.emulateMedia({ forcedColors: 'active' });
+  await openIn(page, baseURL, NAV_PAGE, 'light');
+
+  const cues = await tocEntryCues(page, CURRENT_TOC_ENTRY);
+
+  expect(cues.border).toBe('3px');
+  expect(cues.textStart).toBe(cues.otherTextStart);
+});
+
+test('in forced colors, the current mobile table of contents entry keeps a non-color cue in line with the others', async({ page, baseURL }) => {
+  await page.setViewportSize({ width: 600, height: 900 });
+  await page.emulateMedia({ forcedColors: 'active' });
+  await openIn(page, baseURL, NAV_PAGE, 'light');
+  await page.evaluate(() => window.scrollTo(0, 1500));
+  await expect(page.locator(CURRENT_TOC_ENTRY).first()).toBeAttached();
+  await page.locator('.mobile-toc-toggle').click();
+  await expect(page.locator('.mobile-toc-panel')).toBeVisible();
+
+  const cues = await tocEntryCues(page, '.mobile-toc-panel nav a[aria-current="true"]');
+
+  expect(cues.weight).toBe('700');
+  expect(cues.border).toBe('3px');
+  expect(cues.textStart).toBe(cues.otherTextStart);
+});
 
 /**
  * Reads the font weight and the inline-start border width of the current and of

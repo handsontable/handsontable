@@ -56,6 +56,7 @@
 @media (forced-colors: active) {
   .mobile-toc-panel nav a[aria-current='true'] {
     border-inline-start-width: 3px;
+    margin-inline-start: -1px;
     font-weight: 700;
   }
 }
