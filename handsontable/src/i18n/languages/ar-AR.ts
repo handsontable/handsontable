@@ -56,6 +56,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'إلغاء دمج الخلايا',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'نسخ',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['نسخ مع العنوان', 'نسخ مع العناوين'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['نسخ مع عنوان المجموعة', 'نسخ مع عناوين المجموعات'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['نسخ العنوان فقط', 'نسخ العناوين فقط'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'قص',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'تصدير',
@@ -142,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'تم تكرار الورقة [name] باسم [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'تم نقل الورقة [name] إلى الموضع [position] من [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'ورقة',
+
+  [C.CHECKBOX_CHECKED]: 'محدد',
+  [C.CHECKBOX_UNCHECKED]: 'غير محدد',
 
   [C.LOADING_TITLE]: 'جاري التحميل...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'إغلاق',

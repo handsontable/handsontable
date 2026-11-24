@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: '確認',
   [C.CANCEL]: '取消',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '沒有可用選項',
   [C.CONTEXTMENU_LABEL]: '快顯功能表',
   [C.DROPDOWNMENU_LABEL]: '欄功能表',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入列',
@@ -54,6 +55,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: '取消合併欄位',
 
   [C.CONTEXTMENU_ITEMS_COPY]: '複製',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['連同標題複製', '連同標題複製'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['連同群組標題複製', '連同群組標題複製'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['僅複製標題', '僅複製標題'],
   [C.CONTEXTMENU_ITEMS_CUT]: '剪下',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: '匯出',
@@ -140,6 +144,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: '工作表 [name] 已複製為 [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: '工作表 [name] 已移至第 [position] 個位置（共 [count] 個）',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
+
+  [C.CHECKBOX_CHECKED]: '已勾選',
+  [C.CHECKBOX_UNCHECKED]: '未勾選',
 
   [C.LOADING_TITLE]: '載入中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '關閉',

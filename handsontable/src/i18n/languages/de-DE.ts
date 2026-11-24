@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Abbrechen',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Keine Optionen verfügbar',
   [C.CONTEXTMENU_LABEL]: 'Kontextmenü',
   [C.DROPDOWNMENU_LABEL]: 'Spaltenmenü',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Zeile einfügen oberhalb',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zellen teilen',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopieren',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Mit Überschrift kopieren', 'Mit Überschriften kopieren'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Mit Gruppenüberschrift kopieren',
+    'Mit Gruppenüberschriften kopieren',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Nur Überschrift kopieren', 'Nur Überschriften kopieren'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Ausschneiden',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportieren',
@@ -140,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Blatt [name] als [copy] dupliziert',
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blatt [name] an Position [position] von [count] verschoben',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blatt',
+
+  [C.CHECKBOX_CHECKED]: 'Angekreuzt',
+  [C.CHECKBOX_UNCHECKED]: 'Nicht angekreuzt',
 
   [C.LOADING_TITLE]: 'Lädt...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Schließen',

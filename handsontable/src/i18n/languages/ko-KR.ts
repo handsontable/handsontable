@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: '확인',
   [C.CANCEL]: '취소',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '사용 가능한 옵션이 없습니다',
   [C.CONTEXTMENU_LABEL]: '컨텍스트 메뉴',
   [C.DROPDOWNMENU_LABEL]: '열 메뉴',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '위쪽에 행 삽입',
@@ -54,6 +55,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: '셀 병합 해제',
 
   [C.CONTEXTMENU_ITEMS_COPY]: '복사',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['머리글과 함께 복사', '머리글과 함께 복사'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['그룹 머리글과 함께 복사', '그룹 머리글과 함께 복사'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['머리글만 복사', '머리글만 복사'],
   [C.CONTEXTMENU_ITEMS_CUT]: '잘라내기',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: '내보내기',
@@ -140,6 +144,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: '시트 [name]을(를) [copy](으)로 복제함',
   [C.SHEETS_BAR_SHEET_MOVED]: '시트 [name]을(를) [count]개 중 [position]번째 위치로 이동함',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '시트',
+
+  [C.CHECKBOX_CHECKED]: '선택됨',
+  [C.CHECKBOX_UNCHECKED]: '선택 안 됨',
 
   [C.LOADING_TITLE]: '로딩 중...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '닫기',

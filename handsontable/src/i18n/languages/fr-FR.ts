@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuler',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Aucune option disponible',
   [C.CONTEXTMENU_LABEL]: 'Menu contextuel',
   [C.DROPDOWNMENU_LABEL]: 'Menu de la colonne',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insérer une ligne en haut',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Séparer les cellules',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copier',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copier avec l\'en-tête', 'Copier avec les en-têtes'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Copier avec l\'en-tête de groupe',
+    'Copier avec les en-têtes de groupe',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copier uniquement l\'en-tête', 'Copier uniquement les en-têtes'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Couper',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exporter',
@@ -140,6 +147,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Feuille [name] dupliquée sous le nom [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'Feuille [name] déplacée en position [position] sur [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Feuille',
+
+  [C.CHECKBOX_CHECKED]: 'Coché',
+  [C.CHECKBOX_UNCHECKED]: 'Décoché',
 
   [C.LOADING_TITLE]: 'Chargement...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fermer',
