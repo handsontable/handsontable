@@ -2280,7 +2280,8 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Core#suspendExecution} before it suspends the execution (the index cache updates).
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores the column widths and row
+   * heights it measures (for example, on a render).
    *
    * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
    * Its return value cannot cancel the suspension, but a listener that throws stops it, and the error
@@ -2332,7 +2333,8 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Core#suspendExecution} after it suspends the execution (the index cache updates).
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores the column widths and row
+   * heights it measures (for example, on a render).
    *
    * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
    * When a listener throws, the execution is resumed (the `beforeResumeExecution` and
@@ -2381,7 +2383,8 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Core#resumeExecution} before it resumes the execution and updates the index cache.
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores the column widths and row
+   * heights it measures (for example, on a render).
    *
    * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced
    * nested call, and a call while the execution is not suspended fire nothing. It cannot cancel the resume.
@@ -2436,7 +2439,8 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Core#resumeExecution} after it resumes the execution and updates the index cache, so
    * the index changes made while the execution was suspended are already applied.
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores the column widths and row
+   * heights it measures (for example, on a render).
    * `batch()` resumes rendering after this hook.
    *
    * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced

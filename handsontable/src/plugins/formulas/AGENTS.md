@@ -2210,9 +2210,11 @@ With `formulas.batchEvaluation: true`, the plugin writes a grid makes while its 
 every path below takes the branch it took before: no hold exists, so `runEngineBatch()` is `engine.batch(fn)`.
 
 - **The hold is per engine** (`engine/evaluationHold.ts`, a module-level `WeakMap`). A grid joins it on
-  `afterSuspendExecution` (the setting is read there, live) and leaves on `afterResumeExecution`. Every render
-  suspends the execution (AutoColumnSize, AutoRowSize), so join and leave must stay a `Set` add and delete: the
-  engine listeners are attached at the first suspension the plugin makes, not on join.
+  `afterSuspendExecution` (the setting is read there, live) and leaves on `afterResumeExecution`. Join and
+  leave stay a `Set` add and delete: the engine listeners are attached at the first suspension the plugin
+  makes, not on join. The size writes AutoColumnSize and AutoRowSize make on a render suspend the execution
+  through `Core#_batchExecutionWithoutHooks()`, which fires no execution hooks (DEV-4193), so no grid joins
+  the hold for them: `isExecutionSuspended()` can be `true` with no holder.
 - **Lazy suspension.** The engine is suspended at the first plugin engine write made while the hold has a
   holder (`beginHeldEngineWrite()`), so a suspension that writes only index maps (filters, hiding, autosizing)
   never touches the engine. Any grid's write joins an owned suspension, a grid that did not opt in included.
