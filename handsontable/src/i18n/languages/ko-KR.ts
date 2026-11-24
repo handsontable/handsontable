@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: '확인',
   [C.CANCEL]: '취소',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '사용 가능한 옵션이 없습니다',
   [C.CONTEXTMENU_LABEL]: '컨텍스트 메뉴',
   [C.DROPDOWNMENU_LABEL]: '열 메뉴',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '위쪽에 행 삽입',
@@ -54,6 +55,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: '셀 병합 해제',
 
   [C.CONTEXTMENU_ITEMS_COPY]: '복사',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['머리글과 함께 복사', '머리글과 함께 복사'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['그룹 머리글과 함께 복사', '그룹 머리글과 함께 복사'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['머리글만 복사', '머리글만 복사'],
   [C.CONTEXTMENU_ITEMS_CUT]: '잘라내기',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: '내보내기',
@@ -141,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: '시트 [name]을(를) [count]개 중 [position]번째 위치로 이동함',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '시트',
 
+  [C.CHECKBOX_CHECKED]: '선택됨',
+  [C.CHECKBOX_UNCHECKED]: '선택 안 됨',
+
   [C.LOADING_TITLE]: '로딩 중...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '닫기',
 
@@ -175,6 +182,11 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: '끝 쪽 고정된 열',
   [C.ARMED_PICK_STARTED]: '대상을 클릭하거나 탭하여 완료하세요. 취소하려면 Esc 키를 누르세요.',
   [C.ARMED_PICK_CANCELED]: '취소되었습니다.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]: '열 너비를 조절하는 중입니다. 왼쪽 및 오른쪽 화살표 키로 너비를 변경하고, Enter 키로 적용하고, Esc 키로 취소하세요.',
+  [C.MANUAL_RESIZE_ROW_STARTED]: '행 높이를 조절하는 중입니다. 위쪽 및 아래쪽 화살표 키로 높이를 변경하고, Enter 키로 적용하고, Esc 키로 취소하세요.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]: '댓글 상자 크기를 조절하는 중입니다. 화살표 키로 크기를 변경하고, Enter 키로 적용하고, Esc 키로 취소하세요.',
+  [C.MANUAL_RESIZE_WIDTH]: '너비: [size]픽셀',
+  [C.MANUAL_RESIZE_HEIGHT]: '높이: [size]픽셀',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '수준 [level], [setSize]개 중 [position]번째',
@@ -190,6 +202,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] 기준 오름차순 정렬',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '[label] 기준 내림차순 정렬',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '[label] 정렬 해제',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '[label] 기준 오름차순 정렬, 우선순위 [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '[label] 기준 내림차순 정렬, 우선순위 [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '[startColumn]열 [startRow]행에서 [endColumn]열 [endRow]행까지 선택됨',
   [C.SELECTION_ANNOUNCEMENT_ALL]: '모든 셀 선택됨',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '[column]열 선택됨',

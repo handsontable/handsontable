@@ -58,6 +58,12 @@
         color: var(--ht-comments-textarea-focus-foreground-color);
         background-color: var(--ht-comments-textarea-focus-background-color, #ffffff);
       }
+
+      // waits for the click that sets the corner of the box
+      &.ht-comment-resize--armed {
+        outline: 2px dashed var(--ht-comments-textarea-focus-border-color, #1a42e8) !important;
+        outline-offset: 2px;
+      }
     }
   }
 }

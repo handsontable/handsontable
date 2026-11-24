@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Отмена',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Нет доступных опций',
   [C.CONTEXTMENU_LABEL]: 'Контекстное меню',
   [C.DROPDOWNMENU_LABEL]: 'Меню столбца',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Разделить ячейки',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Копировать',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Копировать с заголовком', 'Копировать с заголовками'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Копировать с заголовком группы',
+    'Копировать с заголовками групп',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Копировать только заголовок', 'Копировать только заголовки'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Вырезать',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Экспортировать',
@@ -141,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Лист [name] перемещён на позицию [position] из [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Лист',
 
+  [C.CHECKBOX_CHECKED]: 'Отмечено',
+  [C.CHECKBOX_UNCHECKED]: 'Не отмечено',
+
   [C.LOADING_TITLE]: 'Загрузка...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
 
@@ -175,6 +185,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Закреплённые столбцы в конце',
   [C.ARMED_PICK_STARTED]: 'Щёлкните или коснитесь цели, чтобы завершить. Нажмите Escape, чтобы отменить.',
   [C.ARMED_PICK_CANCELED]: 'Отменено.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Изменение ширины столбца. Стрелками влево и вправо меняйте ширину, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Изменение высоты строки. Стрелками вверх и вниз меняйте высоту, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Изменение размера поля комментария. Стрелками меняйте размер, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Ширина: [size] пикселей',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Высота: [size] пикселей',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Уровень [level], [position] из [setSize]',
@@ -190,6 +208,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Сортировка по [label], по возрастанию',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Сортировка по [label], по убыванию',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Сортировка по [label] снята',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Сортировка по [label], по возрастанию, приоритет сортировки [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Сортировка по [label], по убыванию, приоритет сортировки [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Выбор от столбца [startColumn], строки [startRow] до столбца [endColumn], строки [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Все ячейки выбраны',

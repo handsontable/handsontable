@@ -61,6 +61,8 @@ import {
   COLUMN_SORTING_ANNOUNCEMENT_ASCENDING,
   COLUMN_SORTING_ANNOUNCEMENT_DESCENDING,
   COLUMN_SORTING_ANNOUNCEMENT_REMOVED,
+  COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY,
+  COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY,
 } from '../../i18n/constants';
 import { LICENSE } from './feature.generated';
 
@@ -611,22 +613,31 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Announces the order a user gesture left a column in.
+   * Announces the order a user gesture left a column in. While more than one column is sorted
+   * (MultiColumnSorting), the message also says the column's place in the sort, the number its header
+   * draws: a reader that does not read the header again after the gesture never says it otherwise.
    *
    * @param {number} column Visual column index.
    * @param {string|undefined} sortOrder The order of the column after the sort, `undefined` when it is not sorted.
    */
   #announceSortOrder(column: number, sortOrder: string | undefined): void {
+    const isAscending = sortOrder === ASC_SORT_STATE;
+    const isSorted = isAscending || sortOrder === DESC_SORT_STATE;
+    const hasPriority = isSorted && (this.columnStatesManager?.getNumberOfSortedColumns() ?? 0) > 1;
     let phrase = COLUMN_SORTING_ANNOUNCEMENT_REMOVED;
 
-    if (sortOrder === ASC_SORT_STATE) {
-      phrase = COLUMN_SORTING_ANNOUNCEMENT_ASCENDING;
+    if (hasPriority) {
+      phrase = isAscending ?
+        COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY : COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY;
 
-    } else if (sortOrder === DESC_SORT_STATE) {
-      phrase = COLUMN_SORTING_ANNOUNCEMENT_DESCENDING;
+    } else if (isSorted) {
+      phrase = isAscending ? COLUMN_SORTING_ANNOUNCEMENT_ASCENDING : COLUMN_SORTING_ANNOUNCEMENT_DESCENDING;
     }
 
-    announce(String(this.hot.getTranslatedPhrase(phrase, { label: getColumnLabel(this.hot, column) }) ?? ''), 'polite');
+    announce(String(this.hot.getTranslatedPhrase(phrase, {
+      label: getColumnLabel(this.hot, column),
+      order: (this.columnStatesManager?.getIndexOfColumnInSortQueue(column) ?? 0) + 1,
+    }) ?? ''), 'polite');
   }
 
   /**

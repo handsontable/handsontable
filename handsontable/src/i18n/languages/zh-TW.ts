@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: '確認',
   [C.CANCEL]: '取消',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '沒有可用選項',
   [C.CONTEXTMENU_LABEL]: '快顯功能表',
   [C.DROPDOWNMENU_LABEL]: '欄功能表',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入列',
@@ -54,6 +55,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: '取消合併欄位',
 
   [C.CONTEXTMENU_ITEMS_COPY]: '複製',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['連同標題複製', '連同標題複製'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['連同群組標題複製', '連同群組標題複製'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['僅複製標題', '僅複製標題'],
   [C.CONTEXTMENU_ITEMS_CUT]: '剪下',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: '匯出',
@@ -141,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: '工作表 [name] 已移至第 [position] 個位置（共 [count] 個）',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
 
+  [C.CHECKBOX_CHECKED]: '已勾選',
+  [C.CHECKBOX_UNCHECKED]: '未勾選',
+
   [C.LOADING_TITLE]: '載入中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '關閉',
 
@@ -175,6 +182,11 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: '末尾凍結的欄',
   [C.ARMED_PICK_STARTED]: '按一下或點按目標以完成。按 Esc 鍵取消。',
   [C.ARMED_PICK_CANCELED]: '已取消。',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]: '正在調整欄寬。使用左右方向鍵變更寬度，按 Enter 鍵套用，按 Esc 鍵取消。',
+  [C.MANUAL_RESIZE_ROW_STARTED]: '正在調整列高。使用上下方向鍵變更高度，按 Enter 鍵套用，按 Esc 鍵取消。',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]: '正在調整註解方塊大小。使用方向鍵變更大小，按 Enter 鍵套用，按 Esc 鍵取消。',
+  [C.MANUAL_RESIZE_WIDTH]: '寬度：[size] 像素',
+  [C.MANUAL_RESIZE_HEIGHT]: '高度：[size] 像素',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展開列 [label]，顯示的展開列數：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已摺疊列 [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '第 [level] 層，第 [position] 項，共 [setSize] 項',
@@ -190,6 +202,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已依 [label] 升序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '已依 [label] 降序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '已取消 [label] 的排序',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '已依 [label] 升序排序,優先順序 [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '已依 [label] 降序排序,優先順序 [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '已選取從第 [startColumn] 欄、第 [startRow] 列到第 [endColumn] 欄、第 [endRow] 列的範圍',
   [C.SELECTION_ANNOUNCEMENT_ALL]: '已選取所有儲存格',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '已選取第 [column] 欄',

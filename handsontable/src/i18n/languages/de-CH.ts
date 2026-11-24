@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Abbrechen',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Keine Optionen verfügbar',
   [C.CONTEXTMENU_LABEL]: 'Kontextmenü',
   [C.DROPDOWNMENU_LABEL]: 'Spaltenmenü',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Zeile einfügen oberhalb',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zellen teilen',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopieren',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Mit Überschrift kopieren', 'Mit Überschriften kopieren'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Mit Gruppenüberschrift kopieren',
+    'Mit Gruppenüberschriften kopieren',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Nur Überschrift kopieren', 'Nur Überschriften kopieren'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Ausschneiden',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportieren',
@@ -141,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blatt [name] an Position [position] von [count] verschoben',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blatt',
 
+  [C.CHECKBOX_CHECKED]: 'Angekreuzt',
+  [C.CHECKBOX_UNCHECKED]: 'Nicht angekreuzt',
+
   [C.LOADING_TITLE]: 'Lädt...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Schließen',
 
@@ -175,6 +185,17 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Fixierte Spalten am Ende',
   [C.ARMED_PICK_STARTED]: 'Klicken oder tippen Sie auf das Ziel, um abzuschliessen. Escape bricht ab.',
   [C.ARMED_PICK_CANCELED]: 'Abgebrochen.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Spaltenbreite ändern. Mit den Pfeiltasten nach links und rechts ändern Sie die Breite, Enter wendet sie an, ' +
+    'Escape bricht ab.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Zeilenhöhe ändern. Mit den Pfeiltasten nach oben und unten ändern Sie die Höhe, Enter wendet sie an, Escape ' +
+    'bricht ab.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Grösse des Kommentarfelds ändern. Mit den Pfeiltasten ändern Sie die Grösse, Enter wendet sie an, Escape bricht ' +
+    'ab.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Breite: [size] Pixel',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Höhe: [size] Pixel',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Zeile [label] aufgeklappt, angezeigte aufgeklappte Zeilen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zeile [label] zugeklappt',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Ebene [level], [position] von [setSize]',
@@ -190,6 +211,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortiert nach [label], aufsteigend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortiert nach [label], absteigend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortierung von [label] entfernt',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortiert nach [label], aufsteigend, Sortierpriorität [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortiert nach [label], absteigend, Sortierpriorität [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Auswahl von Spalte [startColumn], Zeile [startRow] bis Spalte [endColumn], Zeile [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle Zellen ausgewählt',

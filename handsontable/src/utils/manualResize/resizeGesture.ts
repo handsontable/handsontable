@@ -12,6 +12,10 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
+import { armPick, type ArmedPick } from '../armedPick';
+import { announce } from '../a11yAnnouncer';
+import * as C from '../../i18n/constants';
+import { EDITOR_EDIT_GROUP, GRID_GROUP } from '../../shortcuts/contexts';
 import {
   getElementScaleFactor,
   normalizeVisualDelta,
@@ -20,6 +24,22 @@ import {
 } from './utils';
 import type { ResizeAxis } from './axis';
 import type { OperationHold } from '../../core/operationScope';
+
+/**
+ * The pixels an arrow key changes the size by in the keyboard resize, and the pixels it changes it by with `Shift`.
+ */
+const STEP = 10;
+const SMALL_STEP = 1;
+/**
+ * The pixels a press on the handle may move and still be a click: a hand does not hold a pointer perfectly still.
+ */
+const CLICK_TOLERANCE = 3;
+/**
+ * The keys the keyboard resize uses, and the modifiers pressed with them.
+ */
+const KEYBOARD_RESIZE_KEYS = new Set([
+  'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Shift', 'Control', 'Alt', 'Meta',
+]);
 
 /**
  * A resize hook either axis fires.
@@ -186,6 +206,39 @@ export class ResizeGesture {
   #autoresizeTimeout: ReturnType<typeof setTimeout> | null = null;
 
   /**
+   * The "click, then click" gesture waiting for the click that names the size, or `null` when none is.
+   */
+  #pick: ArmedPick | null = null;
+
+  /**
+   * Whether the press that is ending found a pick waiting. That press ends it, and its release must not arm a new one.
+   */
+  #pressEndedPick = false;
+
+  /**
+   * Whether the press on the handle was the first of its double-click window. Read on release, because a press held
+   * past the window has seen `afterMouseDownTimeout()` reset the count by then.
+   */
+  #pressWasFirst = false;
+
+  /**
+   * Whether the pointer left the press point by more than a click's tolerance. A drag the clamp leaves at the start
+   * size (a column at its minimum dragged narrower) changes no size, and is still a drag, not a click.
+   */
+  #pointerMoved = false;
+
+  /**
+   * Whether the keyboard resize mode is on: the handle and the guide follow the arrow keys, like a drag follows the
+   * pointer, and nothing is stored until `Enter`.
+   */
+  #keyboardActive = false;
+
+  /**
+   * Whether the cycle of `updatePlugin()` is running, which a keyboard resize survives.
+   */
+  #keepsKeyboardResize = false;
+
+  /**
    * Creates the handle and the guide. Neither is attached until the pointer reaches a header.
    *
    * @param {HotInstance} hot The Handsontable instance.
@@ -219,6 +272,238 @@ export class ResizeGesture {
     eventManager.addEventListener(this.#handle, 'contextmenu', this.#onContextMenu);
     this.#hot.addHook('afterUndo', this.#onHistoryRestored);
     this.#hot.addHook('afterRedo', this.#onHistoryRestored);
+    this.#hot.addHook('afterSelection', this.#onSelectionChange);
+    this.#hot.addHook('beforeKeyDown', this.#onBeforeKeyDown);
+  }
+
+  /**
+   * Registers the keyboard shortcuts of the resize in the grid context: the one that starts the resize, and the ones
+   * that steer it while it runs. The owning plugin calls it from `enablePlugin()` and `unregisterShortcuts()` from
+   * `disablePlugin()` and `destroy()`.
+   */
+  registerShortcuts() {
+    const context = this.#hot.getShortcutManager().getContext('grid');
+    const group = this.#axis.shortcutsGroup;
+    const vertical = this.#isVertical();
+    const arrows = vertical ? ['ArrowUp', 'ArrowDown'] : ['ArrowLeft', 'ArrowRight'];
+    // Wider (taller) is the arrow that points away from the start of the header: down, and the inline end.
+    const growsWith = (key: string) => (vertical ? key === 'ArrowDown' : (key === 'ArrowRight') !== this.#hot.isRtl());
+    const whileActive = {
+      runOnlyIf: () => this.#keyboardActive,
+      group,
+      relativeToGroup: GRID_GROUP,
+      position: 'before' as const,
+      // the grid's own arrow keys, Enter and Escape must not run after these
+      stopPropagation: true,
+    };
+
+    context?.addShortcut({
+      keys: [['Control/Meta', 'Alt', 'R']],
+      callback: () => {
+        this.startKeyboardResize();
+
+        // `false` ends the walk through the actions of the key, so the grid does not take the letter as an edit
+        return false;
+      },
+      runOnlyIf: () => !this.#keyboardActive && this.#getKeyboardTarget() !== null,
+      group,
+      // the key is a letter, which the grid would otherwise take as the start of an edit
+      stopPropagation: true,
+      relativeToGroup: GRID_GROUP,
+      position: 'before',
+    });
+    context?.addShortcut({
+      keys: arrows.flatMap(key => [[key], ['Shift', key]]),
+      callback: (event: KeyboardEvent) => {
+        this.#stepKeyboardResize(growsWith(event.key) ? 1 : -1, event.shiftKey ? SMALL_STEP : STEP);
+
+        return false;
+      },
+      ...whileActive,
+    });
+    context?.addShortcut({
+      keys: [['Enter']],
+      callback: () => {
+        this.#endKeyboardResize(true);
+
+        return false;
+      },
+      ...whileActive,
+      // the grid opens the editor on Enter from the group of the editor, not from its default one
+      relativeToGroup: EDITOR_EDIT_GROUP,
+    });
+    context?.addShortcut({
+      keys: [['Escape']],
+      callback: () => {
+        this.#endKeyboardResize(false);
+
+        return false;
+      },
+      ...whileActive,
+    });
+    this.#restoreKeyboardResize();
+  }
+
+  /**
+   * Removes the shortcuts `registerShortcuts()` added. A running keyboard resize ends without storing anything: its
+   * header and indexes would be stale when the plugin is enabled again. Inside `keepKeyboardResizeThrough()` it stays,
+   * as a waiting pick does through `detach()`.
+   */
+  unregisterShortcuts() {
+    this.#hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(this.#axis.shortcutsGroup);
+
+    if (this.#keyboardActive && !this.#keepsKeyboardResize) {
+      this.#keyboardActive = false;
+      this.#newSize = this.#startSize;
+      this.#hideHandleAndGuide();
+    }
+  }
+
+  /**
+   * Runs the `disablePlugin(); enablePlugin();` cycle `updatePlugin()` performs, which a framework wrapper sends on
+   * every re-render, without ending a keyboard resize: the header and the indexes it works on are not stale after that
+   * cycle, and `registerShortcuts()` draws the handle and the guide again. A real disable still ends it.
+   *
+   * @param {Function} cycle The disable and enable calls.
+   */
+  keepKeyboardResizeThrough(cycle: () => void) {
+    this.#keepsKeyboardResize = true;
+
+    try {
+      cycle();
+    } finally {
+      this.#keepsKeyboardResize = false;
+    }
+  }
+
+  /**
+   * Draws the handle and the guide of a keyboard resize that the `disablePlugin(); enablePlugin();` cycle detached,
+   * where the size is still the one the keys described. A resize whose header is gone ends silently instead.
+   */
+  #restoreKeyboardResize() {
+    if (!this.#keyboardActive) {
+      return;
+    }
+
+    if (!this.#currentTH?.isConnected || !this.#isStillOnIndex(this.#currentTH)) {
+      this.#keyboardActive = false;
+      this.#newSize = this.#startSize;
+
+      return;
+    }
+
+    this.#hot.rootElement.appendChild(this.#handle);
+    this.#setupGuidePosition();
+    this.#refreshHandlePosition();
+    this.#refreshGuidePosition();
+  }
+
+  /**
+   * Starts the keyboard way to resize: the handle and the guide show the size, the arrow keys change it, `Enter` stores
+   * it and `Escape` leaves the size as it was. It resizes what a drag of the header's handle would: the selected
+   * headers when the selection holds the whole of them, the header of the focused cell or header otherwise.
+   *
+   * @returns {boolean} `true` when the resize started.
+   */
+  startKeyboardResize(): boolean {
+    const target = this.#getKeyboardTarget();
+
+    if (!target || this.#keyboardActive) {
+      return false;
+    }
+
+    this.#pick?.cancel();
+    this.#startRenderedSize = null;
+    this.#setupHandlePosition(target.header as HTMLTableHeaderCellElement);
+
+    if (this.#currentIndex !== target.index || this.#startRenderedSize === null) {
+      return false;
+    }
+
+    this.#keyboardActive = true;
+    this.#newSize = this.#startSize;
+    this.#currentSize = this.#startRenderedSize;
+    this.#startPointer = 0;
+    this.#setupGuidePosition();
+    announce(String(this.#hot.getTranslatedPhrase(this.#axis.keyboardStartedPhrase) ?? ''), 'polite');
+
+    return true;
+  }
+
+  /**
+   * Finds the header the keyboard resize starts on: the one of the selection's highlight, when the axis answers for
+   * the selection, the header can be resized and it is drawn.
+   *
+   * @returns {{ index: number, header: HTMLElement } | null}
+   */
+  #getKeyboardTarget(): { index: number, header: HTMLElement } | null {
+    if (!this.#owner.isActive() || !this.#axis.ownsSelection(this.#hot)) {
+      return null;
+    }
+
+    const highlight = this.#hot.getSelectedRangeLast()?.highlight;
+    const index = highlight ? this.#axis.getCoordsIndex(highlight) : null;
+
+    if (index === null || index < 0) {
+      return null;
+    }
+
+    const header = this.#axis.getHeaderCell(this.#hot, index);
+
+    return header && this.#axis.canResizeHeader(header) ? { index, header } : null;
+  }
+
+  /**
+   * Changes the size the keyboard resize describes, and moves the handle and the guide to it.
+   *
+   * @param {1|-1} direction `1` to grow, `-1` to shrink.
+   * @param {number} amount The pixels to change by.
+   */
+  #stepKeyboardResize(direction: 1 | -1, amount: number) {
+    if (!this.#keyboardActive) {
+      return;
+    }
+
+    this.#newSize = this.#owner.clampSize((this.#currentSize ?? 0) + (direction * amount) - this.#startOverhead);
+    this.#currentSize = this.#newSize + this.#startOverhead;
+    this.#refreshHandlePosition();
+    this.#refreshGuidePosition();
+    this.#announceSize();
+  }
+
+  /**
+   * Ends the keyboard resize, storing the size it describes, or leaving the size as it was.
+   *
+   * @param {boolean} apply Whether to store the size.
+   */
+  #endKeyboardResize(apply: boolean) {
+    if (!this.#keyboardActive) {
+      return;
+    }
+
+    this.#keyboardActive = false;
+    this.#hideHandleAndGuide();
+
+    if (apply) {
+      this.#runInStep(() => this.#storeNewSize());
+      this.#announceSize();
+    } else {
+      this.#newSize = this.#startSize;
+      announce(String(this.#hot.getTranslatedPhrase(C.ARMED_PICK_CANCELED) ?? ''), 'polite');
+    }
+
+    if (this.#currentTH?.isConnected) {
+      this.#setupHandlePosition(this.#currentTH);
+    }
+  }
+
+  /**
+   * Announces the size of the keyboard resize.
+   */
+  #announceSize() {
+    const phrase = this.#hot.getTranslatedPhrase(this.#axis.sizePhrase, { size: this.#newSize ?? 0 });
+
+    announce(String(phrase ?? ''), 'polite');
   }
 
   /**
@@ -266,6 +551,7 @@ export class ResizeGesture {
    * suites and belongs with a sweep of those instead.
    */
   detach() {
+    // A pick and a keyboard resize survive it, as a drag does: `updatePlugin()` runs it on every wrapper re-render.
     this.#hideHandleAndGuide();
     this.#handle.remove();
     this.#guide.remove();
@@ -281,6 +567,8 @@ export class ResizeGesture {
    */
   abort() {
     this.#dblclick = 0;
+    // The indexes of a waiting pick and of a keyboard resize belong to the data that left, as a drag's do.
+    this.#endWaitingResizes();
 
     if (!this.#pressed) {
       return;
@@ -291,11 +579,28 @@ export class ResizeGesture {
   }
 
   /**
+   * Ends the "click, then click" pick and the keyboard resize, without storing a size and without an announcement.
+   */
+  #endWaitingResizes() {
+    this.#pick?.cancel();
+    this.#pressEndedPick = false;
+
+    if (this.#keyboardActive) {
+      this.#keyboardActive = false;
+      this.#newSize = this.#startSize;
+      this.#hideHandleAndGuide();
+    }
+  }
+
+  /**
    * Removes the undo and redo listeners and detaches the handle and the guide.
    */
   destroy() {
     this.#hot.removeHook('afterUndo', this.#onHistoryRestored);
     this.#hot.removeHook('afterRedo', this.#onHistoryRestored);
+    this.#hot.removeHook('afterSelection', this.#onSelectionChange);
+    this.#hot.removeHook('beforeKeyDown', this.#onBeforeKeyDown);
+    this.#endWaitingResizes();
     this.detach();
   }
 
@@ -661,6 +966,27 @@ export class ResizeGesture {
   }
 
   /**
+   * A new selection ends the keyboard resize without storing anything: the size belonged to the header that had the
+   * focus.
+   */
+  #onSelectionChange = () => {
+    this.#endKeyboardResize(false);
+  };
+
+  /**
+   * A key the keyboard resize does not use ends it without storing anything: the arrow keys, `Enter`, `Escape` and
+   * the modifiers stay with the resize, and any other key (a character that opens the editor, `Delete`, `Tab`) is for
+   * the grid, which would otherwise act with the guide still drawn.
+   *
+   * @param {KeyboardEvent} event The keydown event.
+   */
+  #onBeforeKeyDown = (event: KeyboardEvent) => {
+    if (this.#keyboardActive && !KEYBOARD_RESIZE_KEYS.has(event.key)) {
+      this.#endKeyboardResize(false);
+    }
+  };
+
+  /**
    * Repositions the attached handle from the header it belongs to.
    */
   #onHistoryRestored = () => {
@@ -700,6 +1026,11 @@ export class ResizeGesture {
       return;
     }
 
+    // The handle stays on the header it armed, or the click that picks the size would resize another one.
+    if (this.#pick || this.#keyboardActive) {
+      return;
+    }
+
     if (!this.#axis.isHeaderElement(this.#hot, target)) {
       return;
     }
@@ -724,6 +1055,10 @@ export class ResizeGesture {
     }
 
     if (hasClass(target, this.#axis.handleClassName) && this.#currentTH) {
+      // A press on the handle ends the pick that waits for a click, and its release must not arm another one.
+      this.#pressEndedPick = this.#pick !== null;
+      this.#pick?.cancel();
+      this.#endKeyboardResize(false);
       this.#setupHandlePosition(this.#currentTH);
       this.#setupGuidePosition();
       this.#pressed = true;
@@ -737,6 +1072,8 @@ export class ResizeGesture {
       }
 
       this.#dblclick += 1;
+      this.#pressWasFirst = this.#dblclick === 1;
+      this.#pointerMoved = false;
       this.#startPointer = this.#readPointer(event);
       this.#newSize = this.#startSize;
       // A handle press never reaches `onCellMouseDown`, which is what listens for a header TH.
@@ -757,6 +1094,11 @@ export class ResizeGesture {
     }
 
     const pointerChange = this.#readPointer(event) - (this.#startPointer ?? 0);
+
+    if (Math.abs(pointerChange) > CLICK_TOLERANCE) {
+      this.#pointerMoved = true;
+    }
+
     // The inline axis runs the other way under RTL; the block axis never does.
     const visualChange = this.#isVertical() ? pointerChange : pointerChange * this.#hot.getDirectionFactor();
     const change = normalizeVisualDelta(this.#anchoredAtInlineEnd ? -visualChange : visualChange, this.#scaleFactor);
@@ -784,6 +1126,42 @@ export class ResizeGesture {
       return;
     }
 
+    const wasPlainClick = this.#newSize === this.#startSize && !this.#pointerMoved && this.#pressWasFirst &&
+      !this.#pressEndedPick;
+
+    this.#pressEndedPick = false;
+    this.#hideHandleAndGuide();
+    this.#pressed = false;
+
+    this.#runInStep(() => this.#storeNewSize());
+    this.#closeStep();
+
+    if (this.#currentTH) {
+      this.#setupHandlePosition(this.#currentTH);
+    }
+
+    // A click on the handle that dragged nothing is the first click of "click, then click". A double-click is the
+    // auto-size, so its second press ends the pick (`#onMouseDown`).
+    if (wasPlainClick && !this.#isTriggeredByRMB) {
+      this.#startPick();
+    }
+  };
+
+  /**
+   * Stores the size the drag, the pick or the keyboard described for every index it resizes, then confirms it through
+   * the resize hooks. The size is stored before the hooks run, because the row axis reports the height it reads back
+   * (see `ResizeAxis#getHookSize`). A size equal to the start size changes nothing.
+   *
+   * @fires Hooks#beforeRowResize
+   * @fires Hooks#afterRowResize
+   * @fires Hooks#beforeColumnResize
+   * @fires Hooks#afterColumnResize
+   */
+  #storeNewSize() {
+    if (this.#newSize === this.#startSize) {
+      return;
+    }
+
     const render = () => {
       this.#hot.render();
     };
@@ -807,33 +1185,109 @@ export class ResizeGesture {
         this.#runResizeHook(this.#axis.afterResizeHook, index, false);
       }
     };
+    const draggedSize = this.#newSize ?? 0;
 
-    this.#hideHandleAndGuide();
-    this.#pressed = false;
-
-    this.#runInStep(() => {
-      if (this.#newSize !== this.#startSize) {
-        const draggedSize = this.#newSize ?? 0;
-
-        arrayEach(this.#selectedIndexes, (index) => {
-          this.#owner.setManualSize(index, draggedSize);
-        });
-
-        if (this.#selectedIndexes.length > 1) {
-          arrayEach(this.#selectedIndexes, index => resize(index));
-          render();
-
-        } else {
-          arrayEach(this.#selectedIndexes, index => resize(index, true));
-        }
-      }
+    arrayEach(this.#selectedIndexes, (index) => {
+      this.#owner.setManualSize(index, draggedSize);
     });
-    this.#closeStep();
 
-    if (this.#currentTH) {
-      this.#setupHandlePosition(this.#currentTH);
+    if (this.#selectedIndexes.length > 1) {
+      arrayEach(this.#selectedIndexes, index => resize(index));
+      render();
+
+    } else {
+      arrayEach(this.#selectedIndexes, index => resize(index, true));
     }
-  };
+  }
+
+  /**
+   * Starts waiting for the click that names the size, the single-pointer way to do what a drag of the handle does. The
+   * header stays the one the handle was on, however far the pointer goes before the click, so `#currentTH` and the
+   * indexes of the press are what the click resizes.
+   */
+  #startPick() {
+    if (this.#pick || !this.#currentTH) {
+      return;
+    }
+
+    const { rootDocument, rootElement } = this.#hot;
+
+    this.#handle.classList.add('ht-resize-handle--armed');
+    this.#pick = armPick({
+      doc: rootDocument,
+      root: rootElement,
+      // a press on the handle is left to it: it ends the pick (`#onMouseDown`), or becomes a drag or a double-click
+      isAnchor: target => target instanceof Node && this.#handle.contains(target),
+      onPick: event => this.#applyPickedSize(event),
+      onEnd: (reason) => {
+        this.#pick = null;
+        this.#handle.classList.remove('ht-resize-handle--armed');
+
+        if (reason === 'escape') {
+          announce(String(this.#hot.getTranslatedPhrase(C.ARMED_PICK_CANCELED) ?? ''), 'polite');
+        }
+      },
+    });
+
+    // The first release of a double-click arms the pick too, and the second press ends it: announce only a pick that
+    // outlived the double-click window.
+    const pick = this.#pick;
+
+    this.#hot._registerTimeout(() => {
+      if (this.#pick === pick) {
+        announce(String(this.#hot.getTranslatedPhrase(C.ARMED_PICK_STARTED) ?? ''), 'polite');
+      }
+    }, 500);
+  }
+
+  /**
+   * Resizes to the size a click describes: the distance from the start of the header to the click, along the axis. A
+   * click that lands at the start of the header or before it picks the owner's minimum, as a drag past it does.
+   *
+   * @param {MouseEvent} event The click that picked the size.
+   */
+  #applyPickedSize(event: MouseEvent) {
+    const header = this.#currentTH;
+
+    if (!header?.isConnected || this.#startSize === null || !this.#owner.isActive() || !this.#isStillOnIndex(header)) {
+      return;
+    }
+
+    const rect = header.getBoundingClientRect();
+    const rtl = this.#hot.isRtl();
+    let rendered: number;
+
+    if (this.#isVertical()) {
+      rendered = event.clientY - rect.top;
+    } else if (this.#anchoredAtInlineEnd) {
+      rendered = rtl ? event.clientX - rect.left : rect.right - event.clientX;
+    } else {
+      rendered = rtl ? rect.right - event.clientX : event.clientX - rect.left;
+    }
+
+    this.#currentSize = normalizeVisualDelta(rendered, this.#scaleFactor);
+    this.#newSize = this.#owner.clampSize(this.#currentSize - this.#startOverhead);
+    this.#runInStep(() => this.#storeNewSize());
+    this.#setupHandlePosition(header as HTMLTableHeaderCellElement);
+  }
+
+  /**
+   * Tells whether a header still belongs to the index the handle was set up for. The grid recycles its header
+   * elements when it scrolls, so one that the pick waited on can be another column or row by the time the click comes.
+   *
+   * @param {HTMLElement} header The header the handle was set up against.
+   * @returns {boolean}
+   */
+  #isStillOnIndex(header: HTMLElement): boolean {
+    const coords = this.#hot.view._wt.wtTable.getCoords(header);
+    const renderableIndex = coords ? this.#axis.getCoordsIndex(coords) : null;
+
+    if (renderableIndex === null || renderableIndex < 0) {
+      return false;
+    }
+
+    return this.#axis.getIndexMapper(this.#hot).getVisualFromRenderableIndex(renderableIndex) === this.#currentIndex;
+  }
 
   /**
    * Opens the undo step of a press and holds it until the press ends.
@@ -876,6 +1330,7 @@ export class ResizeGesture {
     // Also closes the step of the drag, which stored no size yet: an aborted drag keeps the size
     // it started from.
     this.detach();
+    this.#endWaitingResizes();
 
     this.#pressed = false;
     this.#isTriggeredByRMB = true;

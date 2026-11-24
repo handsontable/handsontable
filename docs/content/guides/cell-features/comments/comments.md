@@ -250,6 +250,11 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 
 Without `style`, a comment box is 240 pixels wide and 88 pixels tall. The box of a comment on a merged cell that spans more than one row takes the height of the merged range instead. A size you set, or one the user drags, takes precedence.
 
+Users can also resize a comment box without dragging its corner:
+
+- Click the corner of the box, then click the grid. The corner of the box moves to the point you click. Press <kbd>**Escape**</kbd> to cancel.
+- While the box has the focus, press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd>. The arrow keys change the width and the height by 10 pixels, or by 1 pixel with <kbd>**Shift**</kbd>. <kbd>**Enter**</kbd> keeps the size and <kbd>**Escape**</kbd> puts the old size back, and neither closes the box.
+
 ::: only-for javascript
 
 ::: example #example3 --js 1 --ts 2
@@ -444,6 +449,7 @@ Cells with comments display a small indicator in the corner. Users can view, edi
 | Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
 | ------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>⌥</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd> | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**R**</kbd> | Resize the comment box with the arrow keys | &cross; | &cross; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving | &cross; | &cross; |
 
