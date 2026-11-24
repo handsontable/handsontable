@@ -180,3 +180,76 @@ describe('CellsRenderer announcing a change of the header counts', () => {
     expect(take()).toEqual([]);
   });
 });
+
+describe('RowsRenderer announcing a change of the column header count', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+  });
+
+  /**
+   * Counts the rows whose `role` is removed, which is what a rebuild of the accessibility object is. A row's
+   * `role` is also written with the same value on every draw, which does not count.
+   *
+   * @returns {() => number} Reads the count.
+   */
+  function watchRowRoleRemovals(): () => number {
+    let removals = 0;
+    const nativeRemove = Element.prototype.removeAttribute;
+
+    jest.spyOn(Element.prototype, 'removeAttribute').mockImplementation(function(this: Element, name: string) {
+      if (name === 'role' && this.nodeName === 'TR') {
+        removals += 1;
+      }
+
+      nativeRemove.call(this, name);
+    });
+
+    return () => removals;
+  }
+
+  it('should rebuild every row once when a column header row appears', () => {
+    const { tbody, draw, state } = createFixture();
+
+    document.body.append(tbody);
+    draw();
+
+    const removals = watchRowRoleRemovals();
+
+    state.columnHeadersCount = 1;
+    draw();
+
+    expect(removals()).toBe(3);
+
+    draw();
+
+    expect(removals()).toBe(3);
+  });
+
+  it('should rebuild nothing on the first draw', () => {
+    const { tbody, draw } = createFixture();
+
+    document.body.append(tbody);
+
+    const removals = watchRowRoleRemovals();
+
+    draw();
+
+    expect(removals()).toBe(0);
+  });
+
+  it('should not rebuild a grid that writes no ARIA attributes', () => {
+    const { tbody, draw, state } = createFixture();
+
+    state.ariaEnabled = false;
+    document.body.append(tbody);
+    draw();
+
+    const removals = watchRowRoleRemovals();
+
+    state.columnHeadersCount = 1;
+    draw();
+
+    expect(removals()).toBe(0);
+  });
+});

@@ -2162,9 +2162,11 @@ values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
   row in the record is what tells it from a repeated paint, and the readers read the cell as a move. Only the one
   focused element is looked at, so a draw pays one `getCoords()`. An element whose markup changes on every paint (a
   generated id, an animated bar) reads as changed on every draw, so such a cell is read again each time.
-- **The offsets that position the cells change** (`#hasPositionOffsetChanged`): when the number of row headers
-  or column headers changes, every painted cell is rebuilt once, so a reader that learned the old positions
-  counts again (NVDA with Firefox read the first rows of a grid that got column headers one row too low). A grid
+- **The offsets that position the cells change** (`#hasPositionOffsetChanged` in `render/cells.ts`, and the same
+  question for the column header count in `render/rows.ts`): when the number of row headers or column headers
+  changes, every painted cell, and every row for a change of the column headers, is rebuilt once, so a reader that
+  learned the old positions counts again (NVDA with Firefox read the first rows of a grid that got column headers
+  one row too low, and the cells alone were not enough: a row keeps the position the reader cached for it). A grid
   with `renderMode: 'onChange'` is covered by the same test.
 
 Do not make any of these unconditional: the cost of the strip was the reason it went. The rebuild does not reach
