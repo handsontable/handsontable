@@ -188,13 +188,51 @@ test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BU
 
     await expect(cell).toBeFocused();
     await expect(cell).toHaveAttribute('aria-invalid', 'true');
-    // The description carries the code and the engine's message, not only the code the cell shows.
-    await expect(cell).toHaveAttribute('aria-description', /^#NAME\? — .+/);
     await expect(grid.errorPopup).toBeVisible();
+
+    const popupId = await grid.errorPopup.getAttribute('id');
+
+    await expect(cell).toHaveAttribute('aria-errormessage', popupId!);
+    await expect(cell).toHaveAttribute('aria-describedby', new RegExp(`^\\S+-colheader-2 ${popupId}$`));
+    await expect(cell).toHaveAccessibleDescription(/^C #NAME\? Function name FOO not recognized\.$/);
+
+    const describedByRightAfterPaint = await grid.repaintAndReadDescribedBy(3, 2);
+
+    expect(describedByRightAfterPaint).not.toContain(popupId!);
+    await expect(grid.errorPopup).toBeVisible();
+    await expect(cell).toHaveAttribute('aria-errormessage', popupId!);
+    await expect(cell).toHaveAttribute('aria-describedby', new RegExp(`^\\S+-colheader-2 ${popupId}$`));
+    await expect(cell).toHaveAccessibleDescription(/^C #NAME\? Function name FOO not recognized\.$/);
 
     await page.keyboard.press('Escape');
     await expect(grid.errorPopup).toBeHidden();
     await expect(cell).toBeFocused();
+    await expect(cell).not.toHaveAttribute('aria-errormessage', /.*/);
+    await expect(cell).not.toHaveAttribute('aria-describedby', new RegExp(popupId!));
+    await expect(cell).toHaveAccessibleDescription('C');
+  });
+});
+
+test.describe('formulaBuilder error description', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  test('Chromium reads the error message once, from the open popup', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setDataAt(3, 2, '=FOO(1)');
+    await grid.expectCell(3, 2, '#NAME?');
+
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.press('ArrowRight');
+    await expect(grid.cell(3, 2)).toBeFocused();
+    await expect(grid.errorPopup).toBeVisible();
+
+    await expect.poll(async() => (await grid.chromiumAccessibility(3, 2)).description)
+      .toMatch(/^C #NAME\? Function name FOO not recognized\.$/);
+
+    await page.keyboard.press('Escape');
+    await expect(grid.errorPopup).toBeHidden();
+
+    await expect.poll(async() => (await grid.chromiumAccessibility(3, 2)).description).toBe('C');
   });
 });
 

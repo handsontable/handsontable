@@ -309,12 +309,19 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   cells so their class names land, and the selection manager stamps the grid's selection `cellAttributes`
   only on cells of an area, fill or focus layer (`selectedCells` in `selection/manager.ts`). Otherwise a
   screen reader reported every referenced cell as selected.
-- **An error cell carries its message as `aria-description`** (under `ariaTags`), written in
-  `afterRenderer` from the package's `data-hfe-error` mark. The plugin keeps the text it wrote per element
-  (a `WeakMap`) and removes the attribute only while it still holds that text: a recycled element can carry
-  the plugin's description from its last cell, but a renderer runs before `afterRenderer` and may already
-  have written the application's own, which a "did the plugin touch this element" check deleted.
-  The description and the `cellError` announcement carry a SHORT message (`toSpokenErrorMessage()`: first
+- **An error cell gets no description from the plugin: `hyperformula-ui` describes it.** The package is
+  host-agnostic, so the error has to be announced by the package itself, the same in every host. Since
+  0.3.7 it adds the open error popup's id to the cell's `aria-describedby` (after the column header, and
+  back after a re-render, through a `MutationObserver`) and points `aria-errormessage` at it. A focused
+  error cell opens the popup, so a screen reader reads `<header> <popup text>` once. Do not add the
+  message on the Handsontable side as well: a cell description part (`utils/cellDescription/`) was tried,
+  and with the popup open the reader said the message twice. `aria-description` was the version before
+  that, and a reader never heard it: every cell carries `aria-describedby` for its column header, and
+  `aria-describedby` wins. Two gaps are the package's, not the plugin's: with the popup closed (after
+  Escape, or in a reader's browse mode, which moves no focus) nothing describes the error, and the popup
+  text is the full engine message (about 14 lines for a parse error). Pinned by "formulaBuilder error
+  description" in `tests/e2e/formula-builder-popups.spec.ts`.
+- **The `cellError` announcement carries a SHORT message** (`toSpokenErrorMessage()`: first
   line, first sentence after the `#CODE — ` prefix, 120 characters at a word boundary). A HyperFormula
   parse error lists every token it expected over 14 lines, and a screen reader read all of it on each
   focus of the cell. The `data-hfe-error` mark keeps the whole text, which the error popup shows. Start
@@ -327,7 +334,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   (`markCell(cell, null)`) removes `aria-invalid` whoever wrote it, the base renderer's `valid: false`
   included, so `#keepValidatorInvalid()` writes it back for a cell a validator rejected; without that a
   rejected cell kept `htInvalid` while a screen reader heard it as valid. The teardown takes every mark
-  and the plugin's descriptions off the rendered cells (`#clearCellErrorMarks()`): the grid's render resets
+  off the rendered cells (`#clearCellErrorMarks()`): the grid's render resets
   classes and ARIA attributes but not `data-*`, so after `formulaBuilder: false` a mark moved with the
   recycled elements. With no builder (the engine detached, or a rebuild failed) `#markCell()` removes the
   attribute itself, because `#builder?.markCell()` would do nothing and the stale mark would be described
