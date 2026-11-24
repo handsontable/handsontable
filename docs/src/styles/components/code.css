@@ -134,7 +134,7 @@
   opacity: 1;
 }
 
-:root[data-theme] .expressive-code .copy button:focus-visible {
+:root[data-theme] .expressive-code .copy button:focus-visible:not(:hover) {
   border-color: transparent;
 }
 
@@ -148,6 +148,7 @@
 }
 
 .expressive-code .copy button:hover {
+  background-color: var(--sl-color-gray-4);
   border-color: var(--sl-color-gray-5);
 }
 

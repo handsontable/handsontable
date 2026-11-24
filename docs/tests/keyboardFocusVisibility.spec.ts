@@ -2,24 +2,33 @@ import { test, expect, type Page } from '@playwright/test';
 
 const DESKTOP = { width: 1280, height: 800 };
 const TOC_LINK = '.right-sidebar a[href^="#"]';
+const EXAMPLE_BUTTONS = ['button#sort', '.hot-example-source-btn', '.hot-example-runner-btn', '.hot-example-github-btn'];
 
 /**
- * Presses Tab until the focus lands on an element that matches the selector.
+ * Focuses the tab stop right before the first element that matches the selector, then presses Tab once,
+ * so the element takes the focus from the keyboard.
  *
  * @param {Page} page The page.
  * @param {string} selector The selector of the element to reach.
- * @returns {Promise<boolean>} Whether the focus reached the element.
  */
-async function tabTo(page: Page, selector: string): Promise<boolean> {
-  for (let press = 0; press < 400; press += 1) {
-    await page.keyboard.press('Tab');
+async function tabInto(page: Page, selector: string): Promise<void> {
+  const ready = await page.evaluate((sel) => {
+    const target = document.querySelector<HTMLElement>(sel);
+    const stops = [...document.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]')]
+      .filter(element => element.tabIndex >= 0 && !element.hasAttribute('disabled') && element.getClientRects().length > 0);
+    const index = target ? stops.indexOf(target) : -1;
 
-    if (await page.evaluate(sel => document.activeElement?.matches(sel) ?? false, selector)) {
-      return true;
+    if (index < 1) {
+      return false;
     }
-  }
+    stops[index - 1].focus();
 
-  return false;
+    return true;
+  }, selector);
+
+  expect(ready, `a tab stop comes before ${selector}`).toBe(true);
+  await page.keyboard.press('Tab');
+  await expect(page.locator(selector).first()).toBeFocused();
 }
 
 test.beforeEach(async({ page, baseURL }) => {
@@ -61,7 +70,7 @@ test.describe('keyboard focus on the docs theme', () => {
 
       await expect(copyButton).toHaveCSS('opacity', '0');
 
-      expect(await tabTo(page, '.expressive-code .copy button')).toBe(true);
+      await tabInto(page, '.expressive-code .copy button');
 
       const focused = page.locator('.expressive-code .copy button:focus-visible');
 
@@ -72,21 +81,39 @@ test.describe('keyboard focus on the docs theme', () => {
       await expect(focused).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     });
 
-    test(`an example control button draws one focus ring (${theme})`, async({ page, baseURL }) => {
+    test(`example buttons draw one focus ring (${theme})`, async({ page, baseURL }) => {
       await page.goto(`${baseURL}/javascript-data-grid/rows-sorting/`);
       await page.evaluate(value => document.documentElement.setAttribute('data-theme', value), theme);
       await page.mouse.move(0, 0);
 
-      const sortButton = page.locator('button#sort').first();
+      for (const selector of EXAMPLE_BUTTONS) {
+        const button = page.locator(selector).first();
 
-      await sortButton.scrollIntoViewIfNeeded();
-      await sortButton.focus();
+        await tabInto(page, selector);
 
-      await expect(page.locator('button#sort:focus-visible')).toHaveCount(1);
-      await expect(sortButton).toHaveCSS('outline-style', 'none');
-      await expect(sortButton).toHaveCSS('box-shadow', /inset/);
+        await expect(page.locator(`${selector}:focus-visible`).first()).toBeFocused();
+        await expect(button, selector).toHaveCSS('outline-style', 'none');
+        await expect(button, selector).toHaveCSS('box-shadow', /inset/);
+      }
     });
   }
+
+  test('the copy button changes on hover in the dark theme', async({ page, baseURL }) => {
+    await page.goto(`${baseURL}/javascript-data-grid/bundle-size/`);
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+
+    const codeBlock = page.locator('.expressive-code figure').first();
+    const copyButton = codeBlock.locator('.copy button');
+
+    await codeBlock.hover({ position: { x: 10, y: 10 } });
+    await expect(copyButton).toHaveCSS('opacity', '1');
+
+    const rest = await copyButton.evaluate(button => getComputedStyle(button).backgroundColor);
+
+    await copyButton.hover();
+
+    await expect(copyButton).not.toHaveCSS('background-color', rest);
+  });
 
   test('Shift+Tab keeps a table of contents link below the fixed header', async({ page, baseURL }) => {
     await page.goto(`${baseURL}/javascript-data-grid/rows-sorting/`);
@@ -97,7 +124,7 @@ test.describe('keyboard focus on the docs theme', () => {
       const links = [...document.querySelectorAll<HTMLAnchorElement>(selector)]
         .filter(link => link.getClientRects().length > 0);
 
-      if (!sidebar || links.length < 2 || sidebar.scrollHeight <= sidebar.clientHeight) {
+      if (!sidebar || links.length < 3 || sidebar.scrollHeight <= sidebar.clientHeight) {
         return null;
       }
 
