@@ -1266,3 +1266,9 @@ A code block or a Markdown table wider than the content column must be scrollabl
 - **Blocks are collected once, when the page loads.** A code block or table added later gets no name.
 - **A scrolling container inside an example needs literal attributes in the example source**: `tabindex="0"` (`tabIndex={0}` in JSX), `role="region"`, and an `aria-label`, as the store dumps of the Redux, Vuex, and Pinia examples have. The script does not reach into an example's preview. Keep one scroller: no scrolling element inside another.
 - **Tests:** `src/lib/__tests__/scrollable-block-names.test.mjs` (`npm run docs:test:plugins`) for the naming rule, and `tests/scrollableBlocksKeyboard.spec.ts` (the `functional` project) for the attributes, the arrow keys, and unique region names on built pages.
+
+## 2.25 A scroll box under the fixed header needs its own `scroll-padding-top`
+
+Starlight sets `scroll-padding-top` on `<html>` (the header height plus 1.5rem), so the page itself scrolls a focused element clear of the fixed header. A box that scrolls on its own does not inherit it. `.right-sidebar` (the "On this page" panel) is fixed from `top: 0` and pushes its content down with `padding-top: var(--sl-nav-height)`, so its top edge sits behind the header. Without its own `scroll-padding-top` (`src/styles/layout/page.css`), a link the panel has scrolled up behind the header counts as visible to the browser, and Shift+Tab focuses it there without scrolling, hidden (WCAG 2.4.11). The left `.sidebar-pane` starts at `top: var(--sl-nav-height)` and does not need it.
+
+A new fixed or sticky panel that scrolls and starts under the header gets the same rule. `tests/keyboardFocusVisibility.spec.ts` pins the table of contents case and the code block copy button, which shows on `:focus-visible` as well as on hover (WCAG 2.4.7).
