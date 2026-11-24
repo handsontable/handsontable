@@ -64,6 +64,29 @@ test('names the not-found page after its heading', async({ page, baseURL }) => {
   await expect(page).toHaveTitle(/^Page not found \| /);
 });
 
+test('gives the guides introduction and the API introduction titles of their own', async({ page, baseURL }) => {
+  await page.goto(`${baseURL}/javascript-data-grid/`);
+  const guides = await page.title();
+
+  await page.goto(`${baseURL}/javascript-data-grid/api/`);
+  const api = await page.title();
+
+  expect(guides).toBe('Documentation | Handsontable DataGrid for JavaScript');
+  expect(api).toBe('API reference | Handsontable DataGrid for JavaScript');
+});
+
+test('lists only the versions in the changelog table of contents', async({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseURL}/javascript-data-grid/changelog/`);
+
+  const toc = page.locator('starlight-toc nav');
+
+  await expect(toc.getByRole('link').first()).toBeVisible();
+  await expect(toc.getByRole('link', { name: 'Fixed', exact: true })).toHaveCount(0);
+  await expect(toc.getByRole('link', { name: 'Added', exact: true })).toHaveCount(0);
+  expect(await toc.getByRole('link', { name: /^\d+\.\d+\.\d+$/ }).count()).toBeGreaterThan(5);
+});
+
 for (const slug of ['accessibility', 'accessibility-conformance-report']) {
   test(`gives each framework variant of the ${slug} page its own title`, async({ page, baseURL }) => {
     const titles: string[] = [];
