@@ -13,7 +13,6 @@
       "licensing": "token",
       "gate": "call",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -34,7 +33,6 @@
       "licensing": "token",
       "gate": "call",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -56,7 +54,6 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -82,7 +79,6 @@
       "licensing": "token",
       "gate": "degrade",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -149,7 +145,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ]
     },

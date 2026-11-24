@@ -197,5 +197,35 @@ describe('xlsxEngine/xlsxEntitlement', () => {
       expect(resolveXlsxEntitlement(['zz_unknown']).missing).toEqual([...XLSX_CAPABILITY_IDS]);
       expect(resolveXlsxEntitlement(['zz_unknown']).export).toBe(false);
     });
+
+    // DEV-4198: Handsontable has a single tier that unlocks every feature. The `standard` tier was removed, so
+    // every xlsx feature (number formats, comments, styles, conditional formatting, data validation, protection
+    // included) belongs to that tier, and a key naming only `tier:standard` unlocks nothing. The tier's name is
+    // read from the generated table, so a later rename does not break this test.
+    it('unlocks every gated xlsx feature for the single tier', () => {
+      const [singleTier] = XLSX_TIERS_BY_ID['xlsx:import'];
+      const { tiers } = _getLicenseState(keyWithTier([singleTier]));
+      const entitlement = resolveXlsxEntitlement(tiers);
+
+      expect(entitlement.missing).toEqual([]);
+      [
+        'xlsx:number_formats', 'xlsx:comments', 'xlsx:styles', 'xlsx:conditional_formatting',
+        'xlsx:data_validation', 'xlsx:protection',
+      ].forEach((id) => {
+        expect([id, XLSX_TIERS_BY_ID[id]]).toEqual([id, [singleTier]]);
+      });
+    });
+
+    it('unlocks no gated xlsx feature for a key that names only the removed tier "standard"', () => {
+      const { tiers } = _getLicenseState(keyWithTier(['standard']));
+      const entitlement = resolveXlsxEntitlement(tiers);
+
+      expect(entitlement.missing).toEqual([...XLSX_CAPABILITY_IDS]);
+      expect(entitlement.import).toBe(false);
+      expect(entitlement.export).toBe(false);
+      expect(entitlement.styles).toBe(false);
+      expect(entitlement.importReport).toBe(true);
+      Object.values(XLSX_TIERS_BY_ID).forEach(ids => expect(ids).not.toContain('standard'));
+    });
   });
 });
