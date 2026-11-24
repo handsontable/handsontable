@@ -9,11 +9,11 @@
     "at": "2026-11-05T13:55:04.496Z"
   },
   "steps": {
-    "tab-last-header": "qty menu pop up column 8 row select whole grid company name country name sell date order id in stock qty",
+    "tab-last-header": "qty menu pop up column 8 row company name country name sell date order id in stock qty",
     "tab-empty-message": "no data available there s nothing to display yet group",
     "tab-out": "after the grid button",
     "shift-tab-empty-message": "no data available there s nothing to display yet group",
-    "shift-tab-header": "qty menu pop up column 8 row select whole grid company name country name sell date order id in stock qty tree grid 8 columns 2 rows",
-    "arrow-left-header": "in stock menu pop up column 7 row select whole grid company name country name sell date order id in stock qty"
+    "shift-tab-header": "qty menu pop up column 8 row company name country name sell date order id in stock qty tree grid 8 columns 2 rows",
+    "arrow-left-header": "in stock menu pop up column 7 row company name country name sell date order id in stock qty"
   }
 }
