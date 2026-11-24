@@ -1663,7 +1663,8 @@ export class NestedRows extends BasePlugin {
    * focus is on one of its cells, so the same values are given to the cell the highlight reached, as
    * part of its description. A polite live region message made the same moment replaced the
    * announcement of the cell on VoiceOver, and the user heard the level and not the cell. A row
-   * header has no description, so a highlight on one still gets the message.
+   * header has no description, so a highlight on one, or a row selected by its header, still gets the
+   * message.
    *
    * @param {number} physicalRow Physical row index.
    * @param {CellCoords} highlight The active highlight, which sits on a cell or on a row header.
@@ -1675,7 +1676,9 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    if (highlight.col === null || highlight.col < 0) {
+    // A row selected by its header highlights a cell, but the press went to the header, so no cell holds
+    // the focus and there is no description to wait for.
+    if (highlight.col === null || highlight.col < 0 || this.hot.selection.isSelectedByRowHeader()) {
       announce(text, 'polite');
 
       return;
