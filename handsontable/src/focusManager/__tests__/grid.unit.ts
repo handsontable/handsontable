@@ -399,21 +399,6 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
     expect(log).toEqual(['remove role', 'set role=gridcell', 'focus']);
   });
 
-  it('leaves a busy cell alone when it takes the focus, which waits for an async value', () => {
-    const grid = makeDeferredFocusGrid();
-
-    grid.td.setAttribute('role', 'gridcell');
-    grid.td.setAttribute('aria-busy', 'true');
-    grid.td.tabIndex = -1;
-    grid.state.rendered = true;
-
-    const log = logRoleAndFocus(grid.td);
-
-    grid.manager.focusOnHighlightedCell();
-
-    expect(log).toEqual(['focus']);
-  });
-
   it('leaves a cell that holds the focus already alone', () => {
     const grid = makeDeferredFocusGrid();
 
@@ -620,27 +605,6 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
 
       const log = logRoleAndFocus(grid.td);
 
-      grid.run('afterRender');
-
-      expect(log).toEqual(['remove role', 'set role=gridcell']);
-    });
-
-    it('leaves a cell that becomes busy in place as it is, and records it', () => {
-      const grid = makeDeferredFocusGrid();
-
-      focusAndRecord(grid);
-      grid.td.setAttribute('aria-busy', 'true');
-      grid.td.textContent = 'loading';
-
-      const log = logRoleAndFocus(grid.td);
-
-      grid.run('afterRender');
-
-      expect(log).toEqual([]);
-
-      grid.td.removeAttribute('aria-busy');
-      grid.td.textContent = 'resolved';
-      log.length = 0;
       grid.run('afterRender');
 
       expect(log).toEqual(['remove role', 'set role=gridcell']);

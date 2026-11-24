@@ -13,16 +13,6 @@ import { debounce } from '../helpers/function';
 import { isRootInstance } from '../utils/rootInstance';
 
 /**
- * Tells whether a cell waits for an async value, which the AsyncValues plugin marks with `aria-busy`.
- *
- * @param {HTMLElement} element The cell.
- * @returns {boolean}
- */
-function isBusy(element: HTMLElement): boolean {
-  return element.getAttribute('aria-busy') === 'true';
-}
-
-/**
  * Possible focus modes.
  * - CELL - The browser's focus stays on the lastly selected cell element.
  * - MIXED - The browser's focus switches from the lastly selected cell element to the currently active editor's
@@ -436,7 +426,7 @@ export class FocusGridManager {
       return;
     }
 
-    if (isDataCell && isRootInstance(this.#hot) && !isBusy(elementToBeFocused)) {
+    if (isDataCell && isRootInstance(this.#hot)) {
       rebuildAccessibilityObject(elementToBeFocused);
     }
 
@@ -463,7 +453,7 @@ export class FocusGridManager {
    * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
    * hears nothing or a name that changed. It only counts when the element is a cell of this grid, not of a grid
    * nested in one of its cells, and shows the selected cell: a scroll that recycles the focused element for a cell
-   * the user is not on says nothing. A cell that waits for an async value (busy) is left as it is.
+   * the user is not on says nothing.
    */
   #announceChangeInPlace(): void {
     const activeElement = getDeepActiveElement(this.#hot.rootDocument);
@@ -484,8 +474,7 @@ export class FocusGridManager {
       return;
     }
 
-    // The record is kept up to date either way, so the value that resolves later counts as a change.
-    if (hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col) && !isBusy(activeElement)) {
+    if (hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col)) {
       rebuildAccessibilityObject(activeElement);
     }
   }

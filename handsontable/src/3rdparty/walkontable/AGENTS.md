@@ -2153,8 +2153,7 @@ values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
 - **The focused cell or header changes in place, or the grid draws the selected cell into it**
   (`FocusGridManager#announceChangeInPlace`, `focusManager/grid.ts`, on `afterRender`): when the element that holds
   the focus is the cell the selection points at (`getCell()` of the highlight, not the `current` class, which a grid
-  with `disableVisualSelection` never gets), `hasCellChangedSinceAnnounced()` compares it with the record. A busy
-  cell (`aria-busy`, set by AsyncValues) is recorded but not rebuilt, here and when it takes the focus. The record holds
+  with `disableVisualSelection` never gets), `hasCellChangedSinceAnnounced()` compares it with the record. The record holds
   what the cell showed and where it was (`readCellAnnouncementSignature()`: markup, form control state, `aria-*`
   attributes) when it took the focus, not what it showed before this draw, because the browser can change the
   state before the draw (a checkbox flipped by Space). A different signature, row or column rebuilds it. The
