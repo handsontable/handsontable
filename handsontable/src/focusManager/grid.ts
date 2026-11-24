@@ -396,8 +396,10 @@ export class FocusGridManager {
    * focus already is left alone: nothing moved. The state of the cell or header is recorded, so that the draw
    * after a change made while it holds the focus can tell it from a repeated paint.
    *
-   * Only the grid the application created is handled: the lists and menus the editors build are grids of their
-   * own, and a screen reader reaches their options through the editor, which keeps the focus.
+   * Only the grid the application created gets the rebuild: the lists the editors build are grids of their own,
+   * a reader reaches their options through the editor that keeps the focus, and a rebuilt option can lose the
+   * reference the editor holds to it. Their cells are still recorded, so a checkbox in a menu list that is
+   * toggled is read again.
    *
    * @param {HTMLElement} elementToBeFocused The element that is about to take the focus.
    * @param {HTMLElement | null} cell The highlighted cell or header, which the `modifyFocusedElement` hook may have
@@ -406,11 +408,7 @@ export class FocusGridManager {
   #announceCellFocus(elementToBeFocused: HTMLElement, cell: HTMLElement | null): void {
     const isDataCell = elementToBeFocused.nodeName === 'TD';
 
-    if (
-      !isRootInstance(this.#hot) ||
-      elementToBeFocused !== cell ||
-      (!isDataCell && elementToBeFocused.nodeName !== 'TH')
-    ) {
+    if (elementToBeFocused !== cell || (!isDataCell && elementToBeFocused.nodeName !== 'TH')) {
       return;
     }
 
@@ -422,7 +420,7 @@ export class FocusGridManager {
       return;
     }
 
-    if (isDataCell) {
+    if (isDataCell && isRootInstance(this.#hot)) {
       rebuildAccessibilityObject(elementToBeFocused);
     }
 

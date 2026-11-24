@@ -2,6 +2,7 @@ import { FocusGridManager } from '../grid';
 import type { HotInstance } from '../../core/types';
 import { Hooks } from '../../core/hooks';
 import { registerAsRootInstance } from '../../utils/rootInstance';
+import { hasCellChangedSinceAnnounced } from '../../helpers/a11y';
 
 /**
  * Builds the DOM shape the grid renders: a root wrapper hosting layout slots and
@@ -458,11 +459,12 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
     expect(document.activeElement).toBe(replacement);
   });
 
-  it('leaves a cell of a grid an editor built alone, whose options a reader reaches through the editor', () => {
+  it('does not rebuild a cell of a grid an editor built, but records it so a change in place is read', () => {
     const grid = makeDeferredFocusGrid({ root: false });
 
     grid.td.setAttribute('role', 'gridcell');
     grid.td.tabIndex = -1;
+    grid.td.innerHTML = '<input type="checkbox">';
     grid.state.rendered = true;
 
     const log = logRoleAndFocus(grid.td);
@@ -470,5 +472,9 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
     grid.manager.focusOnHighlightedCell();
 
     expect(log).toEqual(['focus']);
+
+    (grid.td.firstChild as HTMLInputElement).checked = true;
+
+    expect(hasCellChangedSinceAnnounced(grid.td)).toBe(true);
   });
 });

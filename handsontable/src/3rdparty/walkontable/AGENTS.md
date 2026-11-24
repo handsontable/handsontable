@@ -2146,9 +2146,10 @@ values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
 - **A focus move onto a data cell** (`FocusGridManager#announceCellFocus`, `focusManager/grid.ts`): the cell's
   `role` is rebuilt right before `focus()`, unless the cell holds the focus already, and the cell's state is
   recorded (`rememberAnnouncedCell()`). A column header only gets the record. This is the case the old strip
-  covered for the cell about to take the focus. It runs for the root grid only: the lists and menus the editors
-  build are grids of their own, a reader reaches their options through the editor that keeps the focus, and a
-  rebuilt option can lose the reference the editor holds to it.
+  covered for the cell about to take the focus. The rebuild runs for the root grid only: the lists and menus the
+  editors build are grids of their own, a reader reaches their options through the editor that keeps the focus,
+  and a rebuilt option lost the speech of the list (autocomplete and dropdown arrow keys, the intl date editor).
+  Those grids still record the cell, so a checkbox toggled in a menu list is read again.
 - **The focused cell or header changes in place** (`render/cells.ts`, `render/columnHeaders.ts`): after the paint, `hasCellChangedSinceAnnounced()`
   compares the one focused element with that record. `readCellAnnouncementSignature()` reads its markup, form
   control state (`checked` and `value` are properties, not markup) and `aria-*` attributes, and a difference
