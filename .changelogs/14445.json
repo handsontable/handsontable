@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed the Professional license tier: DataGrid now has a single tier, Standard, that includes every feature. A license key that names only the Professional tier unlocks no feature and has to be reissued with the Standard tier.",
+  "type": "removed",
+  "issueOrPR": 14445,
+  "breaking": false,
+  "framework": "none"
+}
