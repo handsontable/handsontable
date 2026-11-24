@@ -679,6 +679,7 @@ describe('DropdownMenu', () => {
         height: 100
       });
       let hot2 = spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         dropdownMenu: true,
         height: 100
       });

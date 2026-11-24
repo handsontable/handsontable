@@ -262,6 +262,167 @@ test('the retired-key scan catches a code line and passes a comment', () => {
   assert.deepEqual(codeLinesWithRetiredKey(text), [code, upperCase]);
 });
 
+// A grid constructor: `new Handsontable(`, `new Handsontable.Core(`, `new Core(`, or jQuery's `.handsontable(`.
+const GRID_CONSTRUCTOR = /new\s+(?:Handsontable(?:\.Core|\.default)?|Core)\s*\(|\.handsontable\s*\(/g;
+
+/**
+ * Returns the index of the parenthesis that closes the one at `open`, or the text length.
+ *
+ * @param {string} text The text.
+ * @param {number} open The index of an opening parenthesis.
+ * @returns {number}
+ */
+function closingParen(text, open) {
+  let depth = 0;
+
+  for (let index = open; index < text.length; index++) {
+    if (text[index] === '(') {
+      depth += 1;
+    } else if (text[index] === ')') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return index;
+      }
+    }
+  }
+
+  return text.length;
+}
+
+/**
+ * Whether an index sits inside a quoted string on its line, as a constructor named in a test title does.
+ *
+ * @param {string} text The text.
+ * @param {number} at The index.
+ * @returns {boolean}
+ */
+function isInsideString(text, at) {
+  let quote = null;
+
+  for (let index = text.lastIndexOf('\n', at - 1) + 1; index < at; index++) {
+    const char = text[index];
+
+    if (char === '\\') {
+      index += 1;
+    } else if (quote) {
+      quote = char === quote ? null : quote;
+    } else if (char === '\'' || char === '"' || char === '`') {
+      quote = char;
+    }
+  }
+
+  return quote !== null;
+}
+
+/**
+ * Returns the options argument of a constructor call: the second argument of `new …(element, options)`,
+ * the first of `.handsontable(options)`, or `null` when the call passes none.
+ *
+ * @param {string} args The text between the call's parentheses.
+ * @param {boolean} isJquery Whether the call is jQuery's `.handsontable(`.
+ * @returns {string | null}
+ */
+function optionsArgument(args, isJquery) {
+  if (isJquery) {
+    return args.trim() === '' ? null : args.trim();
+  }
+
+  let depth = 0;
+
+  for (let index = 0; index < args.length; index++) {
+    const char = args[index];
+
+    if ('([{'.includes(char)) {
+      depth += 1;
+    } else if (')]}'.includes(char)) {
+      depth -= 1;
+    } else if (char === ',' && depth === 0) {
+      return args.slice(index + 1).trim() || null;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Finds the grids a test file builds without a license key, by line. A call passes when its options name
+ * `licenseKey`, when they are a jQuery method call (`.handsontable('getInstance')`), or when they are not a
+ * plain object literal (a variable, a spread, `Object.assign()`) in a file that sets a license key somewhere.
+ *
+ * @param {string} text The file's text.
+ * @returns {number[]} The line numbers of the keyless calls.
+ */
+function keylessGridLines(text) {
+  const fileSetsKey = /licenseKey/.test(text);
+
+  return [...text.matchAll(GRID_CONSTRUCTOR)]
+    .filter(match => !isInsideString(text, match.index))
+    .filter((match) => {
+      const open = match.index + match[0].length - 1;
+      const args = text.slice(open + 1, closingParen(text, open));
+      const options = optionsArgument(args, match[0].startsWith('.'));
+
+      if (/licenseKey/.test(args) || /^\s*['"`]/.test(args)) {
+        return false;
+      }
+
+      if (options === null) {
+        return true;
+      }
+
+      const isPlainLiteral = options.startsWith('{') && !/\.\.\.|Object\.assign/.test(options);
+
+      return isPlainLiteral || !fileSetsKey;
+    })
+    .map(match => text.slice(0, match.index).split('\n').length);
+}
+
+// The files that build grids without a key on purpose, with the reason. Empty today: the license specs
+// build their keyless grids through the Jasmine helper (`handsontable({}, true)`), which this scan does
+// not read, or through a fixture page that takes its key from the spec.
+const KEYLESS_ALLOWED = {};
+
+test('every grid a spec or a fixture builds takes a license key', () => {
+  // Since 19.0 a grid built without a valid key sits behind the license lock: API calls still work, so a
+  // spec that only reads the grid passes, while clicks, focus, screenshots and axe scans meet the lock.
+  // Jest unit tests are left to the console guard in `handsontable/test/jestExpectedConsole.js`, which
+  // fails a unit test whose grid logs a license key message.
+  const scanned = testFiles.filter(path => !/\.unit\.[jt]sx?$|\.types\.ts$|\.test\.mjs$/.test(path));
+  const offenders = scanned.filter(path => !(path in KEYLESS_ALLOWED))
+    .map(path => [path, keylessGridLines(readFromRoot(path))])
+    .filter(([, lines]) => lines.length > 0)
+    .map(([path, lines]) => `${path}:${lines.join(',')}`);
+
+  assert.deepEqual(offenders, [], 'These specs or fixtures build a grid without a license key. Pass '
+    + '`licenseKey: TEST_LICENSE_KEY` (a global in Jasmine specs) or `licenseKey: window.htTestLicenseKey` (a '
+    + 'Playwright fixture). A test of a missing key itself goes in KEYLESS_ALLOWED, with the reason.');
+  assert.ok(scanned.some(path => path.endsWith('.spec.js')), 'The keyless scan found no Jasmine spec.');
+  assert.deepEqual(Object.keys(KEYLESS_ALLOWED).filter(path => keylessGridLines(readFromRoot(path)).length === 0), [],
+    'KEYLESS_ALLOWED names files that no longer build a grid without a key. Remove them.');
+});
+
+test('the keyless scan catches a grid built without a key and passes one built with it', () => {
+  // The control of the test above: without it, a scan that matched nothing would pass.
+  const text = [
+    'const a = new Handsontable(container, { data });',
+    'const b = new Handsontable(container);',
+    'const c = $("<div>").appendTo("body").handsontable();',
+    'const d = $container.handsontable({ data: [] });',
+    'const f = $container.handsontable(\'getInstance\');',
+    'it(\'fires between `new Handsontable.Core()` and `init()`\', () => {});',
+    'const g = new Handsontable(container, { ...base, data });',
+  ].join('\n');
+
+  assert.deepEqual(keylessGridLines(text), [1, 2, 3, 4, 7],
+    'Without a licenseKey anywhere in the file, a spread cannot carry one either.');
+  assert.deepEqual(keylessGridLines([
+    text,
+    'const base = { licenseKey: TEST_LICENSE_KEY };',
+    'const e = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data });',
+  ].join('\n')), [1, 2, 3, 4]);
+});
+
 test('the scan finds a literal key it is given, in every spelling', () => {
   // The guard's own control: without it, a scan that read no file would pass the first test.
   const demo = `${VISUAL_DEMOS}/js/demo/src/demos/new/index.js`;
