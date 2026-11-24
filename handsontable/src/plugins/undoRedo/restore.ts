@@ -860,8 +860,17 @@ export function restoreStep(
 
     announceRowChanges(hot, rowChanges, source);
 
+    // An undo leaves the grid as it was before the step, so every entry is reversed; a redo applies them all.
+    const fromEntry = direction === 'undo' ? record.journal.length : -1;
+    const toRestoredIndex = reordersForReplay ?
+      (physicalIndex: number, axis: 'row' | 'column') => (
+        toFinalIndex(record.journal, fromEntry, physicalIndex, axis, direction)
+      ) : undefined;
+
     // Only what the step changed is written back, so a change made outside any step since survives.
-    tracker.restore(target, { changedFrom: other, base: current, forceOrder: reordersForReplay, direction });
+    tracker.restore(target, {
+      changedFrom: other, base: current, forceOrder: reordersForReplay, direction, toRestoredIndex,
+    });
     applyKeptFlags(hot, keptFlags, record.journal, direction);
 
     // A full render when the batch ends. A step that changed only cell meta asks for none itself, and
