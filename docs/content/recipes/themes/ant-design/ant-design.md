@@ -21,7 +21,6 @@ vue:
 searchCategory: Recipes
 category: Themes
 type: how-to
-menuTag: updated
 ---
 
 In this tutorial, you will integrate Handsontable DataGrid into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
