@@ -312,7 +312,9 @@ hooks). Six rules keep it narrow:
   changed merges cover is skipped, except the cell one of them is drawn from: a merge the undo puts back
   inside a larger one it takes off (`mergeSelection()` over an older merge) is drawn from a cell the larger merge
   covered, and `afterGetCellMeta` never writes `copyable` back on a top-left, so that cell loses `hidden` and
-  `copyable` and keeps its span keys. A cell an unchanged merge covers is not looked at, so it may be cleaned and
+  `copyable` and keeps its span keys. The redo of that step is the mirror: the cell the inner merge was drawn
+  from is covered by the outer one, and the hook never takes a span off a covered cell, so it loses its span
+  keys and keeps `hidden` and `copyable`. A cell an unchanged merge covers is not looked at, so it may be cleaned and
   `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
   merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
   recorded sides already hold the answer. **This path does not wait for an own `hidden` or `spanned`**, as the

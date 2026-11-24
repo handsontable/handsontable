@@ -113,7 +113,14 @@ describe('MergeCells cell meta after the undo of a merge', () => {
     hot.selectCell(0, 0, 3, 3);
     hot.getPlugin('mergeCells').mergeSelection();
     readMeta([0, 0, 3, 3]);
+    // The render of the undo would run `afterGetCellMeta`, which writes the span keys of the restored merge again.
+    hot.suspendRender();
     hot.getPlugin('undoRedo').undo();
+
+    // The journal put back the `spanned` mark of the restored merge, and the cleanup leaves it there.
+    expect(storedMergeKeys([1, 1, 1, 1])).toEqual(['1,1:spanned']);
+
+    hot.resumeRender();
     readMeta([0, 0, 3, 3]);
 
     expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.map(({ row, col, rowspan, colspan }) => (
@@ -127,6 +134,46 @@ describe('MergeCells cell meta after the undo of a merge', () => {
     expect(storedMergeKeys([0, 0, 0, 3])).toEqual([]);
     expect(storedMergeKeys([3, 0, 3, 3])).toEqual([]);
     expect(hot.getCopyableText(0, 0, 0, 3)).toBe('A1\tB1\tC1\tD1');
+  });
+
+  it('takes the span off the cell the inner merge was drawn from on the redo of a merge over it', () => {
+    createGrid();
+
+    hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+    readMeta([1, 1, 2, 2]);
+    hot.selectCell(0, 0, 3, 3);
+    hot.getPlugin('mergeCells').mergeSelection();
+    hot.getPlugin('undoRedo').undo();
+    readMeta([0, 0, 3, 3]);
+    hot.getPlugin('undoRedo').redo();
+
+    expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.map(({ row, col, rowspan, colspan }) => (
+      [row, col, rowspan, colspan]
+    ))).toEqual([[0, 0, 4, 4]]);
+    expect(storedMergeKeys([1, 1, 1, 1]).filter(entry => /rowspan|colspan|spanned/.test(entry))).toEqual([]);
+    expect(hot.getCellMeta(1, 1).rowspan).toBeUndefined();
+    expect(hot.getCellMeta(1, 1).colspan).toBeUndefined();
+    expect(hot.getCellMeta(1, 1).hidden).toBe(true);
+    expect(hot.getCellMeta(1, 1).copyable).toBe(false);
+  });
+
+  it('cleans the cell the restored merge is drawn from while its first row is trimmed', () => {
+    createGrid({ trimRows: true });
+
+    hot.getPlugin('mergeCells').merge(1, 1, 3, 2);
+    hot.getPlugin('trimRows').trimRow(1);
+    readMeta([0, 0, 4, 3]);
+    hot.selectCell(0, 0, 3, 3);
+    hot.getPlugin('mergeCells').mergeSelection();
+    readMeta([0, 0, 3, 3]);
+    hot.getPlugin('undoRedo').undo();
+
+    // Physical row 1 is trimmed, so the restored merge is drawn from physical row 2 (visual row 1).
+    const drawnFrom = hot._getMetaManager().getCellMetaIfExists(2, 1);
+
+    expect(drawnFrom && Object.prototype.hasOwnProperty.call(drawnFrom, 'hidden')).toBe(false);
+    expect(drawnFrom && Object.prototype.hasOwnProperty.call(drawnFrom, 'copyable')).toBe(false);
+    expect(hot.getCellMeta(1, 1).copyable).toBe(true);
   });
 
   it('takes the span and the covered flags off the cells on the redo of an unmerge', () => {

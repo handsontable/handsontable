@@ -2026,10 +2026,11 @@ export class MergeCells extends BasePlugin {
    * restored side does not. `restoreState()` runs after UndoRedo restored the index maps, so the visual columns
    * of a live merge name the wrong physical columns and a set built from them cannot see the cell a redo takes
    * out of a merge. The recorded merges carry their physical columns, so the two sides are compared by those.
-   * A cell the restored side's changed merges cover is left alone, except the cell one of them is drawn from:
-   * it loses `hidden` and `copyable` but keeps its span keys, because `afterGetCellMeta` never writes `copyable`
-   * back on a top-left. One an unchanged merge covers may be cleaned, and `afterGetCellMeta` stores the flags
-   * again on the next read.
+   * A cell the restored side's changed merges cover keeps what they put on it. The cell one of them is drawn
+   * from loses `hidden` and `copyable` and keeps its span keys, because `afterGetCellMeta` never writes
+   * `copyable` back on a top-left. A covered cell a merge of the other side was drawn from loses its span keys
+   * and keeps its covered flags, because the hook never takes a span off a covered cell. One an unchanged merge
+   * covers may be cleaned, and `afterGetCellMeta` stores the flags again on the next read.
    *
    * The span keys go too, and neither removal waits for the `hidden` or `spanned` mark. The merge stored both
    * marks through `setCellMeta()`, so on the undo of a merge the UndoRedo journal has already taken them back,
@@ -2049,21 +2050,27 @@ export class MergeCells extends BasePlugin {
     const restored = state.filter(entry => !isMergeListed(other, entry));
     const covered = this.#collectRecordedCoveredCells(restored);
     const restoredTopLefts = this.#collectRecordedTopLeftCells(restored);
+    const leftTopLefts = this.#collectRecordedTopLeftCells(left);
 
     this.#collectRecordedCoveredCells(left).forEach((key) => {
       const isRestoredTopLeft = restoredTopLefts.has(key);
+      const isCovered = covered.has(key);
+      // A restored merge drawn from the cell keeps its span keys; one that covers it keeps its covered flags.
+      const clearsCoveredFlags = !isCovered || isRestoredTopLeft;
+      const clearsSpanKeys = !isRestoredTopLeft && (!isCovered || leftTopLefts.has(key));
 
-      if (covered.has(key) && !isRestoredTopLeft) {
+      if (!clearsCoveredFlags && !clearsSpanKeys) {
         return;
       }
 
       const physicalRow = Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE);
       const physicalColumn = key % DRAWN_CELL_COLUMN_STRIDE;
 
-      this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn, true);
+      if (clearsCoveredFlags) {
+        this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn, true);
+      }
 
-      // A restored merge is drawn from the cell, so its span keys stay.
-      if (!isRestoredTopLeft) {
+      if (clearsSpanKeys) {
         this.#clearSpanKeysOfCell(physicalRow, physicalColumn, true);
       }
     });
