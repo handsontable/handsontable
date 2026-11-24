@@ -285,7 +285,7 @@ Conformance levels used in this report:
     <tr>
       <td><strong>3.3.2 Labels or Instructions</strong></td>
       <td>Partially Supports</td>
-      <td>The top-left corner cell carries no name of its own. With row selection, it holds the "select all" checkbox, which shows its state and carries a translated name. Other controls are generally labeled appropriately.</td>
+      <td>A click on the empty top-left corner cell selects the whole grid, but the cell shows no visible label or icon for that action. With row selection, the corner holds the "select all" checkbox, which shows its state and carries a translated name. Other controls are generally labeled appropriately.</td>
     </tr>
     <tr>
       <td><strong>3.3.7 Redundant Entry</strong></td>
