@@ -16,7 +16,9 @@
  * nothing. The site has no Astro `<ClientRouter />`, so each page load runs the module once.
  */
 
-const SEARCH_BUTTONS_SELECTOR = 'sl-doc-search .DocSearch-Button, .mobile-search-btn';
+import { canTakeFocus } from '../lib/can-take-focus.mjs';
+
+const SEARCH_BUTTONS_SELECTOR ='sl-doc-search .DocSearch-Button, .mobile-search-btn';
 const OPEN_CLASS = 'DocSearch--active';
 
 let opener: HTMLElement | null = null;
@@ -44,16 +46,6 @@ function isFromField(event: KeyboardEvent): boolean {
  */
 function isSearchOpen(): boolean {
   return document.body.classList.contains(OPEN_CLASS);
-}
-
-/**
- * Tells whether an element can take the focus back: it is in the page and shown.
- *
- * @param element The element.
- * @returns `true` when it can.
- */
-function canTakeFocus(element: HTMLElement | null): element is HTMLElement {
-  return Boolean(element?.isConnected && element.checkVisibility() && !element.closest('[inert]'));
 }
 
 /**

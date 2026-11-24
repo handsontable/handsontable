@@ -16,6 +16,7 @@
  * the conversation.
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { canTakeFocus } from '../../lib/can-take-focus.mjs';
 import { STORAGE_KEYS, WIDTH } from './constants';
 import { IconChatbot, IconClose, IconTrash } from './icons';
 import { ProactiveBubble } from './ProactiveBubble';
@@ -45,16 +46,6 @@ function readInitialWidth(): number {
 }
 
 const HEADER_BUTTONS_SELECTOR = '#header-assistant-btn, #mobile-assistant-btn';
-
-/**
- * Tells whether an element can take the focus back: it is in the page, shown, and not inert.
- *
- * @param element The element.
- * @returns `true` when it can.
- */
-function canTakeFocus(element: HTMLElement | null): element is HTMLElement {
-  return Boolean(element?.isConnected && element.checkVisibility() && !element.closest('[inert]'));
-}
 
 /**
  * Reads the focused element outside the panel, the one to give the focus back to on close.
