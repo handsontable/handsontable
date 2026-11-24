@@ -338,8 +338,8 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   hyperformula-ui 0.3.7 `markCell()` tells the popup the mark changed, and it closes or takes the new
   message (0.3.6 left the stale popup open until Escape). So while a builder exists, a mark is changed
   through `#markCell()` only, never with `removeAttribute()`. Removing the attribute directly is safe only
-  once the builder and its popup are gone: the no-builder branch of `#markCell()`, `#onEngineDetach` and
-  the teardown. Pinned by "formulaBuilder error popup follows the cell error" in
+  once the builder and its popup are gone: the no-builder branch of `#markCell()`, `#onEngineDetach`, and
+  the teardown, which destroys the builder right after it removes the marks. Pinned by "formulaBuilder error popup follows the cell error" in
   `tests/e2e/formula-builder-popups.spec.ts`.
 - **The adapter answers `false` for an address it cannot select.** `setActiveCell()` and `setSelection()`
   return `false` when the grid shows no row or column to move to; the package reads that as
