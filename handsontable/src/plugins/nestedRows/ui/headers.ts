@@ -19,7 +19,7 @@ import {
   NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
 } from '../../../i18n/constants';
 import { getCellDescriptionElementId } from '../../../utils/cellDescription/cellDescription';
-import { removeRowLabels } from '../utils/rowLabels';
+import type { RowNames } from '../utils/rowLevelName';
 
 /**
  * The treegrid attributes this plugin writes on a row's `TR`. Walkontable recycles `TR` elements
@@ -297,11 +297,11 @@ class HeadersUI extends BaseUI {
   }
 
   /**
-   * Points a row header that takes the focus (`navigableHeaders`) at the hidden element that describes the
-   * row's cells, so the header is described by the same level and position as the cells of its row. The
-   * element is the one the cell description keeps for that text, never a second copy. Walkontable strips
-   * every `aria-*` from a `TH` on each paint, so this runs on every header paint and writes only when the
-   * value differs.
+   * Points a row header that takes the focus (`navigableHeaders`) at a hidden element that holds the level
+   * text of its row, so the header is described by the same level and position the cells of its row end
+   * their names with. The element comes from the cell description store, never a second copy. Walkontable
+   * strips every `aria-*` from a `TH` on each paint, so this runs on every header paint and writes only when
+   * the value differs.
    *
    * @private
    * @param {HTMLTableCellElement} TH Row header element.
@@ -347,19 +347,20 @@ class HeadersUI extends BaseUI {
   }
 
   /**
-   * Removes the level labels (`aria-labelledby`) this plugin wrote on the rows and on the data cells this
-   * instance has rendered, in the master table and every overlay copy. Walkontable keeps a cell's label across a
-   * repaint, so once the plugin's hooks are gone nothing else would take it off. The ids the cells got stay:
-   * they are unique, and a cell keeps one id for its whole life.
+   * Removes the level text (`data-ht-row-level`) from the data cells and the row names (`aria-labelledby` and
+   * the hidden element it points at) this plugin wrote on the rows this instance has rendered, in the master
+   * table and every overlay copy. Walkontable never clears a `data-*` attribute of a cell or an `aria-*`
+   * attribute of a row, so once the plugin's hooks are gone nothing else would take them off.
    *
    * @private
+   * @param {RowNames} rowNames The store of the row names.
    */
-  removeRenderedRowLabels() {
+  removeRenderedRowLevels(rowNames: RowNames) {
     const rows = this.hot.rootElement.querySelectorAll<HTMLTableRowElement>('tbody tr');
 
     rows.forEach((TR) => {
       if (this.#isOwnRenderedElement(TR)) {
-        removeRowLabels(TR);
+        rowNames.removeRowLevel(TR);
       }
     });
   }

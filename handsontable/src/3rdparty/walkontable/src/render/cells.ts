@@ -9,13 +9,11 @@ import {
   A11Y_COLINDEX,
   A11Y_DESCRIBED_BY,
   A11Y_GRIDCELL,
-  A11Y_LABELED_BY,
   A11Y_TABINDEX
 } from '../../../../helpers/a11y';
 import {
   isClearedAriaAttribute,
   isKeptDescribedBy,
-  isKeptLabelledBy,
   setAttributeIfChanged,
   setAttributeIfMissing,
 } from './ariaAttributes';
@@ -25,7 +23,6 @@ const TABINDEX = A11Y_TABINDEX(-1)[0];
 const TABINDEX_VALUE = String(A11Y_TABINDEX(-1)[1]);
 const COLINDEX = A11Y_COLINDEX(0)[0];
 const DESCRIBED_BY = A11Y_DESCRIBED_BY('')[0];
-const LABELED_BY = A11Y_LABELED_BY('')[0];
 
 /**
  * Checks whether an attribute is one of the cell's own accessibility attributes, which are overwritten with
@@ -33,18 +30,10 @@ const LABELED_BY = A11Y_LABELED_BY('')[0];
  *
  * @param {string} name The attribute name.
  * @param {string} columnHeaderId The id of the cell's column header, empty when the cell has none.
- * @param {boolean} describedByKept Whether the cell's `aria-describedby` stays as it is.
- * @param {boolean} labelledByKept Whether the cell's `aria-labelledby` stays as it is.
  * @returns {boolean}
  */
-function isOwnCellAriaAttribute(
-  name: string,
-  columnHeaderId: string,
-  describedByKept: boolean,
-  labelledByKept: boolean,
-): boolean {
-  return name === ROLE || name === COLINDEX || (name === DESCRIBED_BY && (columnHeaderId !== '' || describedByKept)) ||
-    (name === LABELED_BY && labelledByKept);
+function isOwnCellAriaAttribute(name: string, columnHeaderId: string, describedByKept: boolean): boolean {
+  return name === ROLE || name === COLINDEX || (name === DESCRIBED_BY && (columnHeaderId !== '' || describedByKept));
 }
 
 /**
@@ -53,9 +42,7 @@ function isOwnCellAriaAttribute(
  * set to this draw's values, each written only when it differs. A repaint of an element that already holds
  * exactly that state, which is what a vertical scroll does, makes no DOM write; a horizontal scroll rewrites
  * the two that follow the column. A fresh element and a recycled one reach the renderer in the same state, so
- * what a renderer that reads these attributes produces does not depend on the element's history. Two values a
- * plugin wrote after the previous paint are the exception and stay (`isKeptDescribedBy`, `isKeptLabelledBy`), so a
- * repaint does not remove them only for the plugin to write them again.
+ * what a renderer that reads these attributes produces does not depend on the element's history.
  *
  * @param {HTMLElement} TD The cell.
  * @param {boolean} ariaEnabled Whether the grid writes accessibility attributes; without them every one is
@@ -73,14 +60,13 @@ function prepareCellAriaAttributes(
   // A description reference the cell painter wrote on the previous paint stays: resetting it to the column header
   // here would make the painter write it again after the renderer, two DOM writes on every repaint of the cell.
   const describedByKept = ariaEnabled && isKeptDescribedBy(TD.getAttribute(DESCRIBED_BY), columnHeaderId);
-  const labelledByKept = ariaEnabled && isKeptLabelledBy(TD.getAttribute(LABELED_BY), TD.id);
 
   for (let i = 0; i < attributeNames.length; i++) {
     const name = attributeNames[i];
 
     if (
       isClearedAriaAttribute(name) &&
-      !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId, describedByKept, labelledByKept))
+      !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId, describedByKept))
     ) {
       TD.removeAttribute(name);
     }

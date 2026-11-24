@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - nested rows cell utterance</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Fixture for the exact screen reader utterance of a nested-rows cell
+    (`screenreader/nested-rows-utterance.spec.ts`).
+
+    Three parents with six children each, two columns. Physical layout of the first parent:
+      0  Fruit       (parent, level 1, 1 of 3)
+      1    Apple   3 (leaf,   level 2, 1 of 6)
+      2    Banana  6 (leaf,   level 2, 2 of 6)
+      3    Cherry  9 (leaf,   level 2, 3 of 6)
+      4    Grape  12 (leaf,   level 2, 4 of 6)
+      5    Lemon  15 (leaf,   level 2, 5 of 6)
+      6    Mango  18 (leaf,   level 2, 6 of 6)
+    Theme and bundle come from query params, mapped through fixed allowlists to literals; an unknown
+    value throws. A constructor throw is kept in `window.htBuildError` for the spec to report.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const children = (names, step) => names.map((item, index) => ({ item, qty: (index + 1) * step }));
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+          { item: 'Fruit', qty: null, __children: children(['Apple', 'Banana', 'Cherry', 'Grape', 'Lemon', 'Mango'], 3) },
+          { item: 'Vegetables', qty: null, __children: children(['Carrot', 'Potato', 'Onion', 'Pepper', 'Tomato', 'Spinach'], 2) },
+          { item: 'Grains', qty: null, __children: children(['Rice', 'Wheat', 'Oats', 'Barley', 'Corn', 'Rye'], 4) },
+        ],
+        columns: [{ data: 'item' }, { data: 'qty', type: 'numeric' }],
+        colHeaders: ['Item', 'Qty'],
+        rowHeaders: true,
+        nestedRows: true,
+        height: 'auto',
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

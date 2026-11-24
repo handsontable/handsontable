@@ -97,37 +97,6 @@ export function isKeptDescribedBy(value: string | null, columnHeaderId: string):
 }
 
 /**
- * Tells whether a cell's `aria-labelledby` is the one a plugin wrote to give the cell's name a suffix, so the draw
- * does not remove it before the renderer runs. It is when the value is the cell's own id followed by references to
- * hidden text elements (`CELL_DESCRIPTION_ID_PREFIX`): the cell names itself with its content, then the text. A value
- * that holds any other reference, a renderer's own included, or that a recycled cell carries under another id, is
- * not kept.
- *
- * @param {string|null} value The attribute's current value, `null` when the cell has none.
- * @param {string} cellId The cell's `id`, empty when it has none.
- * @returns {boolean}
- */
-export function isKeptLabelledBy(value: string | null, cellId: string): boolean {
-  if (value === null || cellId === '') {
-    return false;
-  }
-
-  const tokens = value.split(' ');
-
-  if (tokens.length < 2 || tokens[0] !== cellId) {
-    return false;
-  }
-
-  for (let i = 1; i < tokens.length; i++) {
-    if (!tokens[i].startsWith(CELL_DESCRIPTION_ID_PREFIX)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
  * Sets an attribute only when it is missing or holds another value.
  *
  * @param {HTMLElement} element The element.

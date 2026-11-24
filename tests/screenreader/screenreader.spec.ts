@@ -1,4 +1,4 @@
-import { execFile, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { release } from 'node:os';
 import path from 'node:path';
@@ -39,14 +39,8 @@ import {
   type TranscriptUnsupportedStep,
 } from '../lib/screenreader-transcript.mjs';
 import { ensureNvdaMode, lastNvdaMode } from '../lib/screenreader-nvda.mjs';
-import {
-  OUTPUT_STEP_BOUNDARY,
-  READ_LAST_PHRASE,
-  STEP_BOUNDARY,
-  isStepBoundary,
-  stripStepBoundary,
-  voiceOverAppleScript,
-} from '../lib/screenreader-voiceover.mjs';
+import { stripStepBoundary } from '../lib/screenreader-voiceover.mjs';
+import { VOICEOVER_SETTINGS, markStepBoundary } from './voiceover';
 
 /**
  * The screen reader runner: one test per scenario of `scenarios/`, on every project of
@@ -159,19 +153,6 @@ const NVDA_SETTINGS = {
   virtualBuffers: { passThroughAudioIndication: false },
 };
 /**
- * VoiceOver preferences for a reproducible transcript, merged into the bundle `@guidepup/setup install
- * voiceover` installed. Usage hints off: VoiceOver says "You are currently on a cell, inside of a
- * table…" a second after every move, which is about VoiceOver, not the grid, and doubled every step's
- * time (about 10 s against 4 s). The mouse pointer no longer follows VoiceOver's cursor: with it on,
- * an opened context menu puts VoiceOver's cursor on the menu, the pointer lands in the menu's middle,
- * and the hover selects the item under it ("Remove column"), so every later ArrowDown started from
- * there. A keyboard user's pointer stays where it was.
- */
-const VOICEOVER_SETTINGS = {
-  SCRShouldOutputVOInstructions: false,
-  SCRConfigurationCursorTrackingMToVO: false,
-};
-/**
  * The stylesheet the NVDA reader holds on the page while Guidepup enters it. Guidepup's
  * `navigateToWebContent()` clicks the middle of `<body>` and then presses a real Tab. When that point is
  * a cell, the click selects it, and from a cell of the last column the Tab leaves the grid; with nothing
@@ -183,17 +164,6 @@ const VOICEOVER_SETTINGS = {
  * or the grid's holder, as it does on the pages whose middle is no cell, and selects nothing.
  */
 const ENTRY_POINTER_GUARD = 'td, th, td *, th * { pointer-events: none !important; }';
-/**
- * How many times the VoiceOver reader reads the last phrase after it spoke the step boundary, before
- * it speaks the boundary again, and how many times it speaks it before the run stops as tooling. Each
- * read is one `osascript` round trip (tens of milliseconds), which is the polling interval: no timer.
- */
-const BOUNDARY_READS = 40;
-const BOUNDARY_ATTEMPTS = 3;
-/**
- * The budget of one `osascript` call to VoiceOver, before Node kills it.
- */
-const OSASCRIPT_TIMEOUT_MS = 10_000;
 /**
  * The `incomplete.step` of a run that stopped before its first step: the page load, the reader's
  * entry, the setup actions or the reader settling in the grid.
@@ -413,52 +383,6 @@ function guidepupReader(screenReader: ScreenReaderPlaywright, page: Page): Reade
   }
 
   throw new Error(`No reader for ${screenReader.name}: the screen reader lanes are NVDA and VoiceOver.`);
-}
-
-/**
- * Runs AppleScript in VoiceOver's dictionary through `osascript`, the way Guidepup does (the script on
- * stdin), and returns what it printed.
- *
- * @param body The commands, inside `tell application "VoiceOver"`.
- * @returns The script's output, trimmed.
- */
-function runVoiceOverScript(body: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const child = execFile('/usr/bin/osascript', [], { timeout: OSASCRIPT_TIMEOUT_MS }, (error, stdout) => {
-      if (error) {
-        reject(error);
-
-        return;
-      }
-
-      resolve(String(stdout).trim());
-    });
-
-    child.stdin?.end(voiceOverAppleScript(body));
-  });
-}
-
-/**
- * Makes VoiceOver speak the step boundary and waits until it is VoiceOver's last phrase, so the next
- * capture tells silence (the boundary alone) from a phrase the previous step left behind
- * (`lib/screenreader-voiceover.mjs`). A read that fails counts as not yet. Speech that arrives while
- * the boundary is being set (a late phrase of the previous step) is lost, as Guidepup loses speech
- * while it stops the previous utterance.
- */
-async function markStepBoundary(): Promise<void> {
-  for (let attempt = 0; attempt < BOUNDARY_ATTEMPTS; attempt += 1) {
-    await runVoiceOverScript(OUTPUT_STEP_BOUNDARY);
-
-    for (let read = 0; read < BOUNDARY_READS; read += 1) {
-      const last = await runVoiceOverScript(READ_LAST_PHRASE).catch(() => '');
-
-      if (isStepBoundary(last)) {
-        return;
-      }
-    }
-  }
-
-  throw new Error(`VoiceOver never reported the step boundary ("${STEP_BOUNDARY}") as its last phrase after ${BOUNDARY_ATTEMPTS} attempts; without it a silent step reads as the previous step's phrase.`);
 }
 
 /**

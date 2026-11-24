@@ -137,6 +137,29 @@ test.describe('Formulas across a nestedRows runtime toggle', { tag: BUNDLES_TAG 
     expect(await grid.rowCount()).toBe(4);
   });
 
+  test('names a nested formula cell by its value, then its row level, then its formula', async() => {
+    await grid.goto();
+
+    expect(await grid.chromiumAccessibleName(1, 1)).toBe('ROOT A Formula: =UPPER(A1)');
+
+    await grid.setNestedRows(true);
+
+    expect(await grid.chromiumAccessibleName(1, 1)).toBe('A-1 , Level 2, 1 of 2, Formula: =UPPER(A2)');
+    expect(await grid.chromiumAccessibleName(3, 1)).toBe('ROOT A , Level 1, 2 of 2, Formula: =UPPER(A1)');
+    expect(await grid.chromiumAccessibleName(1, 0)).toBe('A-1 , Level 2, 1 of 2,');
+    await expect(grid.cell(1, 1)).toHaveText('A-1');
+
+    const rowName = await grid.chromiumRowName(1);
+
+    expect(rowName.name).toBe('A-1 A-1');
+    expect(rowName.label).toBeNull();
+    expect(rowName.labelledBy).toMatch(/^ht-row-name-/);
+
+    await grid.setNestedRows(false);
+
+    expect(await grid.chromiumAccessibleName(1, 1)).toBe('ROOT A Formula: =UPPER(A1)');
+  });
+
   test('follows the grid back down when the plugin is turned off again', async() => {
     await grid.goto();
 

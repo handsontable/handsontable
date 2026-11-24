@@ -519,11 +519,11 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
-   * The accessible name of every copy of a data cell, read the way the accessible name computation reads
-   * `aria-labelledby`: each referenced element's text, joined with a space, in the order of the ids, where the
-   * cell's own id stands for its content (a node reached through `aria-labelledby` does not follow its own). A
-   * cell without `aria-labelledby` is named by its content. The read throws when the copies disagree or when an
-   * id references nothing.
+   * The accessible name of every copy of a data cell, built the way the stylesheet builds it: the cell's
+   * content, then the level text the cell carries in `data-ht-row-level`, which `::after` draws as generated
+   * content after a no-break space. Runs of white space read as one space, as a screen reader hears them. The
+   * read throws when the copies disagree or when a copy carries `aria-labelledby` (a name that would replace
+   * the content).
    *
    * @param row Visual row index.
    * @param column Visual column index.
@@ -531,21 +531,14 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   cellName(row: number, column: number): Promise<string> {
     return this.page.evaluate(([visualRow, visualColumn]) => {
       const name = (element: Element) => {
-        const labelledBy = element.getAttribute('aria-labelledby');
-
-        if (labelledBy === null) {
-          return element.textContent ?? '';
+        if (element.hasAttribute('aria-labelledby')) {
+          throw new Error(`Cell ${visualRow}, ${visualColumn} carries aria-labelledby`);
         }
 
-        return labelledBy.split(' ').filter(Boolean).map((id) => {
-          const target = document.getElementById(id);
+        const level = element.getAttribute('data-ht-row-level');
+        const text = level === null ? element.textContent ?? '' : `${element.textContent ?? ''}\u00a0${level}`;
 
-          if (!target) {
-            throw new Error(`aria-labelledby references a missing id: ${id}`);
-          }
-
-          return target.textContent ?? '';
-        }).join(' ');
+        return text.replace(/\s+/g, ' ').trim();
       };
       const copies = Array.from(document.querySelectorAll(
         `[data-testid="grid"] [data-testid="cell-${visualRow}-${visualColumn}"]`
@@ -564,9 +557,10 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
-   * The accessible name of the master copy of a rendered row, read through its `aria-labelledby`: the content of
-   * each referenced cell, joined with a space. `null` when the row carries no `aria-labelledby`. Throws when an
-   * id references nothing.
+   * The name of the master copy of a rendered row of the first grid, read the way the accessible name
+   * computation reads it: the text of the element its `aria-labelledby` points at, else its `aria-label`, or
+   * `null` when it has neither. An overlay copy of a row is named by the cells it holds, so only the master
+   * copy names the whole row. The read throws when the row carries both, or when the id references nothing.
    *
    * @param row Visual row index (every row of the fixture is rendered).
    */
@@ -574,20 +568,39 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
     return this.page.evaluate((visualRow) => {
       const TR = document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')[visualRow];
       const labelledBy = TR?.getAttribute('aria-labelledby') ?? null;
+      const label = TR?.getAttribute('aria-label') ?? null;
 
-      if (labelledBy === null) {
-        return null;
+      if (labelledBy !== null && label !== null) {
+        throw new Error(`Row ${visualRow} carries both aria-labelledby and aria-label`);
       }
 
-      return labelledBy.split(' ').filter(Boolean).map((id) => {
-        const target = document.getElementById(id);
+      if (labelledBy === null) {
+        return label;
+      }
 
-        if (!target) {
-          throw new Error(`aria-labelledby references a missing id: ${id}`);
-        }
+      const target = document.getElementById(labelledBy);
 
-        return target.textContent ?? '';
-      }).join(' ');
+      if (!target) {
+        throw new Error(`aria-labelledby references a missing id: ${labelledBy}`);
+      }
+
+      return target.textContent ?? '';
+    }, row);
+  }
+
+  /**
+   * The naming attributes of the master copy of a rendered row of the first grid, as written.
+   *
+   * @param row Visual row index.
+   */
+  rowNameAttributes(row: number): Promise<{ labelledBy: string | null; label: string | null }> {
+    return this.page.evaluate((visualRow) => {
+      const TR = document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')[visualRow];
+
+      return {
+        labelledBy: TR?.getAttribute('aria-labelledby') ?? null,
+        label: TR?.getAttribute('aria-label') ?? null,
+      };
     }, row);
   }
 
@@ -609,15 +622,21 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
    * The name, the description and the role Chromium's own accessibility tree gives the master copy of a data
    * cell or of a row, which is what a screen reader on Chromium reads from it. Chromium only (a CDP session).
    *
-   * @param target `{ row, column }` for a cell, `{ row }` for the row element.
+   * @param target `{ row, column }` for a cell, `{ row, column: -1 }` for the row header (its inline-start clone
+   * copy, the one a user focuses), `{ row }` for the row element.
    */
   async chromiumAccessibility(
     target: { row: number; column?: number }
   ): Promise<{ name: string; description: string; role: string }> {
     const client = await this.page.context().newCDPSession(this.page);
-    const selector = target.column === undefined
-      ? `document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')[${target.row}]`
-      : `document.querySelector('[data-testid="grid"] .ht_master [data-testid="cell-${target.row}-${target.column}"]')`;
+    let selector = `document.querySelector('[data-testid="grid"] .ht_master [data-testid="cell-${target.row}-${target.column}"]')`;
+
+    if (target.column === undefined) {
+      selector = `document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')[${target.row}]`;
+    } else if (target.column === -1) {
+      selector = `document.querySelectorAll('[data-testid="grid"] .ht_clone_inline_start tbody tr')[${target.row}]` +
+        '.querySelector(\'th\')';
+    }
 
     try {
       await client.send('Accessibility.enable');
@@ -665,60 +684,90 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
-   * Every id that any element on the page references through `aria-describedby` or `aria-labelledby`: how many
-   * distinct elements holding a row level (", Level …" for a name, "Level …" for a row header's description)
-   * are referenced, which ids more than one element carries, and which ids name no element.
+   * What carries a row level in a grid: the data cells with `data-ht-row-level`, the rows named through an
+   * `aria-labelledby` the plugin wrote, the hidden elements holding those names, the rows with an `aria-label`
+   * (none: VoiceOver ignores it on a row), the cells with an `aria-labelledby` (none since the level moved into
+   * the generated content), the cells with an `id` (none either), the cells described by a level text, and the
+   * row headers described by one.
+   *
+   * @param testId The `data-testid` of the grid's container.
    */
-  idHealth(): Promise<{ levelElementIds: number; duplicateIds: string[]; danglingIds: string[] }> {
-    return this.page.evaluate(() => {
-      const counts = new Map<string, number>();
-
-      document.querySelectorAll('[id]').forEach((element) => {
-        counts.set(element.id, (counts.get(element.id) ?? 0) + 1);
-      });
-
-      const referenced = new Set<string>();
-
-      document.querySelectorAll('[aria-describedby], [aria-labelledby]').forEach((element) => {
-        `${element.getAttribute('aria-describedby') ?? ''} ${element.getAttribute('aria-labelledby') ?? ''}`
-          .split(' ').filter(Boolean).forEach(id => referenced.add(id));
-      });
-
-      return {
-        levelElementIds: Array.from(referenced)
-          .filter(id => /^(, )?Level /.test(document.getElementById(id)?.textContent ?? '')).length,
-        duplicateIds: Array.from(counts).filter(([, count]) => count > 1).map(([id]) => id),
-        danglingIds: Array.from(referenced).filter(id => !counts.has(id)),
-      };
-    });
-  }
-
-  /**
-   * What carries a row level in the first grid: the data cells and the rows with an `aria-labelledby`, the
-   * cells described by a level text (none since the level moved into the name), and the row headers described
-   * by one.
-   */
-  levelTraces(): Promise<{
-    labelledCells: number;
+  levelTraces(testId = 'grid'): Promise<{
+    levelCells: number;
+    namedRows: number;
+    rowNameElements: number;
     labelledRows: number;
+    labelledElements: number;
+    cellIds: number;
     describedCells: number;
     describedHeaders: number;
   }> {
-    return this.page.evaluate(() => {
-      const grid = '[data-testid="grid"]';
+    return this.page.evaluate((id) => {
+      const grid = `[data-testid="${id}"]`;
       const describedByLevel = (element: Element) => (element.getAttribute('aria-describedby') ?? '')
         .split(' ')
         .filter(Boolean)
-        .some(id => (document.getElementById(id)?.textContent ?? '').includes('Level '));
+        .some(ref => (document.getElementById(ref)?.textContent ?? '').includes('Level '));
 
       return {
-        labelledCells: document.querySelectorAll(`${grid} td[aria-labelledby]`).length,
-        labelledRows: document.querySelectorAll(`${grid} tbody tr[aria-labelledby]`).length,
+        levelCells: document.querySelectorAll(`${grid} td[data-ht-row-level]`).length,
+        namedRows: document.querySelectorAll(`${grid} tbody tr[aria-labelledby^="ht-row-name-"]`).length,
+        rowNameElements: document.querySelectorAll(`${grid} [id^="ht-row-name-"]`).length,
+        labelledRows: document.querySelectorAll(`${grid} tbody tr[aria-label]`).length,
+        labelledElements: document.querySelectorAll(`${grid} td[aria-labelledby]`).length,
+        cellIds: document.querySelectorAll(`${grid} td[id]`).length,
         describedCells: Array.from(document.querySelectorAll(`${grid} td`)).filter(describedByLevel).length,
         describedHeaders: Array.from(document.querySelectorAll(`${grid} tbody th`)).filter(describedByLevel)
           .length,
       };
-    });
+    }, testId);
+  }
+
+  /**
+   * The name of the master copy of a data cell of the second grid (`secondGrid: 'on'`), built like
+   * `cellName()`.
+   *
+   * @param row Visual row index.
+   * @param column Visual column index.
+   */
+  secondGridCellName(row: number, column: number): Promise<string> {
+    return this.page.evaluate(([visualRow, visualColumn]) => {
+      const TD = document.querySelectorAll('[data-testid="grid-2"] .ht_master tbody tr')[visualRow]
+        ?.querySelectorAll('td')[visualColumn];
+
+      if (!TD) {
+        throw new Error(`Cell ${visualRow}, ${visualColumn} of the second grid is not rendered`);
+      }
+
+      return `${TD.textContent ?? ''}\u00a0${TD.getAttribute('data-ht-row-level') ?? ''}`.replace(/\s+/g, ' ').trim();
+    }, [row, column]);
+  }
+
+  /**
+   * Gives the master copy of a rendered row an `aria-label` of the application's own and renders, the way an
+   * application that names its rows does.
+   *
+   * @param row Visual row index.
+   * @param label The name.
+   */
+  async nameRowByApplication(row: number, label: string): Promise<void> {
+    await this.page.evaluate(([visualRow, text]) => {
+      document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')[visualRow]
+        ?.setAttribute('aria-label', text);
+      window.hot.render();
+    }, [row, label] as [number, string]);
+  }
+
+  /**
+   * Builds the grid on the fixture with a comment on the first cell of A-1 (physical row 1).
+   *
+   * @param nestedRows `off` builds the same grid with the plugin off.
+   */
+  async gotoWithComment(nestedRows: 'on' | 'off'): Promise<void> {
+    await this.page.goto(`/tests/fixtures/demo/nested-rows-treegrid.html?theme=${this.theme}&bundle=${this.bundle}` +
+      `&navigableHeaders=off&nestedRows=${nestedRows}&comment=on`);
+    await awaitBundle(this.page);
+    await expect(this.page.locator('[data-testid="grid"] .ht_master').getByTestId('cell-0-0')).toBeVisible();
   }
 
   /**

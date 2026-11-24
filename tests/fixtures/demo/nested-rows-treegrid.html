@@ -44,6 +44,10 @@
     if (window.htNamedCopy === undefined) {
       throw new Error('Unknown ?namedCopy= value: ' + JSON.stringify(htParams.get('namedCopy')));
     }
+    window.htComment = ({ on: true, off: false })[htParams.get('comment') ?? 'off'];
+    if (window.htComment === undefined) {
+      throw new Error('Unknown ?comment= value: ' + JSON.stringify(htParams.get('comment')));
+    }
     document.documentElement.dir = window.htDir;
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
@@ -62,7 +66,9 @@
     stay unique on a page with two grids.
     `nestedRows=off` builds the same grid with the plugin off (flat rows), to check that a plain grid
     gets no labels. `namedCopy=on` gives the `Copy` column a renderer that names its cells itself
-    (`aria-label="Custom <value>"`), which the plugin must leave alone.
+    (`aria-label="Custom <value>"`), which the plugin must leave alone. `comment=on` puts a comment on
+    the first cell of A-1 (physical row 1), whose Comments indicator is the cell's `::after`, the box the
+    level text shares.
 
     Three levels deep, so a row can be a parent and a child at once (A-2) and the Ctrl/Cmd+arrow walk to a
     parent has more than one step to take. Physical layout:
@@ -123,6 +129,8 @@
       fixedColumnsStart: window.htFixedColumnsStart,
       layoutDirection: window.htDir,
       ariaTags: window.htAriaTags,
+      comments: window.htComment,
+      cell: window.htComment ? [{ row: 1, col: 0, comment: { value: 'A note' } }] : [],
       renderer: testIdRenderer,
       height: 'auto',
       licenseKey: window.htTestLicenseKey,

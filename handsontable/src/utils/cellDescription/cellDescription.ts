@@ -160,8 +160,8 @@ const elementsOfRoot = new WeakMap<HTMLElement, DescriptionElements>();
  * resolve in the tree the cell is in (a grid inside a shadow root). The element is remembered, so a paint that finds
  * it still in the root searches nothing; one that a host's own markup removed is made again under a new id.
  *
- * Exported for another reference to a hidden text in the grid: a row header described by the level of its row, and a
- * nested row cell whose name ends with that level (`aria-labelledby`), so no second store of elements exists.
+ * Exported for another reference to a hidden text in the grid (a row header described by the level of its row), so no
+ * second store of elements exists.
  *
  * @param {CellDescriptionHost} hot The Handsontable instance.
  * @param {string} text The description.

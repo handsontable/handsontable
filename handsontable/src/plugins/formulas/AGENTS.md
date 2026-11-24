@@ -1307,8 +1307,8 @@ and must keep reading the engine sheet as its data, and a grid built without dat
 attribute `data-ht-formula` on the TD of a cell the engine reports a formula for (`getCellFormula()` is `undefined`
 for a value and for the spilled cells of an array formula, so the origin alone is described). The value is the
 `Formulas:cellDescription` phrase (`Formula: [formula]`, translated in every language pack) with the engine's own
-text substituted (the engine's text as it is, cut at 120 characters). `_formulas.scss` draws it as `td[data-ht-formula]::after
-{ content: attr(data-ht-formula) }`, absolutely positioned, 1px and clipped, so it is never seen. Rules, each from a
+text substituted (the engine's text as it is, cut at 120 characters). `styles/components/plugins/_cell-name-suffix.scss` draws it as
+`td[data-ht-formula]::after { content: attr(data-ht-formula) }`, absolutely positioned, 1px and clipped, so it is never seen. Rules, each from a
 measured reason:
 
 - **Generated content, not text in the cell, not `aria-label`, not `title`.** The first version appended a hidden
@@ -1322,8 +1322,17 @@ measured reason:
   header), so it cannot carry this. Chromium's tree names the cell `3 Formula: =SUM(A1:B1)`, value first, with a
   space between them because the absolutely positioned pseudo-element is a block. The cell's `::after` is not free: the
   Comments indicator (`td.htCommentCell::after`) and the empty first-row guard (`td:first-child:empty::after`, `_base.scss`)
-  draw into it, and `_formulas.scss` has a rule for each that puts the text inside their box. Do not give a theme or plugin
-  rule an `::after` on `td[data-ht-formula]`.
+  draw into it, and `_cell-name-suffix.scss` has a rule for each that puts the text inside their box. Do not give a theme or plugin
+  rule an `::after` on `td[data-ht-formula]`. **NestedRows shares the same `::after`** for the level of the cell's row
+  (`data-ht-row-level`, `plugins/nestedRows/AGENTS.md`): the shared file draws the value, then the level, then the formula
+  (`3 , Level 2, 4 of 6, Formula: =SUM(A1:B1)`), with one content rule per combination of the two attributes, so a formula
+  cell outside a nested grid keeps exactly the content it had (`"\00a0" attr(data-ht-formula)`). The level text ends with
+  its own comma (`, Level 2, 4 of 6,`, a VoiceOver pause before the column header), so the combined rule joins the two
+  with a plain space, not `", "`. A cell that carries the level also moves the box to its bottom/inline-end corner,
+  because VoiceOver reads a cell's content in on-screen box order and read a top/inline-start box before the value; a
+  formula-only cell keeps its box at top/inline-start, unchanged. A commented cell keeps the Comments triangle's corner
+  whatever it carries, because the triangle is that box's top border. A change to the formula
+  rules goes into that file, for all three variants (plain, Comments indicator, empty first-row cell).
 - **The attribute is written only when it changes** (`describeFormulaCell()` compares first), like the ARIA
   attributes of the cell. A paint that changes nothing writes nothing.
 - **Skipped while `showFormulas()` is on**, because the cell already displays the formula. Skipped when the cell's

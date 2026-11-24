@@ -2157,10 +2157,7 @@ A cell may also point at a description element (`utils/cellDescription/AGENTS.md
 with `CELL_DESCRIPTION_ID_PREFIX` after this one, once the renderer ran. `prepareCellAriaAttributes` keeps such a value
 (`isKeptDescribedBy()` in `render/ariaAttributes.ts`: the cell's own header reference, then only description references) instead of
 resetting it to the header, which cost two writes per described cell per paint. A value with any other reference, or the header of
-another column, is reset as before. It keeps a cell's `aria-labelledby` the same way when the value is the cell's own `id` followed
-only by such references (`isKeptLabelledBy()`): that is the label NestedRows gives the cells of a nested row so their name ends with the
-row's level (`plugins/nestedRows/AGENTS.md`). Any other `aria-labelledby`, a renderer's included, is cleared before the renderer runs,
-as before.
+another column, is reset as before.
 
 Four things are load-bearing, and each was a bug first:
 

@@ -1,0 +1,107 @@
+// Handsontable cell name suffixes (Formulas, NestedRows)
+
+// The text a plugin adds to a data cell's accessible name, after the cell's value:
+// - `data-ht-row-level` (NestedRows): the level of the cell's row, ", Level 2, 4 of 6,". The trailing
+//   comma makes VoiceOver pause before the column header it reads next.
+// - `data-ht-formula` (Formulas): "Formula: =SUM(A1:B1)".
+// Generated content joins the cell's accessible name and stays out of its text, so `textContent`,
+// `innerText` and a copy do not change. It is clipped to nothing, so it is never drawn. It starts with
+// a no-break space: Chromium joins the value and a block with a space on its own, but Safari with
+// VoiceOver read `3Formula: =SUM(A1:B1)` with a plain space in front, which that name drops.
+// `white-space: pre` keeps the space in the box.
+
+// A cell has ONE `::after`, so both suffixes share it, and two other rules draw into it too: the
+// Comments indicator (`.htCommentCell::after`) and the guard that keeps an empty first-row cell open
+// (`_base.scss`). Each of those has a rule below that puts the text inside its box. Do not give a theme
+// or plugin rule an `::after` on a cell with either attribute.
+
+// The level comes first, right after the value: the row's level describes the value the reader just
+// spoke, and a formula can be long (up to 120 characters), so the level would come late after it. A
+// cell with both reads "3, Level 2, 4 of 6, Formula: =SUM(A1:B1)" (the level's own trailing comma
+// separates the two). A cell with one attribute gets the same content it had with that attribute alone.
+
+// VoiceOver reads the content of a cell in the order of its boxes on screen, not in DOM order. A level
+// box at the top/inline-start corner was read BEFORE the cell's text ("Item , Level 2, 4 of 6 Grape"),
+// so a cell with the level puts its box at the bottom/inline-end corner, after the text. The
+// formula-only box stays where it was.
+
+// Writes the content for each combination of the two attributes. `$cell` is the compound selector
+// of the cell in front of the attribute, `$state` what follows it.
+@mixin suffix-content($cell, $state: "") {
+  #{$cell}[data-ht-formula]#{$state}::after {
+    content: "\00a0" attr(data-ht-formula);
+  }
+
+  #{$cell}[data-ht-row-level]#{$state}::after {
+    content: "\00a0" attr(data-ht-row-level);
+  }
+
+  #{$cell}[data-ht-row-level][data-ht-formula]#{$state}::after {
+    content: "\00a0" attr(data-ht-row-level) " " attr(data-ht-formula);
+  }
+}
+
+@mixin output {
+  .handsontable {
+    // The cell is positioned so that the box has its own origin: left at its static position it would
+    // sit after the cell's text, and a result wider than its cell would grow the width the grid scrolls.
+    td[data-ht-formula],
+    td[data-ht-row-level] {
+      position: relative;
+    }
+
+    @include suffix-content("td", ":not(.htCommentCell)");
+
+    td[data-ht-formula]:not(.htCommentCell)::after,
+    td[data-ht-row-level]:not(.htCommentCell)::after {
+      position: absolute;
+      top: 0;
+      inset-inline-start: 0;
+      width: 1px;
+      height: 1px;
+      min-height: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: pre;
+      user-select: none;
+      // Chromium builds the name from the text boxes in visual order, so a right-to-left grid, or a
+      // phrase in a right-to-left language, would put the suffix before its label. The text is its own
+      // left-to-right run.
+      direction: ltr;
+      unicode-bidi: isolate;
+    }
+
+    td[data-ht-row-level]:not(.htCommentCell)::after {
+      top: auto;
+      bottom: 0;
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
+
+    // The Comments indicator is a triangle made of a zero-size box with borders. The text goes inside
+    // that box and is clipped away, so the triangle keeps its shape and its place. The triangle is the
+    // box's top border, so a commented cell keeps the box at the top/inline-end corner even with the
+    // level: moved to the bottom, the triangle would move with it.
+    @include suffix-content("td.htCommentCell");
+
+    td.htCommentCell[data-ht-formula]::after,
+    td.htCommentCell[data-ht-row-level]::after {
+      box-sizing: content-box;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      white-space: pre;
+      direction: ltr;
+      unicode-bidi: isolate;
+    }
+
+    // Wins over the first-row guard, which sets `content: ""` on an empty cell (a formula that returns
+    // "", an empty cell of a nested row).
+    @include suffix-content("tr:first-of-type > td:first-child:empty");
+
+    tr:first-of-type > td:first-child:empty[data-ht-formula]::after,
+    tr:first-of-type > td:first-child:empty[data-ht-row-level]::after {
+      min-height: 0;
+    }
+  }
+}

@@ -52,6 +52,54 @@ export class FormulasNestedRowsTogglePage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
+  /**
+   * The name Chromium's own accessibility tree gives a cell: its value, then the generated content of its
+   * `::after` (the row level, the formula). White space runs read as one space, as a screen reader hears them.
+   */
+  chromiumAccessibleName(row: number, col: number): Promise<string> {
+    return this.#chromiumName(`document.querySelector('.ht_master [data-testid="cell-${row}-${col}"]')`);
+  }
+
+  /**
+   * The name Chromium's own accessibility tree gives the master copy of a row, with the naming attributes the
+   * row carries as written.
+   */
+  async chromiumRowName(row: number): Promise<{ name: string; labelledBy: string | null; label: string | null }> {
+    const rowExpression = `document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')[${row}]`;
+    const name = await this.#chromiumName(rowExpression);
+    const attributes = await this.page.evaluate((visualRow) => {
+      const TR = document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')[visualRow];
+
+      return {
+        labelledBy: TR?.getAttribute('aria-labelledby') ?? null,
+        label: TR?.getAttribute('aria-label') ?? null,
+      };
+    }, row);
+
+    return { name, ...attributes };
+  }
+
+  /**
+   * The name Chromium's accessibility tree gives the element an expression evaluates to.
+   */
+  async #chromiumName(expression: string): Promise<string> {
+    const client = await this.page.context().newCDPSession(this.page);
+
+    try {
+      await client.send('Accessibility.enable');
+
+      const { result } = await client.send('Runtime.evaluate', { expression });
+      const { nodes } = await client.send('Accessibility.getPartialAXTree', {
+        objectId: result.objectId,
+        fetchRelatives: false,
+      });
+
+      return String(nodes[0]?.name?.value ?? '').replace(/\s+/g, ' ').trim();
+    } finally {
+      await client.detach();
+    }
+  }
+
   /** Turns the plugin on or off the way an app toggling the feature does. */
   async setNestedRows(value: boolean): Promise<void> {
     await this.page.evaluate(enabled => window.hot.updateSettings({ nestedRows: enabled }), value);

@@ -44,14 +44,15 @@ Rules, each from a measured reason:
 - **Another reference to a hidden text in the grid goes through `getCellDescriptionElementId(hot, text)`.**
   It returns the id of the element for that text, making it the first time, from the same store the cells use.
   NestedRows is the one caller: a focusable row header (`navigableHeaders`) is described by the plain level text
-  ("Level 2, 1 of 3"), and every data cell of a nested row ends its NAME with the same text behind ", " through
-  `aria-labelledby="<cell id> <element id>"` (`plugins/nestedRows/AGENTS.md`, "Treegrid accessibility": VoiceOver
-  reads a description before the value, so the level is not a part here). The two texts are two elements. Never build
-  a second store of hidden elements. The caller writes its own attribute: the painter only touches
+  ("Level 2, 1 of 3"). The data cells of a nested row do not use this store: they end their NAME with the same text
+  through generated content (`data-ht-row-level`, `plugins/nestedRows/AGENTS.md`, "Treegrid accessibility": VoiceOver
+  reads a description before the value, so the level is not a part here). Never build a second store of hidden
+  elements. The caller writes its own attribute: the painter only touches
   `aria-describedby` on data cells. `isCellBeingPainted(TD)` tells such a caller whether the painter is painting the
   cell now, so an `afterRenderer` listener can skip a measuring table or a ghost cell.
 - **A part with free text per cell does not belong here.** One element per distinct text is only cheap for a short list of
-  phrases. A formula's text is different for every cell, so it stays on the name channel (`::after`) in the Formulas plugin.
+  phrases. A formula's text is different for every cell, so it stays on the name channel (`::after`) in the Formulas plugin,
+  which shares that `::after` with the NestedRows level (`styles/components/plugins/_cell-name-suffix.scss`).
   A read-only formula cell therefore reads `3 Formula: =SUM(A1:B1)` and is described as `read only`.
 - **Every paint rewrites the token.** Walkontable recycles cell elements and resets the header reference, so a paint with
   no part removes our token and a paint with a part adds it. The commonest cell (no part, no token) costs one `includes()`.
@@ -91,10 +92,7 @@ Rules, each from a measured reason:
   by references that start with `CELL_DESCRIPTION_ID_PREFIX` (kept in `helpers/a11y.ts`, which both sides import). A recycled
   cell that moved to another column is reset as before. The cost: a renderer that reads `aria-describedby` on a recycled
   described cell sees our reference after the header, which a fresh cell does not have. Pinned by
-  `walkontable/test/unit/renderer/ariaAttributes.unit.ts` and the write-count case of `tests/e2e/cell-description.spec.ts`. The same exception covers a
-  cell's `aria-labelledby` when it is the cell's own id followed by references with that prefix
-  (`isKeptLabelledBy()`), which is the label NestedRows writes; that plugin therefore removes its labels itself on a
-  disable.
+  `walkontable/test/unit/renderer/ariaAttributes.unit.ts` and the write-count case of `tests/e2e/cell-description.spec.ts`.
 
 Pinned by `__tests__/cellDescription.unit.ts` and `tests/e2e/cell-description.spec.ts`, which asks Chromium's own
 accessibility tree for the name and the description (`tests/fixtures/pages/CellDescriptionPage.ts`).

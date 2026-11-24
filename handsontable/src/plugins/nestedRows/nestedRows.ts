@@ -17,8 +17,8 @@ import {
   NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
   NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
 } from '../../i18n/constants';
-import { getCellDescriptionElementId, isCellBeingPainted } from '../../utils/cellDescription/cellDescription';
-import { labelCell, labelRow, removeOwnLabel } from './utils/rowLabels';
+import { isCellBeingPainted } from '../../utils/cellDescription/cellDescription';
+import { RowNames, removeCellLevel, setCellLevel } from './utils/rowLevelName';
 import type { CellProperties } from '../../settings';
 import { LICENSE } from './feature.generated';
 
@@ -180,12 +180,20 @@ export class NestedRows extends BasePlugin {
   #isRebuilding = false;
 
   /**
-   * The rows whose cells gained or lost a level label in the current draw. Their own label is brought in step
-   * after the draw (`afterViewRender`), once every cell of the row, in every overlay copy, has been painted.
+   * The rows with a cell painted in the current draw that carries or carried the level text. Their name is
+   * brought in step after the draw (`afterViewRender`), once every cell of the row has been painted.
    *
    * @type {Set<HTMLTableRowElement>}
    */
   #rowsToLabel = new Set<HTMLTableRowElement>();
+
+  /**
+   * The row names (`aria-labelledby` and the hidden elements it points at). Made on enable and kept across a
+   * rebuild, so the rows keep their names; dropped with the names on a disable outside a rebuild and on destroy.
+   *
+   * @type {RowNames|null}
+   */
+  #rowNames: RowNames | null = null;
 
   /**
    * The row an insert through the Core API was anchored on, recorded in `beforeCreateRow` and consumed
@@ -249,6 +257,7 @@ export class NestedRows extends BasePlugin {
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
+    this.#rowNames ??= new RowNames(this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
     this.rowMoveController = new RowMoveController(
       this as unknown as ConstructorParameters<typeof RowMoveController>[0]
@@ -324,7 +333,7 @@ export class NestedRows extends BasePlugin {
 
     if (!this.#isRebuilding) {
       this.headersUI!.removeRenderedRowAttributes();
-      this.headersUI!.removeRenderedRowLabels();
+      this.#removeRowNames();
     }
   }
 
@@ -369,7 +378,7 @@ export class NestedRows extends BasePlugin {
       // build-up.
       if (!this.#acceptsData(currentSourceData)) {
         this.headersUI!.removeRenderedRowAttributes();
-        this.headersUI!.removeRenderedRowLabels();
+        this.#removeRowNames();
 
         return;
       }
@@ -1538,11 +1547,11 @@ export class NestedRows extends BasePlugin {
 
   /**
    * `afterRenderer` hook callback. Ends the accessible name of a data cell of a nested row with the level of the
-   * row, its position among its siblings and a parent's state (`aria-labelledby` pointing at the cell itself and
-   * at a hidden element that holds ", Level 2, 4 of 6"), so a screen reader reads the level right after the value,
-   * of the cell it speaks, wherever the focus went in the meantime. A cell its renderer named itself, a cell
-   * painted outside the grid and a grid that writes no ARIA (`ariaTags: false`) get nothing. The row of a cell
-   * that gained or lost the label is labelled again after the draw.
+   * row, its position among its siblings and a parent's state: the cell carries ", Level 2, 4 of 6" in
+   * `data-ht-row-level`, which the stylesheet draws as visually hidden generated content, so a screen reader
+   * reads the level right after the value, of the cell it speaks, wherever the focus went in the meantime. A
+   * cell painted outside the grid gets nothing, and a grid that writes no ARIA (`ariaTags: false`) loses the
+   * text. The row of a cell that carries or carried the text is named again after the draw.
    *
    * @param {HTMLTableCellElement} TD The cell element being painted.
    * @param {number} row Visual row index.
@@ -1564,27 +1573,23 @@ export class NestedRows extends BasePlugin {
     }
 
     const TR = TD.parentElement as HTMLTableRowElement | null;
-    let isLabelled = false;
+    const needsRowName = cellProperties.ariaTags ?
+      setCellLevel(TD, this.#getCellLevelText(row)) : removeCellLevel(TD);
 
-    if (cellProperties.ariaTags) {
-      isLabelled = labelCell(this.hot.guid, TD, this.#getLevelElementId(row));
-    } else {
-      isLabelled = removeOwnLabel(TD);
-    }
-
-    if (isLabelled && TR !== null) {
+    if (needsRowName && TR !== null) {
       this.#rowsToLabel.add(TR);
     }
   };
 
   /**
-   * Returns the id of the hidden element that holds the level text of a row, with a leading ", " so a screen
-   * reader pauses between the cell's value and the level, or `null` for a row the tree does not know.
+   * Returns the text that ends the accessible name of a row's cells, with a leading ", " so a screen reader
+   * pauses between the cell's value and the level, and a trailing "," so VoiceOver pauses again before the column
+   * header it reads next, or `null` for a row the tree does not know.
    *
    * @param {number} row Visual row index.
    * @returns {string|null}
    */
-  #getLevelElementId(row: number): string | null {
+  #getCellLevelText(row: number): string | null {
     const physicalRow = this.hot.toPhysicalRow(row);
     const text = physicalRow === null ? null : this.headersUI!.getRowLevelDescription(physicalRow);
 
@@ -1592,20 +1597,40 @@ export class NestedRows extends BasePlugin {
       return null;
     }
 
-    return getCellDescriptionElementId(this.hot, `, ${text}`);
+    return `, ${text},`;
   }
 
   /**
-   * `afterViewRender` hook callback. Labels each row whose cells gained or lost a level label in this draw with
-   * the ids of those cells, so the row is named by the plain cell texts: a row name built from the cell names
-   * would repeat the level once per column. Only the rows painted in the draw are visited.
+   * Takes the level text off the rendered cells and the row names off the rendered rows, then removes the
+   * hidden elements that held the names.
+   */
+  #removeRowNames() {
+    if (this.#rowNames === null) {
+      return;
+    }
+
+    this.headersUI!.removeRenderedRowLevels(this.#rowNames);
+    this.#rowNames.destroy();
+    this.#rowNames = null;
+  }
+
+  /**
+   * `afterViewRender` hook callback. Names each row with a cell painted in this draw that carries or carried
+   * the level text by the plain texts of its cells, through `aria-labelledby` and a hidden element (VoiceOver
+   * ignores a row's `aria-label`): a row name built from the cell names would repeat the level once per column.
+   * Only the rows painted in the draw are visited.
    */
   #onAfterViewRender = () => {
     if (this.#rowsToLabel.size === 0) {
       return;
     }
 
-    this.#rowsToLabel.forEach(TR => labelRow(TR));
+    const rowNames = this.#rowNames;
+
+    if (rowNames !== null) {
+      this.#rowsToLabel.forEach(TR => rowNames.nameRow(TR));
+    }
+
     this.#rowsToLabel.clear();
   };
 
@@ -2205,6 +2230,8 @@ export class NestedRows extends BasePlugin {
    */
   destroy() {
     this.#stopWaitingForObjectData();
+    this.#rowNames?.destroy();
+    this.#rowNames = null;
     super.destroy();
   }
 }

@@ -5,8 +5,10 @@ import { NestedRowsTreegridPage } from '../fixtures/pages/NestedRowsTreegridPage
  * A keyboard user must be able to operate the tree without reaching a row header, which takes the
  * focus only with `navigableHeaders` on: Shift+Alt+arrows expand, collapse and walk up the tree from
  * any cell of a row. A screen reader does not read the level of a row from one of its cells, so the
- * name of every cell of the row ends with it (the cell is labelled by itself and a hidden element), the
- * row is named by the plain cell texts, and no live message repeats it.
+ * name of every cell of the row ends with it (the cell carries the text in `data-ht-row-level`, which the
+ * stylesheet draws as visually hidden generated content, and ends with a comma so VoiceOver pauses before
+ * the column header), the row is named by the plain cell texts (`aria-labelledby` pointing at a hidden
+ * element: VoiceOver ignores a row's `aria-label`), and no live message repeats it.
  *
  * Physical layout of the fixture tree:
  *   0 Root A / 1 A-1 / 2 A-2 / 3 A-2-a / 4 A-2-b / 5 A-3 / 6 Root B / 7 B-1 / 8 B-2
@@ -15,6 +17,16 @@ import { NestedRowsTreegridPage } from '../fixtures/pages/NestedRowsTreegridPage
 const FULL_TREE = ['Root A', 'A-1', 'A-2', 'A-2-a', 'A-2-b', 'A-3', 'Root B', 'B-1', 'B-2'];
 const A2_COLLAPSED = ['Root A', 'A-1', 'A-2', 'A-3', 'Root B', 'B-1', 'B-2'];
 const ROOT_A_COLLAPSED = ['Root A', 'Root B', 'B-1', 'B-2'];
+const ZERO_TRACES = {
+  levelCells: 0,
+  namedRows: 0,
+  rowNameElements: 0,
+  labelledRows: 0,
+  labelledElements: 0,
+  cellIds: 0,
+  describedCells: 0,
+  describedHeaders: 0,
+};
 
 test.describe('NestedRows tree keys from a cell', { tag: CROSS_BROWSER_TAG }, () => {
   test('Shift+Alt+arrows collapse and expand the row of the selected cell with navigableHeaders off',
@@ -236,13 +248,13 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
 
     await nestedRows.goto({ navigableHeaders: 'off' });
 
-    expect(await nestedRows.cellName(0, 0)).toBe('Root A , Level 1, 1 of 2, expanded');
-    expect(await nestedRows.cellName(0, 1)).toBe('Root A , Level 1, 1 of 2, expanded');
-    expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3');
-    expect(await nestedRows.cellName(1, 1)).toBe('A-1 , Level 2, 1 of 3');
-    expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, expanded');
-    expect(await nestedRows.cellName(4, 0)).toBe('A-2-b , Level 3, 2 of 2');
-    expect(await nestedRows.cellName(8, 1)).toBe('B-2 , Level 2, 2 of 2');
+    expect(await nestedRows.cellName(0, 0)).toBe('Root A , Level 1, 1 of 2, expanded,');
+    expect(await nestedRows.cellName(0, 1)).toBe('Root A , Level 1, 1 of 2, expanded,');
+    expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
+    expect(await nestedRows.cellName(1, 1)).toBe('A-1 , Level 2, 1 of 3,');
+    expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, expanded,');
+    expect(await nestedRows.cellName(4, 0)).toBe('A-2-b , Level 3, 2 of 2,');
+    expect(await nestedRows.cellName(8, 1)).toBe('B-2 , Level 2, 2 of 2,');
     expect(await nestedRows.cellDescription(1, 0)).toBe('Name');
     expect(await nestedRows.cellDescription(1, 1)).toBe('Copy');
   });
@@ -255,9 +267,19 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
     expect(await nestedRows.rowName(0)).toBe('Root A Root A');
     expect(await nestedRows.rowName(3)).toBe('A-2-a A-2-a');
     expect(await nestedRows.rowName(8)).toBe('B-2 B-2');
+
+    const attributes = await nestedRows.rowNameAttributes(0);
+
+    expect(attributes.label).toBeNull();
+    expect(attributes.labelledBy).toMatch(/^ht-row-name-/);
+
+    const traces = await nestedRows.levelTraces();
+
+    expect(traces.labelledRows).toBe(0);
+    expect(traces.rowNameElements).toBe(traces.namedRows);
   });
 
-  test('the labels add no text to the cells', async({ page, theme, bundle }) => {
+  test('the level adds no text to the cells', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.gotoWith({ nestedRows: 'off', navigableHeaders: 'off' });
@@ -265,7 +287,7 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
     const plainTexts = await nestedRows.cellTexts();
 
     await nestedRows.updateSettings({ nestedRows: true });
-    await expect.poll(() => nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3');
+    await expect.poll(() => nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
 
     expect(await nestedRows.cellTexts()).toEqual([
       'Root A', 'Root A', 'A-1', 'A-1', 'A-2', 'A-2', 'A-2-a', 'A-2-a', 'A-2-b', 'A-2-b',
@@ -281,15 +303,15 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
     await nestedRows.callPlugin('collapseParent', 2);
     await expect.poll(() => nestedRows.visibleNames()).toEqual(A2_COLLAPSED);
 
-    expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, collapsed');
-    expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, collapsed');
-    expect(await nestedRows.cellName(3, 0)).toBe('A-3 , Level 2, 3 of 3');
+    expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, collapsed,');
+    expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, collapsed,');
+    expect(await nestedRows.cellName(3, 0)).toBe('A-3 , Level 2, 3 of 3,');
     expect(await nestedRows.rowName(2)).toBe('A-2 A-2');
 
     await nestedRows.callPlugin('expandParent', 2);
     await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE);
 
-    expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, expanded');
+    expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, expanded,');
   });
 
   test('a filter recounts the positions in the name', async({ page, theme, bundle }) => {
@@ -300,9 +322,9 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
     await expect.poll(() => nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-3']);
 
     expect(await nestedRows.cellNamesByText()).toEqual({
-      'Root A': 'Root A , Level 1, 1 of 1, expanded',
-      'A-1': 'A-1 , Level 2, 1 of 2',
-      'A-3': 'A-3 , Level 2, 2 of 2',
+      'Root A': 'Root A , Level 1, 1 of 1, expanded,',
+      'A-1': 'A-1 , Level 2, 1 of 2,',
+      'A-3': 'A-3 , Level 2, 2 of 2,',
     });
   });
 
@@ -333,9 +355,9 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
       await expect.poll(() => nestedRows.selectedCell()).toEqual([3, 0]);
       await expect(nestedRows.cell(3, 0)).toBeFocused();
 
-      expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3');
-      expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, expanded');
-      expect(await nestedRows.cellName(3, 0)).toBe('A-2-a , Level 3, 1 of 2');
+      expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
+      expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, expanded,');
+      expect(await nestedRows.cellName(3, 0)).toBe('A-2-a , Level 3, 1 of 2,');
     });
 
   test('arrow navigation writes no level message to the live region', async({ page, theme, bundle }) => {
@@ -357,67 +379,68 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
     expect(await nestedRows.announcements()).toEqual(['Collapsed row 3']);
   });
 
-  test('ids stay unique and resolve with a frozen column and a second grid on the page',
+  test('a frozen column copy and a second grid on the page carry their own level, with no ids or labels',
     async({ page, theme, bundle }) => {
       const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
       await nestedRows.gotoWith({ fixedColumnsStart: 1, secondGrid: 'on', navigableHeaders: 'off' });
 
-      expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3');
-      expect(await nestedRows.cellName(1, 1)).toBe('A-1 , Level 2, 1 of 3');
+      expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
+      expect(await nestedRows.cellName(1, 1)).toBe('A-1 , Level 2, 1 of 3,');
       expect(await nestedRows.rowName(1)).toBe('A-1 A-1');
+      expect(await nestedRows.secondGridCellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, expanded,');
 
-      const health = await nestedRows.idHealth();
+      const traces = await nestedRows.levelTraces();
 
-      expect(health.duplicateIds).toEqual([]);
-      expect(health.danglingIds).toEqual([]);
-      expect(health.levelElementIds).toBe(18);
+      expect(traces.labelledElements).toBe(0);
+      expect(traces.cellIds).toBe(0);
+      expect((await nestedRows.levelTraces('grid-2')).levelCells).toBe(27);
     });
 
-  test('a grid without nested rows gets no labels', async({ page, theme, bundle }) => {
+  test('a grid without nested rows gets no level and no row names', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.gotoWith({ nestedRows: 'off', navigableHeaders: 'on' });
 
-    expect(await nestedRows.levelTraces())
-      .toEqual({ labelledCells: 0, labelledRows: 0, describedCells: 0, describedHeaders: 0 });
+    expect(await nestedRows.levelTraces()).toEqual(ZERO_TRACES);
+    expect(await nestedRows.rowName(0)).toBeNull();
   });
 
-  test('a grid built with ariaTags off gets no labels', async({ page, theme, bundle }) => {
+  test('a grid built with ariaTags off gets no level and no row names', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.goto({ aria: 'off', navigableHeaders: 'on' });
 
     expect(await nestedRows.cellDescribedBy(1, 0)).toBeNull();
-    expect(await nestedRows.levelTraces())
-      .toEqual({ labelledCells: 0, labelledRows: 0, describedCells: 0, describedHeaders: 0 });
+    expect(await nestedRows.levelTraces()).toEqual(ZERO_TRACES);
   });
 
-  test('disabling the plugin takes the labels off every cell and row', async({ page, theme, bundle }) => {
-    const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+  test('disabling the plugin takes the level off every cell and the names off every row',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
-    await nestedRows.gotoWith({ fixedColumnsStart: 1, navigableHeaders: 'on' });
+      await nestedRows.gotoWith({ fixedColumnsStart: 1, navigableHeaders: 'on' });
 
-    const before = await nestedRows.levelTraces();
+      const before = await nestedRows.levelTraces();
 
-    expect(before.labelledCells).toBe(27);
-    expect(before.labelledRows).toBe(18);
-    expect(before.describedHeaders).toBeGreaterThan(0);
+      expect(before.levelCells).toBe(27);
+      expect(before.namedRows).toBe(18);
+      expect(before.rowNameElements).toBe(18);
+      expect(before.describedHeaders).toBeGreaterThan(0);
 
-    await nestedRows.updateSettings({ nestedRows: false });
+      await nestedRows.updateSettings({ nestedRows: false });
 
-    expect(await nestedRows.levelTraces())
-      .toEqual({ labelledCells: 0, labelledRows: 0, describedCells: 0, describedHeaders: 0 });
-    expect(await nestedRows.cellDescribedBy(1, 0)).toBe(await nestedRows.columnHeaderId(0));
-    expect(await nestedRows.cellName(1, 0)).toBe('Root B');
-  });
+      expect(await nestedRows.levelTraces()).toEqual(ZERO_TRACES);
+      expect(await nestedRows.cellDescribedBy(1, 0)).toBe(await nestedRows.columnHeaderId(0));
+      expect(await nestedRows.cellName(1, 0)).toBe('Root B');
+    });
 
   test('a row header that takes no focus is not described', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.goto({ navigableHeaders: 'off' });
 
-    expect((await nestedRows.levelTraces()).labelledCells).toBeGreaterThan(0);
+    expect((await nestedRows.levelTraces()).levelCells).toBeGreaterThan(0);
     expect((await nestedRows.levelTraces()).describedHeaders).toBe(0);
   });
 
@@ -429,21 +452,37 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
       await nestedRows.makeRowReadOnly(1);
 
       await expect.poll(() => nestedRows.cellDescription(1, 0)).toBe('Name read only');
-      expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3');
+      expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
       expect(await nestedRows.cellDescription(2, 0)).toBe('Name');
     });
 
-  test('a cell its renderer names itself is left alone', async({ page, theme, bundle }) => {
+  test('a renderer\'s own aria-label on a cell stays, and the row is still named by the cell texts',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.gotoWith({ namedCopy: 'on', navigableHeaders: 'off' });
+
+      const copy = page.locator('[data-testid="grid"] .ht_master').getByTestId('cell-1-1');
+
+      await expect(copy).toHaveAttribute('aria-label', 'Custom A-1');
+      expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
+      expect(await nestedRows.rowName(1)).toBe('A-1 A-1');
+    });
+
+  test('a row name the application wrote is left alone', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
-    await nestedRows.gotoWith({ namedCopy: 'on', navigableHeaders: 'off' });
+    await nestedRows.goto({ navigableHeaders: 'off' });
+    expect(await nestedRows.rowName(1)).toBe('A-1 A-1');
 
-    const copy = page.locator('[data-testid="grid"] .ht_master').getByTestId('cell-1-1');
+    await nestedRows.nameRowByApplication(1, 'First fruit');
 
-    await expect(copy).toHaveAttribute('aria-label', 'Custom A-1');
-    await expect(copy).not.toHaveAttribute('aria-labelledby');
-    expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3');
-    expect(await nestedRows.rowName(1)).toBe('A-1');
+    expect(await nestedRows.rowName(1)).toBe('First fruit');
+    expect(await nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
+
+    await nestedRows.updateSettings({ nestedRows: false });
+
+    expect(await nestedRows.rowName(1)).toBe('First fruit');
   });
 
   test('with renderMode onChange a collapse repaints the name of the collapsed parent',
@@ -452,14 +491,14 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
 
       await nestedRows.goto({ navigableHeaders: 'off' });
       await nestedRows.updateSettings({ renderMode: 'onChange' });
-      expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, expanded');
+      expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, expanded,');
 
       await nestedRows.cell(2, 1).click();
       await page.keyboard.press('Shift+Alt+ArrowLeft');
       await expect.poll(() => nestedRows.visibleNames()).toEqual(A2_COLLAPSED);
 
-      expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, collapsed');
-      expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, collapsed');
+      expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, collapsed,');
+      expect(await nestedRows.cellName(2, 1)).toBe('A-2 , Level 2, 2 of 3, collapsed,');
       expect(await nestedRows.rowName(2)).toBe('A-2 A-2');
     });
 
@@ -469,16 +508,16 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
 
       await nestedRows.goto({ navigableHeaders: 'off' });
       await nestedRows.updateSettings({ renderMode: 'onChange' });
-      expect(await nestedRows.cellName(7, 0)).toBe('B-1 , Level 2, 1 of 2');
-      expect(await nestedRows.cellName(8, 0)).toBe('B-2 , Level 2, 2 of 2');
+      expect(await nestedRows.cellName(7, 0)).toBe('B-1 , Level 2, 1 of 2,');
+      expect(await nestedRows.cellName(8, 0)).toBe('B-2 , Level 2, 2 of 2,');
 
       await nestedRows.detachFromParent(8);
       await expect.poll(() => nestedRows.rowAttributes()).toHaveLength(9);
       await nestedRows.render();
 
       expect(await nestedRows.visibleNames()).toEqual(FULL_TREE);
-      expect(await nestedRows.cellName(7, 0)).toBe('B-1 , Level 2, 1 of 1');
-      expect(await nestedRows.cellName(8, 0)).toBe('B-2 , Level 1, 3 of 3');
+      expect(await nestedRows.cellName(7, 0)).toBe('B-1 , Level 2, 1 of 1,');
+      expect(await nestedRows.cellName(8, 0)).toBe('B-2 , Level 1, 3 of 3,');
     });
 
   test('with renderMode onChange enabling and disabling the plugin adds and removes the labels',
@@ -489,13 +528,12 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
       await nestedRows.updateSettings({ renderMode: 'onChange' });
       await nestedRows.updateSettings({ nestedRows: true });
 
-      await expect.poll(() => nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3');
+      await expect.poll(() => nestedRows.cellName(1, 0)).toBe('A-1 , Level 2, 1 of 3,');
       expect(await nestedRows.rowName(1)).toBe('A-1 A-1');
 
       await nestedRows.updateSettings({ nestedRows: false });
 
-      expect(await nestedRows.levelTraces())
-        .toEqual({ labelledCells: 0, labelledRows: 0, describedCells: 0, describedHeaders: 0 });
+      expect(await nestedRows.levelTraces()).toEqual(ZERO_TRACES);
     });
 
   test('a rebuild through updateSettings keeps the names', async({ page, theme, bundle }) => {
@@ -504,9 +542,14 @@ test.describe('NestedRows row level in the cell name', { tag: CROSS_BROWSER_TAG 
     await nestedRows.goto({ navigableHeaders: 'off' });
     await nestedRows.updateSettings({ nestedRows: true });
 
-    expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, expanded');
+    expect(await nestedRows.cellName(2, 0)).toBe('A-2 , Level 2, 2 of 3, expanded,');
     expect(await nestedRows.rowName(2)).toBe('A-2 A-2');
-    expect((await nestedRows.idHealth()).danglingIds).toEqual([]);
+
+    const traces = await nestedRows.levelTraces();
+
+    expect(traces.labelledElements).toBe(0);
+    expect(traces.namedRows).toBe(9);
+    expect(traces.rowNameElements).toBe(9);
   });
 });
 
@@ -518,10 +561,30 @@ test.describe('NestedRows row level in Chromium\'s accessibility tree', () => {
       await nestedRows.goto({ navigableHeaders: 'off' });
 
       expect(await nestedRows.chromiumAccessibility({ row: 1, column: 0 }))
-        .toEqual({ name: 'A-1 , Level 2, 1 of 3', description: 'Name', role: 'gridcell' });
+        .toEqual({ name: 'A-1 , Level 2, 1 of 3,', description: 'Name', role: 'gridcell' });
       expect(await nestedRows.chromiumAccessibility({ row: 2, column: 1 }))
-        .toEqual({ name: 'A-2 , Level 2, 2 of 3, expanded', description: 'Copy', role: 'gridcell' });
+        .toEqual({ name: 'A-2 , Level 2, 2 of 3, expanded,', description: 'Copy', role: 'gridcell' });
+      expect(await nestedRows.chromiumAccessibility({ row: 0, column: 0 }))
+        .toEqual({ name: 'Root A , Level 1, 1 of 2, expanded,', description: 'Name', role: 'gridcell' });
+      await expect(page.locator('[data-testid="grid"] .ht_master').getByTestId('cell-1-0')).toHaveText('A-1');
     });
+
+  test('a row header with navigableHeaders is described by the plain level', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+    await nestedRows.goto({ navigableHeaders: 'on' });
+
+    expect((await nestedRows.chromiumAccessibility({ row: 1, column: -1 })).description).toBe('Level 2, 1 of 3');
+  });
+
+  test('a grid without nested rows names its cells by their values alone', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+    await nestedRows.gotoWith({ nestedRows: 'off', navigableHeaders: 'off' });
+
+    expect(await nestedRows.chromiumAccessibility({ row: 1, column: 0 }))
+      .toEqual({ name: 'Root B', description: 'Name', role: 'gridcell' });
+  });
 
   test('a row is named by its cell texts, without the level', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
@@ -530,6 +593,11 @@ test.describe('NestedRows row level in Chromium\'s accessibility tree', () => {
 
     expect((await nestedRows.chromiumAccessibility({ row: 1 })).name).toBe('A-1 A-1');
     expect((await nestedRows.chromiumAccessibility({ row: 0 })).name).toBe('Root A Root A');
+
+    const attributes = await nestedRows.rowNameAttributes(1);
+
+    expect(attributes.label).toBeNull();
+    expect(attributes.labelledBy).toMatch(/^ht-row-name-/);
   });
 
   test('a collapsed parent is named "collapsed", under both render modes', async({ page, theme, bundle }) => {
@@ -540,7 +608,7 @@ test.describe('NestedRows row level in Chromium\'s accessibility tree', () => {
     await expect.poll(() => nestedRows.visibleNames()).toEqual(A2_COLLAPSED);
 
     expect((await nestedRows.chromiumAccessibility({ row: 2, column: 0 })).name)
-      .toBe('A-2 , Level 2, 2 of 3, collapsed');
+      .toBe('A-2 , Level 2, 2 of 3, collapsed,');
 
     await nestedRows.callPlugin('expandParent', 2);
     await nestedRows.updateSettings({ renderMode: 'onChange' });
@@ -549,7 +617,7 @@ test.describe('NestedRows row level in Chromium\'s accessibility tree', () => {
     await expect.poll(() => nestedRows.visibleNames()).toEqual(A2_COLLAPSED);
 
     expect((await nestedRows.chromiumAccessibility({ row: 2, column: 1 })).name)
-      .toBe('A-2 , Level 2, 2 of 3, collapsed');
+      .toBe('A-2 , Level 2, 2 of 3, collapsed,');
     expect((await nestedRows.chromiumAccessibility({ row: 2 })).name).toBe('A-2 A-2');
   });
 
@@ -560,7 +628,7 @@ test.describe('NestedRows row level in Chromium\'s accessibility tree', () => {
     await nestedRows.filterByNames(['A-1', 'A-3']);
     await expect.poll(() => nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-3']);
 
-    expect((await nestedRows.chromiumAccessibility({ row: 2, column: 0 })).name).toBe('A-3 , Level 2, 2 of 2');
+    expect((await nestedRows.chromiumAccessibility({ row: 2, column: 0 })).name).toBe('A-3 , Level 2, 2 of 2,');
   });
 
   test('a read-only nested cell is named with the level and described as read only',
@@ -572,7 +640,7 @@ test.describe('NestedRows row level in Chromium\'s accessibility tree', () => {
       await expect.poll(() => nestedRows.cellDescription(1, 0)).toBe('Name read only');
 
       expect(await nestedRows.chromiumAccessibility({ row: 1, column: 0 }))
-        .toEqual({ name: 'A-1 , Level 2, 1 of 3', description: 'Name read only', role: 'gridcell' });
+        .toEqual({ name: 'A-1 , Level 2, 1 of 3,', description: 'Name read only', role: 'gridcell' });
     });
 
   test('the first child keeps "1 of N" after three fast ArrowDowns', async({ page, theme, bundle }) => {
@@ -583,7 +651,7 @@ test.describe('NestedRows row level in Chromium\'s accessibility tree', () => {
     await nestedRows.pressArrowDownInOneTask(3);
     await expect.poll(() => nestedRows.selectedCell()).toEqual([3, 0]);
 
-    expect((await nestedRows.chromiumAccessibility({ row: 1, column: 0 })).name).toBe('A-1 , Level 2, 1 of 3');
-    expect((await nestedRows.chromiumAccessibility({ row: 3, column: 0 })).name).toBe('A-2-a , Level 3, 1 of 2');
+    expect((await nestedRows.chromiumAccessibility({ row: 1, column: 0 })).name).toBe('A-1 , Level 2, 1 of 3,');
+    expect((await nestedRows.chromiumAccessibility({ row: 3, column: 0 })).name).toBe('A-2-a , Level 3, 1 of 2,');
   });
 });

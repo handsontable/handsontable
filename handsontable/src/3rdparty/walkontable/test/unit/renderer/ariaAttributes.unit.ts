@@ -2,7 +2,6 @@ import {
   clearStaleAriaAttributes,
   isClearedAriaAttribute,
   isKeptDescribedBy,
-  isKeptLabelledBy,
   NO_KEPT_ARIA_ATTRIBUTES,
   setAttributeIfChanged,
   setAttributeIfMissing,
@@ -181,23 +180,5 @@ describe('isKeptDescribedBy', () => {
   it('does not keep a missing or empty value', () => {
     expect(isKeptDescribedBy(null, 'ht_1_header-2')).toBe(false);
     expect(isKeptDescribedBy('', '')).toBe(false);
-  });
-});
-
-describe('isKeptLabelledBy', () => {
-  it('keeps the cell\'s own id followed by references to hidden text elements', () => {
-    expect(isKeptLabelledBy('ht_1-cell-4 ht-description-ht_1-2', 'ht_1-cell-4')).toBe(true);
-    expect(isKeptLabelledBy('ht_1-cell-4 ht-description-ht_1-2 ht-description-ht_1-3', 'ht_1-cell-4')).toBe(true);
-  });
-
-  it('does not keep a label that starts with another element, a recycled cell\'s old id included', () => {
-    expect(isKeptLabelledBy('ht_1-cell-3 ht-description-ht_1-2', 'ht_1-cell-4')).toBe(false);
-  });
-
-  it('does not keep a renderer\'s own label, a self reference alone, or a cell without an id', () => {
-    expect(isKeptLabelledBy('ht_1-cell-4 my-label', 'ht_1-cell-4')).toBe(false);
-    expect(isKeptLabelledBy('ht_1-cell-4', 'ht_1-cell-4')).toBe(false);
-    expect(isKeptLabelledBy('ht-description-ht_1-2', '')).toBe(false);
-    expect(isKeptLabelledBy(null, 'ht_1-cell-4')).toBe(false);
   });
 });
