@@ -120,7 +120,10 @@ describe('MergeCells cell meta after the undo of a merge', () => {
       [row, col, rowspan, colspan]
     ))).toEqual([[1, 1, 2, 2]]);
     expect(hot.getCellMeta(1, 1).rowspan).toBe(2);
+    expect(hot.getCellMeta(1, 1).copyable).toBe(true);
     expect(hot.getCellMeta(2, 2).copyable).toBe(false);
+    // The outer merge covered B2, and the inner merge it puts back is drawn from it.
+    expect(hot.getCopyableText(1, 1, 2, 2)).toBe('B2\t\n\t');
     expect(storedMergeKeys([0, 0, 0, 3])).toEqual([]);
     expect(storedMergeKeys([3, 0, 3, 3])).toEqual([]);
     expect(hot.getCopyableText(0, 0, 0, 3)).toBe('A1\tB1\tC1\tD1');

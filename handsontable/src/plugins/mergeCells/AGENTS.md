@@ -309,7 +309,10 @@ hooks). Six rules keep it narrow:
   (`#clearCoveredFlagsOfCellsReleasedByStep()`): each captured merge carries its anchor rows and its
   `physicalColumns`, so the cells the other side covered and the restored side does not are known without
   reading a live merge's columns. Only the merges the step changed are walked, and a cell the restored side's
-  changed merges cover is skipped. A cell an unchanged merge covers is not looked at, so it may be cleaned and
+  changed merges cover is skipped, except the cell one of them is drawn from: a merge the undo puts back
+  inside a larger one it takes off (`mergeSelection()` over an older merge) is drawn from a cell the larger merge
+  covered, and `afterGetCellMeta` never writes `copyable` back on a top-left, so that cell loses `hidden` and
+  `copyable` and keeps its span keys. A cell an unchanged merge covers is not looked at, so it may be cleaned and
   `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
   merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
   recorded sides already hold the answer. **This path does not wait for an own `hidden` or `spanned`**, as the

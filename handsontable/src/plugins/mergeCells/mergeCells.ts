@@ -2026,8 +2026,10 @@ export class MergeCells extends BasePlugin {
    * restored side does not. `restoreState()` runs after UndoRedo restored the index maps, so the visual columns
    * of a live merge name the wrong physical columns and a set built from them cannot see the cell a redo takes
    * out of a merge. The recorded merges carry their physical columns, so the two sides are compared by those.
-   * A cell the restored side's changed merges cover is left alone. One an unchanged merge covers may be
-   * cleaned, and `afterGetCellMeta` stores the flags again on the next read.
+   * A cell the restored side's changed merges cover is left alone, except the cell one of them is drawn from:
+   * it loses `hidden` and `copyable` but keeps its span keys, because `afterGetCellMeta` never writes `copyable`
+   * back on a top-left. One an unchanged merge covers may be cleaned, and `afterGetCellMeta` stores the flags
+   * again on the next read.
    *
    * The span keys go too, and neither removal waits for the `hidden` or `spanned` mark. The merge stored both
    * marks through `setCellMeta()`, so on the undo of a merge the UndoRedo journal has already taken them back,
@@ -2044,10 +2046,14 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const covered = this.#collectRecordedCoveredCells(state.filter(entry => !isMergeListed(other, entry)));
+    const restored = state.filter(entry => !isMergeListed(other, entry));
+    const covered = this.#collectRecordedCoveredCells(restored);
+    const restoredTopLefts = this.#collectRecordedTopLeftCells(restored);
 
     this.#collectRecordedCoveredCells(left).forEach((key) => {
-      if (covered.has(key)) {
+      const isRestoredTopLeft = restoredTopLefts.has(key);
+
+      if (covered.has(key) && !isRestoredTopLeft) {
         return;
       }
 
@@ -2055,8 +2061,33 @@ export class MergeCells extends BasePlugin {
       const physicalColumn = key % DRAWN_CELL_COLUMN_STRIDE;
 
       this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn, true);
-      this.#clearSpanKeysOfCell(physicalRow, physicalColumn, true);
+
+      // A restored merge is drawn from the cell, so its span keys stay.
+      if (!isRestoredTopLeft) {
+        this.#clearSpanKeysOfCell(physicalRow, physicalColumn, true);
+      }
     });
+  }
+
+  /**
+   * Collects the physical cell each recorded merge is drawn from (`#getTopLeftPhysicalRow()` in the anchor's
+   * column). A merge with no anchor, or with no visible top-left, is left out.
+   *
+   * @param {Array} entries The recorded merges.
+   * @returns {Set<number>} The cells, packed as `physicalRow * DRAWN_CELL_COLUMN_STRIDE + physicalColumn`.
+   */
+  #collectRecordedTopLeftCells(entries: readonly MergeStateEntry[]): Set<number> {
+    const cells = new Set<number>();
+
+    entries.forEach(({ anchor }) => {
+      const physicalRow = anchor === null ? null : this.#getTopLeftPhysicalRow(anchor);
+
+      if (anchor !== null && physicalRow !== null) {
+        cells.add((physicalRow * DRAWN_CELL_COLUMN_STRIDE) + anchor.physicalColumn);
+      }
+    });
+
+    return cells;
   }
 
   /**
