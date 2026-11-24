@@ -140,7 +140,7 @@ Write the body to `/tmp/pr-body-<task-id>.md` with the Write tool, then `gh pr e
 
 ## 5b. Labels (right after the PR is created)
 
-Run `node .claude/skills/pr-creation/scripts/pr-labels.mjs` (`--json` for an array). The kind label (`bug`, `Type: Feature`, `enhancement`) comes from the changelog entry, so run it again once that entry is pushed (section 6); labels only ever get added. It maps the changed paths and the changelog `type` to labels that already exist, and never creates one. Review the set, add by judgment (for example `Regression` when the ticket says so), then apply:
+Run `node scripts/claude/pr-labels.mjs` (`--json` for an array). It diffs against the base branch of the branch's PR (`gh pr view`), so a release or stacked PR gets its own set; pass `--base <ref>` only to override it. The kind label (`bug`, `Type: Feature`, `enhancement`) comes from the changelog entry, so run it again once that entry is pushed (section 6); labels only ever get added. It maps the changed paths and the changelog `type` to labels that already exist, and never creates one. Review the set, add by judgment (for example `Regression` when the ticket says so), then apply:
 
 ```bash
 gh pr edit <number> --add-label "<a>" --add-label "<b>"

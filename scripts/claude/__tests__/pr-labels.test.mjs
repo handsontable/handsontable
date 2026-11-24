@@ -3,11 +3,14 @@ import assert from 'node:assert/strict';
 import {
   proposeLabels,
   findChangelogPath,
+  parseNameStatus,
+  resolveBase,
+  run,
   PLUGIN_LABELS,
   CELL_TYPE_LABELS,
   KIND_LABELS,
   EXCLUDED_LABEL_PATTERNS,
-} from './pr-labels.mjs';
+} from '../pr-labels.mjs';
 
 const ALL_LABELS = [
   ...new Set([
@@ -184,7 +187,108 @@ test('normalizes Windows separators', () => {
   assert.deepEqual(proposeLabels(['handsontable\\src\\plugins\\filters\\filters.ts'], null, ALL_LABELS), ['Filtering']);
 });
 
+const changed = (...paths) => paths.map(path => ({ status: 'A', path }));
+
 test('finds the changelog entry among changed paths', () => {
-  assert.equal(findChangelogPath(['a.ts', '.changelogs/14440.json']), '.changelogs/14440.json');
-  assert.equal(findChangelogPath(['.changelogs/README.md', '.changelogs/x/1.json']), null);
+  assert.equal(findChangelogPath(changed('a.ts', '.changelogs/14440.json')), '.changelogs/14440.json');
+  assert.equal(findChangelogPath(changed('.changelogs/README.md', '.changelogs/x/1.json')), null);
+});
+
+test('never picks a deleted changelog entry, whatever the order', () => {
+  const changes = parseNameStatus('D\t.changelogs/10028.json\nA\t.changelogs/14439.json\nM\ta.ts\n');
+
+  assert.equal(findChangelogPath(changes), '.changelogs/14439.json');
+  assert.equal(findChangelogPath(parseNameStatus('D\t.changelogs/10028.json\n')), null);
+});
+
+test('base: --base wins, then the PR base, then develop', () => {
+  assert.equal(resolveBase('origin/x', 'release/18.1.3'), 'origin/x');
+  assert.equal(resolveBase(undefined, 'release/18.1.3'), 'origin/release/18.1.3');
+  assert.equal(resolveBase(undefined, null), 'origin/develop');
+});
+
+/**
+ * Builds a fake `exec` that answers the commands `run` issues.
+ *
+ * @param {object} answers The answers.
+ * @param {string|null} answers.prBase The PR base branch, or null when there is no PR.
+ * @param {string} answers.diff The `git diff --name-status` output.
+ * @param {string[]} calls Collects the diff ranges asked for.
+ * @returns {Function}
+ */
+function fakeExec({ prBase, diff }, calls) {
+  return async(command, args) => {
+    const line = `${command} ${args.join(' ')}`;
+
+    if (line.startsWith('gh pr view')) {
+      if (prBase === null) {
+        throw new Error('no pull requests found');
+      }
+
+      return JSON.stringify({ baseRefName: prBase });
+    }
+    if (line.startsWith('git rev-parse')) {
+      return '/repo\n';
+    }
+    if (line.startsWith('git diff')) {
+      calls.push(args.at(-1));
+
+      return diff;
+    }
+    if (line.startsWith('gh label list')) {
+      return JSON.stringify(ALL_LABELS.map(name => ({ name })));
+    }
+
+    throw new Error(`unexpected command: ${line}`);
+  };
+}
+
+test('run: diffs against the PR base and reads the added entry from the repo root', async() => {
+  const calls = [];
+  const reads = [];
+  const { labels } = await run([], {
+    exec: fakeExec({
+      prBase: 'release/18.1.3',
+      diff: 'D\t.changelogs/10028.json\nA\t.changelogs/14439.json\nM\thandsontable/src/plugins/filters/filters.ts\n',
+    }, calls),
+    read: async(path) => {
+      reads.push(path);
+
+      return JSON.stringify({ type: 'fixed' });
+    },
+    cwd: '/repo/handsontable',
+  });
+
+  assert.deepEqual(calls, ['origin/release/18.1.3...HEAD']);
+  assert.deepEqual(reads, ['/repo/.changelogs/14439.json']);
+  assert.deepEqual(labels, ['Filtering', 'bug']);
+});
+
+test('run: no PR yet falls back to develop; --changelog resolves against the cwd', async() => {
+  const calls = [];
+  const reads = [];
+
+  await run(['--changelog', '../.changelogs/1.json'], {
+    exec: fakeExec({ prBase: null, diff: 'M\ta.ts\n' }, calls),
+    read: async(path) => {
+      reads.push(path);
+
+      return '{}';
+    },
+    cwd: '/repo/handsontable',
+  });
+
+  assert.deepEqual(calls, ['origin/develop...HEAD']);
+  assert.deepEqual(reads, ['/repo/.changelogs/1.json']);
+});
+
+test('run: --base overrides the PR base', async() => {
+  const calls = [];
+
+  await run(['--base', 'origin/feature/x'], {
+    exec: fakeExec({ prBase: 'unused', diff: '' }, calls),
+    read: async() => '{}',
+  });
+
+  assert.deepEqual(calls, ['origin/feature/x...HEAD']);
 });

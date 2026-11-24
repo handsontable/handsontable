@@ -3,7 +3,10 @@
  * Proposes GitHub labels for a pull request from its changed paths and its changelog entry type.
  *
  * Usage:
- *   node .claude/skills/pr-creation/scripts/pr-labels.mjs [--base origin/develop] [--changelog <path>] [--json]
+ *   node scripts/claude/pr-labels.mjs [--base <ref>] [--changelog <path>] [--json]
+ *
+ * The diff base is the base branch of the current branch's PR (`gh pr view`), or `origin/develop`
+ * when there is no PR yet. Pass `--base` to override it.
  *
  * The mapping is a hand-written table on purpose: plugin directory names do not match label
  * names, and fuzzy matching proposes wrong labels. A proposed label that does not exist in the
@@ -11,6 +14,7 @@
  */
 import { execFile } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { parseArgs, promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -214,26 +218,75 @@ export function proposeLabels(paths, changelogType, existingLabels) {
 }
 
 /**
- * Returns the path of the changelog entry the PR adds, if any.
+ * Parses `git diff --name-status --no-renames` output. A rename shows up as a delete and an add.
  *
- * @param {string[]} paths The changed paths of the PR.
+ * @param {string} output The raw command output.
+ * @returns {{ status: string, path: string }[]}
+ */
+export function parseNameStatus(output) {
+  return output
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const [status, path] = line.split('\t');
+
+      return { status: status.charAt(0), path };
+    });
+}
+
+/**
+ * Returns the path of the changelog entry the PR adds, if any. A deleted entry (one consumed
+ * by a release, for example) is never picked.
+ *
+ * @param {{ status: string, path: string }[]} changes The changed files of the PR.
  * @returns {string|null}
  */
-export function findChangelogPath(paths) {
-  return paths.find(path => /^\.changelogs\/\d+\.json$/.test(path)) ?? null;
+export function findChangelogPath(changes) {
+  const entry = changes.find(({ status, path }) => status !== 'D' && /^\.changelogs\/\d+\.json$/.test(path));
+
+  return entry?.path ?? null;
+}
+
+/**
+ * Picks the diff base: the `--base` override, else the PR's own base branch, else `develop`.
+ *
+ * @param {string|undefined} override The `--base` value.
+ * @param {string|null} prBaseRef The `baseRefName` of the branch's PR, if it has one.
+ * @returns {string}
+ */
+export function resolveBase(override, prBaseRef) {
+  if (override) {
+    return override;
+  }
+
+  return `origin/${prBaseRef || 'develop'}`;
+}
+
+/**
+ * Runs a command and returns its stdout.
+ *
+ * @param {string} command The command.
+ * @param {string[]} args The arguments.
+ * @returns {Promise<string>}
+ */
+async function execCommand(command, args) {
+  const { stdout } = await execFileAsync(command, args);
+
+  return stdout;
 }
 
 /**
  * Reads the `type` field of a changelog entry file.
  *
- * @param {string} path The entry file path.
+ * @param {string} path The absolute entry file path.
+ * @param {Function} read Reads a file as UTF-8 text.
  * @returns {Promise<string|null>}
  */
-async function readChangelogType(path) {
+async function readChangelogType(path, read) {
   let entry;
 
   try {
-    entry = JSON.parse(await readFile(path, 'utf8'));
+    entry = JSON.parse(await read(path));
   } catch (error) {
     throw new Error(`Cannot read the changelog entry ${path}: ${error.message}`);
   }
@@ -242,39 +295,68 @@ async function readChangelogType(path) {
 }
 
 /**
- * Runs the CLI: reads the git diff and the repository labels, prints the proposal.
+ * Computes the label proposal: reads the PR base, the git diff, the repository labels, and the
+ * changelog entry. The I/O comes in through `io`, so tests can replace it.
  *
  * @param {string[]} argv The CLI arguments.
+ * @param {object} [io] The I/O functions.
+ * @param {Function} [io.exec] Runs a command, resolves with its stdout.
+ * @param {Function} [io.read] Reads a file as UTF-8 text.
+ * @param {string} [io.cwd] The directory a `--changelog` path is relative to.
+ * @returns {Promise<{ labels: string[], json: boolean }>}
  */
-async function main(argv) {
+export async function run(argv, {
+  exec = execCommand,
+  read = path => readFile(path, 'utf8'),
+  cwd = process.cwd(),
+} = {}) {
   const { values } = parseArgs({
     args: argv,
     options: {
-      base: { type: 'string', default: 'origin/develop' },
+      base: { type: 'string' },
       changelog: { type: 'string' },
       json: { type: 'boolean', default: false },
     },
   });
-  const { stdout: diff } = await execFileAsync('git', ['diff', '--name-only', `${values.base}...HEAD`]);
-  const paths = diff.split('\n').filter(Boolean);
-  const { stdout: labelJson } = await execFileAsync(
-    'gh', ['label', 'list', '--limit', '300', '--json', 'name'],
-  );
-  const existingLabels = JSON.parse(labelJson).map(({ name }) => name);
-  const changelogPath = values.changelog ?? findChangelogPath(paths);
-  const changelogType = changelogPath ? await readChangelogType(changelogPath) : null;
-  const labels = proposeLabels(paths, changelogType, existingLabels);
+  let prBaseRef = null;
 
-  if (values.json) {
-    process.stdout.write(`${JSON.stringify(labels)}\n`);
-  } else {
-    labels.forEach(label => process.stdout.write(`${label}\n`));
+  if (!values.base) {
+    try {
+      prBaseRef = JSON.parse(await exec('gh', ['pr', 'view', '--json', 'baseRefName'])).baseRefName;
+    } catch {
+      // No PR for this branch yet: fall back to develop.
+    }
   }
+
+  const base = resolveBase(values.base, prBaseRef);
+  const root = (await exec('git', ['rev-parse', '--show-toplevel'])).trim();
+  const changes = parseNameStatus(await exec('git', ['diff', '--name-status', '--no-renames', `${base}...HEAD`]));
+  const existingLabels = JSON.parse(await exec('gh', ['label', 'list', '--limit', '300', '--json', 'name']))
+    .map(({ name }) => name);
+  const foundPath = findChangelogPath(changes);
+  let changelogPath = null;
+
+  if (values.changelog) {
+    changelogPath = resolve(cwd, values.changelog);
+  } else if (foundPath) {
+    changelogPath = join(root, foundPath);
+  }
+
+  const changelogType = changelogPath ? await readChangelogType(changelogPath, read) : null;
+  const labels = proposeLabels(changes.map(({ path }) => path), changelogType, existingLabels);
+
+  return { labels, json: values.json };
 }
 
 if (process.argv[1] && import.meta.filename === process.argv[1]) {
   try {
-    await main(process.argv.slice(2));
+    const { labels, json } = await run(process.argv.slice(2));
+
+    if (json) {
+      process.stdout.write(`${JSON.stringify(labels)}\n`);
+    } else {
+      labels.forEach(label => process.stdout.write(`${label}\n`));
+    }
   } catch (error) {
     process.stderr.write(`pr-labels: ${error.message}\n`);
     process.exitCode = 1;
