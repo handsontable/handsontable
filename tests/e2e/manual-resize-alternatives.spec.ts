@@ -232,6 +232,22 @@ test.describe('manual resize without a drag', { tag: THEMES_TAG }, () => {
       expect(Math.abs((await colWidth(2)) - 140)).toBeLessThanOrEqual(2);
     });
 
+    test('turning the plugin off and on ends a keyboard resize, so Enter stores nothing', async () => {
+      const start = await colWidth(2);
+
+      await dataCell(1, 2).click();
+      await grid.page.keyboard.press('ControlOrMeta+Alt+r');
+      await grid.page.keyboard.press('ArrowRight');
+      await grid.page.evaluate(() => (window as any).grid.updateSettings({ manualColumnResize: false }));
+      await grid.page.evaluate(() => (window as any).grid.updateSettings({ manualColumnResize: true }));
+      await grid.page.keyboard.press('ArrowRight');
+      await grid.page.keyboard.press('Enter');
+
+      expect(await colWidth(2)).toBe(start);
+      // the arrow key moved the selection, so the resize was over
+      expect(await grid.page.evaluate(() => (window as any).grid.getSelectedLast())).toEqual([1, 3, 1, 3]);
+    });
+
     test('a press on the handle ends a keyboard resize', async () => {
       const start = await colWidth(2);
 

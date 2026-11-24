@@ -1481,6 +1481,7 @@ export class Comments extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
+    this.#resize?.cancel();
     this.#editor?.destroy();
     this.#displaySwitch?.destroy();
 

@@ -323,10 +323,18 @@ export class ResizeGesture {
   }
 
   /**
-   * Removes the shortcuts `registerShortcuts()` added and ends a keyboard resize that is running.
+   * Removes the shortcuts `registerShortcuts()` added and ends a keyboard resize that is running, without storing
+   * anything: its header and indexes would be stale when the plugin is enabled again. A waiting pick stays, as it
+   * does through `detach()`.
    */
   unregisterShortcuts() {
     this.#hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(this.#axis.shortcutsGroup);
+
+    if (this.#keyboardActive) {
+      this.#keyboardActive = false;
+      this.#newSize = this.#startSize;
+      this.#hideHandleAndGuide();
+    }
   }
 
   /**
