@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the execution hooks (`beforeSuspendExecution`, `afterSuspendExecution`, `beforeResumeExecution`, and `afterResumeExecution`) firing more than once for a `batch()` call that changes a cell.",
-  "type": "fixed",
-  "issueOrPR": 14447,
-  "breaking": false,
-  "framework": "none"
-}

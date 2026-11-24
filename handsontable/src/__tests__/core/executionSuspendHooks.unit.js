@@ -2,7 +2,7 @@ import Core from 'handsontable/core';
 import { Hooks } from 'handsontable/core/hooks';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
-import { registerPlugin, AutoColumnSize, AutoRowSize } from 'handsontable/plugins';
+import { registerPlugin, AutoColumnSize, AutoRowSize, Pagination } from 'handsontable/plugins';
 import { safeBatch } from 'handsontable/utils/safeBatch';
 import { rootInstanceSymbol } from 'handsontable/utils/rootInstance';
 import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
@@ -12,6 +12,7 @@ registerRenderer(baseRenderer);
 registerRenderer(textRenderer);
 registerPlugin(AutoColumnSize);
 registerPlugin(AutoRowSize);
+registerPlugin(Pagination);
 
 const EXECUTION_HOOKS = [
   'beforeSuspendExecution',
@@ -282,8 +283,10 @@ describe('execution suspend hooks', () => {
         renderAllRows: true,
         renderAllColumns: true,
       }],
+      ['Pagination with an auto page size', { autoRowSize: true, pagination: { pageSize: 'auto' } }],
     ])('should fire each pair once for a batch that writes a cell, with %s', (name, settings) => {
-      // AutoColumnSize and AutoRowSize store the sizes they measure on the render that `batch()` ends with.
+      // AutoColumnSize and AutoRowSize store the sizes they measure on the render that `batch()` ends with,
+      // and Pagination stores the rows of an auto-sized page there.
       hot = createHot(container, settings);
 
       const log = recordExecutionHooks(hot);
@@ -317,6 +320,34 @@ describe('execution suspend hooks', () => {
       run(hot);
 
       expect(log).toEqual([]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it.each([
+      ['a cell write', instance => instance.setDataAtCell(0, 0, 'a much longer value than before')],
+      ['a render', instance => instance.render()],
+    ])('should fire nothing for the page Pagination recomputes with an auto page size on %s', (name, run) => {
+      hot = createHot(container, { autoRowSize: true, pagination: { pageSize: 'auto' } });
+
+      const log = recordExecutionHooks(hot);
+
+      run(hot);
+
+      expect(log).toEqual([]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it.each([
+      ['a fixed page size', { pagination: { pageSize: 2 } }],
+      ['an auto page size', { autoRowSize: true, pagination: { pageSize: 'auto' } }],
+    ])('should fire each pair once for a page change, with %s', (name, settings) => {
+      hot = createHot(container, settings);
+
+      const log = recordExecutionHooks(hot);
+
+      hot.getPlugin('pagination').setPage(1);
+
+      expect(log).toEqual(FULL_CYCLE);
       expect(hot.isExecutionSuspended()).toBe(false);
     });
 

@@ -280,6 +280,13 @@ export class Pagination extends BasePlugin {
    */
   #internalRenderCall = false;
   /**
+   * Flag indicating that the state is recomputed for a render with an `'auto'` page size. The paged rows
+   * are then stored with no execution hooks fired.
+   *
+   * @type {boolean}
+   */
+  #isRecomputingOnRender = false;
+  /**
    * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive()` is true.
    * Dropped whenever the state is computed with no DataProvider backing the grid.
    *
@@ -1177,9 +1184,17 @@ export class Pagination extends BasePlugin {
     const pagedRowsValues = externalPagedMode ? null : this.#buildPagedRowsValues(renderableIndexes);
 
     if (pagedRowsValues !== null) {
-      this.hot.batchExecution(() => {
+      const storePagedRows = () => {
         this.#pagedRowsMap?.setValues(pagedRowsValues);
-      }, true);
+      };
+
+      // The recompute an `'auto'` page size does on each render is bookkeeping, like the sizes the auto-size
+      // plugins store there, so it fires no execution hooks. A page change a caller asks for still does.
+      if (this.#isRecomputingOnRender) {
+        this.hot._batchExecutionWithoutHooks(storePagedRows, true);
+      } else {
+        this.hot.batchExecution(storePagedRows, true);
+      }
     } else if (!externalPagedMode) {
       this.hot.rowIndexMapper.updateCache(true);
     }
@@ -1429,7 +1444,13 @@ export class Pagination extends BasePlugin {
     }
 
     this.#internalRenderCall = true;
-    this.#refreshUI();
+    this.#isRecomputingOnRender = true;
+
+    try {
+      this.#refreshUI();
+    } finally {
+      this.#isRecomputingOnRender = false;
+    }
   };
 
   /**

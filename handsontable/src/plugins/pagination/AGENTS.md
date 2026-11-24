@@ -35,6 +35,17 @@ guards it. Size the array from the map's own `getLength()`:
 - **`getRenderableIndexes()` returns the mapper's cache array by reference.** Read it, never modify it.
   The old code `splice()`d the page out of it, which changed the mapper's own cache until the next rebuild.
 
+## The per-render recompute fires no execution hooks (DEV-4193)
+
+`#computeAndApplyState()` stores the map inside `batchExecution(…, true)`, which fires the four execution
+hooks, as a page change should. With `pageSize: 'auto'` the same method also runs from `afterViewRender` on
+every render, and there the write goes through core's private `_batchExecutionWithoutHooks()`: a
+`batch()` that writes a cell otherwise fired a second cycle on its closing render, and a plain `render()`
+fired one. `#isRecomputingOnRender` marks that path, set only around the `#refreshUI()` call in
+`#onAfterViewRender` and reset in a `finally`. Do not key it on `#internalRenderCall`: that flag stays set
+until the next `afterViewRender`, so a `setPage()` in between would go silent. Pinned by the Pagination cases
+in `src/__tests__/core/executionSuspendHooks.unit.js`.
+
 ## Hard conflicts, declared at module scope in this file
 
 ```js
