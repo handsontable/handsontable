@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-17T13:56:08.607Z"
+    "at": "2026-11-23T11:00:06.675Z"
   },
   "steps": {
     "arrow-right": "34 age row 2 column 3",
@@ -17,17 +17,17 @@
     "back-to-cell": "alice selected name row 2 column 2",
     "into-row-header": "1 row header selected row 2 column 1",
     "back-from-row-header": "alice selected name row 2 column 2",
-    "open-editor": "edit multi line alice",
-    "close-editor": "",
-    "open-context-menu": "table insert row above row 1 column 1 menu",
-    "menu-arrow-down": "table insert row below row 2",
-    "menu-arrow-down-again": "insert column left row 4",
-    "close-context-menu": "handsontable screen reader fixture document",
-    "reselect-cell": "table alice selected name row 2 column 2",
-    "extend-range": "",
-    "extend-range-again": "",
+    "open-editor": "name row 1 edit multi line alice",
+    "close-editor": "alice selected name row 2 column 2",
+    "open-context-menu": "insert row above 1 of 2 context menu menu",
+    "menu-arrow-down": "insert row below 2 of 2",
+    "menu-arrow-down-again": "insert column left 1 of 2",
+    "close-context-menu": "table alice selected name row 2 column 2",
+    "reselect-cell": "",
+    "extend-range": "selection from column name row 1 to column age row 1",
+    "extend-range-again": "row 1 selected",
     "up-to-header-for-sort": "name column header selected row 1 column 2",
-    "sort-ascending": "name column header sorted ascending row 1 column 2 sorted by name ascending",
-    "sort-descending": "name column header sorted descending row 1 column 2 sorted by name descending"
+    "sort-ascending": "sorted ascending sorted by name ascending",
+    "sort-descending": "sorted descending sorted by name descending"
   }
 }

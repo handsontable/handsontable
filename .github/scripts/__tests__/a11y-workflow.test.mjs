@@ -76,6 +76,20 @@ test('a11y.yml runs the axe scan as one job, axe, in the Playwright container, r
   assert.match(post, /^ {8}continue-on-error: true$/m, `${A11Y}: the check run reports and never decides the job. ${DOC}`);
   assert.match(post, /A11Y_REPORT_URL: \$\{\{ steps\.report\.outputs\.artifact-url \}\}/);
   assert.match(post, /^ {8}id: check$/m, `${A11Y}: the comment links the check run through this step's output. ${DOC}`);
+  // The baseline guard (tests/lib/a11y-baseline-guard.mjs) judges what a pull request adds to the baseline on the check run.
+  const GUARD_DOC = 'See tests/AGENTS.md, "Baselining a finding, and fixing one".';
+
+  for (const [name, value] of [
+    ['A11Y_PR_NUMBER', 'github\\.event\\.pull_request\\.number'],
+    ['A11Y_CHECKOUT_SHA', 'steps\\.checkout\\.outputs\\.commit'],
+    ['A11Y_BASE_SHA', 'github\\.event\\.pull_request\\.base\\.sha'],
+    ['A11Y_HEAD_REF', 'github\\.event\\.pull_request\\.head\\.ref'],
+    ['A11Y_EXCEPTION_APPROVERS', 'vars\\.A11Y_EXCEPTION_APPROVERS'],
+  ]) {
+    assert.match(post, new RegExp(`^ {10}${name}: \\$\\{\\{ ${value} \\}\\}$`, 'm'),
+      `${A11Y}: the check run judges the baseline growth: it needs ${name} (the pull request, the base at the merge commit's first parent, `
+        + `the branch whose runs say which head the a11y-exception-approved label approved, and who may approve). ${GUARD_DOC}`);
+  }
 
   const comment = step('Post the report comment');
 
@@ -90,13 +104,19 @@ test('a11y.yml runs the axe scan as one job, axe, in the Playwright container, r
   assert.match(comment, /A11Y_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
     `${A11Y}: the event's base commit is the fallback for a checkout that is not a merge commit. ${DOC}`);
   assert.match(comment, /A11Y_CHECK_URL: \$\{\{ steps\.check\.outputs\.check-url \}\}/);
+  assert.match(comment, /A11Y_HEAD_REF: \$\{\{ github\.event\.pull_request\.head\.ref \}\}/,
+    `${A11Y}: the comment judges the baseline growth as the check run does, so it reads the same label and approved head. ${DOC}`);
+  assert.match(comment, /A11Y_EXCEPTION_APPROVERS: \$\{\{ vars\.A11Y_EXCEPTION_APPROVERS \}\}/);
 });
 
-test('the axe job can write its check run on the pull request\'s head commit, and nothing else', () => {
+test('the axe job can write its check run on the pull request\'s head commit, and read what the baseline guard needs', () => {
   const axe = job(stripYamlComments(read(A11Y)), 'axe');
 
-  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write\n {6}pull-requests: write$/m,
-    `${A11Y}: job-level permissions: read for the checkout, write for the check run and the sticky comment only. ${DOC}`);
+  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write\n {6}pull-requests: write\n {6}actions: read$/m,
+    `${A11Y}: job-level permissions: read for the checkout, write for the check run and the sticky comment only (the Pull requests `
+      + `permission also reads the pull request's events, where the baseline guard finds the a11y-exception-approved label), and `
+      + `read for the pull request's runs, where it finds the head the label approved. Never issues: the rc and stable test jobs `
+      + `of publish.yml grant no issues scope. ${DOC}`);
   assert.match(axe, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
     `${A11Y}: a check run on the merge commit never shows on the pull request; it goes on the head. ${DOC}`);
 });
@@ -175,8 +195,8 @@ test('the checks job is report-only: continue-on-error on the job, a red job on 
   assert.match(checks, /^ {4}name: checks$/m, `${A11Y}: the job is named checks, so the check reads "A11y / checks". ${CHECKS_DOC}`);
   assert.match(checks, /^ {4}continue-on-error: true$/m, `${A11Y}: the checks are report-only; a red one never turns the Tests pipeline red. ${CHECKS_DOC}`);
   assert.match(checks, /^ {4}timeout-minutes: 30$/m, `${A11Y}: a hung run is bounded, after the run step's own timeout. ${CHECKS_DOC}`);
-  assert.deepEqual(permissions(checks), ['contents: read', 'checks: write'],
-    `${A11Y}: the checks job reads the checkout and writes its check runs, nothing else. ${CHECKS_DOC}`);
+  assert.deepEqual(permissions(checks), ['contents: read', 'checks: write', 'pull-requests: read'],
+    `${A11Y}: the checks job reads the checkout and a pull request's changed files, and writes its check runs, nothing else. ${CHECKS_DOC}`);
   assert.match(checks, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
     `${A11Y}: the evidence and its check runs name the pull request's head, never the merge commit. ${CHECKS_DOC}`);
   assert.match(checks, /^ {6}HOT_A11Y_CHECKS_SUITE: \$\{\{ inputs\.nightly && 'nightly' \|\| 'pull-request' \}\}$/m,
@@ -210,6 +230,15 @@ test('the checks job is report-only: continue-on-error on the job, a red job on 
 
   assert.match(summary, /^ {8}run: node tests\/scripts\/a11y-evidence-report\.mjs$/m);
   assert.match(summary, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${A11Y}: the summary is written after a red run step too. ${CHECKS_DOC}`);
+  // A fork's pull request posts no check run, so its job summary carries the ledger's verdict: the step reads the
+  // pull request's files with the read-only token, unguarded.
+  for (const block of [summary, step('Post the evidence check runs')]) {
+    assert.match(block, /^ {10}A11Y_PR_NUMBER: \$\{\{ github\.event\.pull_request\.number \}\}$/m,
+      `${A11Y}: the report reads the pull request's changed files, to mark a new finding on a page it did not change. ${CHECKS_DOC}`);
+    assert.match(block, /^ {10}GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}$/m, `${A11Y}: the files are listed through the API. ${CHECKS_DOC}`);
+  }
+  assert.doesNotMatch(summary, /^ {8}if: .*github\.event\.pull_request\.head\.repo/m,
+    `${A11Y}: the summary carries no fork guard: on a fork's pull request it is the only place the result shows. ${CHECKS_DOC}`);
 
   const post = step('Post the evidence check runs');
 
@@ -316,7 +345,7 @@ test('the A11y nightly ends on a verdict job that follows its worst check run, a
 });
 
 
-test('the checks beyond axe run only when the caller asks for them: the A11y nightly does, test.yml does not', () => {
+test('the checks beyond axe run only when the caller asks for them: the A11y nightly does, and test.yml on a pull request', () => {
   const workflow = stripYamlComments(read(A11Y));
   const [header] = workflow.split(/^jobs:$/m);
   const input = header.split(/^ {6}(?=[A-Za-z0-9_-]+:$)/m).find(block => block.startsWith('checks:')) ?? '';
@@ -336,8 +365,10 @@ test('the checks beyond axe run only when the caller asks for them: the A11y nig
 
   const tests = job(stripYamlComments(read(TESTS)), 'a11y');
 
-  assert.doesNotMatch(tests, /^ {6}checks:/m,
-    `${TESTS}: the pull-request pipeline passes nothing, so a pull request runs the axe scan only: the checks are report-only, and a pull request learned nothing from them it could act on. ${CHECKS_DOC}`);
+  assert.match(tests, /^ {4}with:\n {6}checks: \$\{\{ github\.event_name == 'pull_request' \}\}$/m,
+    `${TESTS}: a pull request runs the short suite beside the axe scan, report-only, its new findings told from the known ones by the findings ledger; `
+      + `a master push and the rc/stable path (publish.yml's call) run the scan alone. ${CHECKS_DOC}`);
+  assert.doesNotMatch(tests, /^ {6}nightly:/m, `${TESTS}: a pull request runs the short suite, never every check. ${CHECKS_DOC}`);
 
   const nightly = job(stripYamlComments(read(NIGHTLY)), 'a11y');
 

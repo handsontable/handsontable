@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
+import { markLongPressReplay } from 'handsontable/helpers/dom/longPress';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
@@ -46,6 +47,24 @@ function cornerOf(hot: Handsontable) {
  */
 function mouseDown(element: Element, init: MouseEventInit = {}) {
   element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0, ...init }));
+  element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0, ...init }));
+}
+
+/**
+ * Presses the left mouse button on an element and holds it.
+ */
+function pressHold(element: Element, init: MouseEventInit = {}) {
+  const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0, ...init });
+
+  element.dispatchEvent(press);
+
+  return press;
+}
+
+/**
+ * Lets go of the mouse button over an element.
+ */
+function release(element: Element, init: MouseEventInit = {}) {
   element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0, ...init }));
 }
 
@@ -751,6 +770,262 @@ describe('RowSelection', () => {
 
     // With no anchor, a Shift+click toggles its own row only.
     expect(plugin.getSelectedRows()).toEqual([3]);
+
+    destroy();
+  });
+
+  describe('a press on a checkbox acts when the pointer is released over the same control', () => {
+    beforeEach(() => {
+      // Rows past the second are outside the jsdom viewport under the Jest core styles stub.
+      injectRealCoreStyles();
+    });
+
+    it('should not toggle a row on the press alone, and toggle it on the release over the same row header', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+      const press = pressHold(header.querySelector('.htRowSelectionCheckbox')!);
+
+      // The press is still claimed: it selects no cell and keeps the focus off the input.
+      expect(press.defaultPrevented).toBe(true);
+      expect(hot.getSelected()).toBeUndefined();
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      release(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+      expect(hot.getSelected()).toBeUndefined();
+
+      destroy();
+    });
+
+    it('should not toggle a row when the pointer is released over another row header', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      pressHold(hot.getCell(1, -1, true) as HTMLElement);
+      release(hot.getCell(2, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      destroy();
+    });
+
+    it('should not toggle a row when the pointer is released over a body cell or outside the grid', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      pressHold(hot.getCell(1, -1, true) as HTMLElement);
+      release(hot.getCell(1, 0)!);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      pressHold(hot.getCell(1, -1, true) as HTMLElement);
+      release(document.body);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      // A cancelled press leaves nothing armed: the next click works.
+      mouseDown(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
+    it('should cancel a held press on Escape', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+
+      pressHold(header);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      release(header);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      destroy();
+    });
+
+    it('should toggle every row only on the release over the "select all" checkbox', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      pressHold(cornerOf(hot).querySelector('.htRowSelectionCheckbox')!);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      release(cornerOf(hot));
+
+      expect(plugin.getSelectedRows()).toEqual([0, 1, 2, 3, 4, 5]);
+
+      destroy();
+    });
+
+    it('should not toggle every row when the "select all" press is released over a row header', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      pressHold(cornerOf(hot));
+      release(hot.getCell(0, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      destroy();
+    });
+
+    it('should select the range at the release, with the Shift key read at the press', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      mouseDown(hot.getCell(1, -1, true) as HTMLElement);
+      pressHold(hot.getCell(4, -1, true) as HTMLElement, { shiftKey: true });
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      release(hot.getCell(4, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([1, 2, 3, 4]);
+
+      destroy();
+    });
+
+    it('should toggle a checkbox of the first column at the release over the same checkbox', () => {
+      const { hot, plugin, destroy } = createGrid({ rowSelection: { checkboxLocation: 'firstColumn' } });
+      const checkbox = () => hot.getCell(2, 0)!.querySelector('.htRowSelectionCheckbox')!;
+
+      pressHold(checkbox());
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      release(checkbox());
+
+      expect(plugin.getSelectedRows()).toEqual([2]);
+
+      destroy();
+    });
+
+    it('should ignore a press with the secondary button', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+
+      pressHold(header, { button: 2 });
+      release(header, { button: 2 });
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      destroy();
+    });
+
+    it('should ignore the release of another button than the one that pressed', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+
+      pressHold(header);
+      release(header, { button: 2 });
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      release(header);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
+    it('should toggle the row when the checkbox node is replaced between the press and the release', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const checkbox = (hot.getCell(1, -1, true) as HTMLElement).querySelector('.htRowSelectionCheckbox')!;
+
+      pressHold(checkbox);
+
+      const replacement = checkbox.cloneNode(true) as HTMLElement;
+
+      checkbox.replaceWith(replacement);
+      release(replacement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
+    it('should not let a second press take the synthetic mouseup for the release of the first one', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      // The release of the first press is lost: the second press must not act, nor be acted on twice.
+      pressHold(hot.getCell(1, -1, true) as HTMLElement);
+      pressHold(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      release(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      release(hot.getCell(1, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
+    it('should toggle a row on a tap whose event is not a TouchEvent of this window (a grid inside an iframe)', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+      const tap = Object.assign(new Event('touchstart', { bubbles: true, cancelable: true }), {
+        touches: [],
+        changedTouches: [],
+      });
+
+      Object.defineProperty(tap, 'target', { value: header.querySelector('.htRowSelectionCheckbox') });
+
+      expect(tap instanceof TouchEvent).toBe(false);
+
+      hot.runHooks('beforeOnCellMouseDown', tap, { row: 1, col: -1 }, header);
+
+      expect(plugin.getSelectedRows()).toEqual([1]);
+
+      destroy();
+    });
+
+    it('should drop a held press when the plugin is disabled', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+
+      pressHold(header);
+      hot.updateSettings({ rowSelection: false });
+      release(header);
+      hot.updateSettings({ rowSelection: true });
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      destroy();
+    });
+  });
+
+  it.each([
+    ['a row', 1],
+    ['"select all"', -1],
+  ])('should claim a long press on %s and not toggle: it is replayed while the finger is down', (_, row) => {
+    const { hot, plugin, destroy } = createGrid();
+    const header = hot.getCell(row, -1, true) as HTMLElement;
+    const checkbox = header.querySelector('.htRowSelectionCheckbox')!;
+    const longPress = new TouchEvent('touchstart', { bubbles: true, cancelable: true });
+
+    Object.defineProperty(longPress, 'target', { value: checkbox });
+    markLongPressReplay(longPress);
+    hot.runHooks('beforeOnCellMouseDown', longPress, { row, col: -1 }, header);
+
+    expect(plugin.getSelectedRows()).toEqual([]);
+    expect(longPress.defaultPrevented).toBe(true);
+    expect((longPress as unknown as { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled)
+      .toBe(false);
+
+    destroy();
+  });
+
+  it('should still toggle a row at once on a tap that is not a long press', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const header = hot.getCell(1, -1, true) as HTMLElement;
+    const touchEvent = new TouchEvent('touchstart', { bubbles: true, cancelable: true });
+
+    Object.defineProperty(touchEvent, 'target', { value: header.querySelector('.htRowSelectionCheckbox') });
+    hot.runHooks('beforeOnCellMouseDown', touchEvent, { row: 1, col: -1 }, header);
+
+    expect(plugin.getSelectedRows()).toEqual([1]);
 
     destroy();
   });

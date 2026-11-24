@@ -189,7 +189,9 @@ import ExcelJS from 'exceljs';
         });
 
         hot2Container = $('<div></div>').appendTo('body');
-        hot2 = hot2Container.handsontable({ data: [['Sheet2-A1']] }).handsontable('getInstance');
+        hot2 = hot2Container
+          .handsontable({ licenseKey: TEST_LICENSE_KEY, data: [['Sheet2-A1']] })
+          .handsontable('getInstance');
 
         const sheets = await parseXlsxAllSheets({
           sheets: [
@@ -210,7 +212,9 @@ import ExcelJS from 'exceljs';
         });
 
         hot2Container = $('<div></div>').appendTo('body');
-        hot2 = hot2Container.handsontable({ data: [['Widget', 50]] }).handsontable('getInstance');
+        hot2 = hot2Container
+          .handsontable({ licenseKey: TEST_LICENSE_KEY, data: [['Widget', 50]] })
+          .handsontable('getInstance');
 
         const sheets = await parseXlsxAllSheets({
           sheets: [
@@ -234,7 +238,7 @@ import ExcelJS from 'exceljs';
 
         hot2Container = $('<div></div>').appendTo('body');
         hot2 = hot2Container
-          .handsontable({ data: createSpreadsheetData(1, 2), colHeaders: ['X', 'Y'] })
+          .handsontable({ licenseKey: TEST_LICENSE_KEY, data: createSpreadsheetData(1, 2), colHeaders: ['X', 'Y'] })
           .handsontable('getInstance');
 
         const sheets = await parseXlsxAllSheets({
@@ -259,7 +263,7 @@ import ExcelJS from 'exceljs';
         });
 
         hot2Container = $('<div></div>').appendTo('body');
-        hot2 = hot2Container.handsontable({ data: [['b']] }).handsontable('getInstance');
+        hot2 = hot2Container.handsontable({ licenseKey: TEST_LICENSE_KEY, data: [['b']] }).handsontable('getInstance');
 
         const sheets = await parseXlsxAllSheets({
           sheets: [
@@ -283,7 +287,9 @@ import ExcelJS from 'exceljs';
         });
 
         hot2Container = $('<div></div>').appendTo('body');
-        hot2 = hot2Container.handsontable({ data: [['first2']] }).handsontable('getInstance');
+        hot2 = hot2Container
+          .handsontable({ licenseKey: TEST_LICENSE_KEY, data: [['first2']] })
+          .handsontable('getInstance');
 
         const sheets1 = await parseXlsxAllSheets({
           sheets: [

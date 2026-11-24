@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added screen reader announcements of a selected range, whole columns or rows, all cells, and a selection added with Ctrl/Cmd.",
+  "type": "added",
+  "issueOrPR": 14402,
+  "breaking": false,
+  "framework": "none"
+}

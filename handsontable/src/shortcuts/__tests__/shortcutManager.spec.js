@@ -691,7 +691,7 @@ describe('shortcutManager', () => {
     it('should forward the event to the other context within another HoT instance', async() => {
       const container2 = $('<div id="testContainer2"></div>').appendTo('body');
       const hot1 = handsontable();
-      const hot2 = new Handsontable(container2[0]);
+      const hot2 = new Handsontable(container2[0], { licenseKey: TEST_LICENSE_KEY });
       const shortcutManager1 = hot1.getShortcutManager();
       const shortcutManager2 = hot2.getShortcutManager();
       const context1 = shortcutManager1.addContext('hot1');

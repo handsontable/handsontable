@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed keyboard focus stops with no role in menus, sheet tab renaming and the empty data state, and hid the default loading icon from screen readers.",
+  "type": "fixed",
+  "issueOrPR": 14408,
+  "breaking": false,
+  "framework": "none"
+}

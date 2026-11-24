@@ -13,7 +13,9 @@ import {
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
-import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
+import { hasTouchList, isLeftClick } from '../../helpers/dom/event';
+import { isLongPressReplay } from '../../helpers/dom/longPress';
+import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { canAccessCellContent } from '../../shortcuts/guards';
 import { isUndoRedoSource } from '../../utils/undoRedoSource';
@@ -491,6 +493,12 @@ export class RowSelection extends BasePlugin {
    * `afterChange` while the write runs, and the selection source to report them with.
    */
   #boundWrite: { source: RowSelectionSource; selected: number[]; deselected: number[]; open: boolean } | null = null;
+
+  /**
+   * Drops the press on a checkbox that waits for its release (see `#onBeforeOnCellMouseDown`). The listeners
+   * of a press that is still held go with the event manager when the plugin is disabled or destroyed.
+   */
+  #disposePress: (() => void) | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -2484,8 +2492,9 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
-   * Handles a press on a checkbox: toggles the row or every row, and keeps the press from
-   * changing the cell selection.
+   * Handles a press on a checkbox: claims it, so it changes no cell selection, and acts when the pointer
+   * is released over the same control (a touch tap acts at once, Walkontable already replays it at
+   * `touchend`). Moving the pointer off the control before letting go cancels the toggle.
    *
    * @param {MouseEvent} event The `mousedown` event.
    * @param {CellCoords} coords The coordinates of the pressed cell.
@@ -2495,35 +2504,49 @@ export class RowSelection extends BasePlugin {
     const target = eventTargetEl(event);
 
     // On a touch device Walkontable runs this with the deferred `touchstart` (`event.ts`, `onTouchEnd`),
-    // which has no `button`, so a tap counts as a left click.
-    if (!target || !(isLeftClick(event) || isTouchEvent(event))) {
+    // which has no `button`, so a tap counts as a left click. It is found by its touch lists, not by
+    // `instanceof TouchEvent`, which is false for an event of a grid in an iframe.
+    if (!target || !(isLeftClick(event) || hasTouchList(event))) {
       return;
     }
 
-    // With the row header location the whole header cell is the hit area; with the first column
-    // location only the checkbox is, because the rest of the cell holds data. The classes are only
-    // on a cell that shows a checkbox: a row with no checkbox, and a corner with no "select all"
-    // checkbox, are plain headers.
-    const isOwnHeaderCell = hasClass(TD, ROW_CELL_CLASS) || hasClass(TD, HEADER_CELL_CLASS);
-    const isOwnCheckbox = hasClass(target, CHECKBOX_CLASS) && !hasClass(target, HIDDEN_CHECKBOX_CLASS);
-
-    if (!isOwnCheckbox && !(isOwnHeaderCell && this.#isRowHeaderLocation())) {
+    if (!this.#isControl(target, TD)) {
       return;
     }
 
     // The DOM can be one render behind the settings: ask the state, not only the classes.
-    if (coords.row < 0 ? !this.#hasHeaderCheckbox() : !this.#hasVisibleRowCheckbox(coords.row)) {
+    if (!this.#canActOnRow(coords.row)) {
       return;
     }
 
-    if (coords.row < 0) {
-      this.#toggleAll('headerCheckbox');
+    const isTouch = hasTouchList(event);
+    // Read now: the key state belongs to the press, and the release can come with other keys held.
+    const { shiftKey } = event;
+    const isHeader = coords.row < 0;
+    const physicalRow = isHeader ? null : this.hot.toPhysicalRow(coords.row);
+    const act = () => {
+      // The rows can move between the press and the release, so the row is found again.
+      const row = isHeader ? coords.row : this.hot.toVisualRow(physicalRow!);
 
-    } else if (event.shiftKey) {
-      this.#selectRangeTo(coords.row, 'checkbox');
+      if (row === null || !this.#canActOnRow(row)) {
+        return;
+      }
 
-    } else {
-      this.#toggleRow(coords.row, 'checkbox');
+      if (row < 0) {
+        this.#toggleAll('headerCheckbox');
+
+      } else if (shiftKey) {
+        this.#selectRangeTo(row, 'checkbox');
+
+      } else {
+        this.#toggleRow(row, 'checkbox');
+      }
+    };
+
+    // A tap acts at once (it already is the release). A long press opens the context menu, so it acts on
+    // nothing: its finger is still down.
+    if (isTouch && !isLongPressReplay(event)) {
+      act();
     }
 
     // Only the grid's own flag, which makes the table skip selection handling. The shared
@@ -2533,8 +2556,72 @@ export class RowSelection extends BasePlugin {
     // Keeps the browser focus off the checkbox: the keyboard stays with the grid, so Space and the
     // arrow keys keep working after a click.
     event.preventDefault();
+    // An earlier press whose release was lost would take the synthetic `mouseup` below for its own, so it
+    // is dropped first. The event is fired before this press is armed, so it is not taken for its release.
+    this.#disposePress?.();
+    this.#disposePress = null;
     this.eventManager.fireEvent(target, 'mouseup');
+
+    if (!isTouch) {
+      this.#disposePress = armPressRelease(this.eventManager, this.hot.rootDocument, event, {
+        isSame: releaseTarget => this.#isSameControl(releaseTarget, isHeader, physicalRow),
+        onRelease: () => {
+          this.#disposePress = null;
+          act();
+        },
+        onCancel: () => {
+          this.#disposePress = null;
+        },
+      });
+    }
   };
+
+  /**
+   * Checks whether a press landed on one of the plugin's controls. With the row header location the whole
+   * header cell is the hit area; with the first column location only the checkbox is, because the rest of
+   * the cell holds data. The classes are only on a cell that shows a checkbox: a row with no checkbox, and a
+   * corner with no "select all" checkbox, are plain headers.
+   *
+   * @param {HTMLElement} target The element the pointer is on.
+   * @param {HTMLElement} TD The cell that holds it.
+   * @returns {boolean}
+   */
+  #isControl(target: HTMLElement, TD: HTMLElement): boolean {
+    const isOwnHeaderCell = hasClass(TD, ROW_CELL_CLASS) || hasClass(TD, HEADER_CELL_CLASS);
+    const isOwnCheckbox = hasClass(target, CHECKBOX_CLASS) && !hasClass(target, HIDDEN_CHECKBOX_CLASS);
+
+    return isOwnCheckbox || (isOwnHeaderCell && this.#isRowHeaderLocation());
+  }
+
+  /**
+   * Checks whether the plugin has a checkbox to press for a row (`-1` or less is the "select all" one).
+   *
+   * @param {number} row Visual row index.
+   * @returns {boolean}
+   */
+  #canActOnRow(row: number): boolean {
+    return row < 0 ? this.#hasHeaderCheckbox() : this.#hasVisibleRowCheckbox(row);
+  }
+
+  /**
+   * Checks whether the release of a press landed on the control the press started on. The control is
+   * resolved from the release target again, because a render replaces the nodes between the two.
+   *
+   * @param {HTMLElement|null} releaseTarget The element the pointer was released on.
+   * @param {boolean} isHeader Whether the press was on the "select all" checkbox.
+   * @param {number|null} physicalRow The pressed row, not read for the "select all" checkbox.
+   * @returns {boolean}
+   */
+  #isSameControl(releaseTarget: HTMLElement | null, isHeader: boolean, physicalRow: number | null): boolean {
+    const cell = releaseTarget?.closest<HTMLElement>('td, th') ?? null;
+    const coords = getCoordsWithinGrid(this.hot, cell);
+
+    if (!releaseTarget || !cell || !coords || coords.row === null || !this.#isControl(releaseTarget, cell)) {
+      return false;
+    }
+
+    return isHeader ? coords.row < 0 : this.hot.toPhysicalRow(coords.row) === physicalRow;
+  }
 
   /**
    * Selects rows on a click on a cell, when `enableClickSelection` allows it.
@@ -2545,7 +2632,7 @@ export class RowSelection extends BasePlugin {
   #onAfterOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
     const { enableClickSelection } = this.#getSettings();
 
-    if (enableClickSelection === false || !(isLeftClick(event) || isTouchEvent(event)) ||
+    if (enableClickSelection === false || !(isLeftClick(event) || hasTouchList(event)) ||
       coords.row < 0 || coords.col < 0 || coords.col === this.getBoundColumn()) {
       return;
     }
@@ -2596,7 +2683,8 @@ export class RowSelection extends BasePlugin {
 
   /**
    * Keeps a click from flipping a checkbox on its own. The state was already applied on
-   * `mousedown` and rendered; letting the browser toggle it again would show the opposite.
+   * `mouseup` and rendered, which comes before the click; letting the browser toggle it again would show
+   * the opposite.
    *
    * @param {MouseEvent} event The `click` event.
    */

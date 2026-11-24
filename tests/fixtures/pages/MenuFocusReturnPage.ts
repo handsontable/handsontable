@@ -35,6 +35,57 @@ export class MenuFocusReturnPage extends MenuSeparatorRolePage {
   }
 
   /**
+   * The focus catchers a Tab can land on: the hidden sentinels around a focus scope that are armed
+   * (`tabindex="0"`). A disarmed one carries `tabindex="-1"`.
+   */
+  get armedFocusCatchers(): Locator {
+    return this.page.locator('.htFocusCatcher[tabindex="0"]');
+  }
+
+  /**
+   * Builds a second root grid on the page, with its own menus and focus scopes, and returns its container.
+   *
+   * @returns {Locator} The second grid's container.
+   */
+  async buildSecondGrid(): Promise<Locator> {
+    await this.page.evaluate(() => {
+      const host = document.createElement('div');
+
+      host.setAttribute('data-testid', 'second-grid');
+      document.body.appendChild(host);
+      const win = window as any;
+
+      win.secondHot = new win.Handsontable(host, {
+        data: [['x', 'y'], ['z', 'w']],
+        width: 300,
+        height: 120,
+        contextMenu: true,
+        licenseKey: win.htTestLicenseKey,
+      });
+    });
+
+    return this.page.getByTestId('second-grid');
+  }
+
+  /**
+   * Opens the context menu through the API at a point and, once it shows, closes it through the API,
+   * with no cell selected: the close sends the page neither a focus event nor a click.
+   */
+  async openAndCloseContextMenuThroughApi(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as any;
+
+      hot.deselectCell();
+      hot.getPlugin('contextMenu').open({ top: 60, left: 60 });
+    });
+    await expect(this.menu(CONTEXT_MENU)).toBeVisible();
+    await this.page.evaluate(() => {
+      (window as any).hot.getPlugin('contextMenu').close();
+    });
+    await expect(this.menu(CONTEXT_MENU)).toBeHidden();
+  }
+
+  /**
    * A text field outside the grid, which a click or a hook listener can move the focus to.
    */
   get outside(): Locator {

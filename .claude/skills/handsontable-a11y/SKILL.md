@@ -84,6 +84,12 @@ moves focus" is a decision; a missing line is not.
   explicitly, as nested rows do for a row expanded or collapsed. `assertive` is for errors only,
   and one user action makes one announcement. Pagination, the sheets bar and row selection announce
   assertively today: a known gap, not the model to copy.
+- **Core announces every user selection politely** (`src/core/selectionAnnouncer/`): a range, whole
+  columns or rows, all cells, or a Ctrl/Cmd-added layer, 200 ms after the last key press or the
+  mouse release. It stands aside when anything else announced in that window
+  (`getAnnouncementCount()` in `a11yAnnouncer.ts`), so a feature that announces for an action that
+  also selects (a header click that sorts) needs no code to win. Do not announce a selection again in
+  a plugin; a test that records the polite region sees this text after any keyboard or mouse selection.
 - **Colors and sizes come from theme tokens** (the `handsontable-css-dev` skill), and each pair
   clears its ratio in `main`, `horizon` and `classic`, light and dark: text 4.5:1 (3:1 from 24px, or
   18.66px bold), icons, borders and focus rings 3:1 (1.4.11), pointer targets 24 by 24 CSS pixels
@@ -106,6 +112,8 @@ moves focus" is a decision; a missing line is not.
 4. A finding the PR caused is fixed in the PR, never baselined to quiet the check. Only a finding
    that already existed and a new page exposes gets an entry, under an issue (`tests/AGENTS.md`,
    "Baselining a finding, and fixing one").
+   Exception: the issue names its fix task in `tracker`, and the accessibility lead adds the
+   `a11y-exception-approved` label by hand, never an agent. Any other own entry turns the check red.
 
 ## References
 

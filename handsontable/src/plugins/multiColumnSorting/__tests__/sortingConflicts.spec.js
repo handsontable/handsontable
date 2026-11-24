@@ -67,6 +67,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     const container2 = $(`<div id="${id}2"></div>`).appendTo('body');
 
     const hot2 = container2.handsontable({
+      licenseKey: TEST_LICENSE_KEY,
       data: arrayOfObjects(),
       colHeaders: true,
       multiColumnSorting: true,

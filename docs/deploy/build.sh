@@ -2,9 +2,10 @@
 # Local full build of the multi-version docs site (current + previous versions),
 # assembled into ./docs ready to deploy to Cloudflare Pages.
 #
-# Requires GITHUB_TOKEN in the environment: build_previous_versions.sh and the
+# Set GITHUB_TOKEN in the environment: build_previous_versions.sh and the
 # worker substitution below both call getListOrPreviousVersions.mjs, which
-# authenticates its GitHub GraphQL query with it.
+# authenticates its GitHub request with it. Without it the request is
+# anonymous, shares the runner IP's rate limit, and reads one page only.
 set -euo pipefail
 
 rm -rf docs

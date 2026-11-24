@@ -772,6 +772,219 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
     });
   });
 
+  test.describe('click, then click', () => {
+    test('a click on the bar arms it and announces what to do, and changes nothing', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+
+      await expect(grid.bar('start')).toHaveClass(/ht-freeze-bar--armed/);
+      await expect(grid.politeAnnouncer()).toHaveText('Click or tap the target to finish. Press Escape to cancel.');
+      expect(await grid.count('start')).toBe(2);
+      expect(await grid.log()).toEqual([]);
+    });
+
+    test('the next click on a column freezes the columns through it', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+      await grid.clickTrack('start', 4);
+
+      expect(await grid.count('start')).toBe(4);
+      expect(await grid.log()).toEqual([{ edge: 'start', newCount: 4, oldCount: 2, source: 'drag' }]);
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+      await expect(grid.separator('start')).toHaveAttribute('aria-valuenow', '4');
+    });
+
+    test('the pick freezes fewer columns when the click lands inside the frozen ones', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+      await grid.clickTrack('start', 1);
+
+      expect(await grid.count('start')).toBe(1);
+    });
+
+    test('the pick freezes rows through the clicked row', async() => {
+      await grid.goto();
+      await grid.clickBar('top');
+      await grid.clickTrack('top', 4);
+
+      expect(await grid.count('top')).toBe(4);
+      expect(await grid.log()).toEqual([{ edge: 'top', newCount: 4, oldCount: 2, source: 'drag' }]);
+    });
+
+    test('the pick starts the freezing on the handle of an empty edge, from the last columns', async() => {
+      await grid.goto();
+      await grid.scrollTo({ col: 14 });
+      await grid.clickBar('end');
+
+      expect(await grid.log()).toEqual([]);
+
+      await grid.clickTrack('end', 2);
+
+      expect(await grid.count('end')).toBe(2);
+      expect(await grid.log()).toEqual([{ edge: 'end', newCount: 2, oldCount: 0, source: 'drag' }]);
+    });
+
+    test('the pick on the bottom edge freezes the rows from the clicked one to the last', async() => {
+      await grid.goto();
+      await grid.scrollTo({ row: 49 });
+      await grid.clickBar('bottom');
+      await grid.clickTrack('bottom', 2);
+
+      expect(await grid.count('bottom')).toBe(2);
+      expect(await grid.log()).toEqual([{ edge: 'bottom', newCount: 2, oldCount: 0, source: 'drag' }]);
+    });
+
+    test('destroying the grid while a pick waits leaves the page its clicks', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.clickBar('start');
+      await grid.page.evaluate(() => window.hot.destroy());
+      await grid.page.locator('#outside').click();
+
+      expect(await grid.page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+    });
+
+    test('a click outside the grid ends the pick and goes to the page', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        const button = document.createElement('button');
+
+        button.id = 'outside';
+        button.textContent = 'Outside';
+        (window as any).outsideClicks = 0;
+        button.addEventListener('click', () => { (window as any).outsideClicks += 1; });
+        document.body.append(button);
+      });
+      await grid.clickBar('start');
+      await grid.page.locator('#outside').click();
+
+      expect(await grid.page.evaluate(() => (window as any).outsideClicks)).toBe(1);
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+      expect(await grid.count('start')).toBe(2);
+    });
+
+    test('a click on a column that can not end the band names nothing, and the count stays', async() => {
+      await grid.goto();
+      await grid.scrollTo({ col: 14 });
+      await grid.clickBar('start');
+
+      // far past what fits in the 500px grid next to the two frozen columns
+      await grid.pressCell(3, 13);
+
+      expect(await grid.count('start')).toBe(2);
+      expect(await grid.log()).toEqual([]);
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+    });
+
+    test('arming does not scroll the grid', async() => {
+      await grid.goto();
+      await grid.scrollTo({ row: 40 });
+
+      const before = await grid.scrollPosition();
+
+      await grid.clickBar('top');
+
+      expect(await grid.scrollPosition()).toEqual(before);
+      await expect(grid.bar('top')).toHaveClass(/ht-freeze-bar--armed/);
+    });
+
+    test('a click on a column header picks that column, and one on a row header names no column', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+      await grid.colHeader(5).click();
+
+      expect(await grid.count('start')).toBe(6);
+
+      await grid.clickBar('start');
+      await grid.rowHeader(3).click();
+
+      expect(await grid.count('start')).toBe(6);
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+    });
+
+    test('the click that picks does not select a cell or open an editor', async() => {
+      await grid.goto();
+
+      const before = await grid.selection();
+
+      await grid.clickBar('start');
+      await grid.clickTrack('start', 4);
+
+      expect(await grid.selection()).toEqual(before);
+      expect(await grid.page.evaluate(() => window.hot.getActiveEditor()?.isOpened() ?? false)).toBe(false);
+    });
+
+    test('Escape cancels it, announces that, and the next click selects as usual', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+      await grid.page.keyboard.press('Escape');
+
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+      await expect(grid.politeAnnouncer()).toHaveText('Canceled.');
+      expect(await grid.count('start')).toBe(2);
+
+      await grid.clickCell(3, 3);
+
+      expect(await grid.count('start')).toBe(2);
+    });
+
+    test('a second click on the same bar disarms it without picking', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+      await grid.clickBar('start');
+
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+      expect(await grid.count('start')).toBe(2);
+      expect(await grid.log()).toEqual([]);
+    });
+
+    test('a drag of the bar arms nothing', async() => {
+      await grid.goto();
+      await grid.drag('start', 4);
+
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+      expect(await grid.count('start')).toBe(4);
+
+      await grid.clickCell(3, 3);
+
+      expect(await grid.count('start')).toBe(4);
+    });
+
+    test('a press on another bar moves the pick to it', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+      await grid.clickBar('top');
+
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--armed/);
+      await expect(grid.bar('top')).toHaveClass(/ht-freeze-bar--armed/);
+    });
+
+    test('turning the plugin off ends the pick', async() => {
+      await grid.goto();
+      await grid.clickBar('start');
+      await grid.page.evaluate(() => window.hot.updateSettings({ freezeBar: false }));
+      await grid.clickCell(3, 3);
+
+      expect(await grid.count('start')).toBe(2);
+    });
+
+    test('the pick follows the layout direction of a right-to-left grid', async() => {
+      await grid.goto({ rtl: 1 });
+      await grid.clickBar('start');
+      await grid.clickTrack('start', 4);
+
+      expect(await grid.count('start')).toBe(4);
+    });
+  });
+
   test.describe('edges with nothing frozen', () => {
     test('draw only a short piece on a header corner, but can be grabbed along the whole edge', async() => {
       await grid.goto({ cols: 0, rows: 0 });

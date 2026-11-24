@@ -34,7 +34,7 @@ describe('Core_destroy', () => {
 
     const $tmp = $('<div id="tmp"></div>').appendTo(document.body);
 
-    $tmp.handsontable();
+    $tmp.handsontable({ licenseKey: TEST_LICENSE_KEY });
     $tmp.handsontable('destroy');
     $tmp.remove();
 

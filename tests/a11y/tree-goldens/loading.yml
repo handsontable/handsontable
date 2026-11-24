@@ -113,7 +113,6 @@
       - gridcell "Select whole grid"
   - rowgroup
 - alertdialog "Loading...":
-  - img
   - heading "Loading..." [level=2]
 # portal
 - status

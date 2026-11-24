@@ -97,10 +97,21 @@ Everything about that machinery is load-bearing:
   and the release would have sorted a column of the new order. A same-shape `updateData()` fires no `'init'`.
 - **Two release signals, deliberately.** `afterOnCellMouseUp` is primary: on touch devices Walkontable calls
   its `onMouseUp` straight from `touchend` instead of dispatching a DOM `mouseup`, so a document listener
-  alone would never fire and tapping a header would stop sorting. A raw `mouseup` on `documentElement` is
-  the fallback for a release landing outside any cell — the drag case, where the queued sort still has to be
-  cleared. `#resolvePendingSort` takes the queued press first, so whichever signal arrives first wins and
-  the rest are no-ops.
+  alone would never fire and tapping a header would stop sorting. A raw `mouseup` on `documentElement`
+  (`#onDocumentMouseUp`) is the second signal: a release landing outside any cell — the drag case — or over a
+  header before the hook ran. `#resolvePendingSort` takes the queued press first, so whichever signal
+  arrives first wins and the rest are no-ops.
+- **A release away from the pressed header cancels the sort (pointer cancellation).** A header sort is a
+  click, so it completes only on the release over the header that was pressed. `HeaderSortPress` keeps the
+  pressed `row` and `column`, and `#resolvePendingSort(release)` compares the release's visual coords with
+  them. The hook path passes the hook's `coords`; the document path reads the header the release landed on
+  (`closest('th')`, then `hot.getCoords()`), and a release over no header passes `null`. Any mismatch drops
+  the press through `#stopWaitingForEditor()` and sorts nothing. **Compare coords, never the `th` element**:
+  Walkontable recycles header elements and the frozen overlays clone them, so the element a release lands on
+  is rarely the one that was pressed. The drag checks (`consumedByMove`, `#isColumnBeingDragged()`) stay
+  first. A touch tap needs nothing extra: `touchend` drives the same hook with the press's own coords, and
+  the keyboard `Enter` goes through `sortByUser()`, not through a press. Pinned by
+  `__tests__/headerSortPointerCancellation.unit.js` and `tests/e2e/column-sorting-pointer-cancellation.spec.ts`.
 - **Two cancel checks, also deliberately.** Both this plugin and ManualColumnMove handle the same `mouseup`
   and **the listener order is not fixed** — re-enabling `columnSorting` after `manualColumnMove` appends
   this listener last. Running first, the drag is still in progress (`#isColumnBeingDragged()`); running

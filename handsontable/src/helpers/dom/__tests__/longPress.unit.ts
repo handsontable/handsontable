@@ -1,4 +1,9 @@
-import { LongPressDetector, LONG_PRESS_DELAY } from 'handsontable/helpers/dom/longPress';
+import {
+  LongPressDetector,
+  LONG_PRESS_DELAY,
+  isLongPressReplay,
+  markLongPressReplay,
+} from 'handsontable/helpers/dom/longPress';
 
 /**
  * Builds a detector on Jest's fake timers.
@@ -122,5 +127,25 @@ describe('LongPressDetector', () => {
     jest.advanceTimersByTime(100);
 
     expect(onLongPress).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('markLongPressReplay()', () => {
+  it('should tell a marked event from a fresh one', () => {
+    const marked = new Event('touchstart');
+    const fresh = new Event('touchstart');
+
+    expect(isLongPressReplay(marked)).toBe(false);
+
+    markLongPressReplay(marked);
+
+    expect(isLongPressReplay(marked)).toBe(true);
+    expect(isLongPressReplay(fresh)).toBe(false);
+  });
+
+  it('should keep the mark on the event, not on its type', () => {
+    markLongPressReplay(new Event('touchstart'));
+
+    expect(isLongPressReplay(new Event('touchstart'))).toBe(false);
   });
 });
