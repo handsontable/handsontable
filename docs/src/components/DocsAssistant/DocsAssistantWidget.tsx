@@ -5,13 +5,17 @@
  * `#mobile-assistant-btn`) rendered in Header.astro. The panel is
  * *non-modal* (`aria-modal="false"`) so readers can keep interacting
  * with the docs while the assistant is open. ESC and the close button
- * both dismiss the panel; opening moves focus to the composer.
+ * both dismiss the panel; opening moves focus to the composer, and closing
+ * gives it back to the control that opened the panel (or to the header
+ * button when that control is gone). The closed panel is `inert`: it is
+ * off screen, so none of its controls may take the focus or reach the
+ * accessibility tree.
  *
  * Open state, thread, and panel width are persisted to localStorage
  * (see `STORAGE_KEYS`) so navigation between docs pages does not reset
  * the conversation.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { STORAGE_KEYS, WIDTH } from './constants';
 import { IconChatbot, IconClose, IconTrash } from './icons';
 import { ProactiveBubble } from './ProactiveBubble';
@@ -40,11 +44,42 @@ function readInitialWidth(): number {
   }
 }
 
+const HEADER_BUTTONS_SELECTOR = '#header-assistant-btn, #mobile-assistant-btn';
+
+/**
+ * Tells whether an element can take the focus back: it is in the page, shown, and not inert.
+ *
+ * @param element The element.
+ * @returns `true` when it can.
+ */
+function canTakeFocus(element: HTMLElement | null): element is HTMLElement {
+  return Boolean(element?.isConnected && element.checkVisibility() && !element.closest('[inert]'));
+}
+
+/**
+ * Reads the focused element outside the panel, the one to give the focus back to on close.
+ *
+ * @param panel The panel.
+ * @returns The element, or `null` when the focus is on the page body or inside the panel.
+ */
+function focusedOutside(panel: HTMLElement): HTMLElement | null {
+  const focused = document.activeElement;
+
+  if (!(focused instanceof HTMLElement) || focused === document.body || panel.contains(focused)) {
+    return null;
+  }
+
+  return focused;
+}
+
 export function DocsAssistantWidget() {
   const [open, setOpen] = useState<boolean>(() => readInitialOpen());
   const [width, setWidth] = useState<number>(() => readInitialWidth());
   const [pendingDraft, setPendingDraft] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(open);
   const resizingRef = useRef(false);
   const { state, send, sendToSupport, canWriteToSupport, stop, retry, clear, clearAndSend, setFeedback } =
     useAssistant({ active: open });
@@ -99,6 +134,42 @@ export function DocsAssistantWidget() {
     return () => window.removeEventListener('docs-assistant:ask', handleAskAboutApi);
   }, [clearAndSend]);
 
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+
+    if (!panel) return;
+
+    const wasOpen = wasOpenRef.current;
+
+    wasOpenRef.current = open;
+
+    if (open) {
+      panel.removeAttribute('inert');
+      if (!wasOpen) {
+        openerRef.current = focusedOutside(panel);
+      }
+      return;
+    }
+
+    const focusWasInside = panel.contains(document.activeElement);
+
+    panel.setAttribute('inert', '');
+
+    if (!wasOpen) return;
+
+    const opener = openerRef.current;
+
+    openerRef.current = null;
+
+    if (!focusWasInside && document.activeElement && document.activeElement !== document.body) return;
+
+    const target = canTakeFocus(opener)
+      ? opener
+      : [...document.querySelectorAll<HTMLElement>(HEADER_BUTTONS_SELECTOR)].find(canTakeFocus);
+
+    target?.focus();
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => composerRef.current?.focus(), 50);
@@ -151,6 +222,7 @@ export function DocsAssistantWidget() {
   return (
     <>
       <aside
+        ref={panelRef}
         className="da-panel"
         role="dialog"
         aria-modal="false"
