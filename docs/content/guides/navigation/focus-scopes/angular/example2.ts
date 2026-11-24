@@ -71,15 +71,10 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
       background: none;
       border: 1px solid var(--sl-color-gray-3, #777777);
       border-radius: 0;
-      outline: none;
     }
 
     .placeholder-input::placeholder {
       color: var(--sl-color-gray-3, #777777);
-    }
-
-    .placeholder-input:focus {
-      border-color: var(--sl-color-accent, #1A42E8);
     }
 
     .example-container {

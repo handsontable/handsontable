@@ -13,7 +13,11 @@ const FIELD_PAGES = [
   '/javascript-data-grid/accessibility/',
   '/javascript-data-grid/focus-scopes/',
 ];
-const CODE_PAGE = '/javascript-data-grid/rows-sorting/';
+const FIELD_FOCUS_PAGES = ['javascript', 'react', 'angular', 'vue'].flatMap(framework => [
+  `/${framework}-data-grid/accessibility/`,
+  `/${framework}-data-grid/focus-scopes/`,
+]);
+const CODE_PAGE ='/javascript-data-grid/rows-sorting/';
 const NAV_PAGE = '/javascript-data-grid/rows-sorting/';
 const CURRENT_TOC_ENTRY = 'starlight-toc a[aria-current="true"]';
 
@@ -130,16 +134,25 @@ for (const theme of THEMES) {
       expect(await contrastOf(page, '.placeholder-input', 'borderTopColor', '.placeholder-input'))
         .toBeGreaterThanOrEqual(3);
     });
+  }
 
-    test(`a focused example text field on ${path} draws an outline that stands 3:1 from the page in the ${theme} theme`, async({ page, baseURL }) => {
+  for (const path of FIELD_FOCUS_PAGES) {
+    test(`a focused example text field on ${path} draws one outline that stands 3:1 from the page in the ${theme} theme`, async({ page, baseURL }) => {
       await openIn(page, baseURL, path, theme);
 
       const field = page.locator('.placeholder-input').filter({ visible: true }).first();
+
+      await expect(field).toBeVisible();
+      await expect(field).toHaveCSS('border-top-width', '1px');
+      await expect(field).toHaveCSS('border-top-style', 'solid');
+
+      const restBorder = await field.evaluate(element => getComputedStyle(element).borderTopColor);
 
       await field.focus();
       await expect(field).toBeFocused();
       await expect(field).toHaveCSS('outline-style', 'solid');
       await expect(field).toHaveCSS('outline-width', '2px');
+      await expect(field).toHaveCSS('border-top-color', restBorder);
 
       expect(await contrastOf(page, '.placeholder-input', 'outlineColor', '.placeholder-input'))
         .toBeGreaterThanOrEqual(3);
