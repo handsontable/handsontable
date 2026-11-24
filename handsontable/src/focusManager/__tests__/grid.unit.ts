@@ -193,6 +193,7 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean, root?: boolean
 
   return {
     manager,
+    root,
     td,
     state,
     count: (key: string) => hooks.getBucket(hot as never).getHooks(key).length,
@@ -569,6 +570,25 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
       grid.td.textContent = 'after';
       document.body.append(other);
       other.focus();
+
+      const log = logRoleAndFocus(grid.td);
+
+      grid.run('afterRender');
+
+      expect(log).toEqual([]);
+    });
+
+    it('leaves a cell of a grid nested in one of its cells alone', () => {
+      const grid = makeDeferredFocusGrid();
+      const nested = document.createElement('div');
+      const hostCell = document.createElement('div');
+
+      nested.className = 'handsontable';
+      grid.root.append(hostCell);
+      hostCell.append(nested);
+      nested.append(grid.td);
+      focusAndRecord(grid);
+      grid.td.textContent = 'after';
 
       const log = logRoleAndFocus(grid.td);
 

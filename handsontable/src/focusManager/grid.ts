@@ -457,9 +457,9 @@ export class FocusGridManager {
    * Makes a screen reader read the focused cell or header again when what it shows changed in place, or when the
    * grid drew another cell into the element that holds the focus (a jump to a row that is rendered only then).
    * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
-   * hears nothing or a name that changed. It only counts when the element shows the selected cell (it carries the
-   * selection's `current` class): a scroll that recycles the focused element for a cell the user is not on says
-   * nothing.
+   * hears nothing or a name that changed. It only counts when the element is a cell of this grid, not of a grid
+   * nested in one of its cells, and shows the selected cell (it carries the selection's `current` class): a scroll
+   * that recycles the focused element for a cell the user is not on says nothing.
    */
   #announceChangeInPlace(): void {
     const activeElement = getDeepActiveElement(this.#hot.rootDocument);
@@ -467,7 +467,7 @@ export class FocusGridManager {
     if (
       !isHTMLElement(activeElement) ||
       (activeElement.nodeName !== 'TD' && activeElement.nodeName !== 'TH') ||
-      !this.#hot.rootElement.contains(activeElement) ||
+      !isInternalElement(activeElement, this.#hot.rootElement) ||
       !activeElement.classList.contains(FOCUS_HIGHLIGHT_CLASS_NAME)
     ) {
       return;
