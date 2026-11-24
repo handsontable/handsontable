@@ -22,8 +22,24 @@ function createInstances(item, settings = {}) {
       rootElement,
       getSettings: () => settings,
     },
-    menuHot: {
-      getSourceDataAtRow: () => item,
+    menuHot: createMenuHot([item]),
+  };
+}
+
+/**
+ * Builds the menu grid the renderer reads its items and their positions from.
+ *
+ * @param {object[]} items The menu items, one per row.
+ * @param {number[]} [hiddenRows] The rows the menu grid hides (the Filters plugin hides some of its own).
+ * @returns {object}
+ */
+function createMenuHot(items, hiddenRows = []) {
+  return {
+    getSourceDataAtRow: row => items[row],
+    countRows: () => items.length,
+    toPhysicalRow: row => row,
+    rowIndexMapper: {
+      isHidden: physicalRow => hiddenRows.includes(physicalRow),
     },
   };
 }
@@ -339,6 +355,8 @@ describe('menuItemRenderer', () => {
       expect(TD.hasAttribute('aria-checked')).toBe(false);
       expect(TD.hasAttribute('aria-disabled')).toBe(false);
       expect(TD.hasAttribute('aria-expanded')).toBe(false);
+      expect(TD.hasAttribute('aria-posinset')).toBe(false);
+      expect(TD.hasAttribute('aria-setsize')).toBe(false);
     });
 
     it('should drop the tab stop a reused cell carried from an enabled item', () => {
@@ -367,6 +385,81 @@ describe('menuItemRenderer', () => {
       expect(TD.hasAttribute('role')).toBe(false);
       expect(TD.hasAttribute('aria-label')).toBe(false);
       expect(TD.classList.contains('htSeparator')).toBe(true);
+    });
+  });
+  describe('the position of an item (DEV-4172)', () => {
+    /**
+     * Renders every row of a menu into its own `<td>` and reads the position ARIA back.
+     *
+     * @param {object[]} items The menu items, one per row.
+     * @param {object} [options] The options.
+     * @param {number[]} [options.hiddenRows] The rows the menu grid hides.
+     * @param {boolean} [options.ariaTags] The main grid's `ariaTags` setting.
+     * @returns {Array<[string | null, string | null]>} `[aria-posinset, aria-setsize]` per row.
+     */
+    function renderPositions(items, { hiddenRows = [], ariaTags = true } = {}) {
+      const mainTableHot = {
+        rootDocument: document,
+        rootElement: document.createElement('div'),
+        getSettings: () => ({ ariaTags }),
+      };
+      const menuHot = createMenuHot(items, hiddenRows);
+      const render = createMenuItemRenderer(mainTableHot);
+
+      return items.map((item, row) => {
+        const TD = document.createElement('td');
+
+        render(menuHot, TD, row, 0, '0', item.name, {});
+
+        return [TD.getAttribute('aria-posinset'), TD.getAttribute('aria-setsize')];
+      });
+    }
+
+    it('should number the items in order and leave the separators out of the count', () => {
+      const positions = renderPositions([
+        { name: 'A' },
+        { name: SEPARATOR },
+        { name: 'B' },
+        { name: 'C' },
+        { name: SEPARATOR },
+        { name: 'D' },
+      ]);
+
+      expect(positions).toEqual([
+        ['1', '4'],
+        [null, null],
+        ['2', '4'],
+        ['3', '4'],
+        [null, null],
+        ['4', '4'],
+      ]);
+    });
+
+    it('should leave a row the menu grid hides out of the count', () => {
+      const positions = renderPositions([
+        { name: 'A' },
+        { name: 'Hidden' },
+        { name: 'B' },
+      ], { hiddenRows: [1] });
+
+      expect(positions[0]).toEqual(['1', '2']);
+      expect(positions[2]).toEqual(['2', '2']);
+    });
+
+    it('should count a disabled item and an item that cannot be selected', () => {
+      const positions = renderPositions([
+        { name: 'A', disabled: true },
+        { name: 'B', disableSelection: true },
+        { name: 'C', checked: true },
+      ]);
+
+      expect(positions).toEqual([['1', '3'], ['2', '3'], ['3', '3']]);
+    });
+
+    it('should write no position when `ariaTags` is off', () => {
+      const positions = renderPositions([{ name: 'A' }, { name: 'B' }], { ariaTags: false });
+
+      expect(positions).toEqual([[null, null], [null, null]]);
     });
   });
   describe('the row of an item', () => {

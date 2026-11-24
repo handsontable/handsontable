@@ -183,6 +183,47 @@ function removeDuplicatedSeparators(items: MenuItemLike[], separator: string) {
 }
 
 /**
+ * Where a menu row sits among the items its menu draws, as `aria-posinset` and `aria-setsize` give it.
+ *
+ * Both count the rows a user can reach: a separator is not an item, and a row the menu grid hides
+ * (the Filters plugin hides its second condition and the operators while the first condition is
+ * "None") is not drawn. A disabled item still counts. Without both attributes each browser derived
+ * the position from the table markup its own way, so screen readers disagreed on it (DEV-4172).
+ *
+ * The count walks the whole menu on every call, so a full render costs O(n²). A menu's rows number
+ * in the tens, where that is well under a millisecond (`src/utils/menu/AGENTS.md` has the numbers).
+ *
+ * @param {Core} menuHot The menu's own Handsontable instance.
+ * @param {number} visualRow The visual index of the row.
+ * @returns {{position: number, setSize: number} | null} The 1-based position and the item count, or
+ * `null` for a row that is not an item (a separator, a hidden row).
+ */
+export function getMenuItemPosition(
+  menuHot: HotInstance,
+  visualRow: number,
+): { position: number; setSize: number } | null {
+  const rowCount = menuHot.countRows();
+  let position = 0;
+  let setSize = 0;
+
+  for (let row = 0; row < rowCount; row++) {
+    const item = menuHot.getSourceDataAtRow(row) as MenuItemLike | undefined;
+
+    if (!item || isItemSeparator(item) || menuHot.rowIndexMapper.isHidden(menuHot.toPhysicalRow(row))) {
+      continue;
+    }
+
+    setSize += 1;
+
+    if (row === visualRow) {
+      position = setSize;
+    }
+  }
+
+  return position > 0 ? { position, setSize } : null;
+}
+
+/**
  * Removes menu separators from the context menu items collection.
  *
  * @param {object[]} items The context menu items collection.
