@@ -200,6 +200,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Gesorteerd op [label], oplopend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Gesorteerd op [label], aflopend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortering verwijderd van [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Gesorteerd op [label], oplopend, sorteerprioriteit [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Gesorteerd op [label], aflopend, sorteerprioriteit [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Selectie van kolom [startColumn], rij [startRow] tot kolom [endColumn], rij [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle cellen geselecteerd',

@@ -205,6 +205,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortirano po [label], rastuće',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortirano po [label], opadajuće',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortiranje uklonjeno za [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortirano po [label], rastuće, prioritet sortiranja [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortirano po [label], opadajuće, prioritet sortiranja [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Izbor od kolone [startColumn], reda [startRow] do kolone [endColumn], reda [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Sve ćelije izabrane',

@@ -10,7 +10,7 @@
       {
         "region": "grid",
         "role": "gridcell",
-        "name": "Select whole grid",
+        "name": " ",
         "cell": [
           -1,
           -1
@@ -189,7 +189,7 @@
       {
         "region": "grid",
         "role": "gridcell",
-        "name": "Select whole grid",
+        "name": " ",
         "cell": [
           -1,
           -1

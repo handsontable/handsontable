@@ -200,6 +200,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Ordenado por [label], ascendente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Ordenado por [label], descendente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Se quitó el orden de [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Ordenado por [label], ascendente, prioridad de ordenación [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Ordenado por [label], descendente, prioridad de ordenación [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Selección de la columna [startColumn], fila [startRow] a la columna [endColumn], fila [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Todas las celdas seleccionadas',

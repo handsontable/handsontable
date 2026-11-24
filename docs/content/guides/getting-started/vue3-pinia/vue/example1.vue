@@ -119,7 +119,7 @@ onMounted(() => {
     <HotTable ref="wrapper" :settings="hotSettings" />
     <div id="pinia-preview">
       <strong>Pinia store dump:</strong>
-      <pre></pre>
+      <pre tabindex="0" role="region" aria-label="Pinia store dump"></pre>
     </div>
   </div>
 </template>

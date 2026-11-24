@@ -94,7 +94,7 @@
       "action": {"press": "ArrowDown"},
       "after": {"visible": ".hfe-error"},
       "expect": [["name"], ["nope"]],
-      "note": "ArrowDown moves to C3, whose formula calls an unknown function (`=NOPE(A3)+N(\"check\")`). The cell shows `#NAME?` and carries the error's short message as its description (`Function name NOPE not recognized.`), and the error popup opens for it. Required: the error value and the unknown name; the message wording is HyperFormula's and is not asserted. Finding: VoiceOver reads the error value and the invalid state but not the description that names the unknown function."
+      "note": "ArrowDown moves to C3, whose formula calls an unknown function (`=NOPE(A3)+N(\"check\")`). The cell shows `#NAME?`, and the error popup opens for it: hyperformula-ui adds the popup to the cell's description, so the description holds the error message (`Function name NOPE not recognized.`) while the popup is open. Required: the error value and the unknown name; the message wording is HyperFormula's and is not asserted. Finding: VoiceOver reads the error value and the invalid state but not the description that names the unknown function."
     }
   ]
 }

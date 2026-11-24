@@ -192,7 +192,6 @@
       "title": "The formula builder's error cell points aria-errormessage at its error popup, a tooltip with no live region, which axe rejects",
       "tracker": "DEV-4032",
       "match": [
-        { "source": "axe", "axeIssues": ["formula-builder-error-message-reference"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-valid-attr-value"], "where": ["^td\\.hfe-cell--error"] }
       ]
     },
@@ -450,8 +449,8 @@
     },
     {
       "id": "voiceover-error-cell-description-silent",
-      "title": "VoiceOver, with Chromium and with WebKit, does not read the message a formula error cell carries in aria-description (`Function name NOPE not recognized.`): it says the error value and that the data is invalid, where NVDA reads the message too",
-      "tracker": "DEV-4032",
+      "title": "VoiceOver, with Chromium and with WebKit, does not read a formula error cell's message (`Function name NOPE not recognized.`): it says the error value and that the data is invalid, where NVDA reads the message too",
+      "tracker": "DEV-4181",
       "match": [
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["formula-builder"], "where": ["^error-cell$"] }
       ]
@@ -648,7 +647,7 @@
     {
       "id": "docs-copy-button-hidden-focus",
       "title": "A code block's copy button stays invisible when it has the keyboard focus",
-      "tracker": "DEV-4018",
+      "tracker": "DEV-4174",
       "match": [
         { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^div\\.copy button$"] }
       ]
@@ -704,7 +703,7 @@
     {
       "id": "docs-sticky-header-hides-focus",
       "title": "The sticky header hides a focused link when Shift+Tab scrolls it to the top of the window",
-      "tracker": "DEV-4018",
+      "tracker": "DEV-4174",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-obscured"] }
       ]

@@ -219,7 +219,7 @@ The demo below showcases some the options in an interactive example.
 
 :::
 
-#### API methods
+### API methods
 
 When working with object-based MultiSelect data, you can use methods like [`getSourceData()`](@/api/core.md#getsourcedata), [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell), [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow) etc., to get the data array in its original object format with both `key` and `value` properties. The [`getData()`](@/api/core.md#getdata) method will return only the `value` property's value in the array.
 

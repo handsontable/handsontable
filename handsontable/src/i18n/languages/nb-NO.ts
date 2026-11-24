@@ -200,6 +200,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortert etter [label], stigende',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortert etter [label], synkende',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortering fjernet fra [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortert etter [label], stigende, sorteringsprioritet [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortert etter [label], synkende, sorteringsprioritet [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Valg fra kolonne [startColumn], rad [startRow] til kolonne [endColumn], rad [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle celler valgt',

@@ -344,25 +344,91 @@ describe.each([
   });
 
   if (pluginKey === 'multiColumnSorting') {
-    it('should announce the column of a Ctrl+click and a Shift+Enter, not the whole stack', () => {
+    /**
+     * Presses a header with Ctrl held, which adds the column to the sort.
+     *
+     * @param {number} column The visual column.
+     */
+    const ctrlClickHeader = (column) => {
+      const ctrlSpy = jest.spyOn(hot.getShortcutManager(), 'isCtrlPressed').mockReturnValue(true);
+
+      clickHeader(column, { ctrlKey: true });
+      ctrlSpy.mockRestore();
+    };
+
+    it('should announce the column of a Ctrl+click and a Shift+Enter with its place in the sort (DEV-4013)', () => {
       buildGrid();
 
       clickHeader(0);
-
-      const ctrlSpy = jest.spyOn(hot.getShortcutManager(), 'isCtrlPressed').mockReturnValue(true);
-
-      clickHeader(1, { ctrlKey: true });
-      ctrlSpy.mockRestore();
       settle();
 
-      expect(region('polite')).toBe('Sorted by Age, ascending');
+      expect(region('polite')).toBe('Sorted by Name, ascending');
+
+      ctrlClickHeader(1);
+      settle();
+
+      expect(region('polite')).toBe('Sorted by Age, ascending, sort priority 2');
       expect(hot.getPlugin(pluginKey).getSortConfig()).toHaveLength(2);
 
       hot.selectCell(-1, 2);
       pressOnHeader(['Shift', 'Enter']);
       settle();
 
-      expect(region('polite')).toBe('Sorted by Tag, ascending');
+      expect(region('polite')).toBe('Sorted by Tag, ascending, sort priority 3');
+    });
+
+    it('should announce the place the header draws when a sorted column is pressed again', () => {
+      buildGrid();
+
+      clickHeader(0);
+      ctrlClickHeader(1);
+      // A Ctrl+click on a sorted column changes its direction and moves it to the end of the sort.
+      ctrlClickHeader(0);
+      settle();
+
+      expect(region('polite')).toBe('Sorted by Name, descending, sort priority 2');
+      expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([
+        { column: 1, sortOrder: 'asc' },
+        { column: 0, sortOrder: 'desc' },
+      ]);
+    });
+
+    it('should announce no place once one sorted column is left', () => {
+      buildGrid();
+
+      clickHeader(0);
+      ctrlClickHeader(1);
+      ctrlClickHeader(1);
+      ctrlClickHeader(1);
+      settle();
+
+      expect(region('polite')).toBe('Sorting removed from Age');
+
+      ctrlClickHeader(0);
+      settle();
+
+      expect(region('polite')).toBe('Sorted by Name, descending');
+    });
+
+    it('should announce the place in the translated phrase', () => {
+      buildGrid({ language: 'pl-PL' });
+
+      clickHeader(0);
+      ctrlClickHeader(1);
+      settle();
+
+      expect(region('polite')).toBe('Posortowano według Age, rosnąco, priorytet sortowania 2');
+    });
+
+    it('should fall back to the English phrase with the place when the language pack lacks it', () => {
+      Handsontable.languages.registerLanguageDictionary({ languageCode: 'xy-XY', 'Common:ok': 'ok' });
+      buildGrid({ language: 'xy-XY' });
+
+      clickHeader(0);
+      ctrlClickHeader(1);
+      settle();
+
+      expect(region('polite')).toBe('Sorted by Age, ascending, sort priority 2');
     });
   }
 });

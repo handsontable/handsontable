@@ -118,7 +118,8 @@ test('update-docs-changelog reads CHANGELOG_FILE', () => {
   const result = fs.readFileSync(docs, 'utf8');
 
   assert.match(result, /## 19\.0\.0-rc1/);
-  assert.match(result, /#### Fixed/);
+  assert.match(result, /^### Fixed$/m);
+  assert.doesNotMatch(result, /^#### /m);
   assert.match(result, /- From the file/);
   assert.ok(result.indexOf('19.0.0-rc1') < result.indexOf('## 18.1.2'));
 });

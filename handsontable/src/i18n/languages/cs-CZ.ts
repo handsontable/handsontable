@@ -200,6 +200,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Seřazeno podle [label], vzestupně',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Seřazeno podle [label], sestupně',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Řazení odebráno ze sloupce [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Seřazeno podle [label], vzestupně, priorita řazení [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Seřazeno podle [label], sestupně, priorita řazení [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Výběr od sloupce [startColumn], řádku [startRow] do sloupce [endColumn], řádku [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Všechny buňky vybrány',

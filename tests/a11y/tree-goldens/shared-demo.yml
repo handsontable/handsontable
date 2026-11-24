@@ -178,8 +178,8 @@
       - gridcell "15-1118785"
       - gridcell "Philippines"
   - rowgroup:
-    - row "Select whole grid Company name Name Sell date In stock Qty Progress Rating Order ID Country":
-      - gridcell "Select whole grid"
+    - row "Company name Name Sell date In stock Qty Progress Rating Order ID Country":
+      - gridcell
       - columnheader "Company name"
       - columnheader "Name"
       - columnheader "Sell date"
@@ -224,8 +224,8 @@
     - row "16":
       - rowheader "16"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
 # portal
 - status

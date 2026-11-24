@@ -198,6 +198,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'مرتب‌سازی بر اساس [label]، صعودی',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'مرتب‌سازی بر اساس [label]، نزولی',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'مرتب‌سازی از [label] حذف شد',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'مرتب‌سازی بر اساس [label]، صعودی، اولویت مرتب‌سازی [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'مرتب‌سازی بر اساس [label]، نزولی، اولویت مرتب‌سازی [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: 'انتخاب از ستون [startColumn]، ردیف [startRow] تا ستون [endColumn]، ردیف [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'همه سلول ها انتخاب شد',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'ستون [column] انتخاب شد',

@@ -137,7 +137,7 @@ A screen reader reads the value of the cell it moves onto. Some cells hold more 
 | The cell is | Its description reads |
 | --- | --- |
 | [Read-only](@/guides/cell-features/read-only-cells/read-only-cells.md) | `read only` |
-| A [link](@/guides/cell-features/clickable-links/clickable-links.md), made by `autoLink` or a `HYPERLINK` formula | `link` |
+| A link, made by `autoLink` or a `HYPERLINK` formula (see [Clickable links](@/guides/cell-features/clickable-links/clickable-links.md)) | `link` |
 | A [merged](@/guides/cell-features/merge-cells/merge-cells.md) block | `merged through row 4 column 3` |
 
 A cell that has several of these reads them in the order of the table, separated by commas. A [formula cell](@/guides/formulas/formula-calculation/formula-calculation.md#formula-cells-and-screen-readers) adds its formula to its name, so a read-only formula reads `3 Formula: =SUM(A1:B1)` and is described as `read only`.

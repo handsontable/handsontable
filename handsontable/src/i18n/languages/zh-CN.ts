@@ -197,6 +197,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已按 [label] 升序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '已按 [label] 降序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '已取消 [label] 的排序',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '已按 [label] 升序排序,优先级 [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '已按 [label] 降序排序,优先级 [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '已选择从第 [startColumn] 列、第 [startRow] 行到第 [endColumn] 列、第 [endRow] 行的区域',
   [C.SELECTION_ANNOUNCEMENT_ALL]: '已选择所有单元格',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '已选择第 [column] 列',

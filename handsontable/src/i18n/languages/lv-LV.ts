@@ -197,6 +197,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Kārtots pēc [label], augošā secībā',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Kārtots pēc [label], dilstošā secībā',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Kārtošana noņemta no [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Kārtots pēc [label], augošā secībā, kārtošanas prioritāte [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Kārtots pēc [label], dilstošā secībā, kārtošanas prioritāte [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Atlasīts no kolonnas [startColumn], rindas [startRow] līdz kolonnai [endColumn], rindai [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Atlasītas visas šūnas',
