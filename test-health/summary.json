@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-25T14:34:43.827Z",
+  "generatedAt": "2026-11-25T14:56:56.020Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -265,7 +265,7 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 521,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 17,
+      "count7": 16,
       "count30": 20,
       "countAll": 20,
       "runs30": 13,
