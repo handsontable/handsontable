@@ -930,6 +930,7 @@ These changes apply only if you use the feature, option, or API the change names
 | [`checked` is reserved in menu items](#checked-is-a-reserved-context-menu-item-property) | Custom menu items with a `checked` property | Rename your property |
 | [HTML output and the sanitizer](#html-output-changes-for-trustedhtml-paste-tohtml-headers-and-character-references) | `TrustedHTML` sanitizers, `toHTML()` header markup, and named character references | Check `TrustedHTML` paste, `toHTML()` header markup, and named character references |
 | [`removeCellMeta()` accepts any index](#removecellmeta-accepts-an-index-past-the-grids-range) | Code that relies on the out-of-range error | Guard the index yourself |
+| [`AutoRowSize` settings drop `useHeaders`](#the-autorowsize-plugins-settings-no-longer-include-useheaders) | Code that reads `useHeaders` from the `AutoRowSize` settings | Remove the read |
 
 ### 1. Icons are rendered as `<i>` elements
 
@@ -2718,6 +2719,18 @@ if (row < hot.countRows() && column < hot.countCols()) {
   there without an error.
 
 :::
+
+### 35. The `AutoRowSize` plugin's settings no longer include `useHeaders`
+
+In 18.1, the default settings of the [`AutoRowSize`](@/api/autoRowSize.md) plugin held a `useHeaders: true` key that
+nothing read. 19.0 removes it. Row heights are measured exactly as before, but
+`hot.getPlugin('autoRowSize').getSetting('useHeaders')` returns `undefined` instead of `true`, and the object
+`getSetting()` returns has no `useHeaders` key.
+
+**Affects:** Code that reads `useHeaders` from the `AutoRowSize` plugin's settings.
+
+**Do:** Remove the read. `AutoRowSize` never used the value. To decide whether column headers count toward column
+widths, set `useHeaders` in the [`autoColumnSize`](@/api/options.md#autocolumnsize) option, which still reads it.
 
 ## TypeScript-only changes
 
