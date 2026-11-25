@@ -76,6 +76,18 @@
   margin-top: 0;
 }
 
+/* An example's own output (a log, a value readout) wraps at narrow widths
+   instead of being cut off by .hot-example (WCAG 1.4.10). The grid keeps its
+   own text rules. */
+.hot-example-preview pre:not(:where(.handsontable *)) {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hot-example-preview code:not(:where(.handsontable *)) {
+  overflow-wrap: anywhere;
+}
+
 /* Hide the loader once the example has mounted */
 .hot-example-preview:not(.hot-example-preview--loading) .hot-example-loader {
   display: none;

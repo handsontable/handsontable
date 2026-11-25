@@ -14,6 +14,9 @@ registerCellType(TextCellType);
 const ROWS = 9;
 const COLS = 9;
 const MINE_COUNT = 10;
+const CELL_SIZE = 36;
+const NARROW_CELL_SIZE = 28;
+const NARROW_SCREEN_QUERY = '(max-width: 24.5rem)';
 
 // ---------------------------------------------------------------------------
 // Game state
@@ -352,10 +355,12 @@ function init() {
     hot.render();
   }
 
+  const cellSize = window.matchMedia(NARROW_SCREEN_QUERY).matches ? NARROW_CELL_SIZE : CELL_SIZE;
+
   const hot = new Handsontable(gridEl, {
     data,
-    colWidths: 36,
-    rowHeights: 36,
+    colWidths: cellSize,
+    rowHeights: cellSize,
     rowHeaderWidth: 30,
     readOnly: true,
     editor: false,

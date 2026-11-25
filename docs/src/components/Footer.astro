@@ -155,10 +155,12 @@ const year = new Date().getFullYear();
     display: flex;
     font-size: var(--sl-text-xs);
     justify-content: center;
+    min-width: 0;
+    overflow-wrap: anywhere;
     padding: 0.75rem 1rem;
+    text-align: center;
     text-decoration: none;
     transition: background-color 0.15s, color 0.15s;
-    white-space: nowrap;
   }
 
   .hot-footer__nav a:hover {
@@ -225,7 +227,11 @@ const year = new Date().getFullYear();
   /* ── Responsive footer on mobile ──────────────────────────────────────── */
   @media (max-width: 49.99rem) {
     .hot-footer__nav {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .hot-footer__nav a {
+      padding-inline: 0.5rem;
     }
 
     .hot-footer__bottom {

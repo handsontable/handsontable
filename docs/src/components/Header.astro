@@ -358,6 +358,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
 <!-- Mobile navigation: overlay, sidebar delegation, ToC panel, breadcrumbs -->
 <script>
   import { createFocusTrap } from '../scripts/a11y-utils';
+  import { syncSubheaderHeight } from '../lib/subheader-height.mjs';
 
   let cleanupPrevious: (() => void) | null = null;
 
@@ -380,6 +381,9 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     if (subheader && subheader.parentElement !== document.body) {
       document.body.appendChild(subheader);
     }
+    const stopSubheaderSync = subheader
+      ? syncSubheaderHeight(subheader as HTMLElement, document.documentElement)
+      : null;
     if (overlay && overlay.parentElement !== document.body) {
       document.body.appendChild(overlay);
     }
@@ -652,6 +656,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     // Store cleanup for view transitions
     cleanupPrevious = () => {
       controller.abort();
+      stopSubheaderSync?.();
       observer.disconnect();
       collapseObserver.disconnect();
       overlayTrapCleanup?.();

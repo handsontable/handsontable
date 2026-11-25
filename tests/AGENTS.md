@@ -1925,7 +1925,7 @@ counts as lost content.
   dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
   (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
   viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
-  box its clipping ancestors leave on screen, never between a control and one inside it, and only between
+  box its clipping ancestors leave on screen, more than a pixel deep on both axes, never between a control and one inside it, and only between
   two controls on the same layer: the page outside every popup is one layer and each popup element is one
   of its own, because a popup lies over what is under it by design, the page or another popup (a submenu
   over its menu), and Escape closes it). The formula builder's suggestion list and function help count as popups and its formula bar as a
@@ -2365,7 +2365,10 @@ and of `.github/workflows/website-a11y.yml`.
   `overflow: hidden` or `clip` container cuts off, read from each text node's box against its container's
   (`text-truncated` when an ellipsis ends it), controls drawn over each other on one layer (a link that wraps
   onto two lines has one box around both lines, so it is left out, and so is a control in a fixed layer outside
-  the viewport), and a fixed layer whose text reaches past the viewport where scrolling cannot bring it: its
+  the viewport), judged as the product check judges them: on the part of each box its clipping ancestors show
+  (a checkbox scrolled out of a list's view is not over the button under the list), and only when the shared
+  part is more than a pixel on both axes (boxes come back as 32-bit floats, which step by 1/32 px some 300,000 px
+  down the API reference, so two footer links that share an edge read as a 6 px² overlap), and a fixed layer whose text reaches past the viewport where scrolling cannot bring it: its
   text, not its box, since a column can be wider than what it holds, and text inside a scroll area is reachable
   while the area shows.
 - **`<site>-forced-colors-motion`** (`forced-colors-motion.spec.ts`): each sample page at rest watched for five

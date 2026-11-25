@@ -34,7 +34,8 @@ interface Layout {
   offenders: Array<{ selector: string; right: number }>;
   exempt: number;
   texts: Array<Record<string, unknown> & { selector: string }>;
-  controls: Array<{ id: number; selector: string; left: number; top: number; right: number; bottom: number; within: number[]; layer: number }>;
+  controls: Array<{ id: number; selector: string; left: number; top: number; right: number; bottom: number; within: number[]; layer: number;
+    clip?: { left: number; top: number; right: number; bottom: number } }>;
   surfaces: Array<{ selector: string; surface: string; left: number; right: number; top: number; bottom: number; fixed: boolean }>;
 }
 
@@ -293,6 +294,44 @@ async function measure(page: Page, grid: string): Promise<Layout> {
       .filter(element => shown(element) && !inGrid(element) && element.getBoundingClientRect().width > 0 && element.getClientRects().length === 1
         && onViewport(element));
     const layers = new Map<Element, number>();
+    const clipOf = (element: Element) => {
+      let clip: { left: number; top: number; right: number; bottom: number } | undefined;
+
+      if (getComputedStyle(element).position === 'fixed') {
+        return clip;
+      }
+
+      for (let ancestor = element.parentElement; ancestor && ancestor !== document.body; ancestor = ancestor.parentElement) {
+        const style = getComputedStyle(ancestor);
+        const [clipsX, clipsY] = [style.overflowX !== 'visible', style.overflowY !== 'visible'];
+
+        if (!clipsX && !clipsY) {
+          if (style.position === 'fixed') {
+            break;
+          }
+          continue;
+        }
+
+        const box = ancestor.getBoundingClientRect();
+        const left = box.left + ancestor.clientLeft + scrollX;
+        const top = box.top + ancestor.clientTop + scrollY;
+
+        clip = clip ?? { left: -Infinity, top: -Infinity, right: Infinity, bottom: Infinity };
+        if (clipsX) {
+          clip.left = Math.max(clip.left, left);
+          clip.right = Math.min(clip.right, left + ancestor.clientWidth);
+        }
+        if (clipsY) {
+          clip.top = Math.max(clip.top, top);
+          clip.bottom = Math.min(clip.bottom, top + ancestor.clientHeight);
+        }
+        if (style.position === 'fixed') {
+          break;
+        }
+      }
+
+      return clip;
+    };
     const controls = controlElements.map((element, id) => {
       const rect = element.getBoundingClientRect();
       const fixed = fixedOf(element);
@@ -310,6 +349,7 @@ async function measure(page: Page, grid: string): Promise<Layout> {
         bottom: rect.bottom + scrollY,
         within: controlElements.map((other, index) => (other !== element && other.contains(element) ? index : -1)).filter(index => index >= 0),
         layer: fixed ? layers.get(fixed)! : 0,
+        clip: clipOf(element),
       };
     });
     // A fixed layer is judged by where its text is, not by its box (a column can be wider than what it holds). A text

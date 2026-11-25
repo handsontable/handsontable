@@ -191,6 +191,39 @@ test('one control drawn over two neighbors is two findings, each named by its pa
   assert.equal(new Set(ids).size, 2, 'a run-to-run compare tells the two overlaps apart, and fixing one clears its id');
 });
 
+test('two controls that share an edge do not overlap, even when the edge is long and the boxes round past it', () => {
+  const findings = overlapFindings({
+    condition: 'zoom-200',
+    controls: [
+      { id: 0, selector: 'nav.hot-footer__nav a', left: 17, top: 296553.03125, right: 216, bottom: 296601.03125, within: [] },
+      { id: 1, selector: 'a.hot-footer__cell', left: 17, top: 296601, right: 216, bottom: 296642, within: [] },
+      { id: 2, selector: 'button.over', left: 17, top: 296599, right: 216, bottom: 296620, within: [] },
+    ],
+  });
+
+  assert.deepEqual(findings.map(item => [item.selector, item.measured.area]), [
+    ['nav.hot-footer__nav a × button.over', 404],
+    ['a.hot-footer__cell × button.over', 3781],
+  ]);
+});
+
+test('a control is judged by the part its clipping ancestors show', () => {
+  const findings = overlapFindings({
+    condition: 'reflow-320',
+    controls: [
+      { id: 0, selector: 'button.source', left: 0, top: 300, right: 140, bottom: 340, within: [] },
+      { id: 1, selector: 'input.scrolled-away', left: 10, top: 310, right: 26, bottom: 326, within: [], clip: { left: 0, top: 0, right: 300, bottom: 280 } },
+      { id: 2, selector: 'input.half-shown', left: 40, top: 270, right: 56, bottom: 330, within: [], clip: { left: 0, top: 0, right: 300, bottom: 320 } },
+      { id: 3, selector: 'input.unclipped', left: 100, top: 310, right: 116, bottom: 326, within: [] },
+    ],
+  });
+
+  assert.deepEqual(findings.map(item => [item.selector, item.measured.area]), [
+    ['button.source × input.half-shown', 320],
+    ['button.source × input.unclipped', 256],
+  ]);
+});
+
 test('a popup lies over what is under it by design: its controls overlap only the controls of the same popup', () => {
   const findings = overlapFindings({
     condition: 'reflow-320',
