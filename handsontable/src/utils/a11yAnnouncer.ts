@@ -107,6 +107,10 @@ export function uninstall(rootPortalElement?: HTMLElement) {
 /**
  * Announces a message to assistive technologies by updating the content of the a11y announcer element.
  *
+ * The message is written 100 ms after the call. A newer call into the same region within that time
+ * replaces the pending message, so the earlier one is never written: two polite messages for one
+ * gesture, less than 100 ms apart, reach the screen reader as the second one only.
+ *
  * @param {string} message The message to announce.
  * @param {AnnouncementPoliteness} [politeness='assertive'] `polite` waits for the screen reader to
  * finish what it is reading, which suits a confirmation of an action the user just took.

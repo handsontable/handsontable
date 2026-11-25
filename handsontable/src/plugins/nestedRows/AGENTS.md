@@ -995,8 +995,8 @@ row semantics. Six things look simpler than they are.
   - **One gesture, one message.** `toggleParentByUser()` raises `#isUserToggleRunning` around the
     choke point: a collapse that strands the selection re-selects the collapsed parent (the stranded-selection
     guard), and without the flag that move added a level message on top of "Collapsed row 1". The
-    highlight is still recorded while the flag is up. `announce()` does not coalesce by itself: two
-    calls within its 100 ms write both messages into the region one after the other.
+    highlight is still recorded while the flag is up. `announce()` keeps one pending write per region:
+    a second call within its 100 ms replaces the first message, which is never written.
   - **The stranded-selection restore never announces, whoever collapsed.** A public `collapseParent()`
     or `collapseAll()` on a grid that listens re-selects the parent the same way, outside
     `toggleParentByUser()`, and that announced the parent's level although the public methods do not

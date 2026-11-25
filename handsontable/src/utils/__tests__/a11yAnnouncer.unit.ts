@@ -5,9 +5,31 @@ import {
   getAnnouncementCount,
 } from '../a11yAnnouncer';
 
+/**
+ * More installations than any test makes, so releasing that many leaves none behind.
+ */
+const MAX_INSTALLATIONS_PER_TEST = 10;
+
+/**
+ * Releases every installation and pending write a test left behind, so a test that fails before its
+ * own `uninstall()` does not leave the regions installed for the tests after it. `uninstall()` without
+ * an argument does nothing once nothing is installed.
+ */
+function releaseAllInstallations() {
+  jest.clearAllTimers();
+
+  for (let index = 0; index < MAX_INSTALLATIONS_PER_TEST; index += 1) {
+    uninstall();
+  }
+}
+
 describe('a11yAnnouncer', () => {
   beforeAll(() => {
     jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    releaseAllInstallations();
   });
 
   afterAll(() => {
