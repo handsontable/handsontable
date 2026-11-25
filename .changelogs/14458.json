@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where `merge()` called inside `batch()` after a column move, a row move, or a sort merged the wrong cells. In that case, `merge()` and `unmerge()` now take effect when the batch ends. Also fixed a merge made before a column move in a batch that did not follow the column, and the undo of a batch that holds a reorder and a merge, which left the merge in place.",
+  "type": "fixed",
+  "issueOrPR": 14458,
+  "breaking": false,
+  "framework": "none"
+}
