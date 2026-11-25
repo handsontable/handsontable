@@ -316,6 +316,23 @@ export class CommentsEditorResizePage {
   }
 
   /**
+   * Adds a text field below the grid, for a spec that needs the focus outside the grid.
+   *
+   * @returns {Promise<Locator>}
+   */
+  async addOutsideField(): Promise<Locator> {
+    await this.page.evaluate(() => {
+      const field = document.createElement('input');
+
+      field.setAttribute('data-testid', 'outside-field');
+      field.setAttribute('aria-label', 'Outside field');
+      document.body.appendChild(field);
+    });
+
+    return this.page.getByTestId('outside-field');
+  }
+
+  /**
    * The highlighted cell of the active selection, or null when nothing is selected.
    *
    * @returns {Promise<[number, number] | null>}

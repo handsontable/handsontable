@@ -311,7 +311,7 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments/co
 | <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>⌥</kbd>+<kbd>**M**</kbd> | Add or edit a comment                                                      | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd> | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**R**</kbd> | Resize the comment box with the arrow keys (<kbd>**Enter**</kbd> keeps the size, <kbd>**Escape**</kbd> cancels), while the comment has the focus | &cross; | &cross; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment, and return the focus to the cell     | &cross; | &check; |
-| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving and return the focus to the cell. Also hides a comment shown on hover | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving and return the focus to the cell. Also hides a comment shown on hover, wherever the focus is. The page still receives the key | &cross; | &cross; |
 | <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                         | Save and exit the current comment, move the selection to the next cell     | &cross; | &cross; |
 | <kbd>**Shift + Tab**</kbd>                              | <kbd>**Shift + Tab**</kbd>                                 | Save and exit the current comment, move the selection to the previous cell | &cross; | &cross; |
 

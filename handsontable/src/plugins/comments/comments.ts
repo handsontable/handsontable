@@ -366,9 +366,12 @@ export class Comments extends BasePlugin {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
       this.#displaySwitch.addLocalHook('hide', () => this.hide());
       this.#displaySwitch.addLocalHook('show', (row: number, col: number) => {
-        this.showAtCell(row, col);
-        // Set after the show, which clears the flag.
-        this.#shownByHover = this.#editor?.isVisible() ?? false;
+        // Set after the show, which clears the flag, and only when the show succeeded: a failed one
+        // (the cell left the grid inside the display delay) returns before it clears anything, and
+        // the comment on screen may be one the API opened.
+        if (this.showAtCell(row, col)) {
+          this.#shownByHover = true;
+        }
       });
     }
 
@@ -461,22 +464,6 @@ export class Comments extends BasePlugin {
       },
       stopPropagation: true,
       runOnlyIf: (): boolean => !!(this.hot.getSelectedRangeActive()?.highlight.isCell()),
-      group: SHORTCUTS_GROUP,
-    });
-
-    // A comment a hover opened is not focused, so the grid's context is the active one and the
-    // plugin's own Escape below never runs for it. Without this shortcut only a pointer move could
-    // hide such a comment (WCAG 1.4.13). It returns nothing and leaves the event's default alone, so
-    // the grid's other Escape shortcuts and the host page's own Escape handling work as before. A
-    // comment the API opened stays: an application may show one on purpose.
-    gridContext?.addShortcut({
-      keys: [['Escape']],
-      callback: () => {
-        this.hide();
-      },
-      runOnlyIf: (): boolean =>
-        !!(this.#shownByHover && this.#editor?.isVisible() && !this.#editor?.isFocused()),
-      preventDefault: false,
       group: SHORTCUTS_GROUP,
     });
 
@@ -583,6 +570,7 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseover', onMouseOver);
     this.eventManager.addEventListener(rootDocument, 'mousedown', onMouseDown);
     this.eventManager.addEventListener(rootDocument, 'mouseup', onMouseUp);
+    this.eventManager.addEventListener(rootDocument, 'keydown', this.#onDocumentKeyDown);
 
     if (this.#gridShadowRoot) {
       this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseover', onMouseOver);
@@ -1248,6 +1236,31 @@ export class Comments extends BasePlugin {
 
     } else if (this.#isInRenderedTree(target)) {
       this.#displaySwitch?.hide();
+    }
+  };
+
+  /**
+   * `keydown` event callback of the document: Escape hides a comment that a hover opened.
+   *
+   * Such a comment is not focused, so the plugin's own Escape shortcut never runs for it, and without
+   * this only a pointer move could hide it (WCAG 1.4.13). It is a document listener and not a shortcut
+   * of the `grid` context, because a shortcut runs only while the grid listens: a user whose focus is
+   * in a field next to the grid could hover a comment and not dismiss it. The event's default is left
+   * alone, so the grid's own Escape shortcuts and the host page's Escape handling work as before. A
+   * comment the API opened stays: an application may show one on purpose.
+   *
+   * @param {Event} event The `keydown` event.
+   */
+  #onDocumentKeyDown = (event: Event) => {
+    const { key, isComposing } = event as KeyboardEvent;
+
+    // An Escape that ends an IME composition belongs to the field the user types in.
+    if (key !== 'Escape' || isComposing) {
+      return;
+    }
+
+    if (this.#shownByHover && this.#editor?.isVisible() && !this.#editor.isFocused()) {
+      this.hide();
     }
   };
 
