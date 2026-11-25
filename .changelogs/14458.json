@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where `merge()` called inside `batch()` after a column move, a row move, or a sort merged the wrong cells, and where a merge made before a column move in a batch did not follow the column.",
+  "type": "fixed",
+  "issueOrPR": 14458,
+  "breaking": false,
+  "framework": "none"
+}
