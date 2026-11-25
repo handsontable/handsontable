@@ -20,7 +20,6 @@
       - columnheader "B"
       - columnheader "C"
       - columnheader "D"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -29,7 +28,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - combobox "D, row 1":
     - option "Option A"
     - option "Option B"

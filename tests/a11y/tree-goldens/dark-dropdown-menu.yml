@@ -21,7 +21,6 @@
       - gridcell
       - columnheader "Name"
       - columnheader "Color"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -36,7 +35,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "Color, row 1"
 # portal
 - menu "Column menu":

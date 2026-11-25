@@ -78,7 +78,6 @@
       - columnheader "Country"
       - columnheader "Name"
       - columnheader "Qty"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -111,7 +110,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 - alertdialog "Loading...":
   - heading "Loading..." [level=2]
 # portal

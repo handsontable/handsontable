@@ -32,7 +32,6 @@
       - columnheader "Check all (1 of 5 checked) Done":
         - checkbox "Check all (1 of 5 checked)" [checked=mixed]
         - text: Done
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -49,7 +48,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 # portal
 - status
 - status

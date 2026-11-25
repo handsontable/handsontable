@@ -12,7 +12,6 @@
       - gridcell
       - columnheader "A"
       - columnheader "B"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -21,7 +20,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 - button "Add sheet"
 - button "All sheets"
 - group "Sheets":

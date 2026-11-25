@@ -29,7 +29,6 @@
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -44,7 +43,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - combobox "Formula editor" [expanded]: =SU
 # portal
 - status

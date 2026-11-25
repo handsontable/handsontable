@@ -79,7 +79,6 @@
       - columnheader "H2"
       - columnheader "I2"
       - columnheader "J2"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -98,7 +97,6 @@
       - gridcell
     - row:
       - gridcell
-  - rowgroup
 # portal
 - status
 - status

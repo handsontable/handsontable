@@ -15,7 +15,6 @@
       - gridcell
       - columnheader "Name"
       - columnheader "Value"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -26,7 +25,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 - text: "The license key for Handsontable does not include these features: Filters. They are turned off. To add them, contact"
 - link "sales@handsontable.com":
   - /url: mailto:sales@handsontable.com

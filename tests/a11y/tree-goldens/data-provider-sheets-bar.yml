@@ -21,7 +21,6 @@
       - gridcell
       - columnheader "ID"
       - columnheader "Fetch"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -36,7 +35,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "ID, row 1"
 - button "Add sheet"
 - button "All sheets"

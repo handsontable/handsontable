@@ -78,7 +78,6 @@
       - columnheader "Country"
       - columnheader "Name"
       - columnheader "Qty"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -111,7 +110,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 - alertdialog "Confirm":
   - heading "Confirm" [level=2]
   - paragraph: This is a confirm

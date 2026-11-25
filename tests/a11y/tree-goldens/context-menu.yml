@@ -39,7 +39,6 @@
       - columnheader "C"
       - columnheader "D"
       - columnheader "E"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -54,7 +53,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "B, row 2"
 # portal
 - menu "Context menu":

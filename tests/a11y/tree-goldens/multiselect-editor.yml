@@ -15,7 +15,6 @@
       - gridcell
       - columnheader "A"
       - columnheader "B"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -26,7 +25,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - group "Select options":
     - textbox "Search options":
       - /placeholder: Search...

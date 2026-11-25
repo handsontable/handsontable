@@ -27,7 +27,6 @@
       - columnheader "Name"
       - columnheader "Price" [selected]
       - columnheader "Stock"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -42,7 +41,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "Header name": Price
 # portal
 - status

@@ -42,7 +42,7 @@
       "title": "The overlay clones split the accessibility tree: the column headers read after the data, each row is exposed twice, the row headers sit apart from their rows, and a screen reader loses the cell's row index (VoiceOver with Chromium names a cell's column one lower)",
       "tracker": "DEV-3652",
       "match": [
-        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["headers-after-data", "row-exposed-twice", "row-headers-apart"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["cell-exposed-twice", "headers-after-data", "row-exposed-twice", "row-headers-apart"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-needs-review"], "rules": ["aria-required-children"], "where": ["^(tbody|thead)\\[role=\"rowgroup\"\\]$"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(into-column-header|into-row-header|up-to-header-for-sort)$"] },
         { "source": "reader", "kinds": ["traversal-off"], "pages": ["reading-mode-traversal"] },

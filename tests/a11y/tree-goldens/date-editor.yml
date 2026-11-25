@@ -31,7 +31,6 @@
       - columnheader "Required lenient"
       - columnheader "Time"
       - columnheader "Datetime"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -42,7 +41,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "Start, row 1": 2024-06-10
 # portal
 - status

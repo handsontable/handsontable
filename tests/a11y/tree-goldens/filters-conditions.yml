@@ -33,7 +33,6 @@
       - columnheader "Category"
       - columnheader "Price"
       - columnheader "Qty"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -48,7 +47,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "Price, row 1"
 # portal
 - menu "Column menu":

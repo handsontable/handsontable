@@ -73,7 +73,6 @@
       - columnheader "D"
       - columnheader "E"
       - columnheader "F"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -96,7 +95,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "B, row 2"
 # portal
 - textbox "Comment for B, row 2": A comment that has to stay visible while it is resized.

@@ -33,7 +33,6 @@
       - columnheader "Longer header text"
       - columnheader "City"
       - columnheader "Country"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -48,7 +47,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
   - textbox "Longer header text, row 1"
 # portal
 - menu "Column menu":

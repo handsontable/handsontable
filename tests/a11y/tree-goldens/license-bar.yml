@@ -15,7 +15,6 @@
       - gridcell
       - columnheader "A"
       - columnheader "B"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -26,7 +25,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 - text: The license key for Handsontable expired on May 24, 2011, and is not valid for the installed version <version>.
 - link "Renew":
   - /url: https://handsontable.com/pricing

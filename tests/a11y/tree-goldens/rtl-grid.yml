@@ -166,7 +166,6 @@
       - columnheader "L7"
       - columnheader "L8"
       - columnheader "L9"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -199,7 +198,6 @@
       - gridcell
     - row:
       - gridcell
-  - rowgroup
 # portal
 - status
 - status

@@ -12,10 +12,10 @@ import {
 } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
-  A11Y_ROWGROUP,
   A11Y_ROWINDEX,
   rebuildAccessibilityObject
 } from '../../../../helpers/a11y';
+import { dropRowGroupRole, dropRowRole, giveRowGroupRole } from './ariaAttributes';
 
 const ROW_CLASSNAMES = {
   rowEven: 'ht__row_even',
@@ -131,10 +131,16 @@ export class RowsRenderer extends BaseRenderer {
         turning off the "renderAllRows" option.`);
     }
 
+    // A row is a `row`, and its section a `rowgroup`, only while the row holds a cell: a side clone that was
+    // turned off is drawn one last time with the master's rows and none of its columns.
+    const rowsHoldCells = this.table.columnsToRender + this.table.rowHeadersCount > 0;
+
     if (this.table.isAriaEnabled()) {
-      setAttribute(this.rootNode as HTMLElement, [
-        A11Y_ROWGROUP()
-      ]);
+      if (rowsToRender > 0 && rowsHoldCells) {
+        giveRowGroupRole(this.rootNode as HTMLElement);
+      } else {
+        dropRowGroupRole(this.rootNode as HTMLElement);
+      }
     }
 
     // A reader keeps the position it learned for a row. When the column headers that shift every row's index
@@ -165,7 +171,7 @@ export class RowsRenderer extends BaseRenderer {
         continue; // eslint-disable-line no-continue
       }
 
-      if (this.table.isAriaEnabled()) {
+      if (this.table.isAriaEnabled() && rowsHoldCells) {
         setAttribute(TR, [
           A11Y_ROW(),
           // `aria-rowindex` is incremented by both tbody and thead rows.
@@ -177,6 +183,8 @@ export class RowsRenderer extends BaseRenderer {
         if (rebuildAllRows) {
           rebuildAccessibilityObject(TR);
         }
+      } else if (this.table.isAriaEnabled()) {
+        dropRowRole(TR);
       }
 
       if ((sourceRowIndex + 1) % 2 === 0) {

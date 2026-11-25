@@ -19,7 +19,6 @@
       - columnheader "SKU"
       - columnheader "Name"
       - columnheader "Price"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -30,7 +29,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 # portal
 - status
 - status

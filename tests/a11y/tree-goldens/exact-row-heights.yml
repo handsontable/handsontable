@@ -27,7 +27,6 @@
       - columnheader "Task"
       - columnheader "Reviewed"
       - columnheader "Status"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -40,7 +39,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 # portal
 - status
 - status

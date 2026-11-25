@@ -189,7 +189,6 @@
       - columnheader "Rating"
       - columnheader "Order ID"
       - columnheader "Country"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -226,7 +225,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 # portal
 - status
 - status

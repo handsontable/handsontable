@@ -32,7 +32,6 @@
       - columnheader "Select all rows (1 of 5 selected) Done":
         - checkbox "Select all rows (1 of 5 selected)" [checked=mixed]
         - text: Done
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -49,7 +48,6 @@
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 # portal
 - status
 - status

@@ -43,6 +43,9 @@ function createFixture(): Fixture {
       return state.rowsToRender;
     },
     columnsToRender: 2,
+    get rowHeadersCount() {
+      return state.rowHeadersCount;
+    },
     rows,
     rowHeaders,
     rowFilter: { offset: 0 },

@@ -1,6 +1,5 @@
 # grid
 - treegrid:
-  - rowgroup
   - rowgroup:
     - row "Company name Country Name Sell date Order ID In stock Qty":
       - gridcell
@@ -11,12 +10,9 @@
       - columnheader "Order ID"
       - columnheader "In stock"
       - columnheader "Qty"
-  - rowgroup
-  - rowgroup
   - rowgroup:
     - row:
       - gridcell
-  - rowgroup
 - group "No data available There’s nothing to display yet.":
   - heading "No data available" [level=2]
   - paragraph: There’s nothing to display yet.
