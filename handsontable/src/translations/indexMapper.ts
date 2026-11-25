@@ -1061,8 +1061,6 @@ export class IndexMapper {
         hiddenIndexesChanged: this.hiddenIndexesChanged,
       };
 
-      this.#cacheRebuilds += 1;
-
       try {
         this.runLocalHooks('beforeCacheUpdate', indexesChangesState);
 
@@ -1073,6 +1071,8 @@ export class IndexMapper {
         this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
         this.cacheFromPhysicalToVisualIndexes();
         this.cacheFromVisualToRenderableIndexes();
+        // Counted once the caches are written: a listener that throws before this point leaves the old ones.
+        this.#cacheRebuilds += 1;
 
         // Currently there's support only for the "hiding" map type.
         if (this.hiddenIndexesChanged) {

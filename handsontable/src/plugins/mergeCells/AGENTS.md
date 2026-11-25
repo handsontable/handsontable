@@ -1206,13 +1206,21 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
 - **The queue runs in order, and a call a listener makes while it runs waits behind it.** The flush takes entries off
   the queue one at a time and sets `#isFlushingDeferredOperations`, so an `afterMergeCells` listener that calls
   `merge()`, or a nested `batch()`, lands after the entries still waiting, not between them.
-- **A call whose grid changed size is dropped with a warning.** The corners are physical indexes, and `alter()` renumbers
-  them. Each entry records the number of rows and columns the mappers had, and `#runDeferredEntry()` drops it when
-  they differ at the flush (an insert and a removal that cancel out are not seen). Nothing re-bases a corner.
+- **A call held back before a row or column insert or removal is dropped with a warning.** The corners are physical
+  indexes, and `alter()` renumbers them. `#structureVersion` goes up in the row and column insert and remove hooks (not
+  for rows created with the `auto` source, which are appended and renumber nothing), each entry records it, and
+  `#runDeferredEntry()` drops an entry that finds it moved. An insert and a removal that cancel out are seen too, which
+  a comparison of row counts missed. Nothing re-bases a corner: shifting them instead of dropping is the open fix, and
+  it needs the mapper's `indexesInserted` and `indexesRemoved` hooks, because `alter()` in a batch computes its pivot
+  from the stale cache.
+- **A call whose corner is trimmed before the batch ends is dropped with a warning.** The corner has no visual index at
+  the flush, and the range cannot be drawn between corners that are not on screen.
 - **A corner with no physical index is not queued.** `merge(-1, 0, 1, 1)` runs at once, on the caches, and can jump
   ahead of the queue.
-- **`mergeRange()`, `unmergeRange()` and `mergeSelection()` are not queued.** They return values or read the selection,
-  and the settings, undo and sheet-switch paths call them. They read the caches, as they always did.
+- **`mergeRange()`, `unmergeRange()` and `mergeSelection()` are not queued, so in the same batch they run before the
+  held calls.** They return values or read the selection, and the settings, undo and sheet-switch paths call them. A
+  `merge()` held back, then `selectCells()` and `mergeSelection()` in the batch, merge in the opposite order to the
+  unbatched calls. They read the caches, as they always did.
 - **Never refresh the cache mid-batch with `updateCache(true)`.** It fires `cacheUpdated`, which runs the selection
   repair and the size-cache invalidation, and the `beforeCacheUpdate` listeners (this plugin's
   `#onBeforeRowIndexCacheUpdate`, Selection's physical capture) would read the new order as the old one at the real
@@ -1220,7 +1228,7 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
 - **A trim or a hide made earlier in the same batch is not seen** by the live read of the corners: it filters the live
   sequence through the trimming and hiding maps' cached merged values, the same limit as the ColumnSorting band read.
 - **A call outside `suspendExecution()`/`batch()` is never queued.** The queue ends with the execution, and a plugin
-  disable or destroy drops it. Three edges: a raw `suspendExecution()` and `resumeExecution()` have no operation, so the
+  disable drops it (a destroyed plugin never flushes). Three edges: a raw `suspendExecution()` and `resumeExecution()` have no operation, so the
   flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data; and an
   `afterResumeExecution` listener that throws before this plugin's skips the flush, which then runs at the next
   `merge()` or `unmerge()` call outside the batch, on the corners it held.
@@ -1249,6 +1257,9 @@ also left `copyable: false` on the wrong cells after the undo, because the recor
 
 **Known gap, not part of this:** a row move in a batch that splits an existing merge draws it over a row it does not own,
 because the re-anchor at the end of the batch moves a merge without splitting it (`it.todo` in the spec below).
+
+The timing is public behavior, so it is documented in the JSDoc of `merge()` and `unmerge()` and in the "Merge and
+unmerge cells programmatically" section of the merge-cells guide. Change them together with the code.
 
 Pinned by `__tests__/mergeInsideBatch.unit.js` (each reorder compared with the same calls outside the batch, with and
 without a merge that exists before it, a move after the merge, the overlap, the user's meta, two column moves, the order

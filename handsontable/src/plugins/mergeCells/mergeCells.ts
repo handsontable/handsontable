@@ -67,14 +67,13 @@ interface DeferredRangeOperation {
 }
 
 /**
- * A call held back in the queue, with the number of rows and columns the grid had when it was held back. The
- * corners are physical indexes, which a row or column insert or removal renumbers, so a call whose grid changed
- * size is dropped instead of run on other cells.
+ * A call held back in the queue, with the structure version of the grid when it was held back. The corners are
+ * physical indexes, which a row or column insert or removal renumbers, so a call held back before one is dropped
+ * instead of run on other cells.
  */
 interface DeferredRangeEntry {
   operation: DeferredRangeOperation;
-  rows: number;
-  columns: number;
+  structure: number;
 }
 
 /**
@@ -427,6 +426,13 @@ export class MergeCells extends BasePlugin {
    */
   #isFlushingDeferredOperations = false;
   /**
+   * Counts the row and column inserts and removals. A held back call that finds it moved was held back before
+   * one, so its physical corners are renumbered (see `DeferredRangeEntry`).
+   *
+   * @type {number}
+   */
+  #structureVersion = 0;
+  /**
    * Snapshot of physical row indexes per merge, captured before a row move.
    *
    * @type {Map<MergedCellCoords, number[]> | null}
@@ -695,7 +701,6 @@ export class MergeCells extends BasePlugin {
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
     this.#coveredBeforeMove = null;
-    this.#deferredRangeOperations = [];
     this.#resetPasteState();
     super.destroy();
   }
@@ -2429,6 +2434,12 @@ export class MergeCells extends BasePlugin {
   /**
    * Merges the specified range.
    *
+   * Inside a [`batch()`](@/api/core.md#batch) that holds a column move, a row move, or a sort made before this
+   * call, the merge takes effect when the batch ends, and `beforeMergeCells` and `afterMergeCells` fire then.
+   * The range is the one you see after that move or sort. `mergeSelection()` and `mergeRange()` do not wait, so in
+   * the same batch they run first. A call held back is dropped with a warning when rows or columns are added or
+   * removed, or when a row or column of its range is trimmed, before the batch ends.
+   *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
    * @param {number} endRow Visual end row of the merged cell.
@@ -2442,6 +2453,9 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Unmerges the merged cell in the provided range.
+   *
+   * Like `merge()`, the call waits for the end of a [`batch()`](@/api/core.md#batch) that holds a column move,
+   * a row move, or a sort made before it, and it keeps its order with the `merge()` calls around it.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -2504,8 +2518,7 @@ export class MergeCells extends BasePlugin {
 
     this.#deferredRangeOperations.push({
       operation: physical,
-      rows: this.hot.rowIndexMapper.getNumberOfIndexes(),
-      columns: this.hot.columnIndexMapper.getNumberOfIndexes(),
+      structure: this.#structureVersion,
     });
 
     return true;
@@ -2576,8 +2589,8 @@ export class MergeCells extends BasePlugin {
   /**
    * Runs the calls `#runRangeOperation()` held back, in order, on the caches of the order the batch made.
    * A call whose corners no longer have a visual index (their rows or columns were trimmed) is dropped, and so
-   * is one whose grid gained or lost rows or columns since it was held back, because its physical corners were
-   * renumbered. Every call runs, and the first error is thrown after the last one.
+   * is one held back before a row or column insert or removal, because its physical corners were renumbered.
+   * Both come with a warning. Every call runs, and the first error is thrown after the last one.
    */
   #flushDeferredRangeOperations() {
     if (this.#isFlushingDeferredOperations || this.#deferredRangeOperations.length === 0 ||
@@ -2609,11 +2622,10 @@ export class MergeCells extends BasePlugin {
   /**
    * Runs one held back call on the caches of the order the batch made.
    *
-   * @param {object} entry The held back call, with the size the grid had when it was held back.
+   * @param {object} entry The held back call, with the structure version when it was held back.
    */
-  #runDeferredEntry({ operation, rows, columns }: DeferredRangeEntry) {
-    if (rows !== this.hot.rowIndexMapper.getNumberOfIndexes() ||
-        columns !== this.hot.columnIndexMapper.getNumberOfIndexes()) {
+  #runDeferredEntry({ operation, structure }: DeferredRangeEntry) {
+    if (structure !== this.#structureVersion) {
       warn(`A ${operation.kind}() call made in a batch was dropped, because rows or columns were added or ` +
         'removed before the batch ended.');
 
@@ -2622,9 +2634,14 @@ export class MergeCells extends BasePlugin {
 
     const visual = this.#translateRangeCorners(operation, 'visual');
 
-    if (visual !== null) {
-      this.#applyRangeOperation(visual);
+    if (visual === null) {
+      warn(`A ${operation.kind}() call made in a batch was dropped, because a row or column of its range was ` +
+        'trimmed before the batch ended.');
+
+      return;
     }
+
+    this.#applyRangeOperation(visual);
   }
 
   /**
@@ -4298,6 +4315,8 @@ export class MergeCells extends BasePlugin {
    * @param {number} count Number of created columns.
    */
   #onAfterCreateCol = (column: number, count: number) => {
+    this.#structureVersion += 1;
+
     this.mergedCellsCollection.shiftCollections('right', column, count);
     this.#captureMergeAnchors();
     // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
@@ -4312,6 +4331,8 @@ export class MergeCells extends BasePlugin {
    * @param {number} count Number of removed columns.
    */
   #onAfterRemoveCol = (column: number, count: number) => {
+    this.#structureVersion += 1;
+
     this.mergedCellsCollection.shiftCollections('left', column, count);
     this.#captureMergeAnchors();
     // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
@@ -4330,6 +4351,8 @@ export class MergeCells extends BasePlugin {
     if (source === 'auto') {
       return;
     }
+
+    this.#structureVersion += 1;
 
     // Inserting renumbers physical rows at/after the insertion point up by `count`; mirror that onto
     // the anchors, which stay the authoritative description of the merge. The remap has to run before
@@ -4360,6 +4383,8 @@ export class MergeCells extends BasePlugin {
    * @param {number[]} physicalRows Physical indexes of the removed rows.
    */
   #onAfterRemoveRow = (row: number, count: number, physicalRows: number[]) => {
+    this.#structureVersion += 1;
+
     // Removing renumbers each surviving physical row down by how many removed rows sat above it;
     // mirror that onto the anchors, which stay the authoritative description of the merge. The remap
     // runs before the shift so the anchors, not the shift, decide which merges are gone: while rows

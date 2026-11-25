@@ -136,6 +136,21 @@ describe('IndexMapper#runWithLiveCache', () => {
     expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(0);
   });
 
+  it('should restore the caches when a listener throws before a forced rebuild writes them', () => {
+    const indexMapper = createBatchedMapper();
+
+    indexMapper.addLocalHook('beforeCacheUpdate', () => {
+      throw new Error('listener failed');
+    });
+
+    expect(() => indexMapper.runWithLiveCache(() => {
+      indexMapper.updateCache(true);
+    })).toThrow('listener failed');
+
+    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(0);
+    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(5);
+  });
+
   it('should run the callback as is when the operations are not suspended', () => {
     const indexMapper = new IndexMapper();
 
