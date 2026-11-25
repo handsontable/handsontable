@@ -283,33 +283,56 @@ test('the check\'s findings are valid evidence', () => {
   assert.deepEqual(validatePart({ schema: EVIDENCE_SCHEMA, target: { page: 'grid', theme: 'main' }, durationMs: 1, findings }), []);
 });
 
-test('an indicator change counts the changed pixels outside the element\'s own box, when it is given', () => {
+test('an indicator drawn wholly inside the element is judged against the unchanged pixels inside it', () => {
   const black = [20, 20, 20];
-  const inset = [];
-  const around = [];
-
-  for (let x = 3; x < 7; x++) {
-    inset.push([x, 3, WHITE]);
-    around.push([x, 0, [26, 66, 232]]);
-  }
-
   const inner = { x: 2, y: 2, width: 6, height: 6 };
   const fill = [];
+  const inset = [];
+  const around = [];
 
   for (let x = 2; x < 8; x++) {
     for (let y = 2; y < 8; y++) {
       fill.push([x, y, black]);
     }
   }
+  for (let x = 3; x < 7; x++) {
+    inset.push([x, 3, WHITE]);
+    around.push([x, 0, [26, 66, 232]]);
+  }
 
   const before = image(10, 10, WHITE, fill);
   const insetChange = indicatorChange(before, image(10, 10, WHITE, [...fill, ...inset]), 2, inner);
 
-  assert.equal(insetChange.changed, 4);
   assert.equal(insetChange.outside, 0, 'a ring inset in the fill changes nothing outside the box');
-  assert.ok(insetChange.ratio > 15, 'and stands far from the black it replaced');
-  assert.equal(indicatorChange(before, image(10, 10, WHITE, [...fill, ...around]), 2, inner).outside, 4,
-    'a ring around the box changes pixels outside it');
+  assert.deepEqual(insetChange.adjacent, black, 'so it sits on the fill, not on the white page around the control');
+  assert.ok(insetChange.adjacentRatio > 15);
+  assert.deepEqual(focusFindings({ selector: 'button.segment', step: 'Tab', change: insetChange }), [],
+    'the white ring inset in a black segment passes');
+  assert.equal(focusFindings({ selector: 'button.segment', step: 'Tab',
+    change: indicatorChange(before, image(10, 10, WHITE, [...fill, ...inset]), 2) })[0].kind, 'focus-indicator-contrast',
+  'read without the box, the same ring stood 1:1 against the page');
+
+  const ringed = indicatorChange(before, image(10, 10, WHITE, [...fill, ...around]), 2, inner);
+
+  assert.equal(ringed.outside, 4, 'a ring around the box changes pixels outside it');
+  assert.deepEqual(ringed.adjacent, WHITE, 'and is judged against the page around the control, as before');
+  assert.equal(indicatorChange(before, image(10, 10, WHITE, [...fill, [8, 4, WHITE]]), 2, inner).outside, 0,
+    'a pixel just past the right edge that did not change is no change');
+  assert.equal(indicatorChange(before, image(10, 10, WHITE, [...fill, [8, 4, black]]), 2, inner).outside, 1,
+    'the box\'s right edge is exclusive: x = 8 lies outside a box from 2, 6 wide');
   assert.equal(indicatorChange(before, before, 2, inner).outside, 0);
   assert.equal('outside' in indicatorChange(before, before, 2), false, 'without a box the change has no count of it');
+});
+
+test('a recolored edge inside a field is judged against the field\'s fill, never against the color it replaced', () => {
+  const gray = [118, 118, 118];
+  const blue = [26, 66, 232];
+  const inner = { x: 0, y: 0, width: 12, height: 12 };
+  const edge = color => Array.from({ length: 12 }, (_, x) => [[x, 0, color], [x, 11, color]]).flat();
+  const change = indicatorChange(image(12, 12, WHITE, edge(gray)), image(12, 12, WHITE, edge(blue)), 2, inner);
+
+  assert.equal(change.outside, 0);
+  assert.ok(change.ratio < 3, 'blue against the gray it replaced is under 3:1');
+  assert.deepEqual(focusFindings({ selector: 'input.input', step: 'Tab', change }), [],
+    'against the white fill beside it the blue edge stands 7:1, which is what 1.4.11 asks');
 });

@@ -192,10 +192,12 @@ export function partContrast(image, box, { band, mark = false } = {}) {
  * margin around the element: a control with a fill of its own fills most of its capture, and a ring
  * around it is judged against what lies around the control, not against the fill.
  *
- * @param {{width?: number, height?: number, data: number[]}} before The capture before.
- * @param {{width?: number, height?: number, data: number[]}} after The capture after, the same size.
- * With an `inner` box, the change also counts `outside`: the changed pixels that fall outside that box, so a
- * caller can tell an indicator drawn wholly inside the element (a ring inset in its fill) from one around it.
+ * With an `inner` box (the element's own box in the capture), the change also counts `outside`, the changed
+ * pixels outside that box. An indicator drawn wholly inside the element (a ring inset in its fill, a recolored
+ * border) has nothing changed outside it, and its `adjacent` colors are then the unchanged pixels inside the box:
+ * a white ring inset in a black fill is judged against the fill it sits on (18:1), not against the white page
+ * around the control (1:1). A change that repaints the whole box leaves no unchanged pixel inside, and reads the
+ * margin as before.
  *
  * @param {{width?: number, height?: number, data: number[]}} before The capture before.
  * @param {{width?: number, height?: number, data: number[]}} after The capture after, the same size.
@@ -211,27 +213,27 @@ export function indicatorChange(before, after, margin = 0, inner = null) {
   const width = after.width ?? before.width;
   const height = after.height ?? before.height;
   let outside = 0;
+  const insideUnchanged = { data: [] };
 
   for (let index = 0; index < before.data.length; index += 4) {
     const old = [before.data[index], before.data[index + 1], before.data[index + 2]];
     const current = [after.data[index], after.data[index + 1], after.data[index + 2]];
 
+    const x = (index / 4) % width;
+    const y = Math.floor(index / 4 / width);
+    const inBox = inner !== null && x >= inner.x && y >= inner.y && x < inner.x + inner.width && y < inner.y + inner.height;
+
     if (current.some((channel, position) => Math.abs(channel - old[position]) > NOISE)) {
       changes.push({ color: current, replaced: old, ratio: contrastRatio(current, old) });
-      if (inner) {
-        const x = (index / 4) % width;
-        const y = Math.floor(index / 4 / width);
-
-        if (x < inner.x || y < inner.y || x >= inner.x + inner.width || y >= inner.y + inner.height) {
-          outside += 1;
-        }
+      if (inner && !inBox) {
+        outside += 1;
       }
     } else {
       unchanged.data.push(...current, 255);
+      if (inBox) {
+        insideUnchanged.data.push(...current, 255);
+      }
       if (margin > 0) {
-        const x = (index / 4) % width;
-        const y = Math.floor(index / 4 / width);
-
         if (x < margin || y < margin || x >= width - margin || y >= height - margin) {
           around.data.push(...current, 255);
         }
@@ -249,7 +251,9 @@ export function indicatorChange(before, after, margin = 0, inner = null) {
   const core = percentile([...changes].sort((a, b) => a.ratio - b.ratio));
   let adjacent = null;
 
-  if (around.data.length > 0) {
+  if (inner && outside === 0 && insideUnchanged.data.length > 0) {
+    adjacent = dominantColor(insideUnchanged);
+  } else if (around.data.length > 0) {
     adjacent = dominantColor(around);
   } else if (unchanged.data.length > 0) {
     adjacent = dominantColor(unchanged);

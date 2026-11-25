@@ -12,14 +12,18 @@ import {
 } from '../site-keyboard.mjs';
 import {
   boundaryFindings,
+  boundaryOf,
   boxInCapture,
+  changedRings,
   focusExtent,
-  focusJudgedAgainst,
   isFieldShape,
   isFieldStop,
   orientationFindings,
   outlineReach,
   pageReflowFindings,
+  pixelBox,
+  pseudoRingBox,
+  shadowReach,
   stateLostFindings,
 } from '../site-visual.mjs';
 
@@ -242,34 +246,80 @@ test('1.4.1 in forced colors: a state that differed only in colors forced colors
 test('2.4.7: the focus capture covers a ring that stands past the margin, and a ring an ancestor draws', () => {
   const box = { x: 100, y: 40, width: 171, height: 24 };
   const solid = (width, offset) => ({ style: 'solid', width, offset });
+  const none = { style: 'none', width: 0, offset: 0 };
 
   assert.equal(outlineReach(solid(2, 4)), 6, 'an outline 4 px off and 2 px wide reaches 6 px past the box');
   assert.equal(outlineReach(solid(2, -4)), 0, 'an inset outline reaches no further than the box');
   assert.equal(outlineReach({ style: 'none', width: 3, offset: 0 }), 0, 'an outline that does not show reaches nothing');
+  assert.equal(outlineReach({ style: 'hidden', width: 3, offset: 2 }), 0);
   assert.equal(outlineReach(solid(0, 4)), 0);
+  assert.equal(shadowReach('rgb(255, 255, 255) 0px 0px 0px 2px, rgb(26, 66, 232) 0px 0px 0px 6px'), 6,
+    'a ring drawn with shadows: the furthest layer');
+  assert.equal(shadowReach('rgba(0, 0, 0, 0.1) 0px 4px 8px 0px'), 12, 'an offset and a blur reach out too');
+  assert.equal(shadowReach('rgb(26, 66, 232) 0px 0px 0px 2px inset'), 0, 'an inset shadow draws inside the box');
+  assert.equal(shadowReach('none'), 0);
   assert.deepEqual(focusExtent({ box, outline: solid(2, 4) }), { x: 94, y: 34, width: 183, height: 36 },
     'the logo\'s ring, 4 to 6 px out: inside the area once it is grown by the margin');
-  assert.deepEqual(focusExtent({ box, outline: { style: 'none', width: 0, offset: 0 } }), box,
-    'no outline: the box itself, as before');
+  assert.deepEqual(focusExtent({ box, outline: none, shadow: 'rgb(26, 66, 232) 0px 0px 0px 6px' }),
+    { x: 94, y: 34, width: 183, height: 36 }, 'a shadow ring reaches as far as an outline');
+  assert.deepEqual(focusExtent({ box, outline: none }), box, 'no ring: the box itself, as before');
 
   const card = { box: { x: 16, y: 400, width: 806, height: 395 }, outline: solid(2, 2) };
 
-  assert.deepEqual(focusExtent({ box: { x: 62, y: 477, width: 324, height: 51 }, outline: { style: 'none', width: 0, offset: 0 } }, [card]),
+  assert.deepEqual(focusExtent({ box: { x: 62, y: 477, width: 324, height: 51 }, outline: none }, [card]),
     { x: 12, y: 396, width: 814, height: 403 }, 'a title link whose card draws the ring: the card and its ring');
 });
 
-test('2.4.7: an indicator drawn wholly inside its control is judged against what it replaced', () => {
-  assert.equal(focusJudgedAgainst({ changed: 444, outside: 0 }), 'replaced', 'a ring inset in a filled segment');
-  assert.equal(focusJudgedAgainst({ changed: 304, outside: 120 }), 'adjacent', 'a ring around the control');
-  assert.equal(focusJudgedAgainst({ changed: 0, outside: 0 }), 'adjacent', 'nothing changed: the finding is focus-not-visible either way');
-  assert.equal(focusJudgedAgainst({ changed: 10 }), 'adjacent', 'a change measured without the box counts as outside');
+test('2.4.7: a ring the focus drew on another part counts; a color, a popup or a ring always there does not', () => {
+  const box = { x: 16, y: 400, width: 806, height: 395 };
+  const ring = { style: 'solid', width: 2, offset: 2, color: 'rgb(26, 66, 232)' };
+  const none = { style: 'none', width: 2, offset: 0, color: 'rgb(0, 0, 0)' };
+  const part = (outline, shadow = 'none', at = box) => ({ box: at, outline, shadow });
+
+  assert.deepEqual(changedRings([part(ring)], [part(none)]), [part(ring)], 'a card ringed only while its link has the focus');
+  assert.deepEqual(changedRings([part(none, 'rgb(26, 66, 232) 0px 0px 0px 2px')], [part(none)]).length, 1,
+    'a ring drawn with a shadow counts too');
+  assert.deepEqual(changedRings([part({ ...none, color: 'rgb(255, 0, 0)' })], [part(none)]), [],
+    'a wrapper whose text color changes through :focus-within draws no ring');
+  assert.deepEqual(changedRings([part(ring)], [part(ring)]), [], 'a ring the part always has is not the indicator');
+  assert.deepEqual(changedRings([part(none, 'rgba(0, 0, 0, 0.08) 0px 24px 60px 0px', { ...box, height: 120 })],
+    [part(none, 'none', { ...box, height: 0 })]), [], 'a popup that opens with the focus is not a ring');
+  assert.deepEqual(changedRings([null, part(ring)], [null, part(none)]), [part(ring)], 'a part not rendered is skipped');
 });
 
-test('1.4.11: a box is placed in a capture from the whole pixel the capture starts at', () => {
-  // The footer field of the audit: its top at 618.67, the area grown 4 px around it starts at 614.67, and the capture
-  // starts at pixel 614. Placed from 614.67, the field's last row (its 1 px underline) was read one row too high.
-  assert.deepEqual(boxInCapture({ x: 972.4, y: 618.67, width: 259.2, height: 48 }, { x: 968.4, y: 614.67 }),
-    { x: 972.4 - 968, y: 618.67 - 614, width: 259.2, height: 48 });
-  assert.deepEqual(boxInCapture({ x: 10, y: 20, width: 5, height: 5 }, { x: 6, y: 16 }), { x: 4, y: 4, width: 5, height: 5 },
-    'a corner on a whole pixel is placed as before');
+test('2.4.7: an absolutely placed pseudo-element is placed from its containing block', () => {
+  assert.deepEqual(pseudoRingBox({ x: 16, y: 400, clientLeft: 1, clientTop: 1 }, { left: '0px', top: '0px', width: '804px', height: '393px' }),
+    { x: 17, y: 401, width: 804, height: 393 }, 'a link\'s overlay stretched over its card, inside the card\'s border');
+  assert.deepEqual(pseudoRingBox(null, { left: '10px', top: '20px', width: '30px', height: '40px' }),
+    { x: 10, y: 20, width: 30, height: 40 }, 'a fixed one: the viewport');
+  assert.deepEqual(pseudoRingBox({ x: 5, y: 5, clientLeft: 0, clientTop: 0 }, { left: 'auto', top: 'auto', width: '1px', height: '1px' }),
+    { x: 5, y: 5, width: 1, height: 1 }, 'an offset that is not a length places it at the corner');
+});
+
+test('1.4.11: a field\'s 1 px edge is read where the capture holds it, wherever its box starts', () => {
+  // The footer field of the audit: its top at 618.67 on a black band, a blue-200 underline on its last row. The area
+  // grown 4 px around it starts at 614.67, and the capture starts at pixel 614.
+  const area = { x: 20.4, y: 614.67 };
+  const box = { x: 24.4, y: 618.67, width: 40, height: 20 };
+  const width = 50;
+  const height = 30;
+  const data = [];
+  // The underline paints the page row 618.67 + 20 - 1 rounds to, 638; the capture's row 0 is page row 614.
+  const line = Math.round(box.y + box.height) - 1 - 614;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const under = y === line && x >= 5 && x < 44;
+
+      data.push(...(under ? [108, 161, 248] : [3, 4, 4]), 255);
+    }
+  }
+
+  const image = { width, height, data };
+
+  assert.deepEqual(boxInCapture(box, area), { x: 24.4 - 20, y: 618.67 - 614, width: 40, height: 20 });
+  assert.ok(boundaryOf(image, boxInCapture(box, area)).boundary.ratio > 3, 'placed from pixel 614, the edge band holds the underline');
+  assert.ok(boundaryOf(image, { x: box.x - area.x, y: box.y - area.y, width: 40, height: 20 }).boundary.ratio < 1.1,
+    'placed from 614.67, the band missed it: the audit\'s 1.04:1');
+  assert.deepEqual(pixelBox({ x: 4.4, y: 4.67, width: 40, height: 20 }), { x: 4, y: 4, width: 41, height: 21 });
 });

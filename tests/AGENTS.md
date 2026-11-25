@@ -2353,11 +2353,15 @@ and of `.github/workflows/website-a11y.yml`.
   never sampled here. The indicator of the first stop of each shape is captured with nothing focused and again
   after a key press and the focus (what makes `:focus-visible` match), and judged by `focusFindings()` of
   `lib/contrast.mjs`. The capture covers what the focus paints (`focusExtent()` of `lib/site-visual.mjs`), not the
-  element's box alone: its own outline's reach (a ring 4 px off and 2 px wide stands past the 4 px margin), the
-  outline of its absolutely placed `::before` or `::after` (a link's overlay stretched over its card), and the ring of
-  each ancestor up to a landmark that the focus changed (a card ringed through `:has()`); a capture of the box alone
-  read all three as `focus-not-visible`. An indicator drawn wholly inside the element (a ring inset in a filled
-  segment) is judged against what it replaced, any other against the colors next to it (`focusJudgedAgainst()`): a
+  element's box alone: its own outline's or shadow's reach (a ring 4 px off and 2 px wide stands past the 4 px
+  margin), and each ring the focus drew on an ancestor up to a landmark (a card ringed through `:has()`) or on the
+  element's absolutely placed `::before` or `::after` (a link's overlay stretched over its card). A capture of the box
+  alone read all three as `focus-not-visible`. Such a part counts only when it draws an outline or a shadow with the
+  focus that it does not draw at rest, and its box does not move (`changedRings()`): a wrapper whose text color follows
+  `:focus-within` draws no ring, and a popup the focus opens is no indicator. The parts are read once the focus's
+  transitions ended and again once the blur's had, so a ring that fades in is not read at its start. An indicator
+  drawn wholly inside the element (a ring inset in a filled segment, a recolored border) is judged against the
+  unchanged pixels inside the element (`indicatorChange()` with the element's box), not against the page around it: a
   white ring inset in a black fill read 1:1 against the white page. The element's box is placed in the capture from
   the whole pixel the capture starts at (`boxInCapture()`), or a field's 1 px edge is read a row off whenever its box
   starts past half a pixel. A text field's or a select's boundary and fill against the page around it
@@ -2381,7 +2385,8 @@ and of `.github/workflows/website-a11y.yml`.
   from two frames after load, never after `SITE.settle()`: a settle waits for finite animations to end, so it
   would wait out the ones the watch is for;
   each popup opened with the preference and without it (2.3.3; the run without it evaluates nothing); and, with
-  forced colors on, the indicator of each stop shape (`focus-lost-in-forced-colors`) and each element in a state
+  forced colors on, the indicator of each stop shape, captured as the focus-contrast check captures it (`indicator()`,
+  so a ring past the margin or on an ancestor counts: `focus-lost-in-forced-colors`), and each element in a state
   a style shows (`aria-current`, `aria-selected`, `aria-pressed`, `aria-checked`) against a sibling without it:
   a state whose computed style matches the sibling's in forced colors and differed without them is
   `state-lost-in-forced-colors` (1.4.1, moderate: the state still reaches a screen reader, and its place often
