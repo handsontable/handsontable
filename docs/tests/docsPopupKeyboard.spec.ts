@@ -10,8 +10,8 @@ import { test, expect, type Page } from '@playwright/test';
  * - The `/` key alone opens nothing: Ctrl+K (Cmd+K on macOS) is the search shortcut, and `/` types
  *   a slash in every field.
  *
- * The search renders in production builds only (`BUILD_MODE=production`, `Header.astro`), so the
- * search tests run against such a build and are skipped on one without the search button.
+ * The search renders in production builds and in builds with `DOCS_SEARCH=true` (`Header.astro`),
+ * which the staging and pull request previews set. The search tests skip on a build without it.
  */
 
 const PAGE = '/javascript-data-grid/';
@@ -78,7 +78,7 @@ async function openPage(page: Page, baseURL: string | undefined, width = 1440): 
 async function requireSearch(page: Page): Promise<void> {
   const hasSearch = await page.locator(SEARCH_BUTTON).count() > 0;
 
-  test.skip(!hasSearch, 'The search renders in production builds only (BUILD_MODE=production)');
+  test.skip(!hasSearch, 'The search renders only with BUILD_MODE=production or DOCS_SEARCH=true');
 }
 
 /**

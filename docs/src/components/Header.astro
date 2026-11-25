@@ -21,12 +21,10 @@ import SupportDropdown from './SupportDropdown.astro';
 import FrameworkSwitcher from './FrameworkSwitcher.astro';
 import { validUrlArrays } from 'virtual:valid-urls';
 
-const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
-
-// Hide search in non-production builds (dev / staging) -- results would be
-// stale or empty. The search provider (Algolia or Starlight default) is
-// configured independently of this flag.
-const shouldRenderSearch = isProduction;
+// Search renders in production builds and in builds with DOCS_SEARCH=true
+// (the staging and pull request previews), where astro.config.mjs also adds
+// the Algolia plugin. Both read the production index.
+const shouldRenderSearch = import.meta.env.PUBLIC_DOCS_SEARCH === 'true';
 
 const pathname = Astro.url.pathname;
 

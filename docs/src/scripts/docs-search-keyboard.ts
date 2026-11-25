@@ -13,8 +13,8 @@
  *   gives way to the visible search button. A result on the same page changes the URL without a
  *   reload, and then the focus is left where the browser put it, at the result's heading.
  *
- * The search renders in production builds only (`Header.astro`); without it this module changes
- * nothing. The site has no Astro `<ClientRouter />`, so each page load runs the module once.
+ * The search renders in production builds and in builds with `DOCS_SEARCH=true`, the staging and
+ * pull request previews (`Header.astro`); without it this module changes nothing. The site has no Astro `<ClientRouter />`, so each page load runs the module once.
  */
 
 import { canTakeFocus } from '../lib/can-take-focus.mjs';
