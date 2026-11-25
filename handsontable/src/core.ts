@@ -7722,6 +7722,22 @@ export default function Core(
   }
 
   /**
+   * Re-syncs the grid's accessible name and description on the root element when an `updateSettings()`
+   * payload names `ariaLabel`, `ariaLabelledby`, or `ariaDescribedby`.
+   *
+   * @private
+   * @param {object} settings A settings object (see {@link Options}).
+   */
+  function syncRootAccessibleName(settings: SettingsUpdate): void {
+    const namesOption = ['ariaLabel', 'ariaLabelledby', 'ariaDescribedby']
+      .some(optionName => hasOwnProperty(settings, optionName));
+
+    if (namesOption && instance.view) {
+      instance.view.updateRootAccessibleName();
+    }
+  }
+
+  /**
    * Merges an `updateSettings()` payload into the grid, option by option. The class names and the hook
    * callbacks go through their own registration, `data` and `language` are applied later, and every other
    * option is written onto the global meta on an update (the initial settings already live there).
@@ -7766,6 +7782,8 @@ export default function Core(
     if (init) {
       return false;
     }
+
+    syncRootAccessibleName(settings);
 
     return metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
   }
