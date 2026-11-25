@@ -334,7 +334,9 @@ hooks). Six rules keep it narrow:
   anchor rows and `physicalColumns` with it (`mapRecordedMerge()`), leaves out the merges whose mapped cells
   equal a restored merge's (`getFootprintKey()`, matched through a `Set` so the match stays linear in the
   merge count: the step left them alone, and checking them would cost the area of every merge on every
-  structural undo), and runs the same per-cell rule
+  structural undo). A recorded merge that lost a row or a column to the mapping never matches: it covered a
+  cell the restored grid lacks, and once that cell is dropped it can look like the merge the undo puts back
+  (an inserted row inside a merge that the step grew), which left that merge's top-left uncleaned. It runs the same per-cell rule
   (`#clearMergeKeysOfReleasedCells()`) as the path above. **Never read the live merges here**: the replay runs
   in the physical order and the column order is restored before `restoreState()`, so a live merge's visual
   columns name other physical columns once a column was moved, and a column `alter()` in the replay
