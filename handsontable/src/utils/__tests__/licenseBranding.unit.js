@@ -328,9 +328,21 @@ describe('licenseBranding', () => {
 
   describe('the "Powered by Handsontable DataGrid" bar (DEV-3413)', () => {
     it.each(['trial_valid', 'trial_notice', 'trial_soft_stop', 'trial_hard_stop'])(
-      'should mount the bar for the "%s" state of a trial, which needs no `attribution-bar` flag',
+      'should mount no bar for the "%s" state of a trial key without the `attribution-bar` flag',
       (state) => {
         setLifecycle(state, { daysRemaining: 5, licensedUntil: '2026-09-26' });
+        const hotInstance = createMockHotInstanceWithBottomSlot();
+
+        initLicenseBranding(hotInstance);
+
+        expect(getPoweredByBar(hotInstance)).toBeNull();
+      }
+    );
+
+    it.each(['trial_valid', 'trial_notice', 'trial_soft_stop', 'trial_hard_stop'])(
+      'should mount the bar for the "%s" state of a trial key with the `attribution-bar` flag',
+      (state) => {
+        setLifecycle(state, { daysRemaining: 5, licensedUntil: '2026-09-26' }, { console: true, ui: true }, true);
         const hotInstance = createMockHotInstanceWithBottomSlot();
 
         initLicenseBranding(hotInstance);
@@ -357,8 +369,8 @@ describe('licenseBranding', () => {
       expect(getPoweredByBar(hotInstance)).not.toBeNull();
     });
 
-    it('should mount the bar for a trial with `no-ui-warns`, which still hides the corner badge', () => {
-      setLifecycle('trial_valid', { daysRemaining: 5 }, { console: false, ui: false });
+    it('should mount the bar for an `attribution-bar` trial with `no-ui-warns`, which still hides the corner badge', () => {
+      setLifecycle('trial_valid', { daysRemaining: 5 }, { console: false, ui: false }, true);
       const hotInstance = createMockHotInstanceWithBottomSlot();
 
       initLicenseBranding(hotInstance);
@@ -380,7 +392,7 @@ describe('licenseBranding', () => {
     });
 
     it('should render one link to handsontable.com, named by its visible text, with a decorative logomark', () => {
-      setLifecycle('trial_valid', { daysRemaining: 5 });
+      setLifecycle('trial_valid', { daysRemaining: 5 }, { console: true, ui: true }, true);
       const hotInstance = createMockHotInstanceWithBottomSlot();
 
       initLicenseBranding(hotInstance);
@@ -400,7 +412,7 @@ describe('licenseBranding', () => {
     });
 
     it('should mount the bar last in the bottom slot as a slot item, without the LayoutManager', () => {
-      setLifecycle('trial_soft_stop', { daysRemaining: 0 });
+      setLifecycle('trial_soft_stop', { daysRemaining: 0 }, { console: true, ui: true }, true);
       const hotInstance = createMockHotInstanceWithBottomSlot({ getLayoutManager: jest.fn() });
       const warningBar = document.createElement('div');
 
@@ -454,7 +466,7 @@ describe('licenseBranding', () => {
     });
 
     it('should do nothing when the grid has no bottom slot', () => {
-      setLifecycle('trial_valid', { daysRemaining: 5 });
+      setLifecycle('trial_valid', { daysRemaining: 5 }, { console: true, ui: true }, true);
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);

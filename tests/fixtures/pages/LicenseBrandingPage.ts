@@ -14,7 +14,7 @@ export const INSTANT = {
   subscriptionHardStop: '2027-12-01T00:00:00Z',
 } as const;
 
-type LicenseKeyName = 'trial' | 'trial-external' | 'subscription' |
+type LicenseKeyName = 'trial' | 'trial-external' | 'trial-attribution-bar' | 'subscription' |
   'tampered' | 'legacy-expired' | 'legacy-expired-padded' | 'non-commercial' | 'missing' |
   'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'subscription-padded' | 'trial-v1' |
   'sponsored-attribution-bar' | 'sponsored-attribution-bar-external' | 'sponsored-no-attribution-bar' |
