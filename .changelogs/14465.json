@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Changed the \"Powered by Handsontable DataGrid\" bar so that a trial license key shows it only when the key's terms ask for it, like any other key.",
+  "type": "changed",
+  "issueOrPR": 14465,
+  "breaking": false,
+  "framework": "none"
+}
