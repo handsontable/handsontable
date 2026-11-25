@@ -419,6 +419,35 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       }
     });
 
+    it('should drop a held back call when columns are added or removed before the batch ends', () => {
+      createGrid();
+
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        hot.batch(() => {
+          hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+          hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+          hot.alter('insert_col_start', 0);
+        });
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
+        expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
+
+        warn.mockClear();
+        hot.batch(() => {
+          hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+          hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+          hot.alter('remove_col', 0);
+        });
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
+        expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
     it('should drop a held back call and warn when a row of its range is trimmed before the batch ends', () => {
       createGrid({ trimRows: true });
 
@@ -475,17 +504,18 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
     });
 
-    it('should find an undo entry without an anchor by its coordinates', () => {
+    it('should find an undo entry without an anchor by its coordinates, and not another merge of its size', () => {
       createGrid();
 
       const mergeCells = hot.getPlugin('mergeCells');
 
       mergeCells.mergedCellsCollection.add({ row: 1, col: 1, rowspan: 2, colspan: 2 }, true);
+      mergeCells.mergedCellsCollection.add({ row: 4, col: 4, rowspan: 2, colspan: 2 }, true);
       mergeCells.restoreState([], {
-        other: [{ row: 1, col: 1, rowspan: 2, colspan: 2, anchor: null }],
+        other: [{ row: 4, col: 4, rowspan: 2, colspan: 2, anchor: null }],
       });
 
-      expect(mergeCells.mergedCellsCollection.mergedCells).toEqual([]);
+      expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row, col }) => [row, col])).toEqual([[1, 1]]);
     });
 
     // A row move in a batch that splits a merge draws it over a row it does not own: the re-anchor at the end of
