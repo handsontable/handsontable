@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-25T16:47:52.774Z",
+  "generatedAt": "2026-11-25T18:20:01.788Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1608,138 +1608,6 @@
       "needsTicket": false
     },
     {
-      "key": "playwright|e2e/move-zone.spec.ts|moveCells edge move bands › a selection crossing a frozen pane › draws bands on the outer edges only, across frozen rows and columns",
-      "tier": "playwright",
-      "file": "e2e/move-zone.spec.ts",
-      "line": 567,
-      "title": "moveCells edge move bands › a selection crossing a frozen pane › draws bands on the outer edges only, across frozen rows and columns",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-26T18:26:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
-        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
-        "leg": "e2e-horizon",
-        "status": "failed",
-        "error": "Test timeout of 20000ms exceeded.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/walkontable/inline-end-overlay.spec.ts|walkontable inline-end overlay (ltr) › selects the cell that is clicked in the end columns",
-      "tier": "playwright",
-      "file": "e2e/walkontable/inline-end-overlay.spec.ts",
-      "line": 214,
-      "title": "walkontable inline-end overlay (ltr) › selects the cell that is clicked in the end columns",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-26T18:26:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
-        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
-        "leg": "e2e-horizon",
-        "status": "failed",
-        "error": "Test timeout of 20000ms exceeded.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/walkontable/overlay-self-resize.spec.ts|walkontable overlay self-resize › resizes once when the column header height becomes known",
-      "tier": "playwright",
-      "file": "e2e/walkontable/overlay-self-resize.spec.ts",
-      "line": 100,
-      "title": "walkontable overlay self-resize › resizes once when the column header height becomes known",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-main"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-26T18:26:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
-        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
-        "leg": "e2e-main",
-        "status": "failed",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/walkontable/overlay-self-resize.spec.ts|walkontable overlay self-resize › resizes when the container changes size, with no row or column change",
-      "tier": "playwright",
-      "file": "e2e/walkontable/overlay-self-resize.spec.ts",
-      "line": 132,
-      "title": "walkontable overlay self-resize › resizes when the container changes size, with no row or column change",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-main"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-26T18:26:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
-        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
-        "leg": "e2e-main",
-        "status": "failed",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "jasmine|handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js|Handsontable editor theme handling should have the same theme as the parent Handsontable instance (if originally passed as a container class)",
       "tier": "jasmine",
       "file": "handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js",
@@ -2323,19 +2191,151 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/move-zone.spec.ts|moveCells edge move bands › a selection crossing a frozen pane › draws bands on the outer edges only, across frozen rows and columns",
+      "tier": "playwright",
+      "file": "e2e/move-zone.spec.ts",
+      "line": 567,
+      "title": "moveCells edge move bands › a selection crossing a frozen pane › draws bands on the outer edges only, across frozen rows and columns",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-26T18:26:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
+        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/walkontable/inline-end-overlay.spec.ts|walkontable inline-end overlay (ltr) › selects the cell that is clicked in the end columns",
+      "tier": "playwright",
+      "file": "e2e/walkontable/inline-end-overlay.spec.ts",
+      "line": 214,
+      "title": "walkontable inline-end overlay (ltr) › selects the cell that is clicked in the end columns",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-26T18:26:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
+        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/walkontable/overlay-self-resize.spec.ts|walkontable overlay self-resize › resizes once when the column header height becomes known",
+      "tier": "playwright",
+      "file": "e2e/walkontable/overlay-self-resize.spec.ts",
+      "line": 100,
+      "title": "walkontable overlay self-resize › resizes once when the column header height becomes known",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-26T18:26:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
+        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
+        "leg": "e2e-main",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/walkontable/overlay-self-resize.spec.ts|walkontable overlay self-resize › resizes when the container changes size, with no row or column change",
+      "tier": "playwright",
+      "file": "e2e/walkontable/overlay-self-resize.spec.ts",
+      "line": 132,
+      "title": "walkontable overlay self-resize › resizes when the container changes size, with no row or column change",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-26T18:26:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40374155437",
+        "branch": "feature/dev-3600_last-fully-visible-row-header-height",
+        "leg": "e2e-main",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "jasmine|handsontable/src/__tests__/hooks/afterGetColHeader.spec.js|Hook afterGetColHeader should be fired for all displayed columns on init",
       "tier": "jasmine",
       "file": "handsontable/src/__tests__/hooks/afterGetColHeader.spec.js",
       "line": null,
       "title": "Hook afterGetColHeader should be fired for all displayed columns on init",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "UMD (theme: main)"
       ],
@@ -2364,13 +2364,13 @@
       "line": null,
       "title": "NestedHeaders general functionality `afterGetColHeader` hook should be fired for all displayed columns on init",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "UMD (theme: main)"
       ],
