@@ -9,11 +9,11 @@
     "at": "2026-11-23T12:10:39.253Z"
   },
   "steps": {
-    "arrow-up-to-header": "price menu pop up column 3 row select whole grid name price stock",
+    "arrow-up-to-header": "price menu pop up column 3 row name price stock",
     "f2-open-field": "price contents selected header name edit text",
     "type-name": "ost",
-    "enter-save": "cost menu pop up column 3 row select whole grid name cost stock header renamed to cost",
+    "enter-save": "cost menu pop up column 3 row name cost stock header renamed to cost",
     "f2-open-again": "cost contents selected header name edit text",
-    "escape-cancel": "cost menu pop up column 3 row select whole grid name cost stock"
+    "escape-cancel": "cost menu pop up column 3 row name cost stock"
   }
 }

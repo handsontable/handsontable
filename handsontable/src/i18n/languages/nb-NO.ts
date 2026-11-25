@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Avbryt',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Ingen tilgjengelige alternativer',
   [C.CONTEXTMENU_LABEL]: 'Kontekstmeny',
   [C.DROPDOWNMENU_LABEL]: 'Kolonnemeny',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Sett inn over',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Opphev sammenslåing',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopier',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopier med overskrift', 'Kopier med overskrifter'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Kopier med gruppeoverskrift',
+    'Kopier med gruppeoverskrifter',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopier bare overskrift', 'Kopier bare overskrifter'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Klipp ut',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Eksporter',
@@ -141,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Ark [name] flyttet til posisjon [position] av [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Ark',
 
+  [C.CHECKBOX_CHECKED]: 'Avmerket',
+  [C.CHECKBOX_UNCHECKED]: 'Ikke avmerket',
+
   [C.LOADING_TITLE]: 'Laster...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Lukk',
 
@@ -175,6 +185,18 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Frosne kolonner på slutten',
   [C.ARMED_PICK_STARTED]: 'Klikk eller trykk på målet for å fullføre. Trykk Escape for å avbryte.',
   [C.ARMED_PICK_CANCELED]: 'Avbrutt.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Endrer bredden på kolonnen. Bruk piltastene venstre og høyre for å endre bredden, Enter for å bruke den, Escape ' +
+    'for å avbryte.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Endrer høyden på raden. Bruk piltastene opp og ned for å endre høyden, Enter for å bruke den, Escape for å ' +
+    'avbryte.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Endrer størrelsen på kommentarfeltet. Bruk piltastene for å endre størrelsen, Enter for å bruke den, ' +
+    'Escape for å ' +
+    'avbryte.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Bredde: [size] piksler',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Høyde: [size] piksler',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivå [level], [position] av [setSize]',
@@ -190,6 +212,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortert etter [label], stigende',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortert etter [label], synkende',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortering fjernet fra [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortert etter [label], stigende, sorteringsprioritet [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortert etter [label], synkende, sorteringsprioritet [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Valg fra kolonne [startColumn], rad [startRow] til kolonne [endColumn], rad [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle celler valgt',

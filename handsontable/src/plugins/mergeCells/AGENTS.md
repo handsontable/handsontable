@@ -309,13 +309,41 @@ hooks). Six rules keep it narrow:
   (`#clearCoveredFlagsOfCellsReleasedByStep()`): each captured merge carries its anchor rows and its
   `physicalColumns`, so the cells the other side covered and the restored side does not are known without
   reading a live merge's columns. Only the merges the step changed are walked, and a cell the restored side's
-  changed merges cover is skipped. A cell an unchanged merge covers is not looked at, so it may be cleaned and
+  changed merges cover is skipped, except the cell one of them is drawn from: a merge the undo puts back
+  inside a larger one it takes off (`mergeSelection()` over an older merge) is drawn from a cell the larger merge
+  covered, and `afterGetCellMeta` never writes `copyable` back on a top-left, so that cell loses `hidden` and
+  `copyable` and keeps its span keys. The redo of that step is the mirror: the cell the inner merge was drawn
+  from is covered by the outer one, and the hook never takes a span off a covered cell, so it loses its span
+  keys and keeps `hidden` and `copyable`. A cell an unchanged merge covers is not looked at, so it may be cleaned and
   `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
   merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
-  recorded sides already hold the answer. It does nothing
-  without a recorded other side (no `context.other`), for a merge captured with no `physicalColumns`, or when
-  the replay inserted or removed rows or columns (`context.reordered`): the recorded physical indexes are
-  numbered like the grid before that replay. A row move's redo was already clean, because dropping the live merge cleans it by the
+  recorded sides already hold the answer. **This path does not wait for an own `hidden` or `spanned`**, as the
+  move paths do: the merge stored both through `setCellMeta()`, so on the undo of a merge the UndoRedo journal,
+  replayed before `restoreState()`, has already taken them back, while the `copyable: false`, `rowspan` and
+  `colspan` the hook wrote are in no journal. Gated on the marks, the undo of a merge left them all on the cells,
+  and a copy of the area dropped the covered cells' values. So each released cell loses `hidden`/`spanned` where
+  they are still own, and `copyable`, `rowspan` and `colspan` unless recorded (the `wasInMerge` argument of
+  `#clearCoveredFlagsOfTopLeftCell` and `#clearSpanKeysOfCell`). Pinned by `__tests__/undoMergeMeta.unit.js` and
+  `tests/e2e/merge-cells-undo-copy.spec.ts`. The cleanup does nothing
+  without a recorded other side (no `context.other`) or for a merge captured with no `physicalColumns`.
+  **A step that also inserted or removed rows or columns (`context.reordered`) cannot use the recorded sides**:
+  UndoRedo replays that `alter()` first, so the recorded physical indexes are numbered like the grid before the
+  replay. UndoRedo therefore hands the restore `context.toRestoredIndex`, which maps a physical index of the
+  other side through the rows and columns the step inserted or removed (`toFinalIndex()` in
+  `../undoRedo/restoredCells.ts`). `#clearMergeKeysOfCellsReleasedByReplay()` maps every recorded merge's
+  anchor rows and `physicalColumns` with it (`mapRecordedMerge()`), leaves out the merges whose mapped cells
+  equal a restored merge's (`getFootprintKey()`, matched through a `Set` so the match stays linear in the
+  merge count: the step left them alone, and checking them would cost the area of every merge on every
+  structural undo). A recorded merge that lost a row or a column to the mapping never matches: it covered a
+  cell the restored grid lacks, and once that cell is dropped it can look like the merge the undo puts back
+  (an inserted row inside a merge that the step grew), which left that merge's top-left uncleaned. It runs the same per-cell rule
+  (`#clearMergeKeysOfReleasedCells()`) as the path above. **Never read the live merges here**: the replay runs
+  in the physical order and the column order is restored before `restoreState()`, so a live merge's visual
+  columns name other physical columns once a column was moved, and a column `alter()` in the replay
+  re-captures the anchors in the physical order too. A cleanup built from them missed the merge's cells and
+  cleaned cells no merge covered. Pinned by the `of a step that also inserts or removes rows or columns` block
+  of `__tests__/undoMergeMeta.unit.js` (the moved-column cases among them) and the insert-and-merge case of
+  `tests/e2e/merge-cells-undo-copy.spec.ts`. A row move's redo was already clean, because dropping the live merge cleans it by the
   anchor's physical rows. Pinned by the `after the undo and the redo` cases of
   `__tests__/reanchoredTopLeftMeta.unit.js` and `tests/e2e/merge-cells-column-move-redo.spec.ts`.
 - **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
@@ -359,7 +387,9 @@ hooks). Six rules keep it narrow:
     `#settleMergesAfterAxisMove` (only while a row is trimmed), and the top and bottom of `restoreState()`. UndoRedo replays the cell meta journal before it restores plugin states, so the cleanup is
     not overwritten by a replayed `spanned`.
   - **It cleans only where `#clearSpanKeysOfCell` does** (an own `spanned`), so a cell that was never a top-left
-    is untouched whatever ends up in the diff, and a stale recording mostly misses a cleanup.
+    is untouched whatever ends up in the diff, and a stale recording mostly misses a cleanup. The released cells of
+    an undo step are the one exception: `#clearCoveredFlagsOfCellsReleasedByStep` passes `wasInMerge`, because the
+    journal has already taken `spanned` back there.
   - **An intermediate diff can clean a cell the final state draws from, and the next read puts the keys back.**
     UndoRedo restores the index maps, which fires the mapper diff against the merges that are not restored yet,
     and a row move runs that diff before `translateAfterAxisMove` replaces the anchors. `afterGetCellMeta`

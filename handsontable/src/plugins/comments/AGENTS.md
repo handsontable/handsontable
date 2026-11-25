@@ -217,6 +217,16 @@ the page object's `GRAB_INSET`**, or the gesture reproduces nothing and the spec
 code. The 250 ms boundary is crossed with `page.clock`, because `toBeVisible()` resolves the moment it is
 true and so would never observe a hide that is still pending.
 
+## Resizing the box without dragging its grip
+
+`commentResize.ts` (`CommentResize`, built once beside the editor) adds the two single-pointer and keyboard ways. The grip is the browser's, so a drag stays native and the class never stores a size: it calls `editor.setSize()`, and the editor's resize observer reports it to `#onEditorResize()`, which saves it like a drag (no undo step).
+
+- **Keyboard:** `Ctrl`/`Cmd`+`Alt`+`R` in the focused editor, in the `plugin:comments` context. The arrow keys, `Enter` and `Escape` of the mode sit before the plugin's own shortcuts of the same group, so `Enter` adds no line and `Escape` closes nothing. Every callback returns `false`: the shortcut chain stops only on that.
+- **Click, then click:** a press and a release on the grip's corner (16px, the inline end under RTL) that did not move arms `armPick()`. It is the `mouseup` that arms it: the browser keeps the grip to itself and a `click` does not arrive. Arming focuses the editor, which holds it open while the pointer crosses the grid (the hover logic hides an unfocused editor over a plain cell). The next click names the corner. `Escape` ends the pick and, as before, also closes the editor.
+- `hide()` calls `cancel()`, so a hidden editor never keeps a mode or a pick.
+
+Pinned by `tests/e2e/comments-editor-resize-alternatives.spec.ts`.
+
 ## What survives a disable, and what has to be registered again
 
 `disablePlugin()` removes every hook registered through the tracked `this.addHook()`, but the objects the

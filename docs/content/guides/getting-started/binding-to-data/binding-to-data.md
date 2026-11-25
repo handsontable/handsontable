@@ -900,7 +900,7 @@ hot.setSourceDataAtCell(changes);
 
 Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
 
-<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/read-only-cells/">read-only</a> cells.</p></aside>
+<div role="note" class="starlight-aside starlight-aside--tip" aria-label="Tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/read-only-cells/">read-only</a> cells.</p></div>
 
 ```js
 const newValues = [

@@ -153,6 +153,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] premešten na poziciju [position] od [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
 
+  [C.CHECKBOX_CHECKED]: 'Označeno',
+  [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
+
   [C.LOADING_TITLE]: 'Učitavanje...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zatvori',
 
@@ -187,6 +190,14 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznute kolone na kraju',
   [C.ARMED_PICK_STARTED]: 'Kliknite ili dodirnite cilj da završite. Pritisnite Escape da otkažete.',
   [C.ARMED_PICK_CANCELED]: 'Otkazano.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Promena širine kolone. Strelicama levo i desno menjate širinu, Enter primenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Promena visine reda. Strelicama gore i dole menjate visinu, Enter primenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Promena veličine polja za komentar. Strelicama menjate veličinu, Enter primenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Širina: [size] piksela',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Visina: [size] piksela',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivo [level], [position] od [setSize]',
@@ -202,6 +213,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortirano po [label], rastuće',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortirano po [label], opadajuće',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortiranje uklonjeno za [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortirano po [label], rastuće, prioritet sortiranja [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortirano po [label], opadajuće, prioritet sortiranja [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Izbor od kolone [startColumn], reda [startRow] do kolone [endColumn], reda [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Sve ćelije izabrane',

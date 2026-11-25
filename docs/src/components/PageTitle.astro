@@ -105,8 +105,9 @@ const pageHref       = pathname;
 
 </div>
 
-<aside
+<div
   id="hot-newer-version-banner"
+  role="note"
   class="starlight-aside starlight-aside--tip hot-newer-version-banner"
   data-current-minor={currentMinor}
   hidden={!showNewerBanner}
@@ -115,7 +116,7 @@ const pageHref       = pathname;
     There is a newer version of Handsontable available.
     <a id="hot-newer-version-link" href={`https://handsontable.com/docs/`}>Switch to the latest version &rarr;</a>
   </p>
-</aside>
+</div>
 
 <div class="hot-title-row">
   <h1 id="_top">{pageTitle}</h1>
@@ -234,6 +235,13 @@ const pageHref       = pathname;
     text-decoration: none;
     cursor: default;
     pointer-events: none;
+  }
+
+  @media (forced-colors: active) {
+    .hot-breadcrumbs__current {
+      color: CanvasText;
+      font-weight: 700;
+    }
   }
 
   /* Hide breadcrumbs on mobile/tablet — sub-header already shows this info */

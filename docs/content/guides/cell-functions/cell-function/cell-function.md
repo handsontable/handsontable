@@ -13,6 +13,7 @@ vue:
   metaTitle: Cell functions | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 A cell function is one of three components -- renderer, editor, or validator -- that controls how a cell displays, accepts, and validates data.
@@ -54,6 +55,35 @@ class MyEditor extends BaseEditor { ... }
 ```
 
 `validator` is **optional**. If no validator is defined for a cell, the cell is skipped entirely during validation — afterValidate will not fire for it, and it will not contribute to the validation cycle.
+
+### Type `this` in a TypeScript validator
+
+Handsontable calls a validator with the cell's properties object as `this`. That object holds the cell position and the Handsontable instance.
+
+When you define the column object outside a typed settings object, TypeScript infers `this` from that column object. It then reports an error such as `Property 'instance' does not exist on type '{ data: string; ... }'`. To fix it, declare `this` as the first parameter and type it as `CellProperties`:
+
+```typescript
+import type { CellProperties } from 'handsontable';
+
+const columns = [{
+  data: 'sku',
+  type: 'text',
+  validator: function (this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
+    const skus = this.instance.getDataAtCol(this.visualCol);
+    const isDuplicate = skus.some((sku, visualRow) => visualRow !== this.visualRow && sku === value);
+
+    callback(!isDuplicate);
+  },
+}];
+```
+
+Keep these rules in mind:
+
+- Write the validator as a `function` or a method. An arrow function does not bind `this`, and TypeScript rejects a `this` parameter on it (`TS2730`).
+- Type `value` as `unknown`. The `validator` option passes the value as `unknown`, so a parameter typed as `string` fails to compile. Narrow the value before you use it.
+- `row` and `col` hold physical indexes. Use `visualRow` and `visualCol` with methods that take visual indexes, such as [`getDataAtCol()`](@/api/core.md#getdataatcol).
+
+For the full list of types, see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md).
 
 ### `allowInvalid`
 

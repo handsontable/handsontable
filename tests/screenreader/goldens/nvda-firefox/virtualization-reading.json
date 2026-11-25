@@ -6,12 +6,12 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T11:01:43.300Z"
+    "at": "2026-11-24T09:25:22.483Z"
   },
   "steps": {
-    "read-1": "row 1 column 3 b 1",
+    "read-1": "row 2 column 3 b 1",
     "read-2": "column 4 c 1",
-    "read-3": "row 2 column 2 a 2",
+    "read-3": "column 2 a 2",
     "read-4": "column 3 b 2",
     "read-5": "column 4 c 2",
     "read-6": "row 3 column 2 a 3",

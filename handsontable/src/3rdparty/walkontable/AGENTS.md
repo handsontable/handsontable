@@ -2135,11 +2135,72 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
 - Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
   renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
 
-Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
+**The strip had a side effect a screen reader depended on, and it is now asked for on purpose (DEV-4151).**
+Removing and re-adding a cell's `role` makes the browser build a new accessibility object for it. That is what
+made VoiceOver with WebKit and NVDA with Firefox read a focused cell again when it changed in place, or read a
+cell the focus jumped to as a move, with its column and row. An attribute that keeps its value does neither: the
+reader keeps the object of the cell the recycled element showed before and says nothing (checkbox toggles, async
+values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
+`rebuildAccessibilityObject()` (`helpers/a11y.ts`), asked for in three places, each for the cells that need it:
+
+- **A focus move onto a data cell** (`FocusGridManager#announceCellFocus`, `focusManager/grid.ts`): the cell's
+  `role` is rebuilt right before `focus()`, unless the cell holds the focus already, and the cell's state is
+  recorded (`rememberAnnouncedCell()`). A column header only gets the record. This is the case the old strip
+  covered for the cell about to take the focus. The rebuild runs for the root grid only: the lists and menus the
+  editors build are grids of their own, a reader reaches their options through the editor that keeps the focus,
+  and a rebuilt option lost the speech of the list (autocomplete and dropdown arrow keys, the intl date editor).
+  Those grids still record the cell, so a checkbox toggled in a menu list is read again.
+- **The focused cell or header changes in place, or the grid draws the selected cell into it**
+  (`FocusGridManager#announceChangeInPlace`, `focusManager/grid.ts`, on `afterRender`): when the element that holds
+  the focus is the cell the selection points at (`getCell()` of the highlight, not the `current` class, which a grid
+  with `disableVisualSelection` never gets), `hasCellChangedSinceAnnounced()` compares it with the record. The record holds
+  what the cell showed and where it was (`readCellAnnouncementSignature()`: markup, form control state, `aria-*`
+  attributes) when it took the focus, not what it showed before this draw, because the browser can change the
+  state before the draw (a checkbox flipped by Space). A different signature, row or column rebuilds it. The
+  selection check is what keeps a scroll quiet: a wheel scroll with the selection fixed recycles the focused
+  element for rows the user is not on, and the old paint-time check rebuilt it for each of them. A jump to a row the
+  grid renders only then (`Ctrl+ArrowDown`) draws the selected cell into the element that keeps the focus, so the
+  row in the record is what tells it from a repeated paint, and the readers read the cell as a move. The coordinates are the
+  selection's highlight, never `getCoords()`: looking an element up fires the public `modifyGetCoordsElement` hook,
+  which a legacy spec counts. Only the one focused element is looked at. An element whose markup changes on every paint (a
+  generated id, an animated bar) reads as changed on every draw, so such a cell is read again each time.
+- **The offsets that position the cells change** (`#hasPositionOffsetChanged` in `render/cells.ts`, and the same
+  question for the column header count in `render/rows.ts`): when the number of row headers or column headers
+  changes, every painted cell, and every row for a change of the column headers, is rebuilt once, so a reader that
+  learned the old positions counts again (NVDA with Firefox read the first rows of a grid that got column headers
+  one row too low, and the cells alone were not enough: a row keeps the position the reader cached for it). A grid
+  with `renderMode: 'onChange'` is covered by the same test.
+
+Do not make any of these unconditional: the cost of the strip was the reason it went. The rebuild does not reach
+NVDA or VoiceOver with Chromium, which were silent on these steps before DEV-4105 too (DEV-4004 and DEV-4011).
+The readers' speech is not testable in Chromium: the specs pin the mechanism (a `MutationObserver` on `role`), and
+the `Screen reader nightly` lanes (`vo-webkit`, `nvda-firefox`) show whether the reader says it.
+
+Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `test/unit/renderer/cellsAnnounce.unit.ts` (the header counts), `helpers/__tests__/a11y.unit.ts`,
+`focusManager/__tests__/grid.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
-from the same attributes on a new and a recycled element, and a redraw plus a vertical scroll write no
+from the same attributes on a new and a recycled element, a redraw plus a vertical scroll write no
 accessibility attribute on an element that already holds it (a `MutationObserver`, with a horizontal scroll
-as the positive control).
+as the positive control), and the three rebuilds above happen once, for the cell that needs them.
+
+## The corner header is a plain `gridcell` with no name of its own
+
+The column header row's cells above the row headers (one per row-header column, in every overlay that draws
+them) get `role="gridcell"`, `aria-colindex` and `tabindex` from `getCornerAriaAttributes` in
+`render/columnHeaders.ts`, and nothing else: no `aria-label`, no `scope`, no `id`. They are not column headers
+(a `columnheader` there would be counted as one), and they have no action of their own to name.
+
+- **A control rendered into the corner names itself.** RowSelection puts its "select all" checkbox there, with
+  its own translated `aria-label` and `aria-checked`. A label on the cell would replace the name the cell takes
+  from that content, so a screen reader would announce the cell's label instead of the checkbox. The cell
+  used to carry `role="gridcell button"` and an English `aria-label="Select whole grid"`, which did exactly that.
+- **A recycled header needs no extra removal.** `syncAriaAttributes` clears every `aria-*` and `role` attribute
+  the kept set does not hold before it writes, so a TH that was a corner with a label, or a column header, sheds
+  what it carried on the next draw. `scope` and `id` are not in that clearing pass and are removed explicitly
+  (`writeColumnHeaderAriaAttributes`).
+
+Pinned by `tests/e2e/corner-header-role.spec.ts` (every overlay's copy, the RowSelection checkbox as the cell's
+name, `ariaTags: false`, and row selection toggled on and off) and `src/__tests__/a11y/headers.spec.js`.
 
 ## A data cell names its column header through `aria-describedby`, and the owner is per column
 

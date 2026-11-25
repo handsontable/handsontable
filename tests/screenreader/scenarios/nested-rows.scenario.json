@@ -24,13 +24,13 @@
       "id": "into-parent-cell",
       "action": { "press": "ArrowRight" },
       "expect": [["root a"], ["level 1", "1 of 2"], ["row 2"], ["column 2"]],
-      "note": "aria-level, aria-posinset and aria-setsize sit on the row, and no reader announces them for a cell, so the plugin announces the level and the set position politely when the focus reaches another row (`Level 1, 1 of 2, expanded`); the level or the set position is required beside the cell's place. NVDA reads the cell and then the message on both browsers, and so does VoiceOver with Chromium. Finding: on VoiceOver with WebKit the message replaces the cell's own announcement, so it reads the message alone. VoiceOver names no row index on a cell move, and with Chromium says `column 1` for the second column."
+      "note": "aria-level, aria-posinset and aria-setsize sit on the row, and no reader speaks them for a cell, so the grid adds the level and the position to the description of the cell the highlight reached. Required: the cell and the level or the set position, in the same utterance. A message in a live region made the same moment replaced the cell on VoiceOver. VoiceOver names no row index here; VoiceOver with Chromium says `column 1` for the second column."
     },
     {
       "id": "down-to-child",
       "action": { "press": "ArrowDown" },
       "expect": [["a 1"], ["level 2", "1 of 3"], ["row 3"], ["column 2"]],
-      "note": "The parent's first child, one level down, with its level announced as on the parent (`Level 2, 1 of 3`). Finding: as on the parent, VoiceOver with WebKit reads the message alone."
+      "note": "The parent's first child, one level down. Required: the cell and its level in the same utterance, as for the parent."
     }
   ]
 }

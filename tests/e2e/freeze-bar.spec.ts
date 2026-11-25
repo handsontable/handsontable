@@ -708,8 +708,47 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       await expect(bar).toHaveAttribute('role', 'separator');
       await expect(bar).toHaveAttribute('aria-orientation', 'vertical');
       await expect(bar).toHaveAttribute('aria-valuenow', '2');
+      await expect(bar).toHaveAttribute('aria-valuetext', '2');
       await expect(bar).toHaveAttribute('aria-valuemin', '0');
       await expect(grid.separator('top')).toHaveAttribute('aria-orientation', 'horizontal');
+    });
+
+    test('the value text follows the count through F6, the arrow keys and Home', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+      });
+      await grid.page.keyboard.press('F6');
+
+      const start = grid.separator('start');
+
+      await expect(start).toBeFocused();
+      await expect(start).toHaveAccessibleName('Frozen columns at the start');
+      await expect(start).toHaveAttribute('aria-valuetext', '2');
+
+      await grid.page.keyboard.press('ArrowRight');
+
+      await expect(start).toHaveAttribute('aria-valuetext', '3');
+
+      await grid.page.keyboard.press('ArrowLeft');
+
+      await expect(start).toHaveAttribute('aria-valuetext', '2');
+
+      await grid.page.keyboard.press('Home');
+
+      await expect(start).toHaveAttribute('aria-valuetext', '0');
+
+      await grid.page.keyboard.press('F6');
+
+      const top = grid.separator('top');
+
+      await expect(top).toBeFocused();
+      await expect(top).toHaveAccessibleName('Frozen rows at the top');
+      await expect(top).toHaveAttribute('aria-valuetext', '2');
+
+      await grid.page.keyboard.press('ArrowDown');
+
+      await expect(top).toHaveAttribute('aria-valuetext', '3');
     });
 
     test('the arrow keys change the count by one and Home sets 0', async() => {
@@ -1161,6 +1200,7 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
 
       await expect(grid.separator('start')).not.toHaveAttribute('role', 'separator');
       await expect(grid.separator('start')).not.toHaveAttribute('aria-valuenow', /.*/);
+      await expect(grid.separator('start')).not.toHaveAttribute('aria-valuetext', /.*/);
     });
   });
 

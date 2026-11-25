@@ -206,6 +206,13 @@ Set the option [`manualRowResize`](@/api/options.md#manualrowresize) to `true` t
 
 You can adjust the size of one or multiple rows simultaneously, even if the selected rows are not placed next to each other.
 
+To resize without dragging, use one of these ways:
+
+- Click the handle, then click the grid. The height becomes the distance from the top of the row to the point you click. The handle stays highlighted until you click. The click doesn't select the cell. Press <kbd>**Escape**</kbd>, click the handle again, or press outside the grid to cancel. On a touchscreen, tap the handle, then tap the grid.
+- Select the whole row, or focus its row header, and press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd>. The up and down arrow keys change the height by 10 pixels, or by 1 pixel with <kbd>**Shift**</kbd>. <kbd>**Enter**</kbd> keeps the height and <kbd>**Escape**</kbd> cancels. For all the keys, see [Column and row resize keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-and-row-resize-keyboard-shortcuts).
+
+Both ways store the height in one undo step and run the [`beforeRowResize`](@/api/hooks.md#beforerowresize) and [`afterRowResize`](@/api/hooks.md#afterrowresize) hooks. A screen reader announces the height in pixels.
+
 ::: tip
 
 When you set a row height programmatically with [`ManualRowResize#setManualSize()`](@/api/manualRowResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below the theme's default row height are stored as the default row height.

@@ -49,24 +49,24 @@ function findFirstReleaseDate(lines, startIdx) {
   return null;
 }
 
-// "#### Major changes" is intentionally absent: in older changelogs it
+// "### Major changes" is intentionally absent: in older changelogs it
 // introduces prose paragraphs, not bullet lists, so it produces no entries
-// in the current loop. "#### Security" maps to `fixed` because the UI exposes
+// in the current loop. "### Security" maps to `fixed` because the UI exposes
 // only five filter categories (Added/Changed/Deprecated/Removed/Fixed); the
 // raw section is rare enough (2 occurrences) that a dedicated bucket is not
 // worth the type-system churn.
 const CATEGORY_HEADINGS = {
-  '#### Added': { category: 'added', forceBreaking: false },
-  '#### Changed': { category: 'changed', forceBreaking: false },
-  '#### Deprecated': { category: 'deprecated', forceBreaking: false },
-  '#### Removed': { category: 'removed', forceBreaking: false },
-  '#### Fixed': { category: 'fixed', forceBreaking: false },
-  '#### New features': { category: 'added', forceBreaking: false },
-  '#### Changes': { category: 'changed', forceBreaking: false },
-  '#### Changelog': { category: 'changed', forceBreaking: false },
-  '#### Deprecations': { category: 'deprecated', forceBreaking: false },
-  '#### Security': { category: 'fixed', forceBreaking: false },
-  '#### Breaking changes': { category: 'changed', forceBreaking: true },
+  '### Added': { category: 'added', forceBreaking: false },
+  '### Changed': { category: 'changed', forceBreaking: false },
+  '### Deprecated': { category: 'deprecated', forceBreaking: false },
+  '### Removed': { category: 'removed', forceBreaking: false },
+  '### Fixed': { category: 'fixed', forceBreaking: false },
+  '### New features': { category: 'added', forceBreaking: false },
+  '### Changes': { category: 'changed', forceBreaking: false },
+  '### Changelog': { category: 'changed', forceBreaking: false },
+  '### Deprecations': { category: 'deprecated', forceBreaking: false },
+  '### Security': { category: 'fixed', forceBreaking: false },
+  '### Breaking changes': { category: 'changed', forceBreaking: true },
 };
 
 const FRAMEWORK_PREFIXES = {
@@ -221,7 +221,7 @@ export function parseChangelogContent(markdown) {
       continue;
     }
 
-    const heading = CATEGORY_HEADINGS[line.trim()];
+    const heading = CATEGORY_HEADINGS[line.trim().replace(/^#{3,4} /, '### ')];
     if (heading) {
       currentCategory = heading.category;
       currentForceBreaking = heading.forceBreaking;

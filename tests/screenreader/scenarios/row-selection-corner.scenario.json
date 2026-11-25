@@ -24,7 +24,7 @@
       "id": "arrow-up-corner",
       "action": {"press": "ArrowUp"},
       "expect": [["select all rows"], ["1 of 5 selected"], ["mixed", "half checked", "partially checked"]],
-      "note": "ArrowUp reaches the corner, which holds the select all checkbox: `Select all rows (1 of 5 selected)`, mixed. Finding: NVDA reads only the corner's own name, `Select whole grid`, and neither the checkbox's name nor its count; VoiceOver with WebKit reads both. No reader says the mixed state."
+      "note": "ArrowUp reaches the corner, which holds the select all checkbox: `Select all rows (1 of 5 selected)`, mixed. The corner cell has no name of its own, so every reader reads the checkbox's name and count. Finding: no reader says the mixed state."
     },
     {
       "id": "space-select-all",

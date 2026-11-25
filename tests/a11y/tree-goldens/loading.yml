@@ -72,8 +72,8 @@
       - gridcell "Name 13"
       - gridcell "13"
   - rowgroup:
-    - row "Select whole grid Company name Country Name Qty":
-      - gridcell "Select whole grid"
+    - row "Company name Country Name Qty":
+      - gridcell
       - columnheader "Company name"
       - columnheader "Country"
       - columnheader "Name"
@@ -109,8 +109,8 @@
     - row "14":
       - rowheader "14"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
 - alertdialog "Loading...":
   - heading "Loading..." [level=2]

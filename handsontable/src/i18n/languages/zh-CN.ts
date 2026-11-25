@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: '确认',
   [C.CANCEL]: '取消',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '没有可用选项',
   [C.CONTEXTMENU_LABEL]: '上下文菜单',
   [C.DROPDOWNMENU_LABEL]: '列菜单',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入行',
@@ -144,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: '工作表 [name] 已移至第 [position] 个位置（共 [count] 个）',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
 
+  [C.CHECKBOX_CHECKED]: '已勾选',
+  [C.CHECKBOX_UNCHECKED]: '未勾选',
+
   [C.LOADING_TITLE]: '加载中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '关闭',
 
@@ -178,6 +182,11 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: '末尾冻结的列',
   [C.ARMED_PICK_STARTED]: '单击或点按目标以完成。按 Esc 键取消。',
   [C.ARMED_PICK_CANCELED]: '已取消。',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]: '正在调整列宽。使用左右方向键更改宽度，按 Enter 键应用，按 Esc 键取消。',
+  [C.MANUAL_RESIZE_ROW_STARTED]: '正在调整行高。使用上下方向键更改高度，按 Enter 键应用，按 Esc 键取消。',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]: '正在调整批注框大小。使用方向键更改大小，按 Enter 键应用，按 Esc 键取消。',
+  [C.MANUAL_RESIZE_WIDTH]: '宽度：[size] 像素',
+  [C.MANUAL_RESIZE_HEIGHT]: '高度：[size] 像素',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展开行 [label]，显示的展开行数：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已折叠行 [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '第 [level] 级，第 [position] 项，共 [setSize] 项',
@@ -193,6 +202,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '已按 [label] 升序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '已按 [label] 降序排序',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '已取消 [label] 的排序',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '已按 [label] 升序排序,优先级 [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '已按 [label] 降序排序,优先级 [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '已选择从第 [startColumn] 列、第 [startRow] 行到第 [endColumn] 列、第 [endRow] 行的区域',
   [C.SELECTION_ANNOUNCEMENT_ALL]: '已选择所有单元格',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '已选择第 [column] 列',

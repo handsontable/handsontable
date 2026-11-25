@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Cancelar',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nenhuma opção disponível',
   [C.CONTEXTMENU_LABEL]: 'Menu de contexto',
   [C.DROPDOWNMENU_LABEL]: 'Menu da coluna',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserir linha acima',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Desfazer mesclagem de células',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copiar',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copiar com cabeçalho', 'Copiar com cabeçalhos'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Copiar com cabeçalho de grupo',
+    'Copiar com cabeçalhos de grupo',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copiar somente o cabeçalho', 'Copiar somente os cabeçalhos'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Recortar',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportar',
@@ -141,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Planilha [name] movida para a posição [position] de [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Planilha',
 
+  [C.CHECKBOX_CHECKED]: 'Marcado',
+  [C.CHECKBOX_UNCHECKED]: 'Desmarcado',
+
   [C.LOADING_TITLE]: 'Carregando...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fechar',
 
@@ -175,6 +185,17 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Colunas congeladas no fim',
   [C.ARMED_PICK_STARTED]: 'Clique ou toque no destino para concluir. Pressione Escape para cancelar.',
   [C.ARMED_PICK_CANCELED]: 'Cancelado.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Redimensionando a coluna. Use as setas para a esquerda e para a direita para alterar a largura, Enter para ' +
+    'aplicar, Escape para cancelar.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Redimensionando a linha. Use as setas para cima e para baixo para alterar a altura, Enter para aplicar, Escape ' +
+    'para cancelar.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Redimensionando a caixa de comentário. Use as setas para alterar o tamanho, Enter para aplicar, Escape para ' +
+    'cancelar.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Largura: [size] pixels',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Altura: [size] pixels',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Linha [label] expandida, linhas expandidas exibidas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Linha [label] recolhida',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nível [level], [position] de [setSize]',
@@ -190,6 +211,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Ordenado por [label], crescente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Ordenado por [label], decrescente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Ordenação removida de [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Ordenado por [label], crescente, prioridade de ordenação [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Ordenado por [label], decrescente, prioridade de ordenação [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Seleção da coluna [startColumn], linha [startRow] até a coluna [endColumn], linha [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Todas as células selecionadas',

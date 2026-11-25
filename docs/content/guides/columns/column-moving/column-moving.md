@@ -82,7 +82,7 @@ around them selects the column without sorting it, so you can select a column an
 
 :::
 
-#### Move column headers
+### Move column headers
 
 When you move columns, the default column headers (A, B, C) stay in place.
 

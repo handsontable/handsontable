@@ -1,5 +1,6 @@
 import type { HotInstance } from '../core/types';
 import EventManager from '../eventManager';
+import { hasCellChangedSinceAnnounced, rebuildAccessibilityObject, rememberAnnouncedCell } from '../helpers/a11y';
 import { warn } from '../helpers/console';
 import {
   getDeepActiveElement,
@@ -9,6 +10,7 @@ import {
   isOutsideInput,
 } from '../helpers/dom/element';
 import { debounce } from '../helpers/function';
+import { isRootInstance } from '../utils/rootInstance';
 
 /**
  * Possible focus modes.
@@ -137,6 +139,20 @@ export class FocusGridManager {
    * @type {boolean}
    */
   #isSuspended = false;
+  /**
+   * How many `keepForeignFocusWhile()` calls are running. While it is above zero, a selection that is laid again
+   * does not take the browser focus from an element outside the grid.
+   *
+   * @type {number}
+   */
+  #keepForeignFocusDepth = 0;
+  /**
+   * Whether the selection change that is waiting for the next render happened inside `keepForeignFocusWhile()`.
+   * Written by every selection change, so a later change made outside the scope takes the focus as usual.
+   *
+   * @type {boolean}
+   */
+  #pendingKeepsForeignFocus = false;
   /**
    * Plugin-owned elements outside the grid's root element that a press inside does not deselect
    * (see `registerOutsideClickExemptElement()`).
@@ -356,6 +372,28 @@ export class FocusGridManager {
   }
 
   /**
+   * Runs `action`, and keeps the browser focus on an element outside the grid while it runs. A selection laid
+   * again by the action (a data update re-lays the selection it already holds) then does not move the focus into
+   * the grid, whatever the outside element is: an input, a button or a link. The grid takes the focus back only when
+   * it, or nothing, held it. `<body>` counts as nothing.
+   *
+   * Unlike `suspend()`, it leaves an outer suspension alone and protects any focused element, not only form fields.
+   *
+   * @since 19.0.0
+   * @param {Function} action The work that may lay the selection again.
+   * @returns {*} What `action` returns.
+   */
+  keepForeignFocusWhile<T>(action: () => T): T {
+    this.#keepForeignFocusDepth += 1;
+
+    try {
+      return action();
+    } finally {
+      this.#keepForeignFocusDepth -= 1;
+    }
+  }
+
+  /**
    * Get the element to be used when refocusing the browser after a delay in case of the focus mode being 'mixed'.
    *
    * @returns {HTMLTextAreaElement|HTMLElement|undefined}
@@ -387,6 +425,97 @@ export class FocusGridManager {
   }
 
   /**
+   * Makes a screen reader read a data cell that is about to take the focus as a move onto that cell, with its
+   * column and row. The cell is drawn into an element the grid recycles, and the draw leaves the element's
+   * attributes as they were when they hold the same values, so the browser would keep the accessibility object
+   * of the cell the element showed before, and a reader hears a name change or nothing. A cell that has the
+   * focus already is left alone: nothing moved. The state of the cell or header is recorded, so that the draw
+   * after a change made while it holds the focus can tell it from a repeated paint.
+   *
+   * Only the grid the application created gets the rebuild: the lists the editors build are grids of their own,
+   * a reader reaches their options through the editor that keeps the focus, and a rebuilt option can lose the
+   * reference the editor holds to it. Their cells are still recorded, so a checkbox in a menu list that is
+   * toggled is read again.
+   *
+   * @param {HTMLElement} elementToBeFocused The element that is about to take the focus.
+   * @param {HTMLElement | null} cell The highlighted cell or header, which the `modifyFocusedElement` hook may have
+   * replaced.
+   */
+  #announceCellFocus(elementToBeFocused: HTMLElement, cell: HTMLElement | null): void {
+    const isDataCell = elementToBeFocused.nodeName === 'TD';
+
+    if (elementToBeFocused !== cell || (!isDataCell && elementToBeFocused.nodeName !== 'TH')) {
+      return;
+    }
+
+    const coords = this.#readHighlight();
+
+    if (coords === null) {
+      return;
+    }
+
+    if (getDeepActiveElement(this.#hot.rootDocument) === elementToBeFocused) {
+      // The browser focused an element that was pressed before the grid selected it. Nothing moved, but the draw that
+      // follows needs a record of what it showed, to tell a change from a repeated paint.
+      rememberAnnouncedCell(elementToBeFocused, coords.row, coords.col, true);
+
+      return;
+    }
+
+    if (isDataCell && isRootInstance(this.#hot)) {
+      rebuildAccessibilityObject(elementToBeFocused);
+    }
+
+    rememberAnnouncedCell(elementToBeFocused, coords.row, coords.col);
+  }
+
+  /**
+   * Reads the cell the selection highlights, which is the cell that gets the browser focus. It asks the selection
+   * and not the element, because looking an element up fires the public `modifyGetCoordsElement` hook.
+   *
+   * @returns {{ row: number, col: number } | null} The visual coordinates, `null` without a selection.
+   */
+  #readHighlight(): { row: number, col: number } | null {
+    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
+
+    return highlight && highlight.row !== null && highlight.col !== null
+      ? { row: highlight.row, col: highlight.col }
+      : null;
+  }
+
+  /**
+   * Makes a screen reader read the focused cell or header again when what it shows changed in place, or when the
+   * grid drew another cell into the element that holds the focus (a jump to a row that is rendered only then).
+   * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
+   * hears nothing or a name that changed. It only counts when the element is a cell of this grid, not of a grid
+   * nested in one of its cells, and shows the selected cell: a scroll that recycles the focused element for a cell
+   * the user is not on says nothing.
+   */
+  #announceChangeInPlace(): void {
+    const activeElement = getDeepActiveElement(this.#hot.rootDocument);
+
+    if (
+      !isHTMLElement(activeElement) ||
+      (activeElement.nodeName !== 'TD' && activeElement.nodeName !== 'TH') ||
+      !isInternalElement(activeElement, this.#hot.rootElement)
+    ) {
+      return;
+    }
+
+    const coords = this.#readHighlight();
+
+    // The element shows the selected cell when it is the one the grid renders for the highlight. The `current` class
+    // says the same, but a grid with `disableVisualSelection` never gets it.
+    if (coords === null || this.#hot.getCell(coords.row, coords.col, true) !== activeElement) {
+      return;
+    }
+
+    if (hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col)) {
+      rebuildAccessibilityObject(activeElement);
+    }
+  }
+
+  /**
    * Set the browser's focus to the highlighted cell of the last selection.
    *
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
@@ -411,6 +540,7 @@ export class FocusGridManager {
         elementToBeFocused &&
         !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
       ) {
+        this.#announceCellFocus(elementToBeFocused as HTMLElement, element);
         this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
       }
     };
@@ -570,14 +700,32 @@ export class FocusGridManager {
   }
 
   /**
+   * Gets the deepest focused element, or `null` when it is not an `HTMLElement`.
+   *
+   * @returns {HTMLElement | null}
+   */
+  #getActiveElement(): HTMLElement | null {
+    const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
+
+    return isHTMLElement(deepActiveElement) ? deepActiveElement : null;
+  }
+
+  /**
    * Manage the browser's focus after each cell selection change.
    *
    * @param {boolean} suspended Whether focus management was suspended when the selection changed.
+   * @param {boolean} keepsForeignFocus Whether the selection changed inside `keepForeignFocusWhile()`, so an element
+   * outside the grid keeps the focus it holds.
    */
-  #focusCell(suspended: boolean) {
+  #focusCell(suspended: boolean, keepsForeignFocus: boolean) {
     this.#getSelectedCell('focusCell', (selectedCell) => {
-      const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
-      const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
+      const activeElement = this.#getActiveElement();
+
+      // A selection laid again by a data update is not the user moving into the grid, so an element outside
+      // the grid that holds the focus keeps it (WCAG 3.2.2). Nothing is blurred and nothing is focused.
+      if (keepsForeignFocus && this.isForeignFocusTarget(activeElement)) {
+        return;
+      }
 
       // When focus management is suspended and an external focusable element (outside Handsontable)
       // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
@@ -614,12 +762,18 @@ export class FocusGridManager {
     // owns focus, fall through so the default `imeFastEdit` behavior still moves focus to the
     // editor textarea (existing per-editor IME support tests rely on this). See #10038.
     if (this.#isSuspended) {
-      const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
-      const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
+      const activeElement = this.#getActiveElement();
 
       if (activeElement && isOutsideInput(activeElement)) {
         return;
       }
+    }
+
+    // Same rule as `#focusCell()`: the debounced refocus of the editor input must not take the focus from an
+    // element outside the grid either.
+    // It reads the live scope, not a captured flag: `afterSelectionEnd` runs synchronously inside the scope.
+    if (this.#keepForeignFocusDepth > 0 && this.isForeignFocusTarget(this.#getActiveElement())) {
+      return;
     }
 
     this.#getSelectedCell('focusEditorElement', (selectedCell) => {
@@ -641,6 +795,11 @@ export class FocusGridManager {
       return;
     }
 
+    // With the render held back (`batch()`, `suspendRender()`), an earlier change made outside the scope is still
+    // waiting for it, and it keeps the right to take the focus: only a scoped change that follows nothing, or
+    // another scoped change, keeps the foreign focus.
+    this.#pendingKeepsForeignFocus = this.#keepForeignFocusDepth > 0 &&
+      (this.#pendingFocus === null || this.#pendingKeepsForeignFocus);
     this.#pendingFocus = this.#isSuspended;
 
     // Work waiting for another cell is stale now. A selection that stays on the same cell keeps it.
@@ -653,16 +812,25 @@ export class FocusGridManager {
    * Focuses the cell after the render event when the selection has changed.
    */
   #onAfterRender() {
-    const suspended = this.#pendingFocus;
-
     // A listener from the settings runs before this one, and the hook run keeps walking its listeners
     // after such a listener destroyed the grid.
-    if (suspended === null || this.#hot.isDestroyed) {
+    if (this.#hot.isDestroyed) {
       return;
     }
 
+    this.#announceChangeInPlace();
+
+    const suspended = this.#pendingFocus;
+
+    if (suspended === null) {
+      return;
+    }
+
+    const keepsForeignFocus = this.#pendingKeepsForeignFocus;
+
     this.#pendingFocus = null;
-    this.#focusCell(suspended);
+    this.#pendingKeepsForeignFocus = false;
+    this.#focusCell(suspended, keepsForeignFocus);
   }
 
   /**

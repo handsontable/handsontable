@@ -50,7 +50,7 @@ const ExampleComponent = () => {
         };
       }}
       afterGetColHeader={function(col, TH) {
-        if (!TH.hasAttribute('aria-sort')) {
+        if (col >= 0 && !TH.hasAttribute('aria-sort')) {
           TH.setAttribute('aria-sort', 'none');
         }
       }}

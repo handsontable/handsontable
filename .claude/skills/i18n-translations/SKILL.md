@@ -16,7 +16,7 @@ Route all user-visible strings through the i18n system in `src/i18n/`.
 export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_ALIAS}.insertRowAbove`;
 ```
 
-2. Add the English text to every language file in `src/i18n/languages/` (20+ locales, e.g. `en-US.ts`, `de-DE.ts`). Each file imports constants as `* as C`:
+2. Add the phrase to every language file in `src/i18n/languages/` (20+ locales, e.g. `en-US.ts`, `de-DE.ts`), translated: a phrase a file lacks falls back to English, so a translated grid reads it in another language (WCAG 3.1.2). `src/i18n/__tests__/languageCompleteness.unit.ts` fails on a file that lacks a phrase `en-US` holds, holds an empty one, or uses a placeholder the English phrase does not have. Each file imports constants as `* as C`:
 
 ```js
 [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',

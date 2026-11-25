@@ -159,6 +159,55 @@ function isMergeState(value: unknown): value is readonly MergeStateEntry[] {
 }
 
 /**
+ * Maps the physical cells a captured merge names to another numbering of the rows and columns. A row or
+ * column that does not exist there is dropped. The anchor keeps its own column, mapped, or takes the first
+ * recorded column that is left when its own does not exist there. A merge with no row or no column left has
+ * no anchor.
+ *
+ * @param {object} entry The captured merge.
+ * @param {Function} toIndex Maps a physical index, or answers `null` for one that does not exist there.
+ * @returns {object} The merge with its anchor and `physicalColumns` mapped.
+ */
+function mapRecordedMerge(
+  entry: MergeStateEntry,
+  toIndex: (physicalIndex: number, axis: 'row' | 'column') => number | null,
+): MergeStateEntry {
+  const physicalColumns = entry.physicalColumns?.map(column => (column === null ? null : toIndex(column, 'column')));
+
+  if (entry.anchor === null) {
+    return { ...entry, physicalColumns };
+  }
+
+  const physicalRows = entry.anchor.physicalRows
+    .map(row => toIndex(row, 'row'))
+    .filter((row): row is number => row !== null);
+  const physicalColumn = toIndex(entry.anchor.physicalColumn, 'column') ??
+    physicalColumns?.find(column => column !== null) ?? null;
+
+  return {
+    ...entry,
+    anchor: physicalRows.length === 0 || physicalColumn === null ? null : { physicalRows, physicalColumn },
+    physicalColumns,
+  };
+}
+
+/**
+ * Returns a key for the physical cells a captured merge names (its anchor rows, its anchor column and its
+ * columns), so two merges with the same key name the same cells. A merge with no anchor or no recorded columns
+ * has none.
+ *
+ * @param {object} entry The captured merge.
+ * @returns {string | null}
+ */
+function getFootprintKey(entry: MergeStateEntry): string | null {
+  if (entry.anchor === null || entry.physicalColumns === undefined) {
+    return null;
+  }
+
+  return `${entry.anchor.physicalRows.join(',')}|${entry.anchor.physicalColumn}|${entry.physicalColumns.join(',')}`;
+}
+
+/**
  * What a row move does to one merge, decided before the move's fragments exist.
  *
  * `trimmedRowsByCarrier` maps each row of the merge that is still visible to the trimmed rows of the
@@ -1973,10 +2022,11 @@ export class MergeCells extends BasePlugin {
     }
 
     const other = context?.other;
+    const isReplayed = context?.reordered === true;
     // The restore replaces merges, and a step can leave the cell a merge was drawn from in no merge.
     const drawnFromBefore = this.#snapshotDrawnFromCells();
 
-    if (!isMergeState(other) || context?.reordered === true || !this.#restoreChangedMerges(state, other)) {
+    if (!isMergeState(other) || isReplayed || !this.#restoreChangedMerges(state, other)) {
       this.mergedCellsCollection.clear();
       this.#mergeAnchors = new WeakMap();
       this.#purgedMerges = new WeakSet();
@@ -1986,9 +2036,12 @@ export class MergeCells extends BasePlugin {
     this.#reanchorMergesToVisibleRows();
     this.#clearSpanKeysOfCellsNoLongerDrawnFrom(drawnFromBefore);
 
-    // A replay that inserted or removed columns renumbered the physical indexes the recorded merges name.
-    if (isMergeState(other) && context?.reordered !== true) {
+    if (isMergeState(other) && !isReplayed) {
       this.#clearCoveredFlagsOfCellsReleasedByStep(state, other);
+
+    } else if (isMergeState(other) && context?.toRestoredIndex) {
+      // A replay that inserted or removed rows or columns renumbered the physical indexes the other side records.
+      this.#clearMergeKeysOfCellsReleasedByReplay(state, other, context.toRestoredIndex);
     }
 
     this.hot.markAllCellsChanged();
@@ -2026,8 +2079,16 @@ export class MergeCells extends BasePlugin {
    * restored side does not. `restoreState()` runs after UndoRedo restored the index maps, so the visual columns
    * of a live merge name the wrong physical columns and a set built from them cannot see the cell a redo takes
    * out of a merge. The recorded merges carry their physical columns, so the two sides are compared by those.
-   * A cell the restored side's changed merges cover is left alone. One an unchanged merge covers may be
-   * cleaned, and `afterGetCellMeta` stores the flags again on the next read.
+   * A cell the restored side's changed merges cover keeps what they put on it. The cell one of them is drawn
+   * from loses `hidden` and `copyable` and keeps its span keys, because `afterGetCellMeta` never writes
+   * `copyable` back on a top-left. A covered cell a merge of the other side was drawn from loses its span keys
+   * and keeps its covered flags, because the hook never takes a span off a covered cell. One an unchanged merge
+   * covers may be cleaned, and `afterGetCellMeta` stores the flags again on the next read.
+   *
+   * The span keys go too, and neither removal waits for the `hidden` or `spanned` mark. The merge stored both
+   * marks through `setCellMeta()`, so on the undo of a merge the UndoRedo journal has already taken them back,
+   * while the `copyable`, `rowspan` and `colspan` the hook wrote are not in the journal. The recorded other side
+   * is the proof that a merge covered the cell. A recorded `copyable`, `rowspan` or `colspan` still stays.
    *
    * @param {Array} state The merges on the restored side of the step.
    * @param {Array} other The merges on the other side of the step.
@@ -2039,15 +2100,128 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const covered = this.#collectRecordedCoveredCells(state.filter(entry => !isMergeListed(other, entry)));
+    const restored = state.filter(entry => !isMergeListed(other, entry));
 
-    this.#collectRecordedCoveredCells(left).forEach((key) => {
-      if (covered.has(key)) {
+    this.#clearMergeKeysOfReleasedCells(
+      this.#collectRecordedCoveredCells(left),
+      this.#collectRecordedTopLeftCells(left),
+      this.#collectRecordedCoveredCells(restored),
+      this.#collectRecordedTopLeftCells(restored),
+    );
+  }
+
+  /**
+   * Does what {@link MergeCells#clearCoveredFlagsOfCellsReleasedByStep} does, after a replay that inserted or
+   * removed rows or columns. The physical indexes the other side records are numbered like the grid before that
+   * replay, so each merge's anchor rows and recorded columns are first mapped to the restored grid through the
+   * rows and columns the step inserted or removed. Neither the live merges nor their visual columns can stand in:
+   * the replay runs in the physical order and the column order is restored before this runs. A merge whose
+   * mapped cells equal those of a restored merge is one the step left alone, and both are left out.
+   *
+   * @param {Array} state The merges on the restored side of the step.
+   * @param {Array} other The merges on the other side of the step.
+   * @param {Function} toRestoredIndex Maps a physical index of `other` to the restored grid.
+   */
+  #clearMergeKeysOfCellsReleasedByReplay(
+    state: readonly MergeStateEntry[],
+    other: readonly MergeStateEntry[],
+    toRestoredIndex: NonNullable<PluginRestoreContext['toRestoredIndex']>,
+  ) {
+    const mapped = other.map((entry) => {
+      const mappedEntry = mapRecordedMerge(entry, toRestoredIndex);
+      // A merge that lost a row or a column to the mapping covered a cell the restored grid lacks, so it is
+      // not the same merge as one of the restored side with the cells that are left.
+      const isWhole = mappedEntry.anchor?.physicalRows.length === entry.anchor?.physicalRows.length &&
+        !mappedEntry.physicalColumns?.includes(null);
+
+      return { entry: mappedEntry, key: isWhole ? getFootprintKey(mappedEntry) : null };
+    });
+    const restoredKeys = new Set(state.map(getFootprintKey));
+    const left = mapped
+      .filter(({ key }) => key === null || !restoredKeys.has(key))
+      .map(({ entry }) => entry);
+
+    if (left.length === 0) {
+      return;
+    }
+
+    const mappedKeys = new Set(mapped.map(({ key }) => key));
+    const restored = state.filter((entry) => {
+      const key = getFootprintKey(entry);
+
+      return key === null || !mappedKeys.has(key);
+    });
+
+    this.#clearMergeKeysOfReleasedCells(
+      this.#collectRecordedCoveredCells(left),
+      this.#collectRecordedTopLeftCells(left),
+      this.#collectRecordedCoveredCells(restored),
+      this.#collectRecordedTopLeftCells(restored),
+    );
+  }
+
+  /**
+   * Removes the merge keys from cells a merge covered on the other side of an undo step. A cell the restored
+   * side covers keeps what its merge put on it, except the cell a restored merge is drawn from: it loses `hidden`
+   * and `copyable` and keeps its span keys, because `afterGetCellMeta` never writes `copyable` back on a top-left.
+   * A covered cell a merge of the other side was drawn from loses its span keys and keeps its covered flags,
+   * because the hook never takes a span off a covered cell. Neither removal waits for the `hidden` or `spanned`
+   * mark (see {@link MergeCells#clearCoveredFlagsOfCellsReleasedByStep}).
+   *
+   * @param {Set<number>} released The cells a merge covered on the other side of the step.
+   * @param {Set<number>} leftTopLefts The cells the merges of the other side were drawn from.
+   * @param {Set<number>} covered The cells the restored merges cover.
+   * @param {Set<number>} restoredTopLefts The cells the restored merges are drawn from.
+   */
+  #clearMergeKeysOfReleasedCells(
+    released: Set<number>,
+    leftTopLefts: Set<number>,
+    covered: Set<number>,
+    restoredTopLefts: Set<number>,
+  ) {
+    released.forEach((key) => {
+      const isRestoredTopLeft = restoredTopLefts.has(key);
+      const isCovered = covered.has(key);
+      // A restored merge drawn from the cell keeps its span keys; one that covers it keeps its covered flags.
+      const clearsCoveredFlags = !isCovered || isRestoredTopLeft;
+      const clearsSpanKeys = !isRestoredTopLeft && (!isCovered || leftTopLefts.has(key));
+
+      if (!clearsCoveredFlags && !clearsSpanKeys) {
         return;
       }
 
-      this.#clearCoveredFlagsOfTopLeftCell(Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE), key % DRAWN_CELL_COLUMN_STRIDE);
+      const physicalRow = Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE);
+      const physicalColumn = key % DRAWN_CELL_COLUMN_STRIDE;
+
+      if (clearsCoveredFlags) {
+        this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn, true);
+      }
+
+      if (clearsSpanKeys) {
+        this.#clearSpanKeysOfCell(physicalRow, physicalColumn, true);
+      }
     });
+  }
+
+  /**
+   * Collects the physical cell each recorded merge is drawn from (`#getTopLeftPhysicalRow()` in the anchor's
+   * column). A merge with no anchor, or with no visible top-left, is left out.
+   *
+   * @param {Array} entries The recorded merges.
+   * @returns {Set<number>} The cells, packed as `physicalRow * DRAWN_CELL_COLUMN_STRIDE + physicalColumn`.
+   */
+  #collectRecordedTopLeftCells(entries: readonly MergeStateEntry[]): Set<number> {
+    const cells = new Set<number>();
+
+    entries.forEach(({ anchor }) => {
+      const physicalRow = anchor === null ? null : this.#getTopLeftPhysicalRow(anchor);
+
+      if (anchor !== null && physicalRow !== null) {
+        cells.add((physicalRow * DRAWN_CELL_COLUMN_STRIDE) + anchor.physicalColumn);
+      }
+    });
+
+    return cells;
   }
 
   /**
@@ -3312,18 +3486,25 @@ export class MergeCells extends BasePlugin {
    * applies it again on the next read.
    * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
    *
+   * A caller that knows from a recorded undo step that a merge covered the cell skips the `spanned` check: the
+   * UndoRedo journal takes `spanned` back before `restoreState()` runs, and it never held `rowspan` or `colspan`.
+   *
    * @param {number} physicalRow The physical row of the cell.
    * @param {number} physicalColumn The physical column of the cell.
+   * @param {boolean} [wasInMerge=false] `true` when a recorded undo step shows that a merge covered the cell.
    */
-  #clearSpanKeysOfCell(physicalRow: number, physicalColumn: number) {
+  #clearSpanKeysOfCell(physicalRow: number, physicalColumn: number, wasInMerge = false) {
     const metaManager = this.hot._getMetaManager();
     const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+    const hasMark = !!storedMeta && hasOwnProperty(storedMeta, 'spanned');
 
-    if (!storedMeta || !hasOwnProperty(storedMeta, 'spanned')) {
+    if (!storedMeta || (!wasInMerge && !hasMark)) {
       return;
     }
 
-    metaManager.removeCellMeta(physicalRow, physicalColumn, 'spanned');
+    if (hasMark) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'spanned');
+    }
 
     ['rowspan', 'colspan'].forEach((key) => {
       if (!metaManager.getCellMetaKeyState(physicalRow, physicalColumn, key).hadOwn) {
@@ -3505,18 +3686,25 @@ export class MergeCells extends BasePlugin {
    * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
    * The check costs one meta lookup per merge and no lookup in the merge collection.
    *
+   * A caller that knows from a recorded undo step that a merge covered the cell skips the `hidden` check: the
+   * UndoRedo journal takes `hidden` back before `restoreState()` runs, and it never held `copyable`.
+   *
    * @param {number} physicalRow The physical row of the cell the merge is drawn from.
    * @param {number} physicalColumn The physical column of the cell the merge is drawn from.
+   * @param {boolean} [wasInMerge=false] `true` when a recorded undo step shows that a merge covered the cell.
    */
-  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number) {
+  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number, wasInMerge = false) {
     const metaManager = this.hot._getMetaManager();
     const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+    const hasMark = !!storedMeta && hasOwnProperty(storedMeta, 'hidden');
 
-    if (!storedMeta || !hasOwnProperty(storedMeta, 'hidden')) {
+    if (!storedMeta || (!wasInMerge && !hasMark)) {
       return;
     }
 
-    metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+    if (hasMark) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+    }
 
     // The merge stores `hidden` through `setCellMeta()`, but the hook writes `copyable` straight onto the stored
     // object and never records it. A recorded `copyable` is left alone (a recorded `true` was already overwritten by the hook).

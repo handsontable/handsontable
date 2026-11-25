@@ -76,7 +76,7 @@ function updateVuexPreview() {
   let newInnerHtml = '<div>';
 
   for (const [key, value] of Object.entries(store.state)) {
-    newInnerHtml += '<div><div class="table-container">';
+    newInnerHtml += '<div><div class="store-entry">';
 
     if (key === 'hotData' && Array.isArray(value)) {
       newInnerHtml += '<strong>hotData:</strong> <br><table><tbody>';
@@ -125,7 +125,7 @@ onMounted(() => {
     <HotTable ref="wrapper" :settings="hotSettings" />
     <div id="vuex-preview">
       <strong>Vuex store dump:</strong>
-      <pre></pre>
+      <pre tabindex="0" role="region" aria-label="Vuex store dump"></pre>
     </div>
   </div>
 </template>
@@ -157,7 +157,8 @@ onMounted(() => {
   border-radius: 0;
 }
 
-#vuex-preview pre .table-container {
+#vuex-preview pre .store-entry {
+  margin-top: 1.5rem;
   margin-bottom: 0.375rem;
 }
 
