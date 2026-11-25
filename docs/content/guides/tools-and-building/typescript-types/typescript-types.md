@@ -220,16 +220,17 @@ These types are relevant when you use the [theming API](@/api/options.md#themena
 
 #### Re-export a theme preset
 
-If you build a theme library, you may re-export a preset from `handsontable/themes/static/variables` as it is. With `declaration: true` and no type annotation, TypeScript writes the preset's type into your declaration file, and it has to name types such as `ThemeTokenValue` and `ThemeColorsConfig`. Those types live in `handsontable/themes/types`. Before 19.0, that path wasn't importable, so the build failed with `TS2742` on TypeScript 5.1, or with `TS2883` on TypeScript 5.9 and later.
-
-From 19.0, the compiler can name them. If you still want to annotate a re-export, import the type from the `handsontable/themes/types` subpath:
+If you publish a theme library, you may re-export a preset from `handsontable/themes/static/variables` as is:
 
 ```typescript
 import tokensMain from 'handsontable/themes/static/variables/tokens/main';
-import type { ThemeTokensConfig } from 'handsontable/themes/types';
 
-export const tokens: ThemeTokensConfig = tokensMain;
+export const tokens = tokensMain;
 ```
+
+With `declaration: true`, TypeScript writes the type of `tokens` into your declaration file, so it has to name types such as `ThemeTokensConfig`, `TokenKey`, and `ThemeTokenValue`. Those types live in the `handsontable/themes/types` subpath. Before 19.0, that subpath wasn't importable, and the build failed with `TS2742` on TypeScript 5.1, or with `TS2883` on TypeScript 5.9 and later. From 19.0, the build works without a type annotation.
+
+You can import the same types from `handsontable/themes/types` when you annotate your own theme objects. `handsontable/themes` exports them too.
 
 ### Overlay type
 
