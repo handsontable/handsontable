@@ -15,9 +15,10 @@ const SECOND_COMMENT = 'SECOND comment, on another cell.';
  *
  * On the engine legs too: where the focus lands after a hide is the browser's own decision.
  */
-const TAGS = [THEMES_TAG, CROSS_BROWSER_TAG];
 
-test.describe('Comments: Escape and the focus after the editor closes', { tag: TAGS }, () => {
+test.describe('Comments: Escape and the focus after the editor closes', {
+  tag: [THEMES_TAG, CROSS_BROWSER_TAG],
+}, () => {
   let grid: CommentsEditorResizePage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
