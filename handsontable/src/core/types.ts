@@ -343,6 +343,7 @@ export interface HotInstance {
     keptCellMetas?: KeptCellMetas | null
   ): void;
   _isDataWorkDeferred(): boolean;
+  _batchExecutionWithoutHooks<T>(wrappedOperations: () => T, forceFlushChanges?: boolean): T;
   _isDataLoadPending(): boolean;
   _runInPluginLifecyclePass<T>(callback: () => T): T;
   _isHeldMetaPhaseRunning(): boolean;
