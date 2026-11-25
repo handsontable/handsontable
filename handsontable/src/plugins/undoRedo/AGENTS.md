@@ -430,7 +430,7 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
 - A settings update that changes the row count while a transaction that already journaled a change
   is pending (a join host) is folded into that step's "after" state instead of dropping the history.
 - Every transaction that joins a host adds its names to the step's `operations` and `sources`, a
-  no-op one included (an AutoRowSize `batchExecution()` during a scroll reads as a `'batch'` entry).
+  no-op one included (an AutoRowSize `_batchExecutionWithoutHooks()` during a scroll reads as a `'batch'` entry).
   Only a capture per settle could tell a no-op from a hide, which changes no journal either.
 
 ## Testing

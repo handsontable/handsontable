@@ -42,7 +42,9 @@ This directory holds the `Hooks` singleton, the per-instance `HooksBucket`, and 
   from `beforeResumeExecution` or from a cache update still updates the counter, resumes both mappers and fires
   `afterResumeExecution` (a later throw replaces an earlier one); and `batch()`, `batchExecution()` and
   `safeBatch()` keep `resumeRender()` and `resumeExecution()` in `finally` blocks around the suspend. Renders
-  suspend the execution too (AutoColumnSize, AutoRowSize), so a listener that renders re-enters the hooks.
+  suspend the execution too (AutoColumnSize, AutoRowSize, Pagination's `'auto'` page size), but through
+  `_batchExecutionWithoutHooks()`, which fires none of the four, so a listener that renders does not re-enter
+  the hooks (DEV-4193). A batch a render listener makes still does.
   A suspend or resume a `before*` listener makes on the same grid fires no hooks
   (`isRunningBeforeExecutionHook` in `core.ts`): the counter is still unchanged while that listener runs, so
   the call would fire the hook again and recurse. `resumeExecution()` therefore decrements the LIVE counter

@@ -5692,11 +5692,23 @@ export default function Core(
    * ```
    */
   this.suspendExecution = function(this: HotInstance & CoreInternals) {
+    suspendExecution.call(this, true);
+  };
+
+  /**
+   * Suspends the execution, the way {@link Core#suspendExecution} does.
+   *
+   * @private
+   * @param {boolean} firesHooks `false` for a suspension Handsontable makes for its own bookkeeping (see
+   * `_batchExecutionWithoutHooks()`), which fires no execution hooks.
+   */
+  function suspendExecution(this: HotInstance & CoreInternals, firesHooks: boolean) {
     // The hooks report the state change, so a nested call fires nothing. A grid being destroyed fires
     // nothing either: its teardown runs in a `batchExecution()` whose resume comes after `afterDestroy`.
     // A call a `before*` listener makes fires nothing: the counter is still 0 while that listener runs, so
     // it would fire the hook again and recurse.
-    const changesState = this.executionSuspendedCounter === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
+    const changesState = firesHooks && this.executionSuspendedCounter === 0 && !isBeingDestroyed &&
+      !isRunningBeforeExecutionHook;
 
     if (changesState) {
       isRunningBeforeExecutionHook = true;
@@ -5728,7 +5740,7 @@ export default function Core(
         throw error;
       }
     }
-  };
+  }
 
   /**
    * Resumes the execution process. In combination with the {@link Core#suspendExecution}
@@ -5772,9 +5784,20 @@ export default function Core(
    * ```
    */
   this.resumeExecution = function(this: HotInstance & CoreInternals, forceFlushChanges = false) {
+    resumeExecution.call(this, forceFlushChanges, true);
+  };
+
+  /**
+   * Resumes the execution, the way {@link Core#resumeExecution} does.
+   *
+   * @private
+   * @param {boolean} forceFlushChanges If `true`, the index cache is updated also by a nested call.
+   * @param {boolean} firesHooks `false` for the resume of a suspension that fired no execution hooks.
+   */
+  function resumeExecution(this: HotInstance & CoreInternals, forceFlushChanges: boolean, firesHooks: boolean) {
     const nextValue = this.executionSuspendedCounter - 1;
     // Only the resume that brings the counter back to 0 changes the state (see `suspendExecution`).
-    const changesState = nextValue === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
+    const changesState = firesHooks && nextValue === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
 
     // Each step runs in a `finally`, so a throwing listener (of these hooks or of a cache update) cannot
     // keep the grid or a mapper suspended, and `afterResumeExecution` (where a plugin releases what it held
@@ -5809,7 +5832,7 @@ export default function Core(
         }
       }
     }
-  };
+  }
 
   /**
    * The method aggregates multi-line API calls into a callback and postpones the
@@ -5874,6 +5897,42 @@ export default function Core(
         // A forced flush rebuilds the index mappers from whatever the callback left behind, which
         // after a throw is a half-applied change, so the flag is honored only on the happy path.
         instance.resumeExecution(completed && forceFlushChanges);
+      }
+    });
+  };
+
+  /**
+   * Runs the callback with the execution suspended, as {@link Core#batchExecution} does, and fires no
+   * execution hooks. It is for the bookkeeping Handsontable does on its own, such as storing the sizes
+   * AutoColumnSize and AutoRowSize measure on a render: the execution hooks report the batches an
+   * application or a feature makes, so a `batch()` that writes a cell fires them once, not once more for
+   * each size the render that follows stores.
+   *
+   * A suspension made inside the callback is nested, so it fires nothing. One a listener of the index cache
+   * update makes while this call resumes is a suspension of its own and fires the hooks.
+   *
+   * @private
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @param {boolean} [forceFlushChanges=false] If `true`, the index cache is updated also by a nested call.
+   * @returns {*} Returns result from the wrappedOperations callback.
+   */
+  this._batchExecutionWithoutHooks = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
+    const executionState = instance as HotInstance & CoreInternals;
+
+    // An operation, like `batchExecution()`: UndoRedo reads the batch as one `'batch'` entry.
+    return operationScope.run('batch', undefined, () => {
+      suspendExecution.call(executionState, false);
+
+      let completed = false;
+
+      try {
+        const result = wrappedOperations();
+
+        completed = true;
+
+        return result;
+      } finally {
+        resumeExecution.call(executionState, completed && forceFlushChanges, false);
       }
     });
   };
