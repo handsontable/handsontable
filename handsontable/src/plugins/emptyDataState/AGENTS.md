@@ -79,6 +79,24 @@ so two grids on a page never share one; the reference to a part the message lack
 message is the same element, so it keeps the role next to `aria-busy`. Pinned by
 `tests/e2e/empty-data-state-focus-role.spec.ts` and `__tests__/ui.unit.js`.
 
+## A fetch that starts is announced, politely, in a grid that listens (DEV-4011)
+
+`#setLoadingActive()` ends with `#announceLoading()`: the loading title, through `htmlToPlainText()`, to the
+polite region of `utils/a11yAnnouncer.ts`. The overlay appears without a focus move (a sheet switch that
+starts a fetch leaves the focus on the sheet tab), and the message group is not a live region, so no reader
+said the grid was loading. Three conditions:
+
+- **The overlay is visible.** `#toggleEmptyDataState()` can leave it hidden.
+- **`ariaTags` is on.**
+- **The grid listens** (`hot.isListening()`). A grid that loads while the user is elsewhere on the page
+  stays quiet, and so does the first load of a page.
+
+The end of a load is not announced: the rows arrive, and the reader reads the cell the focus is on.
+`#getMessage(SOURCE.LOADING)` runs once more per loading start, so a `message` function is called one more
+time there. Pinned by `__tests__/loadingAnnouncement.unit.js` and the keyboard case in
+`tests/e2e/data-provider-sheets-bar.spec.ts`. Not proven locally: what each screen reader says, which
+only the screen reader run shows.
+
 ## Button types go through `helpers/uiButton.ts`
 
 `isButtonType()` / `resolveButtonType()` are used at the render site **and** in `SETTINGS_VALIDATORS` — same

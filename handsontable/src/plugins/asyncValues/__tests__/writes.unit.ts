@@ -548,7 +548,10 @@ describe('AsyncValues: writes, flights, and rows', () => {
     await plugin.setAsyncValue(1, 1, Promise.reject(new Error('Timeout')));
     hot.render();
 
-    expect(hot.getCell(0, 1)!.querySelector('.htAsyncPendingMessage')!.textContent).toBe('Loading...');
+    // The text starts with a space, so a screen reader that reads the cell as one run keeps it apart
+    // from the value.
+    expect(hot.getCell(0, 1)!.querySelector('.htAsyncPendingMessage')!.textContent).toBe(' Loading...');
+    expect(hot.getCell(0, 1)!.textContent).toMatch(/\S Loading\.\.\.$/);
     expect(hot.getCell(1, 1)!.querySelector('.htAsyncErrorMarker')).not.toBeNull();
 
     destroy();

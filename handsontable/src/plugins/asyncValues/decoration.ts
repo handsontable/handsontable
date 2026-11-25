@@ -64,7 +64,11 @@ function createElement(rootDocument: Document, className: string, text: string):
     element.setAttribute('aria-hidden', 'true');
 
   } else {
-    element.textContent = text;
+    // The leading space keeps the text apart from the cell's value. The element follows the value with
+    // nothing in between, and a screen reader that reads the cell as one run of text (VoiceOver with
+    // WebKit) said `Old BLoading...`, a word that is neither the value nor the status. The stylesheet
+    // keeps the space (`white-space: pre`): at the start of a box it would otherwise collapse.
+    element.textContent = ` ${text}`;
   }
 
   return element;

@@ -437,11 +437,11 @@ Three theme variables control the colors, so an async error can look different f
 | `--ht-async-error-background-color` | `--ht-cell-error-background-color` |
 | `--ht-async-error-marker-color` | `--ht-notification-error-accent` |
 
-With `prefers-reduced-motion: reduce`, the spinner does not spin. The spinner sits at the inline end of the cell, next to a dropdown arrow, and on the left in a right-aligned cell (a numeric one, for example), so it doesn't cover the value's end. It can still cover the end of a long value.
+The spinner turns four times, one second each, and then rests. It stays in the cell until the request ends. With `prefers-reduced-motion: reduce`, the spinner does not spin. The spinner sits at the inline end of the cell, next to a dropdown arrow, and on the left in a right-aligned cell (a numeric one, for example), so it doesn't cover the value's end. It can still cover the end of a long value.
 
 ## Accessibility
 
-A pending cell has `aria-busy="true"` and visually hidden "Loading..." text (`span.htAsyncPendingMessage`, translated with the grid's [language](@/guides/internationalization/language/language.md)), because screen readers don't announce `aria-busy` on a cell. A failed cell has `aria-invalid="true"`, and carries the error message twice: in its `title` attribute, which a pointer shows on hover, and in visually hidden text (`span.htAsyncErrorMessage`), which a screen reader reads with the cell. When the request of the selected cell fails, the error message is also announced. Both ARIA attributes, and the announcement, follow the [`ariaTags`](@/api/options.md#ariatags) option.
+A pending cell has `aria-busy="true"` and visually hidden "Loading..." text (`span.htAsyncPendingMessage`, translated with the grid's [language](@/guides/internationalization/language/language.md)), because screen readers don't announce `aria-busy` on a cell. The hidden text starts with a space, so a screen reader reads the value and the status as separate words. A failed cell has `aria-invalid="true"`, and carries the error message twice: in its `title` attribute, which a pointer shows on hover, and in visually hidden text (`span.htAsyncErrorMessage`), which a screen reader reads with the cell. When the request of the selected cell fails, the error message is also announced. Both ARIA attributes, and the announcement, follow the [`ariaTags`](@/api/options.md#ariatags) option.
 
 ## Related API reference
 

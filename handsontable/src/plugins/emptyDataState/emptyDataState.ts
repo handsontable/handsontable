@@ -2,6 +2,8 @@ import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
+import { htmlToPlainText } from '../../helpers/string';
+import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import { command as selectAllCellsCommand } from '../../shortcuts/contexts/commands/selectAllCells';
@@ -571,6 +573,25 @@ export class EmptyDataState extends BasePlugin {
 
     this.#loadingActive = true;
     this.#toggleEmptyDataState();
+    this.#announceLoading();
+  }
+
+  /**
+   * Tells a screen reader that the grid is loading. The overlay appears without a focus move (a sheet
+   * switch that starts a fetch leaves the focus on the sheet tab), and it is no live region, so nothing
+   * else says it. Only a grid the user works in announces: a grid that loads while the user is elsewhere
+   * on the page stays quiet.
+   */
+  #announceLoading() {
+    if (!this.#isVisible || !this.hot.getSettings().ariaTags || !this.hot.isListening()) {
+      return;
+    }
+
+    const { title } = this.#getMessage(SOURCE.LOADING);
+
+    if (typeof title === 'string' && title !== '') {
+      announce(htmlToPlainText(title), 'polite');
+    }
   }
 
   /**

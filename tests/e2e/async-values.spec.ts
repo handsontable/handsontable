@@ -21,8 +21,15 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
     await expect(indicator).toBeVisible();
     await expect(asyncPage.cell(0, 1)).toHaveAttribute('aria-busy', 'true');
     // The old value stays, next to the visually hidden loading text.
-    await expect(asyncPage.cell(0, 1)).toHaveText('Old ALoading...');
+    await expect(asyncPage.cell(0, 1)).toHaveText('Old A Loading...');
+    // The space is in the DOM text and the stylesheet keeps it, so a screen reader that reads the cell
+    // as one run of text does not join the value and the status into one word.
+    expect(await asyncPage.cell(0, 1).evaluate(cell => cell.textContent)).toBe('Old A Loading...');
+    await expect(asyncPage.cell(0, 1).locator('.htAsyncPendingMessage')).toHaveCSS('white-space', 'pre');
     await expect(indicator).toHaveCSS('animation-name', 'ht-async-values-spin');
+    // The ring turns four times, a second each, and then rests: it never moves past five seconds.
+    await expect(indicator).toHaveCSS('animation-iteration-count', '4');
+    await expect(indicator).toHaveCSS('animation-duration', '1s');
 
     const cellBox = (await asyncPage.cell(0, 1).boundingBox())!;
     const indicatorBox = (await indicator.boundingBox())!;

@@ -291,7 +291,7 @@ describe('AsyncValues', () => {
       const TD = hot.getCell(0, 1)!;
 
       expect(TD.classList.contains('htAsyncError')).toBe(true);
-      expect(TD.querySelector('.htAsyncErrorMessage')!.textContent).toBe('Lookup failed');
+      expect(TD.querySelector('.htAsyncErrorMessage')!.textContent).toBe(' Lookup failed');
 
       plugin.cancel(0, 1);
 

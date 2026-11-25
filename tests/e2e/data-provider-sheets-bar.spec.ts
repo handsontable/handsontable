@@ -58,6 +58,23 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
       await grid.goto();
     });
 
+    test('a switch to a sheet whose rows come from the server announces that the grid is loading', async({ page }) => {
+      const politeRegion = page.locator('[role="status"][aria-live="polite"]');
+
+      // Customers (index 2) fetches its rows. The switch leaves the focus on the sheet tab, and the
+      // loading overlay is no live region, so the announcement is the only thing a screen reader gets.
+      await grid.tab(0).focus();
+      await page.keyboard.press('ArrowRight');
+      await page.keyboard.press('ArrowRight');
+      await page.keyboard.press('Enter');
+
+      await expect.poll(() => grid.pendingCount('CUS')).toBe(1);
+      await expect(politeRegion).toHaveText('Loading data');
+
+      await grid.release('CUS');
+      await expect(grid.cell(0, 0)).toHaveText('CUS-01');
+    });
+
     test('first visit to a server sheet fetches it', async() => {
       await grid.clickTab(2);
       await expect(grid.loadingOverlayVisible()).toBeVisible();

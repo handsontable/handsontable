@@ -330,7 +330,11 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   "Loading..." text (`span.htAsyncPendingMessage`, the existing `LOADING_TITLE` phrase, so every language pack
   already has it) because no common screen reader announces `aria-busy` on a grid cell, and a failed cell a
   bar at its inline start (`span.htAsyncErrorMarker`), drawn as a border so it survives forced-colors mode. The
-  hidden text is part of `TD.textContent` (E2E text assertions include it). Known leaks of that text: AutoLink reads
+  hidden text is part of `TD.textContent` (E2E text assertions include it). **Both hidden texts start with a
+  space** (`createElement()` in `decoration.ts`), and `_async-values.scss` sets `white-space: pre` on them so
+  the space survives at the start of the box. The element follows the value with nothing in between, and
+  VoiceOver with WebKit read `Old BLoading...` as one word (DEV-4011). Do not trim the text, and do not go
+  back to `white-space: nowrap`, which collapses that space. Known leaks of that text: AutoLink reads
   `TD.textContent`, so when it is enabled AFTER this plugin its `afterRenderer` runs later and links a URL in
   the message; Formulas `showFormulas` repaints the content and drops the span (the `title` stays).
 - **The three theme tokens come from Figma.** `asyncIndicatorColor`, `asyncErrorBackgroundColor` and
@@ -344,6 +348,12 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   (`var(--ht-async-indicator-color, var(--ht-accent-color))`), so a custom theme built from an older token set
   still paints both states. The E2E spec sets both variables to values no theme uses, which is what proves the
   rules read them.
+- **The indicator turns four times and then rests (DEV-4011).** `animation: ... 1s linear 4`, not
+  `infinite`: motion that starts on its own and runs past five seconds needs a way to pause it (WCAG 2.2.2),
+  and the audit's `forced-colors-motion` check reports an animation that repeats without end or lasts five
+  seconds or more. The ring stays drawn while the request is pending. A repaint of the cell builds a new
+  indicator element, so the turns start again: a grid that keeps rendering keeps the ring moving. That is not
+  fixed. `prefers-reduced-motion: reduce` still sets `animation: none`.
 - **The indicator is a real element, not a pseudo-element.** `td::after` is taken by the Comments indicator
   and `td.area::before` by the selection fill; a cell can be commented, selected and pending at once. It covers
   the end of a long value (it moves next to a dropdown arrow, and to the left in a `htRight` cell); padding the cell instead would rewrap text and change the row
