@@ -101,7 +101,11 @@ You are welcome to join our GitHub community. Discuss new releases, propose feat
 
 ## Technical support
 
-Implementing Handsontable requires a certain level of front-end development skills. If you need help and your support plan is active, contact our [technical support](https://handsontable.com/contact?category=technical_support) or [report an issue on GitHub](https://github.com/handsontable/handsontable/issues/new/choose)
+Implementing Handsontable requires a certain level of front-end development skills.
+
+Every commercial license includes a support plan: Maintenance, Standard, or Premium. The plan decides which support channels you can use. To compare the plans, see the [Support](https://handsontable.com/support/) page.
+
+If your plan includes a support channel, contact our [technical support](https://handsontable.com/contact?category=technical_support). Every plan includes the community channels, such as the forum and GitHub, where you can [report an issue on GitHub](https://github.com/handsontable/handsontable/issues/new/choose).
 
 ## Stay in the loop
 
