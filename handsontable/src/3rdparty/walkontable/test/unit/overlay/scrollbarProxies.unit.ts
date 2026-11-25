@@ -368,11 +368,12 @@ describe('ScrollbarProxies', () => {
    * @param {object} direction The layout direction and where the browser draws the vertical bar.
    * @param {boolean} [direction.rtl] Whether the grid runs right to left.
    * @param {number} [direction.viewX] The holder's `clientLeft`: 15 when the bar is on the left.
+   * @param {object} [direction.style] Overrides of the holder's computed style.
    * @returns {object} The module, the holder, the elements it created, and the geometry read count.
    */
   function createProxies(
     candidates: Partial<ScrollbarProxyCandidates> = {},
-    { rtl = false, viewX = 0 }: { rtl?: boolean, viewX?: number } = {},
+    { rtl = false, viewX = 0, style = {} }: { rtl?: boolean, viewX?: number, style?: object } = {},
   ) {
     const holder = document.createElement('div');
     const geometryReads = { count: 0 };
@@ -411,6 +412,7 @@ describe('ScrollbarProxies', () => {
             borderTopRightRadius: '4px',
             borderBottomRightRadius: '4px',
             borderBottomLeftRadius: '4px',
+            ...style,
           };
         },
       },
@@ -519,6 +521,15 @@ describe('ScrollbarProxies', () => {
       .map(proxy => proxy.style.scrollbarColor);
 
     expect(colors).toEqual(['rgb(163, 163, 163) transparent', 'rgb(163, 163, 163) transparent']);
+  });
+
+  it('should leave the proxy\'s scrollbar color unset when the engine has no scrollbar-color', () => {
+    createProxies({}, { style: { scrollbarColor: undefined } });
+
+    const proxies = Array.from(parent.querySelectorAll<HTMLElement>('.htScrollbarProxy'));
+
+    expect(proxies.length).toBe(2);
+    expect(proxies.map(proxy => proxy.style.scrollbarColor || '')).toEqual(['', '']);
   });
 
   it('should place the proxies and the frame on the left gutter of an RTL holder', () => {

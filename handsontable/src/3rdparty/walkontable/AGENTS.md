@@ -1999,6 +1999,13 @@ The proxies carry `tabindex="-1"` (an empty scroll container is a tab stop in Ch
 added element `aria-hidden="true"`: the holder's own scroll range and the keyboard already cover what
 they do.
 
+Safari 18 (WebKit 18.2, the Safari and iOS floor in `browser-targets.js`) has no `scrollbar-color`:
+`getComputedStyle(holder).scrollbarColor` is `undefined` there. The proxy copies the color only when the
+engine returns a string, so the proxy keeps the default color on such an engine. Do not pass the computed
+value to `resolveProxyScrollbarColor()` without that check: it reads `.length`, and the throw inside the
+draw destroyed every grid with a header or a frozen band next to a scrolling edge. CI's WebKit supports
+the property, so only the unit test (a computed style without `scrollbarColor`) catches it.
+
 Testing traps:
 
 - **Playwright launches Chromium with `--hide-scrollbars`**, which makes every gutter 0, so no proxy is
