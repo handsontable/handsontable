@@ -261,21 +261,43 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
       expect(cell?.hasAttribute('aria-hidden')).toBe(false);
     });
 
-    it('should not be put back on an element that is no longer the highlighted cell', () => {
+    it('should take the workaround off an element that is no longer the highlighted cell, on the next draw', () => {
       createGrid();
       leaveBody();
 
       const cell = hot.getCell(1, 1);
 
       // A grid that does not listen leaves the workaround where it is, so the element stays editable
-      // while the highlight is on another cell: the state an element reused for another cell is in.
+      // while the highlight is on another cell: the state an element a scroll reused for another cell is in.
       hot.unlisten();
       hot.selectCell(0, 0, 0, 0, false, false);
-      hot.render();
 
       expect(cell?.hasAttribute('contenteditable')).toBe(true);
+      expect(window.getSelection()?.toString()).toBe('B2');
+
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
       expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      expect(cell?.classList.contains('invisibleSelection')).toBe(false);
       expect(hot.getCell(0, 0)?.hasAttribute('aria-hidden')).toBe(false);
+      // A draw must not clear a selection the user may have made elsewhere on the page.
+      expect(window.getSelection()?.toString()).toBe('B2');
+    });
+
+    it('should take the workaround off the kept element when no cell is highlighted any more', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      hot.unlisten();
+      hot.deselectCell();
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
     });
   });
 });

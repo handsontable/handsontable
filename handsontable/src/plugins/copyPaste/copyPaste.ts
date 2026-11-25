@@ -996,22 +996,53 @@ export class CopyPaste extends BasePlugin {
    * Puts the `aria-hidden` of the Safari `mouseleave` workaround back on the highlighted cell after a
    * draw. The draw clears the attribute and keeps `contenteditable`, so until the pointer came back
    * into the body the cell was exposed to assistive technology as an editable region. Only the element
-   * the workaround itself made editable is touched, and only while it is still the highlighted cell: a
-   * cell an application's renderer made editable is left alone, and so is an element the grid has
-   * reused for another cell.
+   * the workaround itself made editable is touched: a cell an application's renderer made editable is
+   * left alone.
+   *
+   * An element that is no longer the highlighted cell loses the workaround. The grid reuses its
+   * elements, so after a scroll the kept one can draw another cell, which would stay editable and
+   * exposed. The selection of the document is kept: a draw cannot tell whether it is still the one
+   * the workaround made.
    */
   #restoreAriaHiddenOnEditableCell() {
     const element = this.#safariEditableElement;
-    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-    if (!element || !highlight || highlight.row === null || highlight.col === null) {
+    // Most draws have no kept element. This runs on every draw in Safari, scroll draws included.
+    if (!element) {
       return;
     }
 
-    if (element.hasAttribute('contenteditable') && !element.hasAttribute('aria-hidden') &&
-        this.hot.getCell(highlight.row, highlight.col, true) === element) {
+    if (!element.hasAttribute('contenteditable')) {
+      this.#safariEditableElement = null;
+
+      return;
+    }
+
+    if (this.#getHighlightedElement() !== element) {
+      this.#safariEditableElement = null;
+      removeContentEditableFromElementAndDeselect(element, true, false);
+
+      return;
+    }
+
+    if (!element.hasAttribute('aria-hidden')) {
       setAttribute(element, [A11Y_HIDDEN()]);
     }
+  }
+
+  /**
+   * Gets the element of the highlighted cell or header, when it is rendered.
+   *
+   * @returns {HTMLElement | null}
+   */
+  #getHighlightedElement(): HTMLElement | null {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!highlight || highlight.row === null || highlight.col === null) {
+      return null;
+    }
+
+    return this.hot.getCell(highlight.row, highlight.col, true);
   }
 
   /**
