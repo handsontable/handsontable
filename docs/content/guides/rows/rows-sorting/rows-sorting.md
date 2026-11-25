@@ -1524,7 +1524,7 @@ When a user sorts a column by pressing its header or by using the keyboard short
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `headerAction` | `boolean` | `true` | When `true`, clicking a column header sorts by that column. |
+| `headerAction` | `boolean` | `true` | When `true`, clicking a column header sorts by that column. A click on markup inside an HTML header label sorts too. A click on a link, button, form field, or other element that handles a click itself does not. |
 | `sortEmptyCells` | `boolean` | `false` | When `true`, empty cells participate in sorting. When `false`, empty cells are always placed at the end. |
 | `sortFixedRows` | `boolean` | `false` | When `true`, the rows frozen by `fixedRowsTop` and `fixedRowsBottom` are sorted along with the rest of the dataset. When `false`, they keep their position. Grid-level only. |
 | `indicator` | `boolean` | `true` | When `true`, a sort-order arrow icon is shown in the column header. |
