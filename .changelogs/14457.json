@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Comments plugin leaving the keyboard focus on the page after Escape or Ctrl/Cmd+Enter closed the comment editor, and Escape not hiding a comment opened by a hover.",
+  "type": "fixed",
+  "issueOrPR": 14457,
+  "breaking": false,
+  "framework": "none"
+}
