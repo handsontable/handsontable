@@ -284,8 +284,8 @@ Each license behaves differently around its date:
 ### Trial keys
 
 A trial key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left
-corner and the [Powered by Handsontable DataGrid bar](#powered-by-handsontable-datagrid-bar) below
-the table. Hover over the badge to see the trial status. Once the key's notice period begins, the
+corner, and the [Powered by Handsontable DataGrid bar](#powered-by-handsontable-datagrid-bar) below
+the table when the key's terms ask for it. Hover over the badge to see the trial status. Once the key's notice period begins, the
 console starts warning how many days remain - on a standard 45-day trial that is from day one. On
 the last licensed day the warning says the key expires today, because that day is still licensed in
 full. After the expiration date, a message opens next to the badge and below the grid, and the console
@@ -316,8 +316,8 @@ A key whose license terms ask for it shows a bar below the table that reads
 [handsontable.com](https://handsontable.com) and sits below any license message.
 
 The bar is not a warning, so it shows on a key issued for use in an application for external users
-too, and no option turns it off. Every other key shows no bar, a trial key included unless its terms ask
-for the bar. The grid keeps the height you set:
+too, and no option turns it off. A trial key follows the same rule: it shows the bar only when its terms ask
+for it. The grid keeps the height you set:
 the bar takes its room from the grid, as the pagination bar does.
 
 ## Keys that name a tier
