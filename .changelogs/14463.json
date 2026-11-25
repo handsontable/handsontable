@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Tab not leaving the grid when the `tabMoves` option moves the selection down or up only.",
+  "type": "fixed",
+  "issueOrPR": 14463,
+  "breaking": false,
+  "framework": "none"
+}
