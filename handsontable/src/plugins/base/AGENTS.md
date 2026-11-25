@@ -608,7 +608,7 @@ State the undo stack cannot see on its own - neither an index map nor cell meta 
 `captureState(previous)` / `restoreState(state, context?)`, and for a plugin that reshapes the source
 array itself, `captureSourceStructure(previous)` / `restoreSourceStructure(state)`. Return `previous`
 by reference when nothing changed. `context` (`PluginRestoreContext`: `other`, `direction`,
-`reordered`) names the step being restored, so a plugin can apply only what the step changed and
+`reordered`, `toRestoredIndex`) names the step being restored, so a plugin can apply only what the step changed and
 keep a change made outside any step. A plugin with `captureState()` should also implement
 `getStateColumns(state, other)` - the physical columns its state differs in across a step - or every
 step that changed its state is dropped on a `columns` settings update that changes a column's field.

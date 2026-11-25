@@ -44,9 +44,16 @@ export interface PluginRestoreContext {
   direction?: 'undo' | 'redo';
   /**
    * `true` when the restore replayed row or column insertions or removals first. The grid's live state
-   * is then numbered like the restored side, not like `other`, so the two cannot be compared.
+   * is then numbered like the restored side, not like `other`, so the two cannot be compared without
+   * `toRestoredIndex`.
    */
   reordered?: boolean;
+  /**
+   * Given with `reordered`: maps a physical index `other` records to the grid the restore leaves behind,
+   * through the rows and columns the step inserted or removed. Answers `null` for a row or column that
+   * does not exist there.
+   */
+  toRestoredIndex?: (physicalIndex: number, axis: 'row' | 'column') => number | null;
 }
 
 /**
