@@ -1064,8 +1064,11 @@ export class Pagination extends BasePlugin {
 
   /**
    * Applies the current pagination state to the internal index mapper and updates the UI.
+   *
+   * @param {boolean} [firesExecutionHooks=true] `false` for the recompute an `'auto'` page size does on each
+   * render, which stores the paged rows with no execution hooks fired.
    */
-  #computeAndApplyState() {
+  #computeAndApplyState(firesExecutionHooks = true) {
     this.#internalExecutionCall = true;
     this.#pagedRowsMap?.clear();
 
@@ -1133,9 +1136,17 @@ export class Pagination extends BasePlugin {
     }
 
     if (!externalPagedMode && renderableIndexes.length > 0) {
-      this.hot.batchExecution(() => {
+      const storePagedRows = () => {
         renderableIndexes.forEach((index: number) => this.#pagedRowsMap?.setValueAtIndex(index, true));
-      }, true);
+      };
+
+      // The recompute an `'auto'` page size does on each render is bookkeeping, like the sizes the auto-size
+      // plugins store there, so it fires no execution hooks. A page change a caller asks for still does.
+      if (firesExecutionHooks) {
+        this.hot.batchExecution(storePagedRows, true);
+      } else {
+        this.hot._batchExecutionWithoutHooks(storePagedRows, true);
+      }
     } else if (!externalPagedMode) {
       this.hot.rowIndexMapper.updateCache(true);
     }
@@ -1385,7 +1396,10 @@ export class Pagination extends BasePlugin {
     }
 
     this.#internalRenderCall = true;
-    this.#refreshUI();
+    // Only the recompute is silent. The render that follows runs listeners, and a page change one of them
+    // asks for fires the execution hooks.
+    this.#computeAndApplyState(false);
+    this.hot.render();
   };
 
   /**
