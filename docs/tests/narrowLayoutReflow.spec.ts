@@ -92,27 +92,32 @@ test.describe('docs layout at 320 CSS px and at 200% zoom', () => {
     })).toEqual({ barWrapped: true, paddingFollowsBar: true, headingBelowBar: true });
   });
 
-  test('card titles wrap instead of ending in an ellipsis', async({ page, baseURL }) => {
-    await page.setViewportSize(ZOOM_200);
-    await page.goto(`${baseURL}/javascript-data-grid/column-hiding/`);
+  for (const [what, path] of [
+    ['plain', 'javascript-data-grid/column-hiding/'],
+    ['code', 'javascript-data-grid/accessibility/'],
+  ]) {
+    test(`card titles (${what}) wrap inside their link instead of ending in an ellipsis`, async({ page, baseURL }) => {
+      await page.setViewportSize(ZOOM_200);
+      await page.goto(`${baseURL}/${path}`);
 
-    const titles = page.locator('.ht-link-card .title');
+      const titles = page.locator('.ht-link-card .title');
 
-    await expect(titles.first()).toBeVisible();
+      await expect(titles.first()).toBeVisible();
 
-    const cut = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.ht-link-card .title')]
-      .filter((title) => {
-        const link = title.closest('a')!;
-        const range = document.createRange();
+      const cut = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.ht-link-card .title')]
+        .filter((title) => {
+          const link = title.closest('a')!;
+          const range = document.createRange();
 
-        range.selectNodeContents(title);
+          range.selectNodeContents(title);
 
-        return getComputedStyle(title).textOverflow === 'ellipsis' || range.getBoundingClientRect().right > link.getBoundingClientRect().right + 1;
-      })
-      .map(title => title.textContent));
+          return getComputedStyle(title).textOverflow === 'ellipsis' || range.getBoundingClientRect().right > link.getBoundingClientRect().right + 1;
+        })
+        .map(title => title.textContent));
 
-    expect(cut).toEqual([]);
-  });
+      expect(cut).toEqual([]);
+    });
+  }
 
   test('the footer links sit side by side without overlapping, inside the page', async({ page, baseURL }) => {
     await page.setViewportSize(ZOOM_200);

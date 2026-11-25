@@ -72,6 +72,7 @@
   font-size: 1rem;
   line-height: 1.25rem;
   display: inline;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
 
