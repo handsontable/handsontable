@@ -69,13 +69,13 @@ handful of changes follows the shape of `migrating-from-18.1-to-19.0`:
   `TypeScript-only changes`, `Deprecated in <version>`, and `Also new in <version>` (additions that need
   no migration). Inside a group, order by how many apps a change reaches. Leave a group out when it is
   empty.
-- **Each group except `Also new` opens with a table** (`Change | Affects | Do`), one row per change,
-  linking to the change by anchor. The table is the index; there is no "Section N concerns ..." intro
+- **Each group opens with a short intro (one to four sentences), then, except in `Also new`, a table**
+  (`Change | Affects | Do`), one row per change, linking to the change by anchor. The table is the index; there is no "Section N concerns ..." intro
   paragraph. A change that also belongs to another group (a type break inside a runtime change, a
   deprecation inside a removal) gets a row in that group's table too, linking to the same anchor, so a
   reader who scans only one group misses nothing.
 - **Each change is a numbered `### <N>. <title>` that states the change.** Numbers restart in every
-  group. The body is a short summary (about 1 to 3 sentences) of what changed and why, an
+  group. The body is a short summary (a few sentences, five at most) of what changed and why, an
   `**Affects:**` line, and a `**Do:**` line or list, each starting with a capital letter. Add one
   before/after code block per migration path when the fix is code, and links where a deeper page or PR
   exists. Put the edge cases in a `::: details Details: <change>` container, named after the change so

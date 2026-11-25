@@ -355,6 +355,11 @@ calls the plugin's `undo()` or `redo()`.
    `beforeRedo` (they receive the step with its `actionType`, and `false` cancels it). To react to restored values, use
    `afterChange` with the `UndoRedo.undo` and `UndoRedo.redo` sources.
 4. **Separate steps inside `batch()` or `batchExecution()`:** move those calls out of the batch.
+5. **Custom actions:** remove the [`done()`](@/api/undoRedo.md#done) calls that record a change to the grid, such as a
+   `setCellMeta()` call. UndoRedo records it already, so each change otherwise takes two undo steps.
+6. **HyperFormula:** remove your calls to its `undo()` and `redo()`, and use the grid's undo and redo.
+7. **Code that reads steps:** update code that reads a step's properties or calls `cellRange`, `range`, or `ranges`
+   methods. Steps are plain objects (see the details).
 
 ::: details Details: Undo and redo restore a recorded state
 - **`undo: false`.** In 18.1, the plugin still recorded changes, and only its shortcuts were off, so an app could call
@@ -410,12 +415,9 @@ calls the plugin's `undo()` or `redo()`.
 - **Ranges.** A `cellRange`, `range`, or `ranges` field holds plain objects with the same coordinates, not
   [`CellRange`](@/api/cellRange.md) instances, so it has no methods. Read the coordinates directly, for example
   `step.cellRange.from.row` and `step.cellRange.to.col`.
-- **Custom actions.** Remove [`done()`](@/api/undoRedo.md#done) calls that record a change to the grid, such as a
-  `setCellMeta()` call. UndoRedo records it already, so keeping the call makes the change take two undo steps. Keep
-  `done()` for state outside the grid.
+- **Custom actions.** Keep `done()` for state outside the grid.
 - **HyperFormula.** With the [`Formulas`](@/api/formulas.md) plugin, the grid no longer calls HyperFormula's `undo()`
-  and `redo()`. Remove your calls to them and use the grid's. The grid restores the formulas itself and updates the
-  engine. When several grids share one engine, an undo also puts back the formulas that the step changed in the other
+  and `redo()`. The grid restores the formulas itself and updates the engine. When several grids share one engine, an undo also puts back the formulas that the step changed in the other
   grids' sheets and in named expressions. A formula edited since the step keeps its new text, and the grid logs a
   warning.
 - **A long session.** To cap the history's memory, set `undo: { maxHistory: <number> }`. By default, the stack has no
@@ -908,7 +910,7 @@ These changes apply only if you use the feature, option, or API the change names
 | [`rowId` reads dotted property names](#a-string-dataproviderrowid-reads-a-property-with-a-dot-in-its-name) | `dataProvider` rows with dots in property names | Use a function `rowId` |
 | [Key/value `source` cells store objects](#a-plain-value-written-into-a-keyvalue-source-cell-resolves-to-the-matching-object) | `autocomplete` and `dropdown` columns with a `{ key, value }` `source` | Read `.value` when the value matches an option |
 | [`dropdown` with `strict: false` validates](#a-dropdown-column-with-strict-false-validates-strictly) | `dropdown` columns with `strict: false` | Switch to `autocomplete` with `strict: false` |
-| [`date` cells in formulas](#date-cells-reach-the-formula-engine-the-same-way-on-every-data-path) | `Formulas` with `date` columns holding non-ISO values | Use `numeric` columns for numbers |
+| [`date` cells in formulas](#date-cells-reach-the-formula-engine-the-same-way-on-every-data-path) | `Formulas` with `date` columns holding non-ISO values, or a `cells()` function or meta hook with side effects | Use `numeric` columns for numbers; make `cells()` and the meta hooks free of side effects |
 | [`afterRender` engine writes loop](#an-afterrender-hook-that-writes-to-the-engine-loops) | `Formulas` apps that write to the engine from `afterRender` | Write only when the value differs |
 | [`SHEET()` keeps a sheet's number](#sheet-keeps-a-sheets-number-after-an-earlier-sheet-is-removed) | `Formulas` apps that remove sheets and read `SHEET()` as a position | Count positions yourself |
 | [Frozen columns can be dragged](#frozen-columns-can-be-dragged-and-the-unfreeze-hooks-get-a-target) | `manualColumnFreeze` with `manualColumnMove`, and freeze hook listeners | Guard the move in `beforeColumnMove` |
@@ -927,7 +929,7 @@ These changes apply only if you use the feature, option, or API the change names
 | [Row elements move on scroll](#row-elements-move-with-their-rows-on-a-vertical-scroll) | Code that holds `tr` or `td` references or observes `tbody` | Read rows through `getCell()` |
 | [`getCopyableData()` returns a string](#getcopyabledata-returns-a-string) | Code that reads the stored value from it | Use `getDataAtCell()` |
 | [Clipboard shortcuts in the `grid` context](#the-copy-cut-and-paste-shortcuts-are-registered-in-the-grid-context) | Code that reads or removes the copy, cut, or paste shortcut | Remove your shortcut by group |
-| [`checked` is reserved in menu items](#checked-is-a-reserved-context-menu-item-property) | Custom menu items with a `checked` property | Rename your property |
+| [`checked` is reserved in menu items](#checked-is-a-reserved-context-menu-item-property) | Custom menu items with a `checked` property, and themes without icons (`-no-icons` bundles) | Rename your property; give the mark icons a mask on a theme without icons |
 | [HTML output and the sanitizer](#html-output-changes-for-trustedhtml-paste-tohtml-headers-and-character-references) | `TrustedHTML` sanitizers, `toHTML()` header markup, and named character references | Check `TrustedHTML` paste, `toHTML()` header markup, and named character references |
 | [`removeCellMeta()` accepts any index](#removecellmeta-accepts-an-index-past-the-grids-range) | Code that relies on the out-of-range error | Guard the index yourself |
 | [`AutoRowSize` settings drop `useHeaders`](#the-autorowsize-plugins-settings-no-longer-include-useheaders) | Code that reads `useHeaders` from the `AutoRowSize` settings | Remove the read |
@@ -941,7 +943,12 @@ unscoped `.ht-icon-<name>` rule.
 
 **Affects:** Apps that style a built-in icon through a `::before` or `::after` selector (such as `.changeType::before`
 or `.ht-page-next::before`), tests that assert the DOM structure of a cell, header, or menu item that holds an icon,
-and stylesheets or scripts with a bare `i` selector.
+and stylesheets or scripts with a bare `i` selector. Three cases fail silently:
+
+- A `-no-icons` theme bundle draws `checkbox` cells and the Filters value list with no tick.
+- A Theme API icon path with no file extension (such as `icons/check`) paints nothing.
+- An `afterGetColHeader` or `afterGetRowHeader` hook that rewrites `TH.innerHTML` removes the hidden-column and
+  hidden-row carets.
 
 **Do:**
 
@@ -976,7 +983,7 @@ To change only the glyph and keep the built-in color and mask behavior, override
 .ht-theme-main .changeType .ht-icon-menu { --ht-icon-menu: url("/icons/menu.svg"); }
 ```
 
-::: details Details: Icons are rendered as <i> elements
+::: details Details: Icons are rendered as &lt;i&gt; elements
 - **Selector mapping.** The table lists every selector the old `iconsMap` stylesheet generated. A `[dir="rtl"]`-prefixed
   selector used to point at a different, mirrored icon. The single new class mirrors itself when the grid's
   `layoutDirection` is RTL.
@@ -1359,8 +1366,10 @@ declares borders). The hooks this work fires run earlier too, so they run before
 [`getCell()`](@/api/core.md#getcell) returns `null` inside them, and the merges' and summaries' `afterChange` calls come
 before the `afterChange` call of the initial data load.
 
-**Affects:** Apps with a listener on one of these hooks that reads the rendered grid when the grid is built (for
-example with `getCell()`), that relies on these hooks running after `init` or on the order of the `afterChange` calls,
+**Affects:** Apps with a listener on one of these hooks (`afterColumnSort` for an `initialConfig` sort,
+`afterMergeCells`, `afterChange` for the merges and the summaries, `afterEmptyDataStateShow`, and
+`beforeDataProviderFetch`) that reads the rendered grid when the grid is built (for example with `getCell()`), that
+relies on these hooks running after `init` or on the order of the `afterChange` calls,
 that calls `enablePlugin()` on a drawn grid without expecting the plugin's settings to apply, or that reads the
 summaries in an `afterUpdateSettings` listener of the same call that writes them.
 
@@ -1428,7 +1437,9 @@ edited. In 19.0, the change is written into the record it was made on, and it st
 **Affects:** Apps with validators that also sort, move, filter, trim, collapse, or insert or remove rows or columns
 while an edit waits, callbacks that read the row of `afterChange` or `beforeChangeRender` as the row the user edited, and
 callbacks that use the row or column of a change as a number. That row or column can now be
-`null`. In TypeScript, a type annotation of `CellChange[]` or `number` on these hooks no longer compiles.
+`null`. In TypeScript, typed grid settings and `Events`-typed listeners with a `CellChange[]` or `number` annotation on
+these hooks no longer compile. An `addHook()` listener with the old annotations still compiles, so the compiler does
+not flag it, and it can still get `row === null` at run time.
 
 **Do:**
 
@@ -1437,7 +1448,8 @@ callbacks that use the row or column of a change as a number. That row or column
    change was written to. Read the record with [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow), which takes
    a physical row, or its ID with [`getRowIdAtPhysicalRow()`](@/api/core.md#getrowidatphysicalrow). Call the method
    while the hook runs: after `afterChange`, it no longer follows the record.
-2. In TypeScript, type the parameter with `AppliedCellChange`.
+2. In TypeScript, type the parameter with `AppliedCellChange`. Do this for `addHook()` listeners too, because the
+   compiler does not ask for it there.
 3. If you call [`updateData()`](@/api/core.md#updatedata) with copies of the rows in a new order while an edit waits,
    set a [`rowId`](@/api/options.md#rowid), so the edit follows its record.
 
@@ -1709,7 +1721,11 @@ and read a nested property: `'meta.id'` read `row.meta.id`, even when the row ha
 (which a column with `data: 'meta.id'` shows). See [Row identity](@/guides/rows/row-identity/row-identity.md).
 
 **Affects:** Apps whose rows have a key with a dot in its name that matches `dataProvider.rowId`, next to a nested
-object at the same path, and apps that depend on the other cases in the details.
+object at the same path. Apps with a function `rowId` that reads a nested object while the rows keep that value under
+a dotted key break at run time: the function now gets the raw source row, where the nested object does not exist. The
+throw counts as a missing id, Handsontable reverts the edit and reports it through `afterRowsMutationError`, and
+removing the row raises the missing row id error. Apps with a `modifySourceData` hook that changes the value `rowId`
+reads, and TypeScript code that reads `rowId` back as a string, are affected too (see the details).
 
 **Do:** To keep reading the nested value, pass a function. Guard the nested object, so a row without it, such as a new
 row, has no id instead of throwing. A function that reads a dotted key reads it by name.
@@ -1841,10 +1857,14 @@ into the cell, but not when the value arrived through [`loadData()`](@/api/core.
 [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell). In 19.0, all of those paths match the initial data load,
 which can change what your formulas return.
 
-**Affects:** Apps that use `Formulas` and have a `date` column holding non-ISO 8601 values that a formula reads, or side
-effects in `cells()`, [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta), or
-[`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta). If you declare a cell's `type` only through a `cells()`
-function, you need no change beyond the fix.
+**Affects:** Apps that use `Formulas` and either:
+
+- have a `date` column holding non-ISO 8601 values that a formula reads, or
+- have a `cells()` function, or a [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) or
+  [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) listener, with side effects. No `date` column is needed: a
+  `cells()` function or a `beforeGetCellMeta` listener alone makes the plugin read the meta of every text cell.
+
+If you declare a cell's `type` only through a `cells()` function, you need no change beyond the fix.
 
 **Do:**
 
@@ -1861,8 +1881,8 @@ function, you need no change beyond the fix.
    '=SUMPRODUCT(VALUE(A1:A10))'
    ```
 
-2. Make `cells()` and the meta hooks safe to call during a data load. A listener that calls `setDataAtCell()` or
-   `updateSettings()` now has a path back into the grid it did not have before.
+2. Make `cells()` and the meta hooks free of side effects, so they are safe to call during a data load. A listener
+   that calls `setDataAtCell()` or `updateSettings()` now has a path back into the grid it did not have before.
 
    Before, `cells()` writes to the grid:
 
@@ -1903,8 +1923,13 @@ function, you need no change beyond the fix.
   array already did. That needs no change.
 - To honor that type, the plugin reads each cell's meta through the usual pipeline on those paths, so your `cells()`
   function and meta hooks run once per non-formula text cell. The previous read ran none of them. Check
-  `updateSettings()` first, because it runs on every call. A grid with no `date` type and no
-  [`preserveTextValue`](@/api/options.md#preservetextvalue) option skips the pass.
+  `updateSettings()` first, because it runs on every call.
+- **When the pass runs.** The plugin reads cell meta only when a configuration layer can mark a cell for escaping.
+  That is any of: a `date` type or [`preserveTextValue: true`](@/api/options.md#preservetextvalue) in the grid
+  settings, a column, the `cell` array, or a cell's stored meta; a `cells()` function; a `columns` function; or a
+  `beforeGetCellMeta` listener. A grid with none of these skips the pass. An `afterGetCellMeta` listener does not
+  open the pass by itself (merged cells and hidden rows register one anyway), but it runs for every cell once
+  another layer does.
 
 :::
 
@@ -2591,13 +2616,16 @@ boolean, the string `'mixed'`, or a function returning either now draws a mark b
 `true`, a dash for `'mixed'`) and is announced as a checkbox with a state. Any other value is ignored.
 
 **Affects:** Apps with their own menu items that use a `checked` property, draw a mark inside `name`, or style the 18.1
-mark with `span.selected::after`.
+mark with `span.selected::after`. Apps that load a theme without icons (`ht-theme-main-no-icons.css` and the other
+`-no-icons` bundles) are affected with no custom item at all: the built-in "Read only" and border items now draw
+`ht-icon-check`, so their mark is blank.
 
 **Do:**
 
 1. If `checked` was your own bookkeeping, rename it.
 2. If you drew the mark inside `name`, use the option instead (both together give two marks).
-3. On a theme without icons (such as `ht-theme-main-no-icons.css`), give both mark icons a mask.
+3. On a theme without icons (such as `ht-theme-main-no-icons.css`), give both mark icons a mask. This also restores
+   the mark of the built-in items.
 
    ```css
    .htItemWrapper .ht-icon-check,
@@ -2750,6 +2778,7 @@ names. The table also links the type changes that come with changes in other gro
 | [`DataProviderConfig.rowId` can be a function](#a-string-dataproviderrowid-reads-a-property-with-a-dot-in-its-name) | TypeScript code that reads `rowId` back as a string | Narrow with `typeof rowId === 'string'` |
 | [`getCopyableSourceData()` returns `unknown`](#getcopyabledata-returns-a-string) | TypeScript code that uses its result as a string | Narrow the result |
 | [Hook settings and React hook props accept `null`](#a-hook-set-to-null-through-updatesettings-is-removed) | TypeScript code that reads a hook prop back | Handle `null` |
+| [`Settings` and `DataProviderOptions` types removed](#removed-deprecated-apis) | TypeScript code that imports either alias | Import `ExportFileSettings` or `DataProviderFetchOptions` |
 
 ### 1. Ten options are type-checked
 
@@ -2820,10 +2849,13 @@ const settings: GridSettings = {
 In 18.1, TypeScript typed the [`filters`](@/api/options.md#filters) option as `boolean | object`, so a misspelled key
 or a wrong value compiled and was ignored at runtime. The option now has real types. Nothing changes at runtime.
 
-**Affects:** You use TypeScript, and your code stops compiling in one of the cases below. In each case the setting
-already had no effect, so fixing the error does not change what your grid does.
+**Affects:** You use TypeScript, and your code stops compiling in one of the cases below. For an unknown key, an
+out-of-range `searchMode`, and an extra key in a column's `filters` object, the setting already had no effect, so
+fixing the error does not change what your grid does. A valid `searchMode` that your code holds in a `string` variable
+(or in a `Record<string, unknown>` object) also fails to compile, although it works.
 
-**Do:** Correct or remove the key that the compiler rejects, or move a per-column object to the grid level.
+**Do:** Correct or remove the key that the compiler rejects, or move a per-column object to the grid level. For a
+valid value typed as `string`, add `as const`. Do not delete the key.
 
 Before, this compiled, and the misspelled key did nothing:
 
@@ -2997,9 +3029,9 @@ After:
 
 ## Deprecated in 19.0
 
-These APIs still work in 19.x, and 20.0.0 removes them. The methods and options log a one-time console warning. A
-constant logs none: your editor shows it as deprecated. The table also links the deprecations that come with changes in
-other groups.
+These APIs keep compiling in 19.x, and 20.0.0 removes them. Each method and option still works and logs a one-time
+console warning. The `NON_COMMERCIAL_LICENSE` constant logs none, and its key no longer unlocks the grid. The table also
+links the deprecations that come with changes in other groups.
 
 | Change | Affects | Do |
 | --- | --- | --- |
@@ -3007,8 +3039,8 @@ other groups.
 | [`spliceCol()` and `spliceRow()`](#splicecol-and-splicerow-are-deprecated) | Calls to either method | Use `populateFromArray()` or `alter()` |
 | [Formulas shortcut methods](#formulas-shortcut-methods) | Calls to `registerShortcuts()` or `unregisterShortcuts()` | Remove the calls |
 | [Four `MergedCellsCollection` methods](#four-mergedcellscollection-methods-are-deprecated) | Calls to one of the four methods | Remove the calls |
-| [The `sr-SP` language code](#the-sr-sp-language-code-is-deprecated) | Apps that load `sr-SP.js` or set `language: 'sr-SP'` | Use `sr-Latn-RS` |
-| [Angular `NON_COMMERCIAL_LICENSE` constant](#the-non-commercial-and-evaluation-license-key-no-longer-works) | Apps that import it from `@handsontable/angular-wrapper` | Pass your key in `HOT_GLOBAL_CONFIG` |
+| [The `sr-SP` language code](#the-sr-sp-language-code-is-deprecated) | Apps that set `language: 'sr-SP'` (loading `sr-SP.js` alone logs nothing) | Use `sr-Latn-RS` |
+| [Angular `NON_COMMERCIAL_LICENSE` constant](#the-non-commercial-and-evaluation-license-key-no-longer-works) | Apps that import it from `@handsontable/angular-wrapper`; a grid configured with it shows the lock screen | Pass your key in `HOT_GLOBAL_CONFIG` |
 | [`iconsMap` helper](#icons-are-rendered-as-i-elements) | Custom themes that import `iconsMap` | Use `iconStyles()` |
 
 ### 1. Writing past the last column of an object data source is deprecated
@@ -3187,11 +3219,12 @@ console warning. 20.0.0 removes all four.
 ### 5. The `sr-SP` language code is deprecated
 
 IANA deprecated the `SP` region subtag, so 19.0 deprecates the `sr-SP` language code (the `sr-SP.js` file and the
-`srSP` dictionary) and adds `sr-Latn-RS` with the same phrases. `sr-SP` still works in 19.x and logs a one-time console
-warning: "The "sr-SP" language code will be removed in 20.0.0. Use the "sr-Latn-RS" language code instead."
+`srSP` dictionary) and adds `sr-Latn-RS` with the same phrases. `sr-SP` still works in 19.x. Loading or registering the
+file logs nothing. A grid that uses the code, with `language: 'sr-SP'`, logs a one-time console warning: "The "sr-SP"
+language code will be removed in 20.0.0. Use the "sr-Latn-RS" language code instead."
 
-**Affects:** Apps that load the `sr-SP` language file or dictionary, or set the [`language`](@/api/options.md#language)
-option to `'sr-SP'`.
+**Affects:** Apps that set the [`language`](@/api/options.md#language) option to `'sr-SP'`. Apps that only load the
+`sr-SP` file or dictionary get no warning, but 20.0.0 removes it.
 
 **Do:** Load `sr-Latn-RS.js` (the `srLatnRS` dictionary) instead, and set `language: 'sr-Latn-RS'`. See
 [Language](@/guides/internationalization/language/language.md).

@@ -105,7 +105,12 @@ test('the migration guide to the last column release names every floor version i
 
   assert.ok(section, `${folder}.md has no "## <N>. ..." or "### <N>. ..." change about browsers`);
 
-  const named = version => new RegExp(`(^|[^\\d.])${version.replace('.', '\\.')}($|[^\\d])`).test(section);
+  // Only the prose a reader sees counts: a code example or a collapsed details block can hold a copy of the
+  // versions that stays right while the sentence goes wrong.
+  const visible = section
+    .replace(/^\s*```[\s\S]*?^\s*```[^\n]*$/gm, '')
+    .replace(/^:{3,}\s+details[\s\S]*?^:{3,}\s*$/gm, '');
+  const named = version => new RegExp(`(^|[^\\d.])${version.replace('.', '\\.')}($|[^\\d])`).test(visible);
   const missing = targets.filter(({ version }) => !named(version)).map(({ name, version }) => `${name} ${version}`);
 
   assert.deepEqual(missing, [], `${folder}.md: the browser section must name the ${release} minimum versions`);

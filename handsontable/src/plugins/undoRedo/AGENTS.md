@@ -416,8 +416,9 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
   (O(cells) time; the unchanged rows share their arrays with the previous snapshot, so the memory
   grows with the rows that changed).
 - An accessor function re-created on every render (an inline `data: row => ...` in React) reads as
-  another field, so each render drops the steps that address its column. Documented in the guide's
-  known limitations and section 24.
+  another field, so each render drops the steps that address its column. Documented in the undo-redo
+  guide's known limitations and in the 18.1 to 19.0 migration guide's "Undo and redo restore a
+  recorded state" change.
 - A replayed removal that removes a different number of rows or columns than it recorded cannot be
   taken back (`alterRuns()`): its rows are gone. Also in the guide's known limitations.
 - A settings update that changes the row count while a transaction that already journaled a change
