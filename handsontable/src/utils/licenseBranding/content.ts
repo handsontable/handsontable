@@ -99,22 +99,22 @@ export const LOCK_CONTENT: Partial<Record<LicenseStateKey, (lifecycle: LicenseLi
   // sales, and both keep the documentation link the bar had.
   invalid: () => ({
     title: 'The license key for Handsontable is invalid.',
-    description: '',
+    description: 'Read more in the ',
     action: { text: 'Contact Support', href: SUPPORT_MAILTO },
     docsLink: {
-      text: 'Read more',
+      text: 'documentation',
       href: LICENSE_KEY_DOCS_URL,
       trailingText: ' on how to install it properly, or contact us at support@handsontable.com.',
     },
   }),
   missing: () => ({
     title: 'The license key for Handsontable is missing.',
-    description: 'Use your purchased key to activate the product. ',
+    description: 'Use your purchased key to activate the product. Read more about it in the ',
     action: { text: 'Contact Support', href: SUPPORT_MAILTO },
     docsLink: {
-      text: 'Read more',
+      text: 'documentation',
       href: LICENSE_KEY_DOCS_URL,
-      trailingText: ' about it in the documentation, or contact us at support@handsontable.com.',
+      trailingText: ', or contact us at support@handsontable.com.',
     },
   }),
 };
