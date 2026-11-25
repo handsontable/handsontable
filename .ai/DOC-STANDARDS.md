@@ -60,20 +60,40 @@ A migration guide is required for every major release and some minor releases. E
 5. Code examples (before/after).
 6. Links to more detailed information (new pages, PRs).
 
-Follow the structure of previous migration guides for consistency. Migration guides live in `docs/content/guides/upgrade-and-migration/`.
+Migration guides live in `docs/content/guides/upgrade-and-migration/`. A guide with more than a
+handful of changes follows the shape of `migrating-from-18.1-to-19.0`:
 
-**Sections are numbered, and the number lives in two places.** Each step is an `## <N>. <title>`
-heading, and the paragraph just after `[[toc]]` names every section by that number ("Section 9
-concerns ..."). Two pull requests open at the same time both add the next number, so the guide is a
-reliable merge conflict on a busy release, and the conflict has two regions: the intro paragraph and
-the heading. Resolve both — renumber the later section and add its sentence to the intro. Nothing
-checks the intro against the headings, so a half-resolved merge ships an intro that describes the
-wrong section and no gate complains.
+- **Changes are grouped by impact, not by merge order.** Each group is an unnumbered `## <group>`
+  heading, most critical first: `Before you upgrade` (lock screen, thrown error, dropped browser),
+  `Changes in every grid` (default settings or common options), `Changes in specific features`,
+  `TypeScript-only changes`, `Deprecated in <version>`, and `Also new in <version>` (additions that need
+  no migration). Inside a group, order by how many apps a change reaches. Leave a group out when it is
+  empty.
+- **Each group except `Also new` opens with a table** (`Change | Affects | Do`), one row per change,
+  linking to the change by anchor. The table is the index; there is no "Section N concerns ..." intro
+  paragraph. A change that also belongs to another group (a type break inside a runtime change, a
+  deprecation inside a removal) gets a row in that group's table too, linking to the same anchor, so a
+  reader who scans only one group misses nothing.
+- **Each change is a numbered `### <N>. <title>` that states the change.** Numbers restart in every
+  group. The body is a short summary (about 1 to 3 sentences) of what changed and why, an
+  `**Affects:**` line, and a `**Do:**` line or list, each starting with a capital letter. Add one
+  before/after code block per migration path when the fix is code, and links where a deeper page or PR
+  exists. Put the edge cases in a `::: details Details: <change>` container, named after the change so
+  each disclosure has its own accessible name; leave it out when there are none, and add a second titled
+  container for a long reference table. Who, why, what, and what to do are required in every change; the
+  details block is where the long tail goes, so the visible text stays short.
+- **Refer to another change by anchor, never by number.** Numbers move whenever a change is added or
+  re-ranked.
+
+A new change adds one table row and one `###` item in its group, so two pull requests that add changes
+at the same time conflict only where they touch the same group's table and item list. Renumber the later
+item in that group.
 
 **The section number is not part of the anchor.** `docs/src/plugins/rehype-migration-steps.mjs`
 strips the `<N>. ` and `Step <N>:`/`Step <N>.` prefixes from every step heading (h2–h4) before the
-heading IDs are generated, so `## 24. Icons are rendered as <i> elements` gets the ID
-`icons-are-rendered-as-i-elements`, not `24-icons-...`. Link to a section as
+heading IDs are generated, and wraps a run of numbered `###` headings under an unnumbered `##` in its
+own step list. So ``### 1. Icons are rendered as `<i>` elements`` gets the ID
+`icons-are-rendered-as-i-elements`, not `1-icons-...`. Link to a section as
 `migrating-from-X-to-Y.md#<title-slug>`; a `#<n>-...` or `#step-<n>-...` link never resolves, and no
 checker reports it. Renumbering therefore does not break links. The slug comes from github-slugger on
 the rendered text: smartypants turns ` -- ` into an en dash, which the slugger drops while keeping both
