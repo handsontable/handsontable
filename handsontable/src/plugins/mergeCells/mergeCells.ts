@@ -2126,17 +2126,30 @@ export class MergeCells extends BasePlugin {
     other: readonly MergeStateEntry[],
     toRestoredIndex: NonNullable<PluginRestoreContext['toRestoredIndex']>,
   ) {
-    const mapped = other.map(entry => mapRecordedMerge(entry, toRestoredIndex));
-    const keysOf = (entries: readonly MergeStateEntry[]) => new Set(entries.map(getFootprintKey));
-    const restoredKeys = keysOf(state);
-    const left = mapped.filter(entry => getFootprintKey(entry) === null || !restoredKeys.has(getFootprintKey(entry)));
+    const mapped = other.map((entry) => {
+      const mappedEntry = mapRecordedMerge(entry, toRestoredIndex);
+      // A merge that lost a row or a column to the mapping covered a cell the restored grid lacks, so it is
+      // not the same merge as one of the restored side with the cells that are left.
+      const isWhole = mappedEntry.anchor?.physicalRows.length === entry.anchor?.physicalRows.length &&
+        !mappedEntry.physicalColumns?.includes(null);
+
+      return { entry: mappedEntry, key: isWhole ? getFootprintKey(mappedEntry) : null };
+    });
+    const restoredKeys = new Set(state.map(getFootprintKey));
+    const left = mapped
+      .filter(({ key }) => key === null || !restoredKeys.has(key))
+      .map(({ entry }) => entry);
 
     if (left.length === 0) {
       return;
     }
 
-    const mappedKeys = keysOf(mapped);
-    const restored = state.filter(entry => getFootprintKey(entry) === null || !mappedKeys.has(getFootprintKey(entry)));
+    const mappedKeys = new Set(mapped.map(({ key }) => key));
+    const restored = state.filter((entry) => {
+      const key = getFootprintKey(entry);
+
+      return key === null || !mappedKeys.has(key);
+    });
 
     this.#clearMergeKeysOfReleasedCells(
       this.#collectRecordedCoveredCells(left),

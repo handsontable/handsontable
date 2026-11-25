@@ -411,6 +411,26 @@ describe('MergeCells cell meta after the undo of a merge', () => {
       expect(hot.getCopyableText(0, 0, 1, 3)).toBe('A1\tB1\tC1\tD1\nA2\tB2\tC2\tD2');
     });
 
+    it('cleans the cell a restored merge is drawn from when the step grew it by an inserted row', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
+
+      hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+      readMeta([0, 0, 7, 7]);
+      // The undo removes the inserted row, so the larger merge maps onto the same cells as the one it puts back.
+      hot.batch(() => {
+        hot.alter('insert_row_above', 1);
+        hot.getPlugin('mergeCells').unmerge(2, 1, 3, 2);
+        hot.getPlugin('mergeCells').merge(1, 1, 3, 2);
+      });
+      readMeta([0, 0, 8, 7]);
+      hot.getPlugin('undoRedo').undo();
+      readMeta([0, 0, 7, 7]);
+
+      expect(merges()).toEqual([[1, 1, 2, 2]]);
+      expect(hot.getCellMeta(1, 1).copyable).toBe(true);
+      expect(hot.getCopyableText(1, 1, 2, 2)).toBe('B2\t\n\t');
+    });
+
     it('takes the span and the covered flags off the cells on the redo of an insert and an unmerge', () => {
       createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
 
