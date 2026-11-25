@@ -1272,3 +1272,13 @@ A code block or a Markdown table wider than the content column must be scrollabl
 Starlight sets `scroll-padding-top` on `<html>` (the header height plus 1.5rem), so the page itself scrolls a focused element clear of the fixed header. A box that scrolls on its own does not inherit it. `.right-sidebar` (the "On this page" panel) is fixed from `top: 0` and pushes its content down with `padding-top: var(--sl-nav-height)`, so its top edge sits behind the header. Without its own `scroll-padding-top` (`src/styles/layout/page.css`), a link the panel has scrolled up behind the header counts as visible to the browser, and Shift+Tab focuses it there without scrolling, hidden (WCAG 2.4.11). The left `.sidebar-pane` starts at `top: var(--sl-nav-height)` and does not need it.
 
 A new fixed or sticky panel that scrolls and starts under the header gets the same rule. `tests/keyboardFocusVisibility.spec.ts` pins the table of contents case and the code block copy button, which shows on `:focus-visible` as well as on hover (WCAG 2.4.7).
+
+## 2.26 The social preview image is set in one module
+
+Starlight emits `og:title`, `og:description`, and `twitter:card=summary_large_image`, but no image, so link previews on LinkedIn, Slack, and X show a blank card unless the site adds one. The VuePress-to-Starlight migration (#12195) dropped it with no failing check. `src/lib/social-image.mjs` now owns it: `SOCIAL_IMAGE` names the file in `public/` (`handsontable-docs-cover.png`), its absolute URL, its size, and its alt text, and `socialImageHead()` returns the `og:image*` and `twitter:image*` entries that `astro.config.mjs` spreads into the Starlight `head`.
+
+- **The URL is absolute,** because crawlers don't resolve a relative `og:image`. So a pull request preview serves the production copy of the file: a new or resized image shows only after the production deploy.
+- **The size is declared by hand and checked.** `src/lib/__tests__/social-image.test.mjs` (`npm run docs:test:plugins`) reads the PNG header and fails when `width` or `height` does not match the file, and it fails when the config stops spreading `socialImageHead()`. Replace the image with another 1200x630 PNG, or update both numbers.
+- **Every page gets the same image.** A page-specific image needs a frontmatter `head` entry, which Starlight merges over the config's.
+
+This is tooling, not content, so the docs sync does not port it to `prod-docs/*`: it reaches the live site at the next prod-docs cut or through a hand cherry-pick.
