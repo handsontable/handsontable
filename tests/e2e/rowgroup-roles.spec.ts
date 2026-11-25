@@ -4,7 +4,7 @@ import { FrozenEdgesPage, type FrozenEdges, type TableSection } from '../fixture
 /**
  * A table section (`thead`, `tbody`) carries the `rowgroup` role only while it holds rows. Every overlay
  * clone has both sections, and most clones leave one empty: the top clone's body without frozen top rows,
- * a corner's body, a bottom clone's head. A `rowgroup` with no `row` in it is an invalid structure that
+ * a top corner's body without frozen top rows, a bottom clone's head. A `rowgroup` with no `row` in it is an invalid structure that
  * a screen reader meets as an empty group, and axe reports as "needs review" (DEV-3652).
  */
 
@@ -62,10 +62,11 @@ test.describe('the rowgroup role of the table sections', () => {
     await grid.goto('all', 'off');
 
     const sections = await grid.sections();
+    const heads = sections.filter(item => item.tag === 'thead');
 
-    expect(sections.filter(item => item.tag === 'thead').map(item => [item.rows, item.role])).toEqual(
-      sections.filter(item => item.tag === 'thead').map(() => [0, null])
-    );
+    // The control: the page has head sections, so the comparison below is not of two empty lists.
+    expect(heads.length).toBeGreaterThan(0);
+    expect(heads.map(item => [item.rows, item.role])).toEqual(heads.map(() => [0, null]));
     expect(emptyRowGroups(sections)).toEqual([]);
     expect(unnamedRowGroups(sections)).toEqual([]);
   });
@@ -118,14 +119,16 @@ test.describe('the rowgroup role of the table sections', () => {
       .not.toEqual([]);
     expect(emptyRowGroups(sections)).toEqual([]);
     expect(unnamedRowGroups(sections)).toEqual([]);
+    // The row index goes with the `row` role.
+    expect(sections.filter(item => item.cells === 0 && item.rowIndexes > 0)).toEqual([]);
 
     // The clones come back with their cells, and with the roles.
     await grid.updateSettings({ rowHeaders: true, fixedColumnsStart: 1, fixedColumnsEnd: 1 });
 
     await expect.poll(() => grid.section('clone_inline_start', 'tbody'))
-      .toMatchObject({ rows: 6, rowRoles: 6, role: 'rowgroup' });
+      .toMatchObject({ rows: 6, rowRoles: 6, rowIndexes: 6, role: 'rowgroup' });
     await expect.poll(() => grid.section('clone_inline_end', 'tbody'))
-      .toMatchObject({ rows: 6, rowRoles: 6, role: 'rowgroup' });
+      .toMatchObject({ rows: 6, rowRoles: 6, rowIndexes: 6, role: 'rowgroup' });
     expect(emptyRowGroups(await grid.sections())).toEqual([]);
     expect(unnamedRowGroups(await grid.sections())).toEqual([]);
   });

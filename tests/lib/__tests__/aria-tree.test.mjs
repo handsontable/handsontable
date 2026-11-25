@@ -178,6 +178,26 @@ test('rows that share an index but no cell are rows exposed twice, never cells e
   assert.deepEqual(structureFindings(nodes).map(item => item.kind), ['row-headers-apart', 'row-exposed-twice']);
 });
 
+test('rows and cells without an index are never cells exposed twice', () => {
+  // Without the index filters every such cell would share a `null:…` or `…:null` key.
+  const grid = node('grid');
+  const unindexedRows = [1, 2].flatMap(() => {
+    const tr = node('row', { tag: 'tr', parent: grid.id });
+
+    return [tr, node('gridcell', { name: 'x', parent: tr.id, tag: 'td', attrs: { 'aria-colindex': '1' } })];
+  });
+  const indexedRow = node('row', { tag: 'tr', parent: grid.id, attrs: { 'aria-rowindex': '1' } });
+  const nodes = [
+    grid,
+    ...unindexedRows,
+    indexedRow,
+    node('gridcell', { name: 'a', parent: indexedRow.id, tag: 'td' }),
+    node('gridcell', { name: 'b', parent: indexedRow.id, tag: 'td' }),
+  ];
+
+  assert.deepEqual(structureFindings(nodes), []);
+});
+
 test('the same cell index in two grids is one cell each', () => {
   const [outer, inner] = [node('treegrid'), node('grid')];
   const nodes = [

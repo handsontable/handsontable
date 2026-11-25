@@ -1753,8 +1753,8 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   with no row (1.3.1). Today the first three show on every grid with headers: the overlay clones put the
   header row after the master table and repeat each row in the row-header clone. `cell-exposed-twice` shows
   there too (the corner cell is drawn by the top clone and by the corner), and counts every cell a frozen
-  pane repeats; it is the number that stays meaningful once rows are joined and no row index repeats. They are one root cause, reported per page and
-  theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
+  pane repeats; it is the number that stays meaningful once rows are joined and no row index repeats.
+  These findings share one root cause, reported per page and theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
   nearest grid, treegrid or table ancestor). A list inside the page (the handsontable editor's list, the
   filters' value list) therefore neither adds rows without a header to the grid nor shares its row
   indexes. A grid after the first is named by its place among the grids with rows (`grid 2 in reading

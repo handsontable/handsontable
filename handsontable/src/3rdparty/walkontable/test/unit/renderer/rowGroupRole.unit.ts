@@ -153,6 +153,26 @@ describe.each([
 
     expect(rootNode.hasAttribute('role')).toBe(false);
     expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual([null, null]);
+    expect(Array.from(rootNode.children, row => row.hasAttribute('aria-rowindex'))).toEqual([false, false]);
+
+    // The row elements are reused: they get the role and the index back with their cells.
+    draw(2);
+
+    expect(rootNode.getAttribute('role')).toBe('rowgroup');
+    expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual(['row', 'row']);
+    expect(Array.from(rootNode.children, row => row.hasAttribute('aria-rowindex'))).toEqual([true, true]);
+  });
+
+  it('leaves a role another module wrote on a row that holds no cell', () => {
+    const { rootNode, draw } = createSection();
+
+    draw(2);
+    rootNode.children[0].setAttribute('role', 'presentation');
+    draw(2, true, 0, 0);
+
+    expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual(['presentation', null]);
+    // The index goes with the `row` role only: a row with another role is not this module's to clear.
+    expect(Array.from(rootNode.children, row => row.hasAttribute('aria-rowindex'))).toEqual([true, false]);
   });
 
   it('is set for rows that hold a row header and no column', () => {
@@ -162,6 +182,17 @@ describe.each([
 
     expect(rootNode.getAttribute('role')).toBe('rowgroup');
     expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual(['row', 'row']);
+  });
+
+  it('is set for rows that hold columns and no row header', () => {
+    // `rowHeaders: false`: the most common shape of a grid.
+    const { rootNode, draw } = createSection();
+
+    draw(2, true, 3, 0);
+
+    expect(rootNode.getAttribute('role')).toBe('rowgroup');
+    expect(Array.from(rootNode.children, row => row.getAttribute('role'))).toEqual(['row', 'row']);
+    expect(Array.from(rootNode.children, row => row.hasAttribute('aria-rowindex'))).toEqual([true, true]);
   });
 
   it('writes nothing when the grid writes no accessibility attributes', () => {

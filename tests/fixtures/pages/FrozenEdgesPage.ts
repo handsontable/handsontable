@@ -34,6 +34,10 @@ export interface TableSection {
    * How many of the section's rows carry the `row` role.
    */
   rowRoles: number;
+  /**
+   * How many of the section's rows carry `aria-rowindex`.
+   */
+  rowIndexes: number;
 }
 
 /**
@@ -85,6 +89,7 @@ export class FrozenEdgesPage {
         rows: section.querySelectorAll(':scope > tr').length,
         cells: section.querySelectorAll(':scope > tr > *').length,
         rowRoles: section.querySelectorAll(':scope > tr[role="row"]').length,
+        rowIndexes: section.querySelectorAll(':scope > tr[aria-rowindex]').length,
       };
     }));
   }

@@ -37,7 +37,11 @@ export function isClearedAriaAttribute(name: string): boolean {
  * @param {KeptAriaAttributes} kept The attributes this draw writes, with their values.
  */
 export function clearStaleAriaAttributes(element: HTMLElement, kept: KeptAriaAttributes): void {
-  for (const name of element.getAttributeNames()) {
+  const attributeNames = element.getAttributeNames();
+
+  for (let i = 0; i < attributeNames.length; i++) {
+    const name = attributeNames[i];
+
     // No name of the object prototype contains `aria-` or `role`, so a plain lookup is safe here.
     if (isClearedAriaAttribute(name) && kept[name] === undefined) {
       element.removeAttribute(name);
@@ -57,8 +61,10 @@ export function clearStaleAriaAttributes(element: HTMLElement, kept: KeptAriaAtt
 export function syncAriaAttributes(element: HTMLElement, attributes: KeptAriaAttributes): void {
   clearStaleAriaAttributes(element, attributes);
 
-  for (const name of Object.keys(attributes)) {
-    setAttributeIfChanged(element, name, attributes[name]);
+  const names = Object.keys(attributes);
+
+  for (let i = 0; i < names.length; i++) {
+    setAttributeIfChanged(element, names[i], attributes[names[i]]);
   }
 }
 
@@ -134,9 +140,9 @@ export function giveRowGroupRole(section: HTMLElement): void {
 /**
  * Takes the `rowgroup` role off a table section (THEAD or TBODY) that holds no rows, or whose rows hold no
  * cells. A `rowgroup` with no `row` is an invalid structure, and the section elements are reused across draws,
- * so the role has to go when a section is drawn empty: a clone that renders no frozen rows, a corner, a grid
- * whose rows were all removed. Only a `rowgroup` role is taken off, so a role another module wrote on such a
- * section stays.
+ * so the role has to go when a section is drawn empty: a clone that renders no frozen rows, a top corner
+ * without frozen top rows, a grid whose rows were all removed. Only a `rowgroup` role is taken off, so a role
+ * another module wrote on such a section stays.
  *
  * @param {HTMLElement} section The THEAD or TBODY element.
  */
