@@ -331,6 +331,68 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       expect(events).toEqual(['callback end', 'afterMergeCells']);
     });
 
+    it('should move an older merge through a column move and a row move in one batch', () => {
+      const { batched, unbatched } = runBothWays((instance) => {
+        instance.getPlugin('manualColumnMove').moveColumn(5, 0);
+        instance.getPlugin('manualRowMove').moveRow(5, 0);
+      }, instance => instance.getPlugin('mergeCells').merge(1, 1, 2, 2));
+
+      expect(unbatched.merges).toEqual([{ row: 2, col: 2, rowspan: 2, colspan: 2 }]);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should move an older merge through a row move and a column move in one batch', () => {
+      const { batched, unbatched } = runBothWays((instance) => {
+        instance.getPlugin('manualRowMove').moveRow(5, 0);
+        instance.getPlugin('manualColumnMove').moveColumn(5, 0);
+      }, instance => instance.getPlugin('mergeCells').merge(1, 1, 2, 2));
+
+      expect(unbatched.merges).toEqual([{ row: 2, col: 2, rowspan: 2, colspan: 2 }]);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should run a call a listener makes while the held back ones run after the ones still waiting', () => {
+      createGrid();
+
+      const merged = [];
+      let isFirst = true;
+
+      hot.addHook('afterMergeCells', (_range, mergeParent) => {
+        merged.push([mergeParent.row, mergeParent.col]);
+
+        if (isFirst) {
+          isFirst = false;
+          hot.getPlugin('mergeCells').merge(5, 5, 6, 6);
+        }
+      });
+      hot.batch(() => {
+        hot.getPlugin('manualRowMove').moveRow(5, 0);
+        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+        hot.getPlugin('mergeCells').merge(3, 1, 4, 2);
+      });
+
+      expect(merged).toEqual([[1, 1], [3, 1], [5, 5]]);
+    });
+
+    it('should drop a held back call when rows are added before the batch ends', () => {
+      createGrid();
+
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        hot.batch(() => {
+          hot.getPlugin('manualRowMove').moveRow(5, 0);
+          hot.getPlugin('mergeCells').merge(3, 1, 4, 2);
+          hot.alter('insert_row_above', 0, 2);
+        });
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
+        expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
     // A row move in a batch that splits a merge draws it over a row it does not own: the re-anchor at the end of
     // the batch moves the merge without splitting it.
     it.todo('should split a merge that a row move in a batch breaks, as the same call outside the batch does');

@@ -1203,6 +1203,14 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
 - **The merge is not in the collection until the batch ends.** `getCellMeta()` and `mergedCellsCollection` do not show it
   inside the batch, and `beforeMergeCells` and `afterMergeCells` fire once, after the callback. The flush runs inside
   the batch's operation, so the batch is still one undo step.
+- **The queue runs in order, and a call a listener makes while it runs waits behind it.** The flush takes entries off
+  the queue one at a time and sets `#isFlushingDeferredOperations`, so an `afterMergeCells` listener that calls
+  `merge()`, or a nested `batch()`, lands after the entries still waiting, not between them.
+- **A call whose grid changed size is dropped with a warning.** The corners are physical indexes, and `alter()` renumbers
+  them. Each entry records the number of rows and columns the mappers had, and `#runDeferredEntry()` drops it when
+  they differ at the flush (an insert and a removal that cancel out are not seen). Nothing re-bases a corner.
+- **A corner with no physical index is not queued.** `merge(-1, 0, 1, 1)` runs at once, on the caches, and can jump
+  ahead of the queue.
 - **`mergeRange()`, `unmergeRange()` and `mergeSelection()` are not queued.** They return values or read the selection,
   and the settings, undo and sheet-switch paths call them. They read the caches, as they always did.
 - **Never refresh the cache mid-batch with `updateCache(true)`.** It fires `cacheUpdated`, which runs the selection
@@ -1212,7 +1220,10 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
 - **A trim or a hide made earlier in the same batch is not seen** by the live read of the corners: it filters the live
   sequence through the trimming and hiding maps' cached merged values, the same limit as the ColumnSorting band read.
 - **A call outside `suspendExecution()`/`batch()` is never queued.** The queue ends with the execution, and a plugin
-  disable or destroy drops it.
+  disable or destroy drops it. Three edges: a raw `suspendExecution()` and `resumeExecution()` have no operation, so the
+  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data; and an
+  `afterResumeExecution` listener that throws before this plugin's skips the flush, which then runs at the next
+  `merge()` or `unmerge()` call outside the batch, on the corners it held.
 
 **Existing merges follow a column move or freeze in the batch on the live order.** The rows have a `cacheUpdated`
 re-anchor at the end of the batch, but no listener re-anchors the columns, so `#translateMergesAfterColumnReorder()`
@@ -1221,7 +1232,11 @@ a merge kept its old visual column for good, with two cells flagged `spanned` an
 before hooks read the live order too (`#captureColumnsBeforeReorder()`), so a second move in the batch takes a merge's
 columns as they are and does not split it. The moved index itself still resolves through the stale cache, so a second
 move cannot match the unbatched result whatever the plugin does. The rows are not wrapped: a row-axis merge written in
-the live order would be read through the old cache by the cleanup at the end of the batch.
+the live order would be read through the old cache by the cleanup at the end of the batch. **The row move hooks read the
+live column order**, though (`#onBeforeRowMove`, `#onAfterRowMove`): the merges' `col` was rewritten in it, and the anchor
+capture there took it for a column of the stale order and moved the merge one column too far after a column move and a
+row move in one batch. Any other code that turns a merge's `col` into a physical column inside a batch with a column
+reorder (an `alter()` of rows or columns, for example) still reads the stale cache.
 
 **The undo of a step that holds a reorder and a merge finds the merge by its anchor.** UndoRedo restores the row index
 maps before the plugin states, so the live merge has already been re-anchored to the restored order while the recorded

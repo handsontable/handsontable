@@ -67,6 +67,17 @@ interface DeferredRangeOperation {
 }
 
 /**
+ * A call held back in the queue, with the number of rows and columns the grid had when it was held back. The
+ * corners are physical indexes, which a row or column insert or removal renumbers, so a call whose grid changed
+ * size is dropped instead of run on other cells.
+ */
+interface DeferredRangeEntry {
+  operation: DeferredRangeOperation;
+  rows: number;
+  columns: number;
+}
+
+/**
  * The visual indexes along one axis that a move permutes. A merge outside it covers the same cells before and
  * after the move.
  */
@@ -407,7 +418,14 @@ export class MergeCells extends BasePlugin {
    *
    * @type {Array<object>}
    */
-  #deferredRangeOperations: DeferredRangeOperation[] = [];
+  #deferredRangeOperations: DeferredRangeEntry[] = [];
+  /**
+   * `true` while the held back calls run, so a call a listener makes meanwhile waits behind the ones still
+   * queued.
+   *
+   * @type {boolean}
+   */
+  #isFlushingDeferredOperations = false;
   /**
    * Snapshot of physical row indexes per merge, captured before a row move.
    *
@@ -2444,27 +2462,53 @@ export class MergeCells extends BasePlugin {
    * from the live order would sit beside them in another coordinate system, and every listener that reads
    * the caches (the next move, the overlap check, the cleanup at the end of the batch) would misread it. So
    * while a cache is behind, the call keeps only the physical corners of its range, and the batch's end runs
-   * it on current caches. Once one call waits, the later ones wait too, which keeps their order.
+   * it on current caches. Once one call waits, the later ones wait too, which keeps their order, and so does
+   * a call a listener makes while the waiting ones run.
    *
    * @param {object} operation The call: its kind and the visual corners of its range.
    */
   #runRangeOperation(operation: DeferredRangeOperation) {
+    if (this.#isFlushingDeferredOperations) {
+      if (!this.#deferRangeOperation(operation)) {
+        this.#applyRangeOperation(operation);
+      }
+
+      return;
+    }
+
     if (this.#deferredRangeOperations.length > 0 && !this.hot.isExecutionSuspended()) {
       this.#flushDeferredRangeOperations();
     }
 
     if (this.hot.isExecutionSuspended() &&
-        (this.#deferredRangeOperations.length > 0 || this.#isIndexSequenceBehind())) {
-      const physical = this.#translateRangeCorners(operation, 'physical');
-
-      if (physical !== null) {
-        this.#deferredRangeOperations.push(physical);
-
-        return;
-      }
+        (this.#deferredRangeOperations.length > 0 || this.#isIndexSequenceBehind()) &&
+        this.#deferRangeOperation(operation)) {
+      return;
     }
 
     this.#applyRangeOperation(operation);
+  }
+
+  /**
+   * Puts a call at the end of the queue, with its corners as physical indexes.
+   *
+   * @param {object} operation The call: its kind and the visual corners of its range.
+   * @returns {boolean} `false` when a corner has no physical index, and the call is not queued.
+   */
+  #deferRangeOperation(operation: DeferredRangeOperation): boolean {
+    const physical = this.#translateRangeCorners(operation, 'physical');
+
+    if (physical === null) {
+      return false;
+    }
+
+    this.#deferredRangeOperations.push({
+      operation: physical,
+      rows: this.hot.rowIndexMapper.getNumberOfIndexes(),
+      columns: this.hot.columnIndexMapper.getNumberOfIndexes(),
+    });
+
+    return true;
   }
 
   /**
@@ -2531,35 +2575,55 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Runs the calls `#runRangeOperation()` held back, in order, on the caches of the order the batch made.
-   * A call whose corners no longer have a visual index (their rows or columns were trimmed) is dropped.
-   * Every call runs, and the first error is thrown after the last one.
+   * A call whose corners no longer have a visual index (their rows or columns were trimmed) is dropped, and so
+   * is one whose grid gained or lost rows or columns since it was held back, because its physical corners were
+   * renumbered. Every call runs, and the first error is thrown after the last one.
    */
   #flushDeferredRangeOperations() {
-    if (this.#deferredRangeOperations.length === 0 || this.#isIndexSequenceBehind()) {
+    if (this.#isFlushingDeferredOperations || this.#deferredRangeOperations.length === 0 ||
+        this.#isIndexSequenceBehind()) {
       return;
     }
 
-    const operations = this.#deferredRangeOperations;
     let failure: { error: unknown } | null = null;
 
-    this.#deferredRangeOperations = [];
+    this.#isFlushingDeferredOperations = true;
 
-    operations.forEach((operation) => {
-      const visual = this.#translateRangeCorners(operation, 'visual');
-
-      if (visual === null) {
-        return;
+    try {
+      while (this.#deferredRangeOperations.length > 0) {
+        try {
+          this.#runDeferredEntry(this.#deferredRangeOperations.shift() as DeferredRangeEntry);
+        } catch (error) {
+          failure = failure ?? { error };
+        }
       }
-
-      try {
-        this.#applyRangeOperation(visual);
-      } catch (error) {
-        failure = failure ?? { error };
-      }
-    });
+    } finally {
+      this.#isFlushingDeferredOperations = false;
+    }
 
     if (failure !== null) {
       throw (failure as { error: unknown }).error;
+    }
+  }
+
+  /**
+   * Runs one held back call on the caches of the order the batch made.
+   *
+   * @param {object} entry The held back call, with the size the grid had when it was held back.
+   */
+  #runDeferredEntry({ operation, rows, columns }: DeferredRangeEntry) {
+    if (rows !== this.hot.rowIndexMapper.getNumberOfIndexes() ||
+        columns !== this.hot.columnIndexMapper.getNumberOfIndexes()) {
+      warn(`A ${operation.kind}() call made in a batch was dropped, because rows or columns were added or ` +
+        'removed before the batch ended.');
+
+      return;
+    }
+
+    const visual = this.#translateRangeCorners(operation, 'visual');
+
+    if (visual !== null) {
+      this.#applyRangeOperation(visual);
     }
   }
 
@@ -4467,8 +4531,13 @@ export class MergeCells extends BasePlugin {
     // keeps its stale-but-present coordinates, survives the move, and the re-anchor that follows puts
     // it back on the rows the transferred anchor names. A trimmed row inside a partly visible merge
     // makes no difference either way, since it has no visual index to translate.
-    this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
-    this.#captureDrawnFromBeforeMove(this.#getMoveWindow('row', rows, finalIndex));
+    //
+    // The merges' columns are read on the live column order: a column move earlier in the same batch has
+    // rewritten them in it (`#translateMergesAfterColumnReorder()`).
+    this.hot.columnIndexMapper.runWithLiveCache(() => {
+      this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
+      this.#captureDrawnFromBeforeMove(this.#getMoveWindow('row', rows, finalIndex));
+    });
   };
 
   /**
@@ -4503,16 +4572,21 @@ export class MergeCells extends BasePlugin {
     // sequence to build its position map — which on a large grid is real allocation on every drop.
     // Skipping it leaves the split on the path it took before, which is the right answer when no row
     // is trimmed: a fragment then draws exactly the rows it owns.
-    const plan = this.mergedCellsCollection.mergedCells.length > 0 && this.#isRowTrimmingActive()
-      ? this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions())
-      : null;
+    //
+    // The merges' columns are read on the live column order: a column move earlier in the same batch has
+    // rewritten them in it, and the anchor capture below would take them for columns of the stale order.
+    this.hot.columnIndexMapper.runWithLiveCache(() => {
+      const plan = this.mergedCellsCollection.mergedCells.length > 0 && this.#isRowTrimmingActive()
+        ? this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions())
+        : null;
 
-    const replacements = this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers);
+      const replacements = this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers);
 
-    this.#transferAnchorsAfterAxisMove(replacements, 'row', plan?.context);
-    this.#captureMergeAnchors();
+      this.#transferAnchorsAfterAxisMove(replacements, 'row', plan?.context);
+      this.#captureMergeAnchors();
 
-    this.#settleMergesAfterAxisMove(replacements, snapshot, 'row');
+      this.#settleMergesAfterAxisMove(replacements, snapshot, 'row');
+    });
 
     this.hot.render();
   };
