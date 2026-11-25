@@ -85,7 +85,8 @@ so the local scope is exactly the CI scope. Three things to know:
   `origin/develop`, `origin/release/*` and `origin/lts/*` (the fewest commits
   between its merge-base and HEAD, a tie going to `origin/develop`); then a local
   `develop`. So a docs-only branch cut from `release/x.y.z` no longer runs the
-  release line's specs. CI diffs against the merge-base of the PR's base
+  release line's specs. The Claude Stop hook (`scripts/claude/stop.mjs`) calls the
+  same `resolveBase` to classify a committed file as added or modified. CI diffs against the merge-base of the PR's base
   **branch** with HEAD — `lint.yml` fetches that branch's live tip and passes
   it as `GATE_BASE=origin/<base.ref>`. Never the event payload's frozen
   `base.sha`: the checkout is `refs/pull/N/merge`, a "Re-run all jobs" replays
