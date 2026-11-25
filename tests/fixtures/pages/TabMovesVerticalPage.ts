@@ -10,6 +10,21 @@ type HotWindow = Window & {
 };
 
 /**
+ * Settings that cannot cross into the page as JSON, so the page object builds them there.
+ */
+export interface PageBuiltSettings {
+  /**
+   * Adds a `beforeColumnWrap` listener that sets `isActionInterrupted.value`, so a press past the last
+   * row adds a row instead of wrapping.
+   */
+  interruptColumnWrap?: boolean;
+  /**
+   * Passes `tabMoves` as a function that returns `{ row: 1, col: 0 }`.
+   */
+  verticalTabMovesFunction?: boolean;
+}
+
+/**
  * Page Object for `fixtures/demo/tab-moves-vertical.html`: a grid between a "Before grid" and an
  * "After grid" text input, built with the settings a spec passes.
  */
@@ -34,11 +49,26 @@ export class TabMovesVerticalPage {
    * Opens the fixture and builds the grid with the settings merged over the fixture defaults.
    *
    * @param {object} settings JSON-serializable settings.
+   * @param {PageBuiltSettings} [pageBuilt] Settings built in the page: hook and `tabMoves` functions.
    */
-  async goto(settings: Record<string, unknown>): Promise<void> {
+  async goto(settings: Record<string, unknown>, pageBuilt: PageBuiltSettings = {}): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/tab-moves-vertical.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
-    await this.page.evaluate(extraSettings => (window as unknown as HotWindow).buildGrid(extraSettings), settings);
+    await this.page.evaluate(([extraSettings, { interruptColumnWrap, verticalTabMovesFunction }]) => {
+      const merged: Record<string, unknown> = { ...extraSettings };
+
+      if (interruptColumnWrap) {
+        merged.beforeColumnWrap = (isActionInterrupted: { value: boolean }) => {
+          isActionInterrupted.value = true;
+        };
+      }
+
+      if (verticalTabMovesFunction) {
+        merged.tabMoves = () => ({ row: 1, col: 0 });
+      }
+
+      (window as unknown as HotWindow).buildGrid(merged);
+    }, [settings, pageBuilt] as const);
 
     const initError = await this.grid.getAttribute('data-init-error');
 

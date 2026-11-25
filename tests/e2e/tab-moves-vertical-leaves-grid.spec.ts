@@ -100,20 +100,78 @@ test.describe('Tab out of a grid that moves down on Tab', { tag: CROSS_BROWSER_T
     await expect(grid.cell(0, 2)).toBeFocused();
   });
 
-  test('with minSpareRows, Tab that commits an edit on the spare row stays in the grid', async({ page }) => {
-    await grid.goto({ ...VERTICAL_TAB, minSpareRows: 1 });
+  test('with autoWrapCol, Shift+Tab from the first cell leaves the grid backward', async() => {
+    await grid.goto({ ...VERTICAL_TAB, autoWrapCol: true });
+    await grid.afterInput.focus();
+    await grid.press('Shift+Tab');
+    await grid.press('ControlOrMeta+Home');
+
+    await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+
+    await grid.press('Shift+Tab');
+
+    await expect(grid.beforeInput).toBeFocused();
+    await expect.poll(() => grid.selected()).toBeUndefined();
+  });
+
+  test('a beforeColumnWrap listener that adds a row keeps Tab in the grid', async() => {
+    await grid.goto({ ...VERTICAL_TAB, minSpareRows: 1 }, { interruptColumnWrap: true });
     await grid.beforeInput.focus();
     await grid.press('Tab');
     await grid.press('ControlOrMeta+ArrowDown');
 
     await expect.poll(() => grid.selected()).toEqual([[LAST_ROW + 1, 0, LAST_ROW + 1, 0]]);
 
-    await page.keyboard.type('x');
     await grid.press('Tab');
 
     await expect.poll(() => grid.countRows()).toBe(LAST_ROW + 3);
     await expect.poll(() => grid.selected()).toEqual([[LAST_ROW + 2, 0, LAST_ROW + 2, 0]]);
     await expect(grid.cell(LAST_ROW + 2, 0)).toBeFocused();
+  });
+
+  test('with autoWrapCol, a beforeColumnWrap listener that adds a row keeps Tab from the last cell in the grid',
+    async() => {
+      await grid.goto({ ...VERTICAL_TAB, autoWrapCol: true, minSpareRows: 1 }, { interruptColumnWrap: true });
+      await grid.beforeInput.focus();
+      await grid.press('Tab');
+      await grid.press('ControlOrMeta+End');
+
+      await expect.poll(() => grid.selected()).toEqual([[LAST_ROW + 1, LAST_COLUMN, LAST_ROW + 1, LAST_COLUMN]]);
+
+      await grid.press('Tab');
+
+      await expect.poll(() => grid.countRows()).toBe(LAST_ROW + 3);
+      await expect.poll(() => grid.selected()).toEqual([[LAST_ROW + 2, LAST_COLUMN, LAST_ROW + 2, LAST_COLUMN]]);
+      await expect(grid.cell(LAST_ROW + 2, LAST_COLUMN)).toBeFocused();
+    });
+
+  test('with a diagonal tabMoves, Tab from the last row keeps its step to the next column', async() => {
+    await grid.goto({ tabMoves: { row: 1, col: 1 } });
+    await grid.beforeInput.focus();
+    await grid.press('Tab');
+    await grid.press('ControlOrMeta+ArrowDown');
+    await grid.press('ArrowRight');
+
+    await expect.poll(() => grid.selected()).toEqual([[LAST_ROW, 1, LAST_ROW, 1]]);
+
+    await grid.press('Tab');
+
+    await expect.poll(() => grid.selected()).toEqual([[LAST_ROW, 2, LAST_ROW, 2]]);
+    await expect(grid.cell(LAST_ROW, 2)).toBeFocused();
+  });
+
+  test('with tabMoves as a function, Tab from the last cell leaves the grid', async() => {
+    await grid.goto({}, { verticalTabMovesFunction: true });
+    await grid.beforeInput.focus();
+    await grid.press('Tab');
+    await grid.press('ControlOrMeta+End');
+
+    await expect.poll(() => grid.selected()).toEqual([[LAST_ROW, LAST_COLUMN, LAST_ROW, LAST_COLUMN]]);
+
+    await grid.press('Tab');
+
+    await expect(grid.afterInput).toBeFocused();
+    await expect.poll(() => grid.selected()).toBeUndefined();
   });
 
   test('with the default tabMoves, Tab from the last cell leaves the grid', async() => {
