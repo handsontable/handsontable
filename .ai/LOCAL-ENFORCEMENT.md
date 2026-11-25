@@ -78,8 +78,14 @@ so the local scope is exactly the CI scope. Three things to know:
   (`tests/e2e/`) instead of gaining a delay. For a genuine
   exception, disable the rule on that line **with a ticket**:
   `// eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- DEV-xxxx: <why no condition exists>`.
-- **Which base:** pre-push diffs against the merge-base of `origin/develop`
-  (then `develop`) with HEAD; CI diffs against the merge-base of the PR's base
+- **Which base:** pre-push diffs against the merge-base with the branch the push
+  is really based on (`resolveBase` in `scripts/pre-push.mjs`). In order: the base
+  branch of the branch's open pull request when `gh` can say (`origin/<name>` must
+  exist; no `gh`, no network, no open PR or a closed one falls through silently); the closest of
+  `origin/develop`, `origin/release/*` and `origin/lts/*` (the fewest commits
+  between its merge-base and HEAD, a tie going to `origin/develop`); then a local
+  `develop`. So a docs-only branch cut from `release/x.y.z` no longer runs the
+  release line's specs. CI diffs against the merge-base of the PR's base
   **branch** with HEAD — `lint.yml` fetches that branch's live tip and passes
   it as `GATE_BASE=origin/<base.ref>`. Never the event payload's frozen
   `base.sha`: the checkout is `refs/pull/N/merge`, a "Re-run all jobs" replays
@@ -87,12 +93,14 @@ so the local scope is exactly the CI scope. Three things to know:
   that merged the base after it forked has the same shape — that SHA is then
   an ancestor of HEAD, so the merge-base is the SHA itself and every base
   commit after it would read as a line the PR added.
-  On a branch cut from `develop` and targeting it, the two agree. On a branch
-  targeting `release/*`, or stacked on another feature branch, pre-push also
-  sees the lines the parent branch added since it left `develop`, so it may
-  report a `sleep()` that is not yours. Confirm with
+  On a branch cut from `develop` or `release/*` and targeting it, the two
+  agree. The closest-ref rule counts commits, so a develop branch that merged a
+  release line in can pick that release, and a stale `origin/*` ref gives a larger
+  diff than CI; `git fetch` first. On a branch stacked on another feature branch
+  with no PR yet, pre-push still sees the lines the parent branch added since it
+  left the trunk, so it may report a `sleep()` that is not yours. Confirm with
   `node .github/scripts/lint-ratchet.mjs --base <parent>` (for example
-  `--base origin/release/18.1`): a clean run there is the verdict CI gives,
+  `--base origin/release/x.y.z`): a clean run there is the verdict CI gives,
   because CI diffs against the PR base. To get the push through, disable the
   rule on that line with a ticket (the comment above), or rebase once the
   parent has merged. CI's verdict against the PR base is authoritative.
