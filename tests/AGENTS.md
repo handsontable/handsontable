@@ -1754,12 +1754,12 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   header row after the master table and repeat each row in the row-header clone. `cell-exposed-twice` shows
   there too (the corner cell is drawn by the top clone and by the corner), and counts every cell a frozen
   pane repeats; it is the number that stays meaningful once rows are joined and no row index repeats.
-  These findings share one root cause, reported per page and theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
-  nearest grid, treegrid or table ancestor). A list inside the page (the handsontable editor's list, the
-  filters' value list) therefore neither adds rows without a header to the grid nor shares its row
-  indexes. A grid after the first is named by its place among the grids with rows (`grid 2 in reading
-  order`). A row whose own rowgroup is a table head (`thead`) is never a data row: the corner clone
-  repeats the head row with its corner cell alone.
+  These findings share one root cause, reported per page and theme, because the evidence is per page.
+  Each grid is judged on its own rows (a row belongs to its nearest grid, treegrid or table ancestor). A
+  list inside the page (the handsontable editor's list, the filters' value list) therefore neither adds
+  rows without a header to the grid nor shares its row indexes. A grid after the first is named by its
+  place among the grids with rows (`grid 2 in reading order`). A row whose own rowgroup is a table head
+  (`thead`) is never a data row: the corner clone repeats the head row with its corner cell alone.
 - **Names and roles** (`nameFindings()`): a widget role with no name (`unnamed-control`), a column or row
   header with no name (`unnamed-header`), and a tab stop (any node the tree marks focusable, an editable
   region too) the tree gives no role (`focusable-without-role`). An empty grid cell needs no name; an
