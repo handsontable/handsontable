@@ -320,23 +320,34 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
   test.describe('a key that cannot be read, and no key at all', () => {
     // DEV-2562: the two install faults BLOCK from 18.1 on (the specification's S4.5 shape). Their
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
+    const INVALID = {
+      title: 'The license key for Handsontable is invalid.',
+      description: 'Read more in the documentation on how to install it properly, or contact us at support@handsontable.com.',
+    };
     const FAULTS = [
-      { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
+      { key: 'tampered', ...INVALID },
       // A current key protects its text, so a key whose text was edited is an unreadable key as well.
-      { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
-      { key: 'missing', title: 'The license key for Handsontable is missing.' },
+      { key: 'edited-prose', ...INVALID },
+      {
+        key: 'missing',
+        title: 'The license key for Handsontable is missing.',
+        description: 'Use your purchased key to activate the product. Read more about it in the documentation, ' +
+          'or contact us at support@handsontable.com.',
+      },
       // PRO-1356: Handsontable 19.0 no longer recognizes the non-commercial key, so it locks the
       // grid as an invalid key does.
-      { key: 'non-commercial', title: 'The license key for Handsontable is invalid.' },
+      { key: 'non-commercial', ...INVALID },
     ] as const;
 
-    for (const { key, title } of FAULTS) {
+    for (const { key, title, description } of FAULTS) {
       test(`blocks the grid with a non-closable modal, and no bar, for a "${key}" key`, async ({ page }) => {
         await license.goto(INSTANT.duringTrial, { key });
 
         await expect(license.lock).toBeVisible();
         await expect(license.lock).toHaveAttribute('role', 'alertdialog');
         await expect(license.lock).toContainText(title);
+        // The link is read in its sentence: the lock's description is the whole text, "documentation" inside it (2.4.4).
+        await expect(license.lock).toHaveAccessibleDescription(description);
         // The bar is withdrawn: one surface says it, not two. And no badge - that is the trial's.
         await expect(license.bar).toHaveCount(0);
         await expect(license.badge).toHaveCount(0);

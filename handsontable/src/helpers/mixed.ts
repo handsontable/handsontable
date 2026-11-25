@@ -161,8 +161,8 @@ export function _renderMessageParts(target: HTMLElement, parts: MessagePart[], o
 
 const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersion?: string }) => MessagePart[]> = {
   invalid: () => [
-    'The license key for Handsontable is invalid. Read more in the ',
-    { text: 'documentation', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
+    'The license key for Handsontable is invalid. ',
+    { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
     ' on how to install it properly or contact us at ',
     { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
     '.',
@@ -177,10 +177,9 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
     '.',
   ],
   missing: () => [
-    'The license key for Handsontable is missing. Use your purchased key to activate the product. ' +
-      'Read more about it in the ',
-    { text: 'documentation', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
-    ' or contact us at ',
+    'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
+    { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
+    ' about it in the documentation or contact us at ',
     { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
     '.',
   ],
