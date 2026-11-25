@@ -70,6 +70,7 @@ export function DocsAssistantWidget() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  const pendingOpenerRef = useRef<HTMLElement | null>(null);
   const wasOpenRef = useRef(open);
   const resizingRef = useRef(false);
   const { state, send, sendToSupport, canWriteToSupport, stop, retry, clear, clearAndSend, setFeedback } =
@@ -100,6 +101,18 @@ export function DocsAssistantWidget() {
     return () => window.removeEventListener('docs-assistant:toggle', onToggle);
   }, []);
 
+  /**
+   * Names the control that opens the closed panel. A mouse click does not focus a button in Safari
+   * or in Firefox on macOS, so the focused element cannot name it there.
+   *
+   * @param opener The control.
+   */
+  const rememberOpener = useCallback((opener: unknown) => {
+    if (!wasOpenRef.current && opener instanceof HTMLElement) {
+      pendingOpenerRef.current = opener;
+    }
+  }, []);
+
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const tocBtn = (e.target as HTMLElement).closest('#toc-assistant-btn');
@@ -107,23 +120,25 @@ export function DocsAssistantWidget() {
       const pageTitle = tocBtn.getAttribute('data-page-title') || document.title;
       clear();
       setPendingDraft(`I have a question about the "${pageTitle}" page.\n`);
+      rememberOpener(tocBtn);
       setOpen(true);
     };
     document.addEventListener('click', onClick);
     return () => document.removeEventListener('click', onClick);
-  }, [clear]);
+  }, [clear, rememberOpener]);
 
   // "Ask AI about this API" buttons on API reference pages — opens assistant
   // and auto-submits the prefilled question without user interaction.
   useEffect(() => {
     const handleAskAboutApi = (e: Event) => {
-      const { question } = (e as CustomEvent<{ question: string }>).detail;
+      const { question, opener } = (e as CustomEvent<{ question: string; opener?: HTMLElement }>).detail;
+      rememberOpener(opener);
       setOpen(true);
       clearAndSend(question);
     };
     window.addEventListener('docs-assistant:ask', handleAskAboutApi);
     return () => window.removeEventListener('docs-assistant:ask', handleAskAboutApi);
-  }, [clearAndSend]);
+  }, [clearAndSend, rememberOpener]);
 
   useLayoutEffect(() => {
     const panel = panelRef.current;
@@ -134,10 +149,14 @@ export function DocsAssistantWidget() {
 
     wasOpenRef.current = open;
 
+    const pendingOpener = pendingOpenerRef.current;
+
+    pendingOpenerRef.current = null;
+
     if (open) {
       panel.removeAttribute('inert');
       if (!wasOpen) {
-        openerRef.current = focusedOutside(panel);
+        openerRef.current = pendingOpener ?? focusedOutside(panel);
       }
       return;
     }

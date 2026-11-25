@@ -211,6 +211,54 @@ test('closing the assistant opened from the table of contents returns the focus 
   await expect(tocButton).toBeFocused();
 });
 
+test('closing the assistant opened by a mouse click that left the focus on the body returns the focus to the table of contents button', async ({ page, baseURL }) => {
+  await openPage(page, baseURL);
+
+  const tocButton = page.locator('#toc-assistant-btn');
+
+  await expect(tocButton).toBeVisible();
+  await blur(page);
+  await page.evaluate(() => {
+    document.getElementById('toc-assistant-btn')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
+  await expect(page.locator('.da-panel textarea')).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.da-panel')).toHaveAttribute('data-open', 'false');
+  await expect(tocButton).toBeFocused();
+});
+
+test('closing the assistant opened by a mouse click on an "Ask AI about this API" button returns the focus to that button', async ({ page, baseURL }) => {
+  await openPage(page, baseURL);
+
+  await page.route('**/*', async(route) => {
+    if (route.request().method() === 'POST') {
+      await route.abort();
+    } else {
+      await route.fallback();
+    }
+  });
+  await page.evaluate(() => {
+    const button = document.createElement('button');
+
+    button.type = 'button';
+    button.className = 'ask-about-api-btn';
+    button.dataset.option = 'colHeaders';
+    button.textContent = 'Ask AI';
+    document.querySelector('main')!.prepend(button);
+  });
+
+  const askAboutApi = page.locator('main .ask-about-api-btn').first();
+
+  await blur(page);
+  await askAboutApi.evaluate(button => button.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  await expect(page.locator('.da-panel')).toHaveAttribute('data-open', 'true');
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.da-panel')).toHaveAttribute('data-open', 'false');
+  await expect(askAboutApi).toBeFocused();
+});
+
 test('closing the assistant whose opener is gone moves the focus to the header button', async ({ page, baseURL }) => {
   await openPage(page, baseURL);
 
@@ -271,6 +319,124 @@ test.describe('docs search', () => {
 
     await page.keyboard.press('ControlOrMeta+k');
     await expect(page.locator(SEARCH_MODAL)).toBeVisible();
+  });
+
+  test('the slash key with Ctrl, Alt, or both (AltGr) does not open the search', async ({ page, baseURL }) => {
+    await openPage(page, baseURL);
+    await requireSearch(page);
+    await waitForSearchReady(page);
+
+    for (const keys of ['Control+/', 'Alt+/', 'Control+Alt+/']) {
+      await blur(page);
+      await page.keyboard.press(keys);
+      await expect(page.locator(SEARCH_MODAL), keys).toHaveCount(0);
+      await expect(page.locator('body'), keys).toBeFocused();
+    }
+  });
+
+  test('the slash key pressed on the page still reaches the page listeners', async ({ page, baseURL }) => {
+    await openPage(page, baseURL);
+    await requireSearch(page);
+    await waitForSearchReady(page);
+
+    await page.evaluate(() => {
+      const seen: string[] = [];
+
+      (window as unknown as { seenKeys: string[] }).seenKeys = seen;
+      document.addEventListener('keydown', event => seen.push(event.key));
+    });
+
+    await blur(page);
+    await page.keyboard.press('/');
+
+    expect(await page.evaluate(() => (window as unknown as { seenKeys: string[] }).seenKeys)).toEqual(['/']);
+    await expect(page.locator(SEARCH_MODAL)).toHaveCount(0);
+  });
+
+  test('choosing a search result on the same page leaves the focus at the target, not on the search button', async ({ page, baseURL }) => {
+    await openPage(page, baseURL);
+    await requireSearch(page);
+    await waitForSearchReady(page);
+
+    const heading = page.locator('.sl-markdown-content h2[id]').first();
+    const headingId = await heading.getAttribute('id');
+    const headingText = (await heading.textContent())?.trim() ?? '';
+    const pageUrl = page.url().split('#')[0];
+
+    expect(headingId).toBeTruthy();
+
+    await page.route('**/1/indexes/*/queries**', async(route) => {
+      const hierarchy = {
+        lvl0: 'Getting started',
+        lvl1: 'Introduction',
+        lvl2: headingText,
+        lvl3: null,
+        lvl4: null,
+        lvl5: null,
+        lvl6: null,
+      };
+      const highlight = { value: headingText, matchLevel: 'full', matchedWords: [] };
+
+      await route.fulfill({
+        status: 200,
+        headers: { 'access-control-allow-origin': '*' },
+        contentType: 'application/json',
+        body: JSON.stringify({
+          results: [{
+            hits: [{
+              objectID: 'same-page-heading',
+              url: `${pageUrl}#${headingId}`,
+              type: 'lvl2',
+              content: null,
+              hierarchy,
+              _highlightResult: {
+                hierarchy: {
+                  lvl0: { ...highlight, value: hierarchy.lvl0 },
+                  lvl1: { ...highlight, value: hierarchy.lvl1 },
+                  lvl2: highlight,
+                },
+              },
+              _snippetResult: {
+                hierarchy: {
+                  lvl1: { value: hierarchy.lvl1, matchLevel: 'none' },
+                  lvl2: { value: headingText, matchLevel: 'full' },
+                },
+              },
+            }],
+            nbHits: 1,
+            page: 0,
+            nbPages: 1,
+            hitsPerPage: 20,
+            exhaustiveNbHits: true,
+            processingTimeMS: 1,
+            query: headingText,
+            params: '',
+            index: 'handsontable',
+          }],
+        }),
+      });
+    });
+
+    const searchButton = page.locator(SEARCH_BUTTON);
+
+    await searchButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.DocSearch-Input')).toBeFocused();
+    await page.keyboard.type(headingText.slice(0, 12));
+    await expect(page.locator('.DocSearch-Hit').first()).toBeVisible();
+
+    await page.keyboard.press('Enter');
+    await expect(page.locator(SEARCH_MODAL)).toHaveCount(0);
+    await expect(page).toHaveURL(`${pageUrl}#${headingId}`);
+    await expect(searchButton).not.toBeFocused();
+    await expect(page.locator('body')).toBeFocused();
+
+    await page.keyboard.press('Tab');
+    expect(await heading.evaluate((target) => {
+      const all = [...document.querySelectorAll('*')];
+
+      return all.indexOf(document.activeElement!) > all.indexOf(target);
+    })).toBe(true);
   });
 
   test('a slash typed in the search box appears as text', async ({ page, baseURL }) => {
