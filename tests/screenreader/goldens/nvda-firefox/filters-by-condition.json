@@ -6,21 +6,21 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T11:00:54.565Z"
+    "at": "2026-11-25T11:18:33.149Z"
   },
   "steps": {
-    "open-menu": "clear column 1 of 1 column menu menu",
+    "open-menu": "clear column 4 of 9 column menu menu",
     "tab-to-condition": "list",
-    "open-conditions": "none 1 of 1 menu",
-    "arrow-down-is-empty": "is empty 1 of 2",
-    "arrow-down-is-not-empty": "is not empty 2 of 2",
-    "arrow-down-is-equal-to": "is equal to 1 of 2",
+    "open-conditions": "none 1 of 10 menu",
+    "arrow-down-is-empty": "is empty 2 of 10",
+    "arrow-down-is-not-empty": "is not empty 3 of 10",
+    "arrow-down-is-equal-to": "is equal to 4 of 10",
     "choose-condition": "list value edit has auto complete blank",
     "type-value": "",
     "shift-tab-to-select": "list",
-    "shift-tab-to-menu": "clear column 1 of 1",
+    "shift-tab-to-menu": "clear column 4 of 11",
     "shift-tab-to-cancel": "cancel button",
     "shift-tab-to-ok": "ok button",
-    "apply-filter": "table 1890 not selected price row 2 column 4"
+    "apply-filter": "table 1890 selected price row 2 column 4"
   }
 }

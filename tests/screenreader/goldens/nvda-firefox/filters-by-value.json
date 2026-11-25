@@ -6,10 +6,10 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T11:01:30.146Z"
+    "at": "2026-11-25T11:19:09.289Z"
   },
   "steps": {
-    "open-menu": "insert column left 1 of 2 column menu menu",
+    "open-menu": "insert column left 1 of 9 column menu menu",
     "tab-to-condition": "list",
     "tab-to-search": "filter by value grouping filter by value edit has auto complete search blank",
     "type-search": "",

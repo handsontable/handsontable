@@ -6,15 +6,15 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T10:59:46.882Z"
+    "at": "2026-11-25T11:17:19.937Z"
   },
   "steps": {
-    "open-menu": "insert row above 1 of 2 context menu menu",
+    "open-menu": "insert row above 1 of 17 context menu menu",
     "read-next-item": "menu item insert row below",
     "read-next-separator": "separator",
-    "end-to-borders": "borders collapsed 1 of 1",
-    "up-to-cut": "cut 2 of 2",
-    "up-to-copy": "copy 1 of 2",
-    "up-to-read-only-comment": "read only comment checked 3 of 3"
+    "end-to-borders": "borders collapsed 17 of 17",
+    "up-to-cut": "cut 15 of 17",
+    "up-to-copy": "copy 14 of 17",
+    "up-to-read-only-comment": "read only comment checked 13 of 17"
   }
 }
