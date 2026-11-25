@@ -91,6 +91,11 @@ said the grid was loading. Three conditions:
 - **The grid listens** (`hot.isListening()`). A grid that loads while the user is elsewhere on the page
   stays quiet, and so does the first load of a page.
 
+Every loading start announces, so an application that calls `fetchData()` on a timer while the user works
+in the grid gets "Loading data" on every poll, and each announcement makes core's selection announcer stand
+aside for the selection made just before it. A fetch made with `skipLoading: true` shows no overlay and
+announces nothing: DataProvider's own sort and save refetches use it, and a polling application should too.
+
 The end of a load is not announced: the rows arrive, and the reader reads the cell the focus is on.
 `#getMessage(SOURCE.LOADING)` runs once more per loading start, so a `message` function is called one more
 time there. Pinned by `__tests__/loadingAnnouncement.unit.js` and the keyboard case in
