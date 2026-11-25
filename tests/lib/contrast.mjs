@@ -192,30 +192,48 @@ export function partContrast(image, box, { band, mark = false } = {}) {
  * margin around the element: a control with a fill of its own fills most of its capture, and a ring
  * around it is judged against what lies around the control, not against the fill.
  *
+ * With an `inner` box (the element's own box in the capture), the change also counts `outside`, the changed
+ * pixels outside that box. An indicator drawn wholly inside the element (a ring inset in its fill, a recolored
+ * border) has nothing changed outside it, and its `adjacent` colors are then the unchanged pixels inside the box:
+ * a white ring inset in a black fill is judged against the fill it sits on (18:1), not against the white page
+ * around the control (1:1). Only a ring: a change that repaints half the box or more is a fill (a background the
+ * focus recolors), whose unchanged pixels inside are the text on it, so it reads the margin as before.
+ *
  * @param {{width?: number, height?: number, data: number[]}} before The capture before.
  * @param {{width?: number, height?: number, data: number[]}} after The capture after, the same size.
  * @param {number} [margin] The width of the margin around the element, in pixels; 0 reads the whole capture.
- * @returns {{changed: number, ratio: number, replacedColor: number[]|null, replaced: number[]|null, color: number[]|null, adjacent: number[]|null, adjacentRatio: number, area: number}} The change.
+ * @param {{x: number, y: number, width: number, height: number}|null} [inner] The element's own box in the capture,
+ *   in pixels from its top left corner.
+ * @returns {{changed: number, ratio: number, replacedColor: number[]|null, replaced: number[]|null, color: number[]|null, adjacent: number[]|null, adjacentRatio: number, area: number, outside?: number}} The change.
  */
-export function indicatorChange(before, after, margin = 0) {
+export function indicatorChange(before, after, margin = 0, inner = null) {
   const changes = [];
   const unchanged = { data: [] };
   const around = { data: [] };
   const width = after.width ?? before.width;
   const height = after.height ?? before.height;
+  let outside = 0;
+  const insideUnchanged = { data: [] };
 
   for (let index = 0; index < before.data.length; index += 4) {
     const old = [before.data[index], before.data[index + 1], before.data[index + 2]];
     const current = [after.data[index], after.data[index + 1], after.data[index + 2]];
 
+    const x = (index / 4) % width;
+    const y = Math.floor(index / 4 / width);
+    const inBox = inner !== null && x >= inner.x && y >= inner.y && x < inner.x + inner.width && y < inner.y + inner.height;
+
     if (current.some((channel, position) => Math.abs(channel - old[position]) > NOISE)) {
       changes.push({ color: current, replaced: old, ratio: contrastRatio(current, old) });
+      if (inner && !inBox) {
+        outside += 1;
+      }
     } else {
       unchanged.data.push(...current, 255);
+      if (inBox) {
+        insideUnchanged.data.push(...current, 255);
+      }
       if (margin > 0) {
-        const x = (index / 4) % width;
-        const y = Math.floor(index / 4 / width);
-
         if (x < margin || y < margin || x >= width - margin || y >= height - margin) {
           around.data.push(...current, 255);
         }
@@ -223,14 +241,23 @@ export function indicatorChange(before, after, margin = 0) {
     }
   }
   if (changes.length === 0) {
-    return { changed: 0, ratio: 1, replacedColor: null, replaced: null, color: null, adjacent: null, adjacentRatio: 1, area: 0 };
+    return {
+      changed: 0, ratio: 1, replacedColor: null, replaced: null, color: null, adjacent: null, adjacentRatio: 1, area: 0,
+      ...(inner ? { outside: 0 } : {}),
+    };
   }
 
   const percentile = list => list[Math.min(list.length - 1, Math.floor(list.length * 0.9))];
   const core = percentile([...changes].sort((a, b) => a.ratio - b.ratio));
   let adjacent = null;
 
-  if (around.data.length > 0) {
+  // A ring inside the element changes a band of it; a fill (a background the focus recolors) changes most of it, and
+  // what it leaves unchanged inside is the text on it, not what the indicator sits on.
+  const ring = inner !== null && changes.length < inner.width * inner.height / 2;
+
+  if (ring && outside === 0 && insideUnchanged.data.length > 0) {
+    adjacent = dominantColor(insideUnchanged);
+  } else if (around.data.length > 0) {
     adjacent = dominantColor(around);
   } else if (unchanged.data.length > 0) {
     adjacent = dominantColor(unchanged);
@@ -243,6 +270,7 @@ export function indicatorChange(before, after, margin = 0) {
   return {
     changed: changes.length, ratio: core.ratio, replacedColor: core.color, replaced: core.replaced,
     color: againstAdjacent.color, adjacent, adjacentRatio: againstAdjacent.ratio, area: changes.length,
+    ...(inner ? { outside } : {}),
   };
 }
 
