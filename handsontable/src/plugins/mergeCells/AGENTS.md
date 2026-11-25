@@ -1174,6 +1174,55 @@ starting on its first column, is anchored in the clone and needs nothing.
 - Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (every case in LTR with `virtualized` on and off, and the
   crossing case in RTL with `virtualized` off) and `__tests__/overlayBounds.unit.ts`.
 
+## `merge()` reads the live index order inside `batch()`
+
+`hot.batch()` suspends the index mappers, so a move or a sort made earlier in the same batch changes the indexes
+sequence but not the translation caches: every `toPhysicalRow()` and `toPhysicalColumn()` still answers for the order
+from before the batch. `merge()` writes through those translations (`setCellMeta()` for `hidden` and `spanned`, the
+anchor capture in `afterMergeCells`, the value read and `populateFromArray()`), so the merge landed on the cells of the
+old order: `hidden`, `spanned` and `copyable` on the wrong cells, a copy that dropped values, and a merge one row or
+several rows off after a row move or a sort. Present since at least 18.1.3.
+
+`merge()` therefore runs `mergeRange()` inside `IndexMapper#runWithLiveCache()` of the row mapper and the column
+mapper. It rebuilds the caches from the live sequence for the call and puts the old ones back, so the update at the end
+of the batch still sees the previous order as the old one. Three rules:
+
+- **Never refresh the cache mid-batch with `updateCache(true)`.** It fires `cacheUpdated`, which runs the selection
+  repair and the size-cache invalidation, and the `beforeCacheUpdate` listeners (this plugin's
+  `#onBeforeRowIndexCacheUpdate`, Selection's physical capture) would read the new order as the old one at the real
+  resume. Same rule as in `../columnSorting/AGENTS.md`.
+- **Only `merge()` is wrapped.** `mergeRange()` returns values and the settings, undo and sheet-switch paths call it, so
+  it keeps reading the caches. `unmerge()`, `unmergeRange()` and `mergeSelection()` read them too and have the same gap
+  after a reorder in the same batch. `#fillTrimmedGaps` keeps its "a visible row that is not covered" guard for those
+  paths.
+- **A trim or a hide made earlier in the same batch is not seen.** The live read filters the live sequence through the
+  trimming and hiding maps' cached merged values, the same limit as the ColumnSorting band read.
+- **Only the `merge()` call reads the live order.** `setDataAtCell()`, `getDataAtCell()`, `setCellMeta()` and a second
+  `moveRow()` or `moveColumn()` in the same batch still translate through the pre-batch cache, so a write made next to
+  the merge lands on the record the old order names. The call also reads the live caches only while it runs: a
+  validator that answers later, a listener that calls `alter()` (its insert resumes the operations and rebuilds the
+  caches for real), and a render inside a `batchExecution()` see the window or its end as the mapper does.
+- **The merges that exist before a column move or freeze in the batch are moved on the live order too.** The rows have a
+  `cacheUpdated` re-anchor at the end of the batch, but no listener re-anchors the columns, so
+  `#translateMergesAfterColumnReorder()` (the body of `afterColumnMove` and `afterColumnFreeze`) runs inside
+  `columnIndexMapper.runWithLiveCache()`. Before, such a merge kept its old visual column for good, with two cells
+  flagged `spanned` and two `td`s drawn with a `colspan`. Only the after hooks are wrapped: a second move in the same
+  batch resolves its own visual index through the stale cache before any hook runs, so it cannot match the unbatched
+  result whatever the plugin does.
+
+**The undo of a step that holds a reorder and a merge finds the merge by its anchor.** UndoRedo restores the row index
+maps before the plugin states, so the live merge has already been re-anchored to the restored order while the recorded
+entry still holds the visual coordinates of the order it was made in. `#restoreChangedMerges` matched the entry by those
+coordinates, found nothing, skipped the removal without the documented fallback to a full rebuild, and the merge stayed
+after a single undo (a row move or a sort in one `batch()` with a merge, in either order). An entry with an anchor is now
+matched by anchor, `rowspan` and `colspan`; an entry without one keeps the coordinates. The restore reads the live
+merge's own coordinates for the removal, so nothing else changes.
+
+Pinned by `__tests__/mergeInsideBatch.unit.js` (each reorder compared with the same calls outside the batch, with and
+without a merge that exists before it, the freeze, and the undo and redo of a merge made before or after the reorder)
+and `../../translations/__tests__/indexMapperLiveCache.unit.ts`. A merge that a column move in a batch did not follow
+also left `copyable: false` on the wrong cells after the undo, because the recorded step named the wrong columns.
+
 ## `getSourceDataAtCell` takes a visual column
 
 `getSourceDataAtCell(row, column)` takes a **physical row** but a **visual column** — `core.ts`

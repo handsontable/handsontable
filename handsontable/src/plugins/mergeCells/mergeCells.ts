@@ -2234,10 +2234,15 @@ export class MergeCells extends BasePlugin {
    *   rows are all trimmed, so the lookup does not reach it); nothing is changed then.
    */
   #restoreChangedMerges(target: readonly MergeStateEntry[], from: readonly MergeStateEntry[]): boolean {
+    // UndoRedo restores the row index maps before the plugin states, so a merge the step made has already
+    // been re-anchored to the restored order, while the recorded entry still holds the visual coordinates
+    // of the order it was made in. An entry with an anchor is told apart by the anchor, which survives
+    // reordering; one without keeps the coordinates.
     const liveToRemove = from.filter(entry => !isMergeListed(target, entry)).map(entry => (
       this.mergedCellsCollection.mergedCells.find(merge => (
-        merge.row === entry.row && merge.col === entry.col && merge.rowspan === entry.rowspan &&
-        merge.colspan === entry.colspan && areAnchorsEqual(entry.anchor, this.#mergeAnchors.get(merge))
+        (entry.anchor !== null || (merge.row === entry.row && merge.col === entry.col)) &&
+        merge.rowspan === entry.rowspan && merge.colspan === entry.colspan &&
+        areAnchorsEqual(entry.anchor, this.#mergeAnchors.get(merge))
       ))
     ));
 
@@ -2394,7 +2399,14 @@ export class MergeCells extends BasePlugin {
     const start = this.hot._createCellCoords(startRow, startColumn);
     const end = this.hot._createCellCoords(endRow, endColumn);
 
-    this.mergeRange(this.hot._createCellRange(start, start, end));
+    // Inside `batch()` the index caches keep the order from before a move or a sort made in the same batch,
+    // and the merge writes its meta and anchor through them. Read the live order for the call (the plugin's
+    // `AGENTS.md`, section "`merge()` reads the live index order inside `batch()`").
+    this.hot.rowIndexMapper.runWithLiveCache(() => {
+      this.hot.columnIndexMapper.runWithLiveCache(() => {
+        this.mergeRange(this.hot._createCellRange(start, start, end));
+      });
+    });
   }
 
   /**
@@ -4248,16 +4260,29 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const replacements = this.mergedCellsCollection.translateAfterAxisMove(
-      'column', snapshot, this.#planColumnMoveRetention(snapshot));
+    this.#translateMergesAfterColumnReorder(snapshot);
+  };
 
-    this.#transferAnchorsAfterAxisMove(replacements, 'column');
-    this.#captureMergeAnchors();
+  /**
+   * Moves the merges onto the column order a move or a freeze has just made. Inside `batch()` the column
+   * index cache still holds the order from before the batch, and no `cacheUpdated` hook re-anchors the
+   * columns afterwards (the rows have one), so the translation reads the live order for the call.
+   *
+   * @param {Map} snapshot The merges with their physical columns before the reorder.
+   */
+  #translateMergesAfterColumnReorder(snapshot: Map<MergedCellCoords, number[]>) {
+    this.hot.columnIndexMapper.runWithLiveCache(() => {
+      const replacements = this.mergedCellsCollection.translateAfterAxisMove(
+        'column', snapshot, this.#planColumnMoveRetention(snapshot));
 
-    this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
+      this.#transferAnchorsAfterAxisMove(replacements, 'column');
+      this.#captureMergeAnchors();
+
+      this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
+    });
 
     this.hot.render();
-  };
+  }
 
   /**
    * `beforeRowMove` hook callback. Captures physical row positions of every merge
@@ -4373,15 +4398,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const replacements = this.mergedCellsCollection.translateAfterAxisMove(
-      'column', snapshot, this.#planColumnMoveRetention(snapshot));
-
-    this.#transferAnchorsAfterAxisMove(replacements, 'column');
-    this.#captureMergeAnchors();
-
-    this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
-
-    this.hot.render();
+    this.#translateMergesAfterColumnReorder(snapshot);
   };
 
   /**

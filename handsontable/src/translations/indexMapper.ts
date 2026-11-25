@@ -24,6 +24,17 @@ import { throwWithCause } from '../helpers/errors';
 export type IndexesChangeSource = 'init' | 'remove' | 'insert' | 'move' | 'update';
 
 /**
+ * The five translation caches of an {@link IndexMapper}.
+ */
+type IndexCaches = {
+  notTrimmed: number[],
+  notHidden: number[],
+  renderable: number[],
+  fromPhysicalToVisual: Int32Array,
+  fromVisualToRenderable: Int32Array,
+};
+
+/**
  * @class IndexMapper
  * @description
  *
@@ -209,12 +220,33 @@ export class IndexMapper {
    * @type {Set<IndexMap>}
    */
   readonly #dirtyObservedMaps = new Set<IndexMap>();
+  /**
+   * Number of cache rebuilds `updateCache()` has made. {@link IndexMapper#runWithLiveCache} compares it
+   * to tell whether a real rebuild happened while its callback ran.
+   *
+   * @type {number}
+   */
+  #cacheRebuilds = 0;
+  /**
+   * Moves on every change of the indexes sequence. The live caches {@link IndexMapper#runWithLiveCache}
+   * builds are kept while it stays the same, and dropped when the operations resume.
+   *
+   * @type {number}
+   */
+  #liveCacheEpoch = 0;
+  /**
+   * The caches {@link IndexMapper#runWithLiveCache} built last, with the epoch they were built at.
+   *
+   * @type {object|null}
+   */
+  #liveCache: (IndexCaches & { epoch: number }) | null = null;
 
   /**
    * Initializes the IndexMapper by wiring change listeners on the indexes sequence, trimming, and hiding map collections to keep caches up to date.
    */
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {
+      this.#liveCacheEpoch += 1;
       this.indexesSequenceChanged = true;
       this.#cacheUpdateSource = this.indexesChangeSource;
 
@@ -261,8 +293,117 @@ export class IndexMapper {
    */
   resumeOperations(): void {
     this.isBatched = false;
+    this.#liveCache = null;
     this.updateCache();
     this.#flushDirtyObservedMaps();
+  }
+
+  /**
+   * Runs a callback with the translation caches rebuilt from the live indexes sequence, then puts the
+   * caches back as they were.
+   *
+   * While the operations are suspended, a change of the indexes sequence (a move, a sort) leaves the
+   * caches on the previous order, so every translation inside a `batch()` answers for the order from
+   * before the batch. A caller that has to write by the order the batch already made reads through this
+   * method. The caches are restored on exit, so no `cacheUpdated` or `beforeCacheUpdate` hook fires, no
+   * change flag moves, and the update at the end of the batch still sees the previous order as the old one.
+   *
+   * It does nothing while the operations are not suspended or when the sequence did not change. The
+   * trimming and hiding maps are read from their cached merged values, so a trim or a hide made earlier
+   * in the same batch is not seen, as before.
+   *
+   * @private
+   * @param {Function} callback The function to run. A return value is passed through.
+   * @returns {*} The value the callback returns.
+   */
+  runWithLiveCache<T>(callback: () => T): T {
+    if (this.isBatched === false || this.indexesSequenceChanged === false) {
+      return callback();
+    }
+
+    const saved = this.#readCaches();
+    const rebuildsBefore = this.#cacheRebuilds;
+
+    this.#writeCaches(this.#getLiveCache());
+
+    try {
+      return callback();
+    } finally {
+      // A real rebuild during the callback (a forced update, an insert that resumed the operations) has
+      // already written fresh caches, and putting the old ones over them would bring the stale order back.
+      if (this.#cacheRebuilds === rebuildsBefore) {
+        this.#writeCaches(saved);
+      }
+    }
+  }
+
+  /**
+   * Returns the caches built from the live indexes sequence. They are kept until the sequence changes or
+   * the operations resume, so many calls of {@link IndexMapper#runWithLiveCache} in one batch (a loop of
+   * merges) rebuild them once.
+   *
+   * @returns {object} The five caches and the epoch they were built at.
+   */
+  #getLiveCache(): IndexCaches & { epoch: number } {
+    if (this.#liveCache === null || this.#liveCache.epoch !== this.#liveCacheEpoch) {
+      this.#liveCache = { epoch: this.#liveCacheEpoch, ...this.#buildLiveCaches() };
+    }
+
+    return this.#liveCache;
+  }
+
+  /**
+   * Builds the five caches from the live indexes sequence and leaves the mapper's own caches as they were.
+   *
+   * @returns {object} The five caches.
+   */
+  #buildLiveCaches(): IndexCaches {
+    const stale = this.#readCaches();
+
+    try {
+      // The typed caches are refilled in place when the length matches, so the rebuild gets fresh ones
+      // and the stale arrays stay untouched. The order of the assignments is the one `updateCache()` uses:
+      // each builder reads the caches before it.
+      this.fromPhysicalToVisualIndexesCache = new Int32Array(0);
+      this.fromVisualToRenderableIndexesCache = new Int32Array(0);
+      this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
+      this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
+      this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
+      this.cacheFromPhysicalToVisualIndexes();
+      this.cacheFromVisualToRenderableIndexes();
+
+      return this.#readCaches();
+    } finally {
+      this.#writeCaches(stale);
+    }
+  }
+
+  /**
+   * Reads the five translation caches.
+   *
+   * @returns {object} The caches, by reference.
+   */
+  #readCaches(): IndexCaches {
+    return {
+      notTrimmed: this.notTrimmedIndexesCache,
+      notHidden: this.notHiddenIndexesCache,
+      renderable: this.renderablePhysicalIndexesCache,
+      fromPhysicalToVisual: this.fromPhysicalToVisualIndexesCache,
+      fromVisualToRenderable: this.fromVisualToRenderableIndexesCache,
+    };
+  }
+
+  /**
+   * Puts the five translation caches in place.
+   *
+   * @param {object} caches The caches to use.
+   */
+  #writeCaches(caches: IndexCaches): void {
+    this.notTrimmedIndexesCache = caches.notTrimmed;
+    this.notHiddenIndexesCache = caches.notHidden;
+    this.renderablePhysicalIndexesCache = caches.renderable;
+    this.fromPhysicalToVisualIndexesCache = caches.fromPhysicalToVisual;
+    this.fromVisualToRenderableIndexesCache = caches.fromVisualToRenderable;
   }
 
   /**
@@ -917,6 +1058,8 @@ export class IndexMapper {
         trimmedIndexesChanged: this.trimmedIndexesChanged,
         hiddenIndexesChanged: this.hiddenIndexesChanged,
       };
+
+      this.#cacheRebuilds += 1;
 
       try {
         this.runLocalHooks('beforeCacheUpdate', indexesChangesState);
