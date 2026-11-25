@@ -355,7 +355,7 @@ $license-badge-dot: "data:image/svg+xml;charset=utf-8,%3Csvg width='11.1415' hei
   }
 
   // The "Powered by Handsontable DataGrid" bar (DEV-3413, Figma `license-key`, node 1424:19574): shown
-  // for a trial key and a key with the `attribution-bar` flag, last in the bottom slot. It takes the license
+  // for a key with the `attribution-bar` flag (a trial too, only with the flag), last in the bottom slot. It takes the license
   // warning bar's tokens (`_license-notification.scss`), which resolve to the shared bar tokens - 8px x
   // 16px padding, 12px / 18px text at the default density. The literals are the no-theme fallbacks.
   // A flex row, so the line box adds no baseline space under the link: the bar is its padding plus the

@@ -18,7 +18,7 @@ import {
   ATTRIBUTION_BAR_EMPTY_CLAUSE_KEY,
   SPONSORED_RETIRED_BADGE_FLAG_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
-import { blockOf } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import { blockOf, buildTestKey, payloadOf, proseOf } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
 const LICENSE_INFO_CLASS = 'hot-display-license-info';
 // Reference instants inside each window of the fixtures, so no test ever touches the real clock.
@@ -384,6 +384,17 @@ describe('the `attributionBar` facet of the license state (DEV-3413)', () => {
     expect(_getLicenseState(ATTRIBUTION_BAR_EMPTY_CLAUSE_KEY).attributionBar).toBe(true);
   });
 
+  it('should read `attributionBar` from a trial key that carries the flag, and keep it a trial', () => {
+    const payload = payloadOf(TRIAL_KEY);
+
+    payload.products.handsontable.flags = [...payload.products.handsontable.flags, 'attribution-bar'];
+
+    const { attributionBar, lifecycle } = _getLicenseState(buildTestKey(payload, { prose: proseOf(TRIAL_KEY).trim() }));
+
+    expect(lifecycle.isTrial).toBe(true);
+    expect(attributionBar).toBe(true);
+  });
+
   it('should keep `attributionBar` on a key whose silencing flags close both channels', () => {
     const { attributionBar, channels } = _getLicenseState(SPONSORED_ATTRIBUTION_BAR_EXTERNAL_KEY);
 
@@ -395,7 +406,7 @@ describe('the `attributionBar` facet of the license state (DEV-3413)', () => {
     ['a sponsored key without the flag', SPONSORED_NO_ATTRIBUTION_BAR_KEY],
     ['a sponsored key with the retired `badge` flag (DEV-4153), an unknown flag now', SPONSORED_RETIRED_BADGE_FLAG_KEY],
     ['a subscription key', SUBSCRIPTION_KEY],
-    ['a trial key (the bar of a trial comes from its `trial` flag, not from `attribution-bar`)', TRIAL_KEY],
+    ['a trial key without the flag (the `trial` flag alone asks for no bar, DEV-3413)', TRIAL_KEY],
     ['a key that grants no Handsontable license', HF_ONLY_KEY],
     ['the non-commercial key', 'non-commercial-and-evaluation'],
     ['a malformed legacy key', '00000-00000-00000-00000-00000'],

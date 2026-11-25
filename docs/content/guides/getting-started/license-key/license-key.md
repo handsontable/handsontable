@@ -311,12 +311,13 @@ console reports an error and the grid shows a notice below the table.
 
 ### Powered by Handsontable DataGrid bar
 
-A trial key, and a key whose license terms ask for it, show a bar below the table that reads
+A key whose license terms ask for it shows a bar below the table that reads
 "Powered by Handsontable DataGrid" next to the Handsontable logo. The bar links to
 [handsontable.com](https://handsontable.com) and sits below any license message.
 
 The bar is not a warning, so it shows on a key issued for use in an application for external users
-too, and no option turns it off. Every other key shows no bar. The grid keeps the height you set:
+too, and no option turns it off. Every other key shows no bar, a trial key included unless its terms ask
+for the bar. The grid keeps the height you set:
 the bar takes its room from the grid, as the pagination bar does.
 
 ## Keys that name a tier
