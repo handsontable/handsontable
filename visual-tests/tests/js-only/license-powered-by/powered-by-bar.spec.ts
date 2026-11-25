@@ -1,7 +1,7 @@
 import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
-type DemoKey = 'attribution-bar' | 'trial';
+type DemoKey = 'attribution-bar' | 'trial-attribution-bar';
 
 /**
  * The instant both keys are judged at: inside the fixture trial, which runs to 2026-09-26, and before the
@@ -20,7 +20,7 @@ const DURING_TRIAL = new Date('2026-09-16T00:00:00Z');
  */
 const BARE_RUN_THEME: Record<DemoKey, string> = {
   'attribution-bar': 'classic',
-  trial: 'classic-dark',
+  'trial-attribution-bar': 'classic-dark',
 };
 
 /**
@@ -38,8 +38,8 @@ function demoUrl(key: DemoKey): string {
 /**
  * Checks how the "Powered by Handsontable DataGrid" bar looks under the grid in every theme, light and
  * dark: its padding, type, colors and logomark (Figma 1424:19574). Capture 1 is a key with the `attribution-bar`
- * flag, which shows the bar alone; capture 2 is a running trial, which shows the bar beside the corner
- * badge in the corner header cell. On the bare run they show the classic theme, light and dark (see
+ * flag, which shows the bar alone; capture 2 is a running trial with the `attribution-bar`
+ * flag, which shows the bar beside the corner badge in the corner header cell. On the bare run they show the classic theme, light and dark (see
  * `BARE_RUN_THEME`). When the bar shows, its link, its place last in the bottom slot, its geometry per
  * theme, its colors, the logomark's pixels, hover and the keyboard path are asserted in
  * `tests/e2e/license-branding.spec.ts`; what only pixels show is the bar's look in each theme. Owned by
@@ -64,8 +64,8 @@ visualTest(__filename, {
   await expect(tablePage.locator('.ht-license-lock')).toHaveCount(0);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  // State 2: a running trial. The bar shows beside the corner badge, whose popover opens only on hover.
-  await goto(demoUrl('trial'));
+  // State 2: a running trial with the `attribution-bar` flag. The bar shows beside the corner badge, whose popover opens only on hover.
+  await goto(demoUrl('trial-attribution-bar'));
 
   await expect(poweredBy).toBeVisible();
   await expect(badge).toBeAttached();
