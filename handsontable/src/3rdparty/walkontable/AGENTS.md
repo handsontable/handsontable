@@ -2092,6 +2092,35 @@ back, because jsdom drops it on a removal and a real `moveBefore` does not) and
 `tests/e2e/row-recycling-keeps-focus.spec.ts`, which asserts no focus event only where the engine has
 the method.
 
+**A selection that moves the focus into the focused TR gets a new TR.** Keeping the element is right
+for a scroll, and wrong when the host focuses a cell right after the draw and that cell lands in the
+element that already holds the focus. Ctrl+ArrowDown to the last row moves the band so far that no row
+survives, the rows are rebuilt in place (TR `i` shows `offset + i`), and the TD that showed A7 is
+painted with A200: the focus manager then calls `focus()` on the focused element, no event fires, and
+Chromium keeps the element's accessibility object (removing and adding the role, in the same task, a
+microtask or a frame, and `blur()` plus `focus()` all keep it), so NVDA and VoiceOver said nothing.
+Chromium builds a new accessibility object only for a new element. So `#renewFocusedRow` (after
+`start()`, before the row pass) replaces the focused row's TR with a fresh one when the host's
+`pendingFocusRow` setting (`TableRenderer#getPendingFocusRow`) names the row this draw paints into it
+and the TR showed another row before (`#shownRows`, or a moved `renderEpoch`). The cells and row
+headers of the fresh TR are built by the same draw, and the host focuses the new TD after it, a real
+focus move. The test is the row, not the exit of `#recycleRows`: it covers a rebuild in place (both
+"no row survives" exits, an epoch change, a TBODY that does not hold the previous band, and a draw that
+is not scroll-driven), and a rotation that wraps the focused row onto the target row. It reads the
+focused element `#recycleRows` moved, because an engine that blurs a detached element no longer
+reports it as focused, and `#restoreFocus` then does not give the detached element the focus back. The
+removal blurs the old TD at once in Firefox and WebKit (`focusout` with no `relatedTarget`; the grid's
+`#hasBrowserFocus` drops and comes back with the new TD's `focusin`, and the scope manager listens to
+`focusin` only). Core supplies the setting from `FocusGridManager#getPendingFocusRow()`: the highlight's
+row while a selection change (`afterSelection`, `afterSelectionFocusSet`) waits for its render, `null`
+for a header, a hidden cell, an open editor, and after the `afterRender` that consumes it, so a later
+plain scroll keeps today's behavior. Component renderers need nothing: React re-parents a cached portal
+container into the new TD and evicts one whose container left the DOM, and Angular sweeps views whose
+TD is disconnected on `afterViewRender`. Pinned by the "focus move the host makes after the draw" cases
+of `test/unit/renderer/rowRecycling.unit.ts`, `focusManager/__tests__/grid.unit.ts`, and
+`tests/e2e/selection-jump-renews-focused-cell.spec.ts` (Chromium also asserts a new accessibility node
+over CDP).
+
 Only rows that LEAVE the band wrap. A band that moves up and grows past its old end at the same time
 (a refill re-pass in `table/drawCycle.ts`, or a recompute with non-uniform heights) keeps every tail
 row's TR in place and gets fresh TRs for the front slots the leaving rows cannot fill; `start()`

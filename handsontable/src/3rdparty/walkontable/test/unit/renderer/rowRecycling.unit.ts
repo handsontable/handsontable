@@ -4,7 +4,7 @@ import type { TableRenderer } from 'walkontable/render/tableRenderer';
 interface Fixture {
   renderer: RowsRenderer;
   rootNode: HTMLElement;
-  state: { offset: number; size: number; recyclable: boolean; renderEpoch: number };
+  state: { offset: number; size: number; recyclable: boolean; renderEpoch: number; pendingFocusRow: number | null };
   /**
    * Renders the band and stamps every TR with the source row the cell pass would paint into it.
    */
@@ -23,7 +23,7 @@ interface Fixture {
 function createFixture(): Fixture {
   const rootNode = document.createElement('tbody');
   const renderer = new RowsRenderer(rootNode);
-  const state = { offset: 0, size: 0, recyclable: false, renderEpoch: 0 };
+  const state = { offset: 0, size: 0, recyclable: false, renderEpoch: 0, pendingFocusRow: null as number | null };
 
   renderer.setTable({
     rootDocument: document,
@@ -36,6 +36,7 @@ function createFixture(): Fixture {
     get renderEpoch() {
       return state.renderEpoch;
     },
+    getPendingFocusRow: () => state.pendingFocusRow,
   } as unknown as TableRenderer);
 
   const sources = () => Array.from(rootNode.children, tr => (tr as HTMLElement).dataset.source ?? '');
@@ -199,6 +200,72 @@ function runScroll(
     blurCalls: blurSpy.mock.calls.length,
     focusCalls: focusSpy.mock.calls.length,
     keptFocus: document.activeElement === td,
+  };
+
+  table.remove();
+  jest.restoreAllMocks();
+
+  return result;
+}
+
+interface FocusDrawResult {
+  order: Array<number | 'fresh'>;
+  focusMovedOff: boolean;
+  focusedCellConnected: boolean;
+  focusCalls: number;
+}
+
+/**
+ * Draws a band, focuses a TD in one of its rows, and draws the band once more with the row the host
+ * says it focuses right after the draw. Reports the final TRs as indexes of the first draw's TRs
+ * (`'fresh'` for a new one) and what happened to the focused TD.
+ *
+ * @param {Scenario} scenario The two bands and the index of the row that holds the focused TD.
+ * @param {object} options The options.
+ * @param {number|null} options.pendingFocusRow The row the host focuses after the second draw.
+ * @param {boolean} options.recyclable `true` for a scroll-driven second draw.
+ * @param {boolean} [options.eagerBlur=false] `true` to emulate an engine that blurs a detached element.
+ * @returns {FocusDrawResult}
+ */
+function runFocusDraw(
+  scenario: Scenario,
+  { pendingFocusRow, recyclable, eagerBlur = false }:
+    { pendingFocusRow: number | null; recyclable: boolean; eagerBlur?: boolean },
+): FocusDrawResult {
+  const { rootNode, draw, state, renderer } = createFixture();
+  const table = document.createElement('table');
+
+  table.appendChild(rootNode);
+  document.body.appendChild(table);
+  draw(scenario.first.offset, scenario.first.size, false);
+
+  const initialRows = Array.from(rootNode.children);
+  const td = document.createElement('td');
+
+  td.tabIndex = -1;
+  initialRows[scenario.focusedIndex].appendChild(td);
+  td.focus();
+
+  const focusSpy = jest.spyOn(td, 'focus');
+
+  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
+
+  if (eagerBlur) {
+    emulateEagerBlur();
+  }
+
+  state.pendingFocusRow = pendingFocusRow;
+  draw(scenario.next.offset, scenario.next.size, recyclable);
+
+  const result: FocusDrawResult = {
+    order: Array.from(rootNode.children, (tr) => {
+      const index = initialRows.indexOf(tr);
+
+      return index === -1 ? 'fresh' : index;
+    }),
+    focusMovedOff: document.activeElement !== td,
+    focusedCellConnected: td.isConnected,
+    focusCalls: focusSpy.mock.calls.length,
   };
 
   table.remove();
@@ -748,5 +815,82 @@ describe('RowsRenderer row recycling', () => {
     expect(result.blurCalls).toBe(1);
     expect(result.focusCalls).toBe(1);
     expect(result.keptFocus).toBe(true);
+  });
+
+  describe('with a focus move the host makes after the draw', () => {
+    const jumpToEnd: Scenario = {
+      first: { offset: 0, size: 5 },
+      next: { offset: 195, size: 5 },
+      focusedIndex: 2,
+    };
+
+    it('should give the focused row a new TR when a scroll draw rebuilds the band in place and paints the target row into it', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: 197, recyclable: true });
+
+      expect(result.order).toEqual([0, 1, 'fresh', 3, 4]);
+      expect(result.focusedCellConnected).toBe(false);
+      expect(result.focusCalls).toBe(0);
+    });
+
+    it('should give the focused row a new TR when a draw that is not scroll-driven paints the target row into it', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: 197, recyclable: false });
+
+      expect(result.order).toEqual([0, 1, 'fresh', 3, 4]);
+      expect(result.focusedCellConnected).toBe(false);
+    });
+
+    it('should keep every TR when the host makes no focus move after the draw', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: null, recyclable: true });
+
+      expect(result.order).toEqual([0, 1, 2, 3, 4]);
+      expect(result.focusMovedOff).toBe(false);
+      expect(result.focusedCellConnected).toBe(true);
+    });
+
+    it('should keep every TR when the target row lands in another TR', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: 199, recyclable: true });
+
+      expect(result.order).toEqual([0, 1, 2, 3, 4]);
+      expect(result.focusMovedOff).toBe(false);
+    });
+
+    it('should keep the focused TR when it already showed the target row', () => {
+      const result = runFocusDraw({
+        first: { offset: 0, size: 5 },
+        next: { offset: 0, size: 5 },
+        focusedIndex: 2,
+      }, { pendingFocusRow: 2, recyclable: false });
+
+      expect(result.order).toEqual([0, 1, 2, 3, 4]);
+      expect(result.focusMovedOff).toBe(false);
+    });
+
+    it('should keep the focused TR of a row that survives a rotation', () => {
+      const result = runFocusDraw({
+        first: { offset: 0, size: 5 },
+        next: { offset: 3, size: 5 },
+        focusedIndex: 3,
+      }, { pendingFocusRow: 3, recyclable: true });
+
+      expect(result.order).toEqual([3, 4, 0, 1, 2]);
+      expect(result.focusMovedOff).toBe(false);
+    });
+
+    it('should give a new TR to a focused row that a rotation wraps onto the target row, without giving the old cell the focus back', () => {
+      const scenario: Scenario = {
+        first: { offset: 0, size: 5 },
+        next: { offset: 3, size: 5 },
+        focusedIndex: 1,
+      };
+      const renewed = runFocusDraw(scenario, { pendingFocusRow: 6, recyclable: true, eagerBlur: true });
+      const kept = runFocusDraw(scenario, { pendingFocusRow: null, recyclable: true, eagerBlur: true });
+
+      expect(renewed.order).toEqual([3, 4, 0, 'fresh', 2]);
+      expect(renewed.focusedCellConnected).toBe(false);
+      expect(renewed.focusCalls).toBe(0);
+      expect(kept.order).toEqual([3, 4, 0, 1, 2]);
+      expect(kept.focusMovedOff).toBe(false);
+      expect(kept.focusCalls).toBe(1);
+    });
   });
 });

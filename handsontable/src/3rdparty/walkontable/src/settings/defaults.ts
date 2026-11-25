@@ -34,6 +34,11 @@ import type { SettingsPort } from '../ports';
  * @property {Option} renderEpoch Option `renderEpoch` - a number the host advances on every structural
  *                                change (index remap, data or settings reload); the selection scan cache
  *                                keys on it.
+ * @property {Option} pendingFocusRow Option `pendingFocusRow` - a function that returns the row (a
+ *                                   Walkontable row index) the host moves the browser focus to right
+ *                                   after this draw, because its selection moved there, or `null`. The
+ *                                   rows renderer gives that row a new TR when it is about to draw it
+ *                                   into the TR that holds the focus (see `RowsRenderer`).
  * @property {Option} preventOverflow Option `preventOverflow`.
  * @property {Option} layoutReservedHeight Option `layoutReservedHeight`.
  * @property {Option} heightFollowsContent Option `heightFollowsContent` - `true` when the host asked
@@ -254,6 +259,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     onDraw: null,
     onBeforeRemoveCellClassNames: null,
     renderEpoch: 0,
+    pendingFocusRow: null,
     onAfterDrawSelection: null,
     onBeforeDrawBorders: null,
     // viewport scroll hooks

@@ -68,6 +68,12 @@ export class RowsRenderer extends BaseRenderer {
   #lastColumnHeadersCount: number | null = null;
 
   /**
+   * The source row each TR showed after the last render it took part in, so a draw can tell whether
+   * the focused TR is about to show another row (see `#renewFocusedRow`).
+   */
+  #shownRows = new WeakMap<Element, number>();
+
+  /**
    * Creates a new RowsRenderer instance.
    *
    * @param {HTMLElement} rootNode - The root node (TBODY element) for managing TR elements.
@@ -154,6 +160,8 @@ export class RowsRenderer extends BaseRenderer {
       .setOffset(nextOffset)
       .start();
 
+    const renewedFocusedRow = this.#renewFocusedRow(rowsToRender, focusedElement);
+
     // Recorded right after the elements were rotated and the band was sized, so the record describes
     // the TBODY from here on whatever a later pass does with it. The epoch says which index-mapper
     // state the offset belongs to.
@@ -170,6 +178,8 @@ export class RowsRenderer extends BaseRenderer {
       if (!TR) {
         continue; // eslint-disable-line no-continue
       }
+
+      this.#shownRows.set(TR, sourceRowIndex);
 
       if (this.table.isAriaEnabled() && rowsHoldCells) {
         setAttribute(TR, [
@@ -199,7 +209,59 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     this.orderView.end();
-    this.#restoreFocus(focusedElement);
+    this.#restoreFocus(renewedFocusedRow ? null : focusedElement);
+  }
+
+  /**
+   * Gives the focused row a new TR, and so new cells, when this draw is about to paint into it the row
+   * the host moves the browser focus to right after the draw (`TableRenderer#getPendingFocusRow`), and
+   * the TR showed another row before. Without it the host would focus the element that already holds
+   * the focus: no focus event fires, and Chromium keeps the accessibility object of the element, so a
+   * screen reader announces nothing although the cell under the focus changed. Chromium creates a new
+   * accessibility object only for a new element. That happens when no row survives a move of the band
+   * (a jump to the last row), so the rows are rebuilt in place and each TR shows the row of its
+   * position, and when a row the move took out of the band wraps to the slot of the target row. A
+   * draw the host does not follow with a focus move (a plain scroll) keeps the element, so the focus
+   * stays where it is and no event fires.
+   *
+   * Runs after `start()` sized the band and before the row pass, so the cells and row headers of the
+   * new TR are built by this draw. The removal blurs the old element at once in Firefox and WebKit;
+   * the host then focuses the new cell, so the grid gets its `focusin` back in the same task.
+   *
+   * @param {number} rowsToRender The number of rows this draw renders.
+   * @param {HTMLElement|null} movedFocusedElement The focused element the rotation moved, which an
+   *   engine that blurs a detached element no longer reports as focused; `null` for the focused
+   *   element of the document.
+   * @returns {boolean} `true` when the focused row got a new TR.
+   */
+  #renewFocusedRow(rowsToRender: number, movedFocusedElement: HTMLElement | null): boolean {
+    if (rowsToRender === 0) {
+      return false;
+    }
+
+    const rootNode = this.rootNode as HTMLElement;
+    const focusedElement = movedFocusedElement ?? getDeepActiveElement(rootNode.ownerDocument);
+    const focusedRow = focusedElement === null ? null : this.#rowOf(focusedElement as HTMLElement);
+
+    if (focusedRow === null) {
+      return false;
+    }
+
+    const targetRow = this.table.getPendingFocusRow();
+    const index = Array.prototype.indexOf.call(rootNode.children, focusedRow);
+
+    if (
+      targetRow === null ||
+      index >= rowsToRender ||
+      this.table.renderedRowToSource(index) !== targetRow ||
+      (this.table.renderEpoch === this.#lastEpoch && this.#shownRows.get(focusedRow) === targetRow)
+    ) {
+      return false;
+    }
+
+    rootNode.replaceChild(this.nodesPool!.obtain() as HTMLElement, focusedRow);
+
+    return true;
   }
 
   /**
