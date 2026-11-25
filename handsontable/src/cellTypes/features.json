@@ -11,7 +11,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -31,7 +30,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -52,7 +50,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -73,7 +70,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -94,7 +90,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -115,7 +110,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -136,7 +130,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -157,7 +150,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -177,7 +169,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -197,7 +188,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -218,7 +208,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -239,7 +228,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -259,7 +247,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
@@ -279,7 +266,6 @@
       "licensing": "token",
       "gate": "report",
       "tiers": [
-        "standard",
         "professional"
       ],
       "requires": {
