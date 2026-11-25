@@ -261,6 +261,25 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
       expect(cell?.hasAttribute('aria-hidden')).toBe(false);
     });
 
+    it('should take the workaround off the previous cell when it moves on to another one', () => {
+      createGrid();
+      leaveBody();
+
+      const previousCell = hot.getCell(1, 1);
+
+      // The selection changes while the grid does not listen, so nothing takes the workaround off.
+      hot.unlisten();
+      hot.selectCell(0, 0, 0, 0, false, false);
+      hot.listen();
+      leaveBody();
+
+      expect(hot.getCell(0, 0)?.hasAttribute('contenteditable')).toBe(true);
+      expect(hot.getCell(0, 0)?.getAttribute('aria-hidden')).toBe('true');
+      expect(previousCell?.hasAttribute('contenteditable')).toBe(false);
+      expect(previousCell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      expect(window.getSelection()?.toString()).toBe('A1');
+    });
+
     it('should take the workaround off an element that is no longer the highlighted cell, on the next draw', () => {
       createGrid();
       leaveBody();

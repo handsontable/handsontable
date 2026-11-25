@@ -953,6 +953,15 @@ export class CopyPaste extends BasePlugin {
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
         if (currentlySelectedCell) {
+          const previousElement = this.#safariEditableElement;
+
+          // A selection change made while the grid did not listen leaves the workaround on the cell it
+          // was on. Nothing tracks that cell once the reference moves, so it is cleaned here.
+          if (previousElement && previousElement !== currentlySelectedCell &&
+              previousElement.hasAttribute('contenteditable')) {
+            removeContentEditableFromElementAndDeselect(previousElement);
+          }
+
           makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
           this.#safariEditableElement = currentlySelectedCell;
         }
