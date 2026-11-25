@@ -91,6 +91,9 @@ jobs:
           # release branch's baseline comes from RC staging, which builds in
           # production mode without the key, so it stays off there.
           DOCS_TEST_LICENSE_KEY: ${{ !startsWith(github.ref_name, 'release/') && 'true' || '' }}
+          # Every baseline has the search: develop staging sets DOCS_SEARCH, and
+          # RC staging builds in production mode.
+          DOCS_SEARCH: 'true'
 
       # `with:` values are expressions, not shell, so the ternaries are safe
       # here; inside the action every one of them travels through `env:`.
