@@ -58,4 +58,21 @@ test.describe('copy after the undo of a merge', () => {
 
     await expectPlainCellsCopied();
   });
+
+  test('copies every value after Ctrl+Z of a step that inserts a row and merges', async ({ page }) => {
+    // One step: the undo replays the row insertion before the merges are restored.
+    await page.evaluate(() => {
+      window.hot.batch(() => {
+        window.hot.alter('insert_row_above', 0);
+        window.hot.getPlugin('mergeCells').merge(2, 1, 3, 2);
+      });
+      window.hot.selectCell(0, 0);
+    });
+    await expect.poll(() => grid.merges()).toEqual([[2, 1, 2, 2]]);
+
+    await grid.undoWithKeyboard();
+    await expect.poll(() => grid.merges()).toEqual([]);
+
+    await expectPlainCellsCopied();
+  });
 });

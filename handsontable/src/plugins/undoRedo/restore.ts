@@ -199,18 +199,36 @@ function readKeptFlags(
 }
 
 /**
+ * Returns a function that maps a physical index of the other side of a step to the grid the restore leaves
+ * behind, through the step's row and column changes. It answers `null` for a row or column that does not exist
+ * there.
+ *
+ * @param {JournalOp[]} journal The step journal.
+ * @param {RestoreDirection} direction The replay direction.
+ * @returns {Function}
+ */
+function createRestoredIndexMapper(
+  journal: JournalOp[], direction: RestoreDirection,
+): (physicalIndex: number, axis: 'row' | 'column') => number | null {
+  // An undo leaves the grid as it was before the step, so every entry is reversed; a redo applies them all.
+  const fromEntry = direction === 'undo' ? journal.length : -1;
+
+  return (physicalIndex, axis) => toFinalIndex(journal, fromEntry, physicalIndex, axis, direction);
+}
+
+/**
  * Puts back the flags `readKeptFlags()` read, moved through the step's row and column changes to the
  * grid the restore leaves behind. A row the step inserted is never flagged by them.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {KeptFlags[]} kept The flags.
- * @param {JournalOp[]} journal The step journal.
- * @param {RestoreDirection} direction The replay direction.
+ * @param {Function} toRestoredIndex Maps a physical index to the restored grid (`createRestoredIndexMapper()`).
  */
-function applyKeptFlags(hot: HotInstance, kept: KeptFlags[], journal: JournalOp[], direction: RestoreDirection) {
-  // An undo leaves the grid as it was before the step, so every entry is reversed; a redo applies them all.
-  const fromEntry = direction === 'undo' ? journal.length : -1;
-
+function applyKeptFlags(
+  hot: HotInstance,
+  kept: KeptFlags[],
+  toRestoredIndex: (physicalIndex: number, axis: 'row' | 'column') => number | null,
+) {
   kept.forEach(({ axis, key, name, physicalIndexes, restoredIndexes }) => {
     const mapper = axis === 'row' ? hot.rowIndexMapper : hot.columnIndexMapper;
     const map = (key === 'trimming' ? mapper.trimmingMapsCollection : mapper.hidingMapsCollection).get(name);
@@ -223,7 +241,7 @@ function applyKeptFlags(hot: HotInstance, kept: KeptFlags[], journal: JournalOp[
     const values = new Array<boolean>(length).fill(false);
 
     physicalIndexes.forEach((physicalIndex) => {
-      const finalIndex = toFinalIndex(journal, fromEntry, physicalIndex, axis, direction);
+      const finalIndex = toRestoredIndex(physicalIndex, axis);
 
       if (finalIndex !== null && finalIndex < length) {
         values[finalIndex] = true;
@@ -860,9 +878,17 @@ export function restoreStep(
 
     announceRowChanges(hot, rowChanges, source);
 
+    const toRestoredIndex = createRestoredIndexMapper(record.journal, direction);
+
     // Only what the step changed is written back, so a change made outside any step since survives.
-    tracker.restore(target, { changedFrom: other, base: current, forceOrder: reordersForReplay, direction });
-    applyKeptFlags(hot, keptFlags, record.journal, direction);
+    tracker.restore(target, {
+      changedFrom: other,
+      base: current,
+      forceOrder: reordersForReplay,
+      direction,
+      toRestoredIndex: reordersForReplay ? toRestoredIndex : undefined,
+    });
+    applyKeptFlags(hot, keptFlags, toRestoredIndex);
 
     // A full render when the batch ends. A step that changed only cell meta asks for none itself, and
     // the fast draw the batch ends with would keep every cell as it was painted.

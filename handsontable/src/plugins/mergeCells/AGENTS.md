@@ -325,9 +325,25 @@ hooks). Six rules keep it narrow:
   they are still own, and `copyable`, `rowspan` and `colspan` unless recorded (the `wasInMerge` argument of
   `#clearCoveredFlagsOfTopLeftCell` and `#clearSpanKeysOfCell`). Pinned by `__tests__/undoMergeMeta.unit.js` and
   `tests/e2e/merge-cells-undo-copy.spec.ts`. The cleanup does nothing
-  without a recorded other side (no `context.other`), for a merge captured with no `physicalColumns`, or when
-  the replay inserted or removed rows or columns (`context.reordered`): the recorded physical indexes are
-  numbered like the grid before that replay. A row move's redo was already clean, because dropping the live merge cleans it by the
+  without a recorded other side (no `context.other`) or for a merge captured with no `physicalColumns`.
+  **A step that also inserted or removed rows or columns (`context.reordered`) cannot use the recorded sides**:
+  UndoRedo replays that `alter()` first, so the recorded physical indexes are numbered like the grid before the
+  replay. UndoRedo therefore hands the restore `context.toRestoredIndex`, which maps a physical index of the
+  other side through the rows and columns the step inserted or removed (`toFinalIndex()` in
+  `../undoRedo/restoredCells.ts`). `#clearMergeKeysOfCellsReleasedByReplay()` maps every recorded merge's
+  anchor rows and `physicalColumns` with it (`mapRecordedMerge()`), leaves out the merges whose mapped cells
+  equal a restored merge's (`getFootprintKey()`, matched through a `Set` so the match stays linear in the
+  merge count: the step left them alone, and checking them would cost the area of every merge on every
+  structural undo). A recorded merge that lost a row or a column to the mapping never matches: it covered a
+  cell the restored grid lacks, and once that cell is dropped it can look like the merge the undo puts back
+  (an inserted row inside a merge that the step grew), which left that merge's top-left uncleaned. It runs the same per-cell rule
+  (`#clearMergeKeysOfReleasedCells()`) as the path above. **Never read the live merges here**: the replay runs
+  in the physical order and the column order is restored before `restoreState()`, so a live merge's visual
+  columns name other physical columns once a column was moved, and a column `alter()` in the replay
+  re-captures the anchors in the physical order too. A cleanup built from them missed the merge's cells and
+  cleaned cells no merge covered. Pinned by the `of a step that also inserts or removes rows or columns` block
+  of `__tests__/undoMergeMeta.unit.js` (the moved-column cases among them) and the insert-and-merge case of
+  `tests/e2e/merge-cells-undo-copy.spec.ts`. A row move's redo was already clean, because dropping the live merge cleans it by the
   anchor's physical rows. Pinned by the `after the undo and the redo` cases of
   `__tests__/reanchoredTopLeftMeta.unit.js` and `tests/e2e/merge-cells-column-move-redo.spec.ts`.
 - **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
