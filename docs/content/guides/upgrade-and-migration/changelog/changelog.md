@@ -26,9 +26,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 19.0.0-rc8
+## 19.0.0-rc9
 
-Released on November 24th, 2026
+Released on November 25th, 2026
 
 For more information about this release, see:
 - [Documentation (19.0)](https://handsontable.com/docs/19.0)
@@ -78,7 +78,7 @@ For more information about this release, see:
 - Added a "Powered by Handsontable DataGrid" bar below the grid for trial license keys (including trials issued for external use) and keys with the `attribution-bar` flag. A license bar now stays within the grid's declared `height`. [#14139](https://github.com/handsontable/handsontable/pull/14139)
 - Added the `batchEvaluation` setting of the `formulas` option, which makes HyperFormula recalculate once for all changes made inside `batch()`, and the `beforeSuspendExecution`, `afterSuspendExecution`, `beforeResumeExecution`, and `afterResumeExecution` hooks. [#14268](https://github.com/handsontable/handsontable/pull/14268)
 - Added the `includeSummaryResults` option of a column summary, which lets a summary count the results of other summaries inside its range. [#14271](https://github.com/handsontable/handsontable/pull/14271)
-- Added license tiers: a license key can name the Standard or Professional tier, and the license key guide lists the features each tier includes. A key that names no tier keeps every feature. [#14284](https://github.com/handsontable/handsontable/pull/14284)
+- Added a license tier: a license key can name the Professional tier, which includes every Handsontable feature, and the license key guide lists the features it includes. A key that names no tier keeps every feature. [#14284](https://github.com/handsontable/handsontable/pull/14284)
 - Added an `emptyValue` option that sets what an emptied cell stores, and stopped a cell editor confirmed without any typing from overwriting the cell's value with an empty string. [#3927](https://github.com/handsontable/handsontable/issues/3927)
 - Added the `AutoRowHeaderSize` plugin, which sizes the row header column to its longest label instead of clipping it. [#7147](https://github.com/handsontable/handsontable/issues/7147)
 - React: Added a console warning when a Handsontable function renderer is passed to the `renderer` prop of `HotTable` or `HotColumn`, pointing to the `hotRenderer` prop instead. [#14010](https://github.com/handsontable/handsontable/pull/14010)
