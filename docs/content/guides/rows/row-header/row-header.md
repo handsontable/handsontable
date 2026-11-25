@@ -394,6 +394,14 @@ Possible values:
 
 :::
 
+## Keyboard navigation
+
+By default, the arrow keys move focus between cells only. To let users move focus onto the row headers, set [`navigableHeaders`](@/api/options.md#navigableheaders) to `true`. Then press <kbd>**←**</kbd> in the first column to focus a row header, and <kbd>**→**</kbd> to go back to the cells.
+
+The example in [Row headers as an array](#row-headers-as-an-array) sets `navigableHeaders` to `true`.
+
+To choose between header navigation and <kbd>**Tab**</kbd> navigation, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 ## Tree grid
 
 A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md) page.

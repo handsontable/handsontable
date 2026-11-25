@@ -19,6 +19,7 @@ const ExampleComponent = () => {
       data={data}
       colHeaders={true}
       rowHeaders={true}
+      navigableHeaders={true}
       height="auto"
       nestedHeaders={[
         ['A', { label: 'B', colspan: 8 }, 'C'],

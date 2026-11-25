@@ -19,6 +19,7 @@ const ExampleComponent = () => {
       data={data}
       colHeaders={true}
       rowHeaders={true}
+      navigableHeaders={true}
       colWidths={60}
       height="auto"
       nestedHeaders={[

@@ -102,6 +102,7 @@ const ExampleComponent = () => {
       filters={true}
       // enable the column menu
       dropdownMenu={true}
+      navigableHeaders={true}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}

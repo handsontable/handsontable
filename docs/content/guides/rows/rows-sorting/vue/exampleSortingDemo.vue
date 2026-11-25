@@ -96,6 +96,7 @@ const hotSettings = ref<GridSettings>({
   ],
   // enable sorting for all columns
   columnSorting: true,
+  navigableHeaders: true,
   height: 'auto',
   stretchH: 'all',
   autoWrapRow: true,

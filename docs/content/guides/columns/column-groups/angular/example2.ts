@@ -25,6 +25,7 @@ export class AppComponent {
   readonly hotSettings: GridSettings = {
     colHeaders: true,
     rowHeaders: true,
+    navigableHeaders: true,
     colWidths: 60,
     height: 'auto',
     nestedHeaders: [

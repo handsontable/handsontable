@@ -22,6 +22,7 @@ export class AppComponent {
 
   readonly hotSettings: GridSettings = {
     colHeaders: true,
+    navigableHeaders: true,
     dropdownMenu: true,
     height: 'auto',
     autoWrapRow: true,
