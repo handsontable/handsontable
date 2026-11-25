@@ -385,7 +385,6 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     return root && Number.isInteger(line) ? `twin:${root}:${line}` : undefined;
   };
   const annotatable = part.fileKind === 'js' || part.fileKind === 'css';
-  const inChain = rule => Boolean(rule) && ((rule.twins ?? []).length > 0 || twinTargets.has(rule.id));
   // The comments `todo()` wrote into the tree, by report entry, so a later twin can restate them.
   const written = new Map();
   // A rule of a chain keeps its id, its link, and its marker, and says what the latest twin of the plan says: the entry
@@ -525,14 +524,16 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
       // A transform picks the node by the layout it sees. A run that wrote the comment can have changed that layout
       // (a comment on a one-line object spreads it over lines, so a property that had no line of its own has one),
       // and the next run then picks a node inside the one that holds the comment. The comment of an earlier run in
-      // front of any anchor above the target is the same comment.
+      // front of any anchor above the target is the same comment. So is one of the same rule worded another way: the run
+      // that spread the object can also change which wording a rule picks for the spot (a rule that deleted a key of
+      // the object this site sits in makes the next run see another kind of object), and a rule marks a site once.
       const scan = commentScan(part);
       const path = pathOf(target);
       const twins = owner?.twins ?? [];
       const earlier = path !== null && anchorsAbove(path)
         .some(node => hasEarlierTodo(node, ruleId, text, guideUrl, scan)
           || (twins.length > 0 && hasTwinTodo(node, twins, scan))
-          || (inChain(owner) && hasEarlierRuleTodo(node, ruleId, scan)));
+          || hasEarlierRuleTodo(node, ruleId, scan));
 
       // The comment goes into the tree, so every later rule sees it and can move it with a node. `commit()` of the
       // carriers takes it out again, after the last rule, when its statement is still as it was parsed.
@@ -649,11 +650,9 @@ function applyMarkers(part, marks, plan) {
   const isJs = part.fileKind === 'js';
   const find = isJs ? createMarkerIndex(part.j, part.root) : line => cssTargetAt(part.root, line);
   const carriers = isJs ? carriersOf(part) : null;
-  const twinTargets = new Set([...plan.rulesById.values()].flatMap(rule => rule.twins ?? []));
 
   for (const mark of marks) {
     const owner = plan.rulesById.get(mark.ruleId);
-    const chained = (owner?.twins ?? []).length > 0 || twinTargets.has(mark.ruleId);
     const guideUrl = owner?.guide ? owner.guideUrl : null;
     let placed = false;
 
@@ -677,7 +676,7 @@ function applyMarkers(part, marks, plan) {
         const there = targets.some(target => hasJsTodo(target, mark.ruleId, mark.text, guideUrl, scan))
           || above.some(node => hasEarlierTodo(node, mark.ruleId, mark.text, guideUrl, scan))
           || (twins.length > 0 && [...targets, ...above].some(item => hasTwinTodo(item.node ?? item, twins, scan)))
-          || (chained && [...targets, ...above].some(item => hasEarlierRuleTodo(item.node ?? item, mark.ruleId, scan)))
+          || [...targets, ...above].some(item => hasEarlierRuleTodo(item.node ?? item, mark.ruleId, scan))
           || carriers.has(targets[0], body);
 
         // An untouched array element takes its comment as text, so the printer leaves its layout alone. A statement
@@ -1370,12 +1369,18 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {number} [options.progressIntervalMs] Milliseconds between progress reports. Defaults to
  * `PROGRESS_INTERVAL_MS`.
  * @param {(text: string) => void} [options.onWarning] Called with a one-line warning before anything is written.
+ * @param {AbortSignal} [options.signal] Asks the run to stop. It is checked before each file, so a file in progress is
+ * finished (the write is one rename) and the next one is not started, and the `package.json` pass is skipped.
+ * `interrupted` of the result is then `true`.
  * @param {object} [options.hooks] Injection points for tests. `discover` replaces the file search, and
  * `beforeRename(file)` runs after the temporary file of a write is complete, before it replaces the original.
  * @returns {Promise<{changedFiles: string[], report: Report, diffs: Array<{file: string, diff: string}>,
- * exitCode: number, notes: string[], error: string|null, from: string, to: string, usedDraft: boolean}>} The outcome.
+ * exitCode: number, notes: string[], error: string|null, from: string, to: string, usedDraft: boolean,
+ * interrupted: boolean, inGit: boolean}>} The outcome.
  * `exitCode` is 0 on success, 1 when a file could not be parsed, read, or transformed, and 2 for a usage error or a
- * refused dirty tree. `usedDraft` is `true` when a draft migration was in the run.
+ * refused dirty tree. `usedDraft` is `true` when a draft migration was in the run. `interrupted` is `true` when
+ * `signal` stopped the run before every file was visited, and `inGit` says whether the project is in a git repository,
+ * which decides how the caller tells the user to undo what an interrupted run wrote.
  */
 export async function run({
   cwd = process.cwd(),
@@ -1397,11 +1402,22 @@ export async function run({
   onProgress,
   progressIntervalMs = PROGRESS_INTERVAL_MS,
   onWarning,
+  signal,
   hooks = {},
 } = {}) {
   const report = new Report();
   const result = {
-    changedFiles: [], report, diffs: [], exitCode: 0, notes: [], error: null, from: '', to: '', usedDraft: false,
+    changedFiles: [],
+    report,
+    diffs: [],
+    exitCode: 0,
+    notes: [],
+    error: null,
+    from: '',
+    to: '',
+    usedDraft: false,
+    interrupted: false,
+    inGit: false,
   };
   let files;
   let resolved;
@@ -1442,6 +1458,8 @@ export async function run({
       report.notes.push(note);
       result.notes.push(note);
     }
+
+    result.inGit = repo;
 
     if (write && !repo) {
       onWarning?.('Not a git repository: you cannot review the changes with git diff. Stop now and use --dry-run '
@@ -1667,7 +1685,13 @@ export async function run({
 
   let lastProgress = Date.now();
 
+  // The signal is read between files only, so the file in progress is written or left as it was, never half done.
   for (const [index, file] of files.entries()) {
+    if (signal?.aborted) {
+      result.interrupted = true;
+      break;
+    }
+
     await visit(file, 1);
 
     if (onProgress && Date.now() - lastProgress >= progressIntervalMs) {
@@ -1676,8 +1700,13 @@ export async function run({
     }
   }
 
-  if (orderSteps(resolved.plan, registry, 2).length > 0) {
+  if (!result.interrupted && orderSteps(resolved.plan, registry, 2).length > 0) {
     for (const file of packageFiles) {
+      if (signal?.aborted) {
+        result.interrupted = true;
+        break;
+      }
+
       await visit(file, 2);
     }
   }

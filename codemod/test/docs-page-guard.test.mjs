@@ -9,6 +9,8 @@ const PAGE = join(PACKAGE_ROOT, '..', 'docs', 'content', 'guides', 'upgrade-and-
   'migration-codemod.md');
 const NOTICE = /::: warning\n[^\n]*is not on npm yet[^\n]*\n:::/;
 const INSTALL_COMMAND = /pnpm dlx "github:handsontable\/handsontable#<branch>&path:\/codemod"/;
+// The README leaves the branch to the reader. The page names one, `develop`, so a reader has nothing to fill in.
+const PAGE_COMMAND = /pnpm dlx "github:handsontable\/handsontable#(?:develop|<branch>)&path:\/codemod"/;
 
 /**
  * What the guide page owes a package that is not published: while `private` is `true`, a warning that says so and
@@ -32,7 +34,7 @@ export function guardProblems(manifest, page) {
         problems.push('the warning stands below the first section, not at the top');
       }
 
-      if (!INSTALL_COMMAND.test(notice[0])) {
+      if (!PAGE_COMMAND.test(notice[0])) {
         problems.push('the warning does not give the command that works from the repository');
       }
     }
@@ -62,6 +64,19 @@ describe('the guide page of a package that is not published', () => {
     const readme = await readFile(join(PACKAGE_ROOT, 'README.md'), 'utf8');
 
     assert.match(readme, INSTALL_COMMAND);
+  });
+
+  it('names the branch to install from and says that only pnpm can, so the reader fills in nothing', async(context) => {
+    if (skipWithoutFile(context, PAGE, 'the guide page')) {
+      return;
+    }
+
+    const notice = NOTICE.exec(await readFile(PAGE, 'utf8'))?.[0] ?? '';
+
+    assert.doesNotMatch(notice, /<branch>/, 'the warning leaves the branch to the reader');
+    assert.match(notice, /#develop&path:\/codemod/);
+    assert.match(notice, /npm cannot install the package from the repository/);
+    assert.match(notice, /`pnpm dlx` is the only way until the package is published/);
   });
 
   const noticeText = '::: warning\nThe package is not on npm yet. '

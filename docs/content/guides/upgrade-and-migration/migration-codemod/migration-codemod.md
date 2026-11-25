@@ -21,7 +21,7 @@ menuTag: new
 ---
 
 ::: warning
-The `@handsontable/codemod` package is not on npm yet, so `npx @handsontable/codemod` does not work today. Until the package is published, replace `npx @handsontable/codemod` in the commands on this page with `pnpm dlx "github:handsontable/handsontable#<branch>&path:/codemod"`. Replace `<branch>` with the name of a branch that holds the codemod.
+The `@handsontable/codemod` package is not on npm yet, so `npx @handsontable/codemod` does not work today. npm cannot install the package from the repository either, so `pnpm dlx` is the only way until the package is published. Replace `npx @handsontable/codemod` in the commands on this page with `pnpm dlx "github:handsontable/handsontable#develop&path:/codemod"`.
 :::
 
 The migration codemod is a command-line tool that applies the mechanical part of a Handsontable DataGrid upgrade to your project. It reports every change that needs your decision.

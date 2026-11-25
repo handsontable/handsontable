@@ -247,6 +247,32 @@ describe('idempotency of TODO comments', () => {
     assert.equal(first.split(TODO).length - 1, 2);
     assert.equal(second, first);
   });
+
+  describe('under --aggressive, a rule marks one site once although a later run words it another way', () => {
+    // Run 1 deletes the two removed keys of the outer object, which is no longer taken for a settings object after
+    // that, so run 2 reaches the column through the "unrecognized holder" report, which has its own text and anchor.
+    const culture = 'new Tabulator(\'#x\', { correctFormat: true, datePickerConfig: {}, '
+      + 'columns: [{ numericFormat: { culture: \'x\' } }] });\n';
+    const cultureRule = `${TODO} 18.0.0/numeric-format-culture)`;
+
+    it('leaves one comment for the culture of one column in runs 1, 2, and 3', async() => {
+      const source = `import Handsontable from 'handsontable';\n${culture}`;
+      const [first, second, third] = await threeRuns('a.js', source, fullPlan, { aggressive: true });
+
+      assert.equal(first.split(cultureRule).length - 1, 1, `run 1:\n${first}`);
+      assert.equal(second, first, 'run 2 changed the output');
+      assert.equal(third, first, 'run 3 changed the output');
+    });
+
+    it('lets a second grid in the file keep its own comment', async() => {
+      const source = `import Handsontable from 'handsontable';\n${culture}${culture}`;
+      const [first, second, third] = await threeRuns('a.js', source, fullPlan, { aggressive: true });
+
+      assert.equal(first.split(cultureRule).length - 1, 2, `run 1:\n${first}`);
+      assert.equal(second, first, 'run 2 changed the output');
+      assert.equal(third, first, 'run 3 changed the output');
+    });
+  });
 });
 
 /**

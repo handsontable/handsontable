@@ -182,6 +182,41 @@ function nextSteps(result, stdout) {
 }
 
 /**
+ * The one line that an interrupted run prints: how many files it had written and how to undo them. The advice depends
+ * on what a run can promise. In a git repository that was clean at the start (`--allow-dirty` is the only way to start
+ * on another), `git checkout -- .` restores exactly the files the run wrote. After `--allow-dirty` it would discard the
+ * user's own edits too, and outside git there is nothing to restore from.
+ *
+ * @param {{changedFiles: string[], inGit: boolean}} result The outcome of the run so far.
+ * @param {{dryRun: boolean, allowDirty: boolean}} flags The flags that change what a run leaves behind.
+ * @returns {string} The line, without a line break.
+ */
+export function interruptedLine({ changedFiles, inGit }, { dryRun, allowDirty }) {
+  if (dryRun) {
+    return 'Interrupted. --dry-run changes no file, so there is nothing to undo.';
+  }
+
+  if (changedFiles.length === 0) {
+    return 'Interrupted before the first file was written, so there is nothing to undo.';
+  }
+
+  const verb = changedFiles.length === 1 ? 'was' : 'were';
+  const written = `Interrupted after ${plural(changedFiles.length, 'file')} ${verb} written, so the migration is `
+    + 'incomplete.';
+
+  if (!inGit) {
+    return `${written} This directory is not a git repository, so restore the files from a backup.`;
+  }
+
+  if (allowDirty) {
+    return `${written} You passed --allow-dirty, so git checkout -- . would discard your own changes too: review the `
+      + 'files with git diff and restore the ones the tool wrote.';
+  }
+
+  return `${written} To undo, run: git checkout -- .`;
+}
+
+/**
  * Run the CLI. It never calls `process.exit`: the caller sets `process.exitCode` from the return value.
  *
  * @param {string[]} argv Arguments after the node binary and script path.
@@ -193,7 +228,11 @@ function nextSteps(result, stdout) {
  * `writeFile`, and a test replaces it to fail after the run.
  * @param {boolean} [io.progress] Whether to print a progress line every two seconds. Defaults to whether standard
  * output is a terminal.
- * @returns {Promise<number>} The exit code: 0 done, 1 runtime or parse errors, 2 usage error or refusal.
+ * @param {AbortSignal} [io.signal] Asks a migration to stop. The executable aborts it on the first SIGINT. The run
+ * finishes the file it is on, the CLI prints one line (how many files were written, how to undo them), and the exit
+ * code is 130.
+ * @returns {Promise<number>} The exit code: 0 done, 1 runtime or parse errors, 2 usage error or refusal, 130 stopped
+ * by `signal`.
  */
 export async function main(argv, {
   cwd = process.cwd(),
@@ -201,6 +240,7 @@ export async function main(argv, {
   stderr: writeErr = text => process.stderr.write(text),
   progress = Boolean(process.stdout.isTTY),
   writeReport = writeFile,
+  signal,
 } = {}) {
   // Everything that reaches a terminal or a log passes through one filter, so the user information of a URL in a
   // dependency spec never shows up, whichever message or diff line carries it, and a control character from a file
@@ -288,6 +328,7 @@ export async function main(argv, {
       reportPath: values.report,
       maxFileSize,
       onWarning: text => stderr(`${text}\n`),
+      signal,
       onProgress: progress
         ? ({ done, total }) => stderr(`Checked ${done} of ${plural(total, 'file')}...\n`)
         : undefined,
@@ -299,6 +340,13 @@ export async function main(argv, {
       stderr(`${result.error}\n`);
 
       return result.exitCode;
+    }
+
+    if (result.interrupted) {
+      // The report would describe a part of the project, so the one line is the whole output.
+      stderr(`${interruptedLine(result, { dryRun, allowDirty: Boolean(values['allow-dirty']) })}\n`);
+
+      return 130;
     }
 
     if (dryRun) {

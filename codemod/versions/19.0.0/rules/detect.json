@@ -413,7 +413,7 @@
       "files": ["js"],
       "requires": "hot-file",
       "match": { "call": "getSetting", "argMatches": "^useHeaders$", "receiver": { "plugin": "autoRowSize" } },
-      "message": "Remove this read of useHeaders from the autoRowSize plugin. Handsontable 19.0 removes the key from the plugin's default settings, so getSetting('useHeaders') returns undefined. AutoRowSize never used the value. To count the column headers in the column widths, set useHeaders in the autoColumnSize option."
+      "message": "Remove this read of useHeaders from the autoRowSize plugin. Handsontable 19.0 removes the key from the plugin's default settings, so getSetting('useHeaders') returns undefined, unless you set it in the autoRowSize option. AutoRowSize never used the value. To count the column headers in the column widths, set useHeaders in the autoColumnSize option."
     }
   ]
 }

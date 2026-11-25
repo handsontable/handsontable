@@ -124,6 +124,13 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   meter cannot see it: the tests compare a part with 2 and with 20 copies of each detect matcher, and a file with 10 and
   with 80 grids that each spread a different constant. A test of a very long line proves the file was not read by a
   syntax error that would show as a `parse-error`, never by a clock.
+- `test/interrupt.test.mjs` pins Ctrl-C (see Run model, step 6): `run()` with a `signal` finishes the file it is on and
+  starts no other (the signal is raised from `hooks.beforeRename`), skips the `package.json` pass, and leaves no temporary
+  file; `main()` prints one line on standard error and exits 130; `interruptedLine()` gives the undo advice for git, a dirty
+  start (`--allow-dirty`), and no git; and a child process of the real bin gets a real SIGINT (skipped on Windows, where
+  `kill('SIGINT')` ends a process without a handler). `test/helpers/slow-rename.mjs` is the `--import` preload that makes
+  every `rename` wait, so the run cannot finish before the signal. `test/broken-pipe.test.mjs` closes the read end of the
+  standard output of the real bin: a dry run and a run that wrote every file end with no stack trace and the exit code of the run.
 - `test/write-safety.test.mjs` pins the write: `writeFileSafely()` (temporary file and rename, the mode kept exactly under a
   umask that would cut it, a file
   that changed after the read refused, a link or a read-only file refused, no temporary file left), a failed or refused
@@ -356,6 +363,17 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    A phase 2 module that needs facts declares `scan: { fileKinds, precheck? }` on the transform: phase 1 then also
    calls its `apply`, with its rules, on parts of those kinds, using `scan.precheck` instead of the adapter's.
    That call collects facts and never edits. The `dependency` module is the only user.
+
+6. Ctrl-C. `bin/handsontable-codemod.mjs` aborts an `AbortController` on the first SIGINT (`process.once`, so a second one
+   ends the process) and gives its signal to `main()`, which gives it to `run()`. `run()` reads `signal.aborted` only
+   between files, in both phases, so the file in progress is written whole (one `rename`) or left alone, and a run that
+   was interrupted skips phase 2. It returns `interrupted: true` and `inGit`, `main()` prints `interruptedLine()` on
+   standard error and nothing else (no report, no next steps, no `--report` file) and returns 130. The undo advice is
+   `git checkout -- .` only for a clean start in git: after `--allow-dirty` it would discard the user's edits and
+   outside git there is nothing to restore from. The same bin sets an `error` listener on `process.stdout` and
+   `process.stderr` that ignores `EPIPE` (a reader such as `head -1` that closed early) and rethrows anything else, so
+   a closed pipe never turns the exit code of a finished run into 1. `main()` stays free of both: it never calls
+   `process.exit` and tests inject the writers.
 
 A transform may export `rescue(rules, source)`: the rules that may still run on a file the adapter's `precheck` rejected.
 The runner calls it only for such a file and then runs the module with the returned rules alone, so every other rule
@@ -1092,7 +1110,7 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `exportRemoved`: `source` (module, list, or `handsontable/plugins/*`), optional `except`, `name` (or list), `advice`.
   Advice placeholders: `{plugin}`, `{optionKey}`, `{name}`, `{source}`. `optionKeys` maps a plugin to its option key
   (default: the plugin name with a lower-case first letter, `null` for a plugin with no option, which then uses
-  `noKeyAdvice`, which `validateRule()` requires when the advice uses `{optionKey}`). Within one run the first matching rule wins for `exportRemoved` and `namespaceType`, so a specific
+  `noKeyAdvice`, which `validateRule()` requires when the advice uses `{optionKey}`; it replaces the advice only, and `export-removed.mjs` expands a `message` with the message itself in that place, so `validateRule()` rejects `{optionKey}` in a `message` when `optionKeys` has a `null`, whatever `noKeyAdvice` says). Within one run the first matching rule wins for `exportRemoved` and `namespaceType`, so a specific
   rule goes before the wildcard, or the wildcard lists it in `except`.
 - `reportOpaqueReferences()` (without `all`) also reads a runtime `import()` of a module that survives: a member read of
   it (`import('m').Name`, `(await import('m')).Name`), a destructuring of the awaited module, a name that holds it and is
@@ -1444,10 +1462,16 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   the earlier text on purpose) takes the later message, the pending marker takes it too (`mark.text`), and a comment that
   `ctx.todo()` wrote into the tree in this run is restated (`restateTodo()`, from the `sink` of `addJsTodo()`). Id, guide
   link, and anchor stay those of the earlier rule. A CSS comment and a comment of an earlier run keep their words, so the
-  entry and a marker of an earlier run can differ in the first sentence. A rule of a chain finds its own marker of an
+  entry and a marker of an earlier run can differ in the first sentence. Every rule finds its own marker of an
   earlier run whatever words follow the id (`hasEarlierRuleTodo()`, source comments only, so two spots of one rule on one
-  statement keep a comment each), which is what keeps a second run quiet when the first restated the text. A plan with
-  only the earlier migration does not know the chain, so it matches the exact words as before. The 18.0 rule says nothing
+  statement keep a comment each). That keeps a second run quiet when the first restated the text of a chain, and when
+  the first run's own edit made the same site read another way: under `--aggressive` run 1 deleted `correctFormat` and
+  `datePickerConfig` from `{ correctFormat, datePickerConfig, columns: [...] }`, the object then no longer looked like a
+  settings object, and run 2 reached `numericFormat.culture` through the "unrecognized holder" report, with its own words
+  and its own anchor, so it added a second `numeric-format-culture` comment. `test/idempotency.test.mjs` (three runs under
+  `aggressive`) and the fixture `18.0.0/options-aggressive-culture-site-after-delete` pin it. The cost is the one of the
+  exact-words check: a spot added later under a statement that already carries a comment of the rule gets none, and stays
+  in the report. The 18.0 rule says nothing
   about 19.0 where the 19.0 twin says it (`helper-sanitize`).
 - **An inline Angular template is a `template` part.** `adapters/js.mjs` (`inlineTemplateParts()`) adds one read-only
   part for the `template` property of the object passed to `Component(...)` (a decorator or a call), when the file

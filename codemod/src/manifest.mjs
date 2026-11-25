@@ -207,13 +207,21 @@ export function validateRule(rule, version) {
     }
   }
 
-  const usesOptionKey = ['advice', 'message']
-    .some(field => typeof rule[field] === 'string' && rule[field].includes('{optionKey}'));
+  const hasNullKey = FIELD_TYPES.object(rule.optionKeys) && Object.values(rule.optionKeys).includes(null);
+  const uses = field => typeof rule[field] === 'string' && rule[field].includes('{optionKey}');
 
-  if (FIELD_TYPES.object(rule.optionKeys) && Object.values(rule.optionKeys).includes(null)
-    && usesOptionKey && typeof rule.noKeyAdvice !== 'string') {
-    problems.push('"optionKeys" maps a plugin to null (no option) and the advice or the message uses {optionKey}, '
-      + 'so the rule needs a "noKeyAdvice" text for that plugin');
+  if (hasNullKey && uses('advice') && typeof rule.noKeyAdvice !== 'string') {
+    problems.push('"optionKeys" maps a plugin to null (no option) and the advice uses {optionKey}, so the rule needs '
+      + 'a "noKeyAdvice" text for that plugin');
+  }
+
+  // `noKeyAdvice` stands in for the advice only. `export-removed.mjs` expands the message with the message itself in
+  // that place, so a `{optionKey}` in it would print an empty key for the plugin that has none, whatever `noKeyAdvice`
+  // says.
+  if (hasNullKey && uses('message')) {
+    problems.push('"optionKeys" maps a plugin to null (no option) and the message uses {optionKey}, which would be '
+      + 'empty for that plugin and which "noKeyAdvice" does not replace in the message: take {optionKey} out of the '
+      + 'message and put it in the advice');
   }
 
   if (rule.inGuide === false && 'guide' in rule) {

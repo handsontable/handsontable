@@ -167,6 +167,19 @@ A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17
 | 0 | Done. A run that finds no file to read is also 0, with "No files to migrate." and the reason. |
 | 1 | A file could not be read, parsed, transformed, or written, or the report file could not be written. The other files are still migrated. |
 | 2 | Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to migrate, unknown rule id, a `--report` path that cannot be written. |
+| 130 | Stopped with Ctrl-C (SIGINT). See "Stopping a run". |
+
+### Stopping a run
+
+Press Ctrl-C once to stop a run. The tool finishes the file it is on, so no file is left half written, starts no other
+file, skips the `package.json` pass, and prints one line on standard error: how many files it had written and how to
+undo them. In a git repository that was clean when the run started, run `git checkout -- .` to restore them. After
+`--allow-dirty` that command would also discard your own changes, so the line says to review the files with `git diff`
+instead, and outside git it says to restore the files from a backup. A dry run writes nothing. The run prints no
+report, because it would describe only a part of the project. Press Ctrl-C again to end the process at once.
+
+A reader of standard output that closes early (`migrate --dry-run | head -1`) is not an error: the tool stops writing
+output, finishes the run, and exits with the code of the run.
 
 ### Output
 

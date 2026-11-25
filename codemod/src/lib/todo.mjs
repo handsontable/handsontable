@@ -228,10 +228,12 @@ export function hasTwinTodo(node, twinIds, scan) {
 }
 
 /**
- * Whether the source already holds a TODO of one rule in front of a node, whatever follows the id. A chained run may
- * restate the text of a TODO with the text of a later twin (see `restateTodo()`), so the next run, whose earlier rule
- * words the comment its own way, must still find it. Only comments of the source count, never one the current run
- * wrote, so two different spots of one rule that share a statement keep one comment each.
+ * Whether the source already holds a TODO of one rule in front of a node, whatever follows the id. A rule can word
+ * one spot two ways across runs: a chained run may restate the text of a TODO with the text of a later twin (see
+ * `restateTodo()`), and an edit of the first run (a deleted key, a spread object) can make the next run take the same
+ * object for another kind of holder, which has its own text. The rule marks a site once, so the next run must still
+ * find the comment. Only comments of the source count, never one the current run wrote, so two different spots of one
+ * rule that share a statement keep one comment each.
  *
  * @param {object} node An AST node.
  * @param {string} ruleId Id of the rule.

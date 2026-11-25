@@ -482,3 +482,18 @@ describe('Handsontable.helper.sanitize in a run that holds both migrations', () 
     assert.match(entry.message, /19\.0 removes it, so the call throws a TypeError\./);
   });
 });
+
+describe('19.0.0/auto-row-size-use-headers says when the read still answers', () => {
+  const RULE = '19.0.0/auto-row-size-use-headers';
+  // `getSetting()` of a plugin merges the settings the grid gave over the defaults, so a key the grid sets is returned
+  // although the default is gone.
+  const source = `${HOT}const hot = new Handsontable(el, { autoRowSize: { useHeaders: false } });\n`
+    + 'const used = hot.getPlugin(\'autoRowSize\').getSetting(\'useHeaders\');\n';
+
+  it('says that the read returns undefined unless the grid sets the key in the autoRowSize option', async() => {
+    const [first] = await runs('a.js', source, [RULE]);
+    const [entry] = first.entries.filter(item => item.ruleId === RULE);
+
+    assert.match(entry.message, /returns undefined, unless you set it in the autoRowSize option\./);
+  });
+});
