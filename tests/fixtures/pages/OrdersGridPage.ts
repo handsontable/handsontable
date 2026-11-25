@@ -27,6 +27,9 @@ type OrdersWindow = {
     getDataAtCell(row: number, column: number): unknown,
     getSourceData(): unknown[][],
     getSelected(): number[][] | undefined,
+    getCell(row: number, column: number): HTMLElement | null,
+    countRows(): number,
+    scrollViewportTo(options: { row: number, verticalSnap: 'top' | 'bottom' }): boolean,
     render(): void,
     setCellMeta(row: number, column: number, key: string, value: unknown): void,
     setDataAtCell(row: number, column: number, value: unknown): void,
@@ -226,6 +229,25 @@ export class OrdersGridPage extends FiltersValueListPage {
    */
   async render(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as OrdersWindow).hot.render());
+  }
+
+  /**
+   * Scrolls the grid to its last row through the API, the way a scroll made without the pointer does,
+   * and waits until the grid no longer draws the given row. The grid reuses the elements of the rows it
+   * stops drawing for the rows it draws next.
+   *
+   * @param {number} row A visual row index the scroll takes out of the rendered rows.
+   */
+  async scrollUntilRowIsNotDrawn(row: number): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as OrdersWindow;
+
+      hot.scrollViewportTo({ row: hot.countRows() - 1, verticalSnap: 'bottom' });
+    });
+
+    await expect.poll(() => this.page.evaluate(
+      checkedRow => (window as unknown as OrdersWindow).hot.getCell(checkedRow, 0) === null, row
+    )).toBe(true);
   }
 
   /**
