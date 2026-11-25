@@ -909,6 +909,11 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
      * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      *
+     * With a [`tabMoves`](#tabmoves) that moves down (`{ row: 1, col: 0 }`), <kbd>**Tab**</kbd> follows the same rule,
+     * except at the grid's edge: with `false`, <kbd>**Tab**</kbd> on a bottom-most cell moves the focus out of the grid; with
+     * `true`, <kbd>**Tab**</kbd> on the last cell of the grid moves the focus out of the grid.
+     * <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> mirrors it at the top.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -934,8 +939,8 @@ export default (): Record<string, unknown> => {
     /**
      * | Setting           | Description                                                                                                                                                                                                                                                                                                        |
      * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) doesn't do anything.                                                  |
-     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below. |
+     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* doesn't do anything, and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\* moves the focus out of the grid.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* doesn't do anything, and <kbd>**Tab**</kbd>** moves the focus out of the grid. |
+     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below.<br><br>From the last cell of the grid, <kbd>**Tab**</kbd>** moves the focus out of the grid (<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*: from the first cell). |
      *
      * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.<br>
      * \*\* Unless [`tabNavigation`](#tabnavigation) is set to `false`.
@@ -951,8 +956,8 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) doesn't do anything
-     * // when you select the last cell of a row, pressing ➡ (or Tab) doesn't do anything
+     * // when you select the first cell of a row, pressing ⬅ doesn't do anything, and Shift+Tab moves the focus out of the grid
+     * // when you select the last cell of a row, pressing ➡ doesn't do anything, and Tab moves the focus out of the grid
      * autoWrapRow: false, // default setting
      *
      * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) takes you to the last cell of the row above

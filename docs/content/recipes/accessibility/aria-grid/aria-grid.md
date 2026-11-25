@@ -117,9 +117,9 @@ const hot = new Handsontable(container, {
 ```
 
 **What's happening:**
-`autoWrapRow` and `autoWrapCol` are `false` by default, so the selection stops at the grid's edges. When either is `true`, pressing Tab on the last column wraps focus to the first column of the next row, and pressing Tab on the last cell of the grid wraps back to the first cell. For sighted users this is convenient. For screen reader users it is disorienting -- the reader may announce a sudden column or row change that appears to have no cause.
+`autoWrapRow` and `autoWrapCol` are `false` by default, so the arrow keys stop at the grid's edges, and Tab moves the focus out of the grid there. When either is `true`, pressing Tab on the last column wraps focus to the first column of the next row, and pressing Tab on the last cell of the grid wraps back to the first cell. For sighted users this is convenient. For screen reader users it is disorienting -- the reader may announce a sudden column or row change that appears to have no cause.
 
-Keeping both `autoWrapRow` and `autoWrapCol` at `false` makes the grid stop at the boundaries, which matches what screen reader users expect from a navigation region. The example sets them explicitly so a grid-level configuration that turns wrapping on cannot change this.
+Keeping both `autoWrapRow` and `autoWrapCol` at `false` makes the arrow keys stop at the boundaries and lets Tab leave the grid, which matches what screen reader users expect from a navigation region. The example sets them explicitly so a grid-level configuration that turns wrapping on cannot change this.
 
 ## Step 4: Add `aria-label` to cells with a custom renderer
 
@@ -181,7 +181,7 @@ The check `col >= 0` skips the corner above the row headers, where `col` is `-1`
 2. **User presses Tab** -- Focus moves to the next row in the same column (not the next cell sideways). Screen readers announce the new row.
 3. **User presses Enter** -- Any open editor commits the value and focus moves one row down.
 4. **User clicks a column header** -- The `columnSorting` plugin sorts the data and updates `aria-sort` on the header to `"ascending"` or `"descending"`. The custom renderer re-runs and updates all `aria-label` attributes to reflect the new row order.
-5. **User reaches the grid boundary** -- Tab and Enter stop. No unexpected wrap-around jump occurs.
+5. **User reaches the grid boundary** -- Enter stops on the last row, and Tab moves the focus out of the grid. No unexpected wrap-around jump occurs.
 
 ## Testing with Chrome DevTools Accessibility panel
 
