@@ -175,7 +175,7 @@ one-time console warning that names `colHeaders`.
 
 - `saveManualColumnWidths()` and `loadManualColumnWidths()` ([`ManualColumnResize`](@/api/manualColumnResize.md)), and
   `saveManualRowHeights()` and `loadManualRowHeights()` ([`ManualRowResize`](@/api/manualRowResize.md)), deprecated in
-  18.0: remove the calls. To persist sizes, see the Save and Restore examples below.
+  18.0: remove the calls. To persist sizes, see the example below.
 - `Handsontable.helper.sanitize()`, deprecated in 18.0: remove the call and use its argument directly. To sanitize the
   HTML the grid renders, set the [`sanitizer`](@/api/options.md#sanitizer) option.
 - The `columnHeaders` export option of the [`ExportFile`](@/api/exportFile.md) plugin, deprecated in 17.1: rename it to
@@ -198,36 +198,24 @@ import type { DataProviderFetchOptions } from 'handsontable/plugins/dataProvider
 To persist sizes, collect them in [`afterColumnResize`](@/api/hooks.md#aftercolumnresize) or
 [`afterRowResize`](@/api/hooks.md#afterrowresize), and restore them through
 [`manualColumnResize`](@/api/options.md#manualcolumnresize) or [`manualRowResize`](@/api/options.md#manualrowresize).
-The hooks receive only the resized size, so read the whole array from the grid. The plugins read the arrays by physical
-index, so iterate physical indexes:
-
-Save:
+The plugins read the arrays by physical index, and the hooks pass a visual index. Record each resize at its physical
+index, so a size survives a filter, trimmed rows, and hidden columns:
 
 ```js
+const colWidths = JSON.parse(localStorage.getItem('colWidths')) ?? [];
+const rowHeights = JSON.parse(localStorage.getItem('rowHeights')) ?? [];
+
 const hot = new Handsontable(container, {
-  manualColumnResize: true,
-  manualRowResize: true,
-  afterColumnResize() {
-    const widths = Array.from({ length: hot.countCols() }, (_, physical) =>
-      hot.getColWidth(hot.toVisualColumn(physical)));
-
-    localStorage.setItem('colWidths', JSON.stringify(widths));
+  manualColumnResize: colWidths.length ? colWidths : true,
+  manualRowResize: rowHeights.length ? rowHeights : true,
+  afterColumnResize(newSize, column) {
+    colWidths[this.toPhysicalColumn(column)] = newSize;
+    localStorage.setItem('colWidths', JSON.stringify(colWidths));
   },
-  afterRowResize() {
-    const heights = Array.from({ length: hot.countRows() }, (_, physical) =>
-      hot.getRowHeight(hot.toVisualRow(physical)));
-
-    localStorage.setItem('rowHeights', JSON.stringify(heights));
+  afterRowResize(newSize, row) {
+    rowHeights[this.toPhysicalRow(row)] = newSize;
+    localStorage.setItem('rowHeights', JSON.stringify(rowHeights));
   },
-});
-```
-
-Restore:
-
-```js
-const hot = new Handsontable(container, {
-  manualColumnResize: JSON.parse(localStorage.getItem('colWidths')) ?? true,
-  manualRowResize: JSON.parse(localStorage.getItem('rowHeights')) ?? true,
 });
 ```
 
