@@ -479,7 +479,9 @@ export class CopyPaste extends BasePlugin {
       );
 
       this.addHook('afterSelection', this.#onSafariAfterSelection);
-      this.addHook('afterRender', this.#onSafariAfterRender);
+      // `afterViewRender`, not `afterRender`: a scroll draws the cells without a full render, and
+      // only this hook follows every draw.
+      this.addHook('afterViewRender', this.#onSafariAfterViewRender);
     }
 
     super.enablePlugin();
@@ -959,34 +961,40 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Remove the `contenteditable` attribute from the highlighted cell and deselect its content.
+   * Remove the `contenteditable` attribute from the highlighted cell and deselect its content. The cell
+   * the workaround made editable is cleaned as well: after a selection change it is no longer the
+   * highlighted one, and it would stay editable with nothing left to take the workaround off it.
    */
   #removeContentEditableFromHighlightedCell() {
     // If the instance is not listening, the workaround is not needed.
-    if (this.hot.isListening()) {
-      const activeSelectedRange = this.hot.getSelectedRangeActive();
-
-      if (activeSelectedRange) {
-        const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
-
-        if (highlightRow === null || highlightColumn === null) {
-          return;
-        }
-
-        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
-
-        if (currentlySelectedCell?.hasAttribute('contenteditable')) {
-          removeContentEditableFromElementAndDeselect(currentlySelectedCell);
-        }
-      }
+    if (!this.hot.isListening()) {
+      return;
     }
 
+    const editableElement = this.#safariEditableElement;
+
     this.#safariEditableElement = null;
+
+    if (editableElement?.hasAttribute('contenteditable')) {
+      removeContentEditableFromElementAndDeselect(editableElement);
+    }
+
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!highlight || highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    const currentlySelectedCell = this.hot.getCell(highlight.row, highlight.col, true);
+
+    if (currentlySelectedCell?.hasAttribute('contenteditable')) {
+      removeContentEditableFromElementAndDeselect(currentlySelectedCell);
+    }
   }
 
   /**
    * Puts the `aria-hidden` of the Safari `mouseleave` workaround back on the highlighted cell after a
-   * render. The render clears the attribute and keeps `contenteditable`, so until the pointer came back
+   * draw. The draw clears the attribute and keeps `contenteditable`, so until the pointer came back
    * into the body the cell was exposed to assistive technology as an editable region. Only the element
    * the workaround itself made editable is touched, and only while it is still the highlighted cell: a
    * cell an application's renderer made editable is left alone, and so is an element the grid has
@@ -1826,9 +1834,9 @@ export class CopyPaste extends BasePlugin {
   };
 
   /**
-   * `afterRender` hook callback triggered only on Safari.
+   * `afterViewRender` hook callback triggered only on Safari.
    */
-  #onSafariAfterRender = () => {
+  #onSafariAfterViewRender = () => {
     this.#restoreAriaHiddenOnEditableCell();
   };
 

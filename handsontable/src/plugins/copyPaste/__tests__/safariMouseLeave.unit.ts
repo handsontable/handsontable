@@ -233,16 +233,49 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
       expect(hot.getCell(0, 0)?.hasAttribute('aria-hidden')).toBe(false);
     });
 
-    it('should not be put back on a cell the selection has left', () => {
+    it('should stay on the highlighted cell after a draw that no full render follows, as a scroll makes', () => {
+      createGrid();
+      leaveBody();
+
+      // A scroll draws through Walkontable alone: `afterViewRender` fires, `afterRender` does not.
+      (hot as unknown as { view: { _wt: { draw: (fastDraw: boolean) => void } } }).view._wt.draw(false);
+
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should take the workaround off a cell the selection has left', () => {
       createGrid();
       leaveBody();
 
       const cell = hot.getCell(1, 1);
 
       hot.selectCell(0, 0);
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+
       hot.render();
 
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
       expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should not be put back on an element that is no longer the highlighted cell', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      // A grid that does not listen leaves the workaround where it is, so the element stays editable
+      // while the highlight is on another cell: the state an element reused for another cell is in.
+      hot.unlisten();
+      hot.selectCell(0, 0, 0, 0, false, false);
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(true);
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+      expect(hot.getCell(0, 0)?.hasAttribute('aria-hidden')).toBe(false);
     });
   });
 });

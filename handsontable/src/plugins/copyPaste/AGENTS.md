@@ -148,21 +148,26 @@ Safari's Edit → Copy needs it. Pinned by `tests/e2e/clipboard-safari-invisible
 and nested-markup cases on the WebKit leg, the editable cell on every engine; a mutant of each part of the
 rule fails one of them) and the helper's unit tests in `helpers/dom/__tests__/element.unit.ts`.
 
-**A render must not expose the editable cell to assistive technology (DEV-4132).** The helper sets
-`aria-hidden="true"` with `contenteditable`, and a render clears every `aria-*` attribute of a cell or a
+**A draw must not expose the editable cell to assistive technology (DEV-4132).** The helper sets
+`aria-hidden="true"` with `contenteditable`, and a draw clears every `aria-*` attribute of a cell or a
 header while `contenteditable` stays. Until the pointer came back into the body, the highlighted cell was
 exposed as an editable region. `#addContentEditableToHighlightedCell()` keeps the element in
-`#safariEditableElement`, and an `afterRender` listener, registered in Safari only, writes the attribute back.
-Three conditions, each with a test in `__tests__/safariMouseLeave.unit.ts`:
+`#safariEditableElement`, and an `afterViewRender` listener, registered in Safari only, writes the attribute
+back. Four rules, pinned in `__tests__/safariMouseLeave.unit.ts`:
 
+- **`afterViewRender`, not `afterRender`.** A scroll draws the cells through Walkontable without a full
+  render, and `afterRender` does not fire for it.
 - **Only the element the workaround made editable.** A cell an application's renderer made editable is not
   the workaround's, and hiding it would hide a working control.
 - **Only while it is still the highlighted cell** (`getCell(highlight) === element`). The grid reuses its
-  elements, so after a scroll or a selection change the kept element can draw another cell.
-- **Only while it is still `contenteditable`.** `#removeContentEditableFromHighlightedCell()` drops the
-  reference, and so does `disablePlugin()`.
+  elements, so the kept element can draw another cell later. The test reaches that state through a grid
+  that does not listen; an element reused by a scroll is not covered by a test.
+- **Taking the workaround off cleans the kept element, not only the highlighted cell.**
+  `afterSelection` runs after the highlight moved, so the lookup finds the new cell. The old one stayed
+  editable, and the next draw exposed it.
 
-A cell the selection has left gets no `aria-hidden` back, by the second condition. The WebKit cases are in
+A grid that does not listen leaves the workaround where it is, as before: `mouseenter` and a selection
+change do nothing there, and the kept element stays editable. The WebKit cases are in
 `tests/e2e/clipboard-safari-invisible-selection.spec.ts`.
 
 ## Ragged clipboard payloads (DEV-2615, #7389)
