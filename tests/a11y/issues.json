@@ -370,7 +370,7 @@
     },
     {
       "id": "freeze-bar-count-not-read",
-      "title": "VoiceOver does not read a freeze bar's frozen count: the bars carry aria-valuenow over a range and no aria-valuetext (left out for want of a plural form per language), so a move reads as a percentage and a focus as a splitter without its count",
+      "title": "VoiceOver reading of a freeze bar's frozen count is not proved yet: the bars now carry the drawn count in digits as aria-valuetext, but no VoiceOver run has confirmed that a move and a focus read it; separately, F6 to the next bar reads no name with Chromium",
       "tracker": "DEV-4012",
       "match": [
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["freeze-bar"], "where": ["^(arrow-grow|arrow-shrink|arrow-down-grow|f6-to-next-bar)$"] }

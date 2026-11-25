@@ -1273,7 +1273,17 @@ Starlight sets `scroll-padding-top` on `<html>` (the header height plus 1.5rem),
 
 A new fixed or sticky panel that scrolls and starts under the header gets the same rule. `tests/keyboardFocusVisibility.spec.ts` pins the table of contents case and the code block copy button, which shows on `:focus-visible` as well as on hover (WCAG 2.4.7).
 
-## 2.26 The docs assistant and the search give the focus back, and `/` opens nothing
+## 2.26 The social preview image is set in one module
+
+Starlight emits `og:title`, `og:description`, and `twitter:card=summary_large_image`, but no image, so link previews on LinkedIn, Slack, and X show a blank card unless the site adds one. The VuePress-to-Starlight migration (#12195) dropped it with no failing check. `src/lib/social-image.mjs` now owns it: `SOCIAL_IMAGE` names the file in `public/` (`handsontable-docs-cover.png`), its absolute URL, its size, and its alt text, and `socialImageHead()` returns the `og:image*` and `twitter:image*` entries that `astro.config.mjs` spreads into the Starlight `head`.
+
+- **The URL is absolute,** because crawlers don't resolve a relative `og:image`. So a pull request preview serves the production copy of the file: a new or resized image shows only after the production deploy.
+- **The size is declared by hand and checked.** `src/lib/__tests__/social-image.test.mjs` (`npm run docs:test:plugins`) reads the PNG header and fails when `width` or `height` does not match the file, and it fails when the config stops spreading `socialImageHead()`. Replace the image with another 1200x630 PNG, or update both numbers.
+- **Every page gets the same image.** A page-specific image needs a frontmatter `head` entry, which Starlight merges over the config's.
+
+This is tooling, not content, so the docs sync does not port it to `prod-docs/*`: it reaches the live site at the next prod-docs cut or through a hand cherry-pick.
+
+## 2.27 The docs assistant and the search give the focus back, and `/` opens nothing
 
 - **The closed assistant panel is `inert`.** `.da-panel` stays rendered and slides off screen with a transform, so without `inert` every control in it was a Tab stop nobody could see, and the panel stayed in the accessibility tree. `DocsAssistantWidget.tsx` sets and removes the attribute in a layout effect through a ref, because React 18 has no `inert` prop. A new control in the panel needs nothing more.
 - **Closing the assistant returns the focus to its opener.** The widget remembers the element that had the focus when the panel opened (the header button, the ToC `#toc-assistant-btn`, an "Ask AI about this API" button), before the composer takes it. A mouse click does not focus a button in Safari or in Firefox on macOS, so the ToC click handler and the `docs-assistant:ask` event (`detail.opener`, set in `Head.astro`) name their button explicitly, and that name wins over the focused element. On close, when the focus was inside the panel or on `<body>`, it focuses that element again, or the visible header button (`#header-assistant-btn`, or `#mobile-assistant-btn` on a phone) when the opener is gone or hidden. The proactive bubble unmounts while the chat is open, so its "Ask AI" falls back to the header button. A close that leaves the focus on another control (the header button toggling the panel) keeps it there.

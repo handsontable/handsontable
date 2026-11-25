@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/test';
-import { CellAriaRecyclePage } from '../fixtures/pages/CellAriaRecyclePage';
+import { CellAriaRecyclePage, type RoleMutation } from '../fixtures/pages/CellAriaRecyclePage';
 
 const DEFAULT_COLUMN_B = {
   role: 'gridcell',
@@ -230,5 +230,188 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
     await grid.scrollToColumn(40);
 
     expect(await grid.ariaAttributeNamesAnywhere()).toEqual([]);
+  });
+
+  test.describe('a focused cell that changes in place is announced again', () => {
+    // The browser builds a new accessibility object for a cell when its `role` is removed and written back,
+    // which is what makes a screen reader read the focused cell again, with its column and row. A cell whose
+    // attributes keep their values is not read again, so a change of what the focused cell shows has to ask
+    // for it. The reader's speech is checked by the screen reader lanes; this pins the mechanism.
+    const rebuilds = (mutations: RoleMutation[], tag: 'TD' | 'TH' = 'TD') => {
+      const own = mutations.filter(mutation => mutation.tag === tag);
+
+      return {
+        removals: own.filter(mutation => mutation.focused && mutation.removed).length,
+        writes: own.filter(mutation => mutation.focused && !mutation.removed).length,
+        // A removal of the role from an element that does not hold the focus: a rebuild nobody asked for. The first
+        // write of a new element has no removal before it, so a taller band is not counted.
+        others: own.filter(mutation => !mutation.focused && mutation.removed).length,
+      };
+    };
+
+    test('the cell takes a new value', async() => {
+      await grid.goto();
+      expect(await grid.selectCell(3, 4)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.setData(3, 4, 'changed in place');
+
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
+    });
+
+    for (const disableVisualSelection of [true, 'current', ['current']]) {
+      test(`the cell takes a new value with disableVisualSelection: ${JSON.stringify(disableVisualSelection)}`, async() => {
+        await grid.goto({ disableVisualSelection });
+        expect(await grid.selectCell(3, 4)).toBe(true);
+        await grid.startRoleRecorder();
+        await grid.setData(3, 4, 'changed in place');
+
+        expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
+      });
+    }
+
+    test('a checkbox cell is toggled with the keyboard', async() => {
+      await grid.goto();
+      await grid.makeCheckboxCell(2, 0, false);
+      expect(await grid.selectCell(2, 0)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.page.keyboard.press('Space');
+
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
+    });
+
+    test('the focus jumps to the last row, onto a cell the grid renders only then', async() => {
+      await grid.goto();
+      await grid.loadSmallViewportSpreadsheet(200, 3, 120);
+      expect(await grid.selectCell(0, 0)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.page.keyboard.press('ControlOrMeta+ArrowDown');
+      await expect.poll(() => grid.page.evaluate(() => document.activeElement?.textContent)).toBe('A200');
+
+      // The cell that takes the focus gets a new accessibility object, so a reader reads it as a move, with
+      // its column and row, and not as a name that changed. The element that held the focus before is recycled
+      // for another row and is not rebuilt.
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
+    });
+
+    test('the grid scrolls while the selection stays, and recycles the focused element for other rows', async() => {
+      await grid.goto();
+      await grid.loadSmallViewportSpreadsheet(200, 3, 120);
+      expect(await grid.selectCell(0, 0)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.scrollToRow(60);
+      await grid.scrollToRow(120);
+
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 0, writes: 0, others: 0 });
+    });
+
+    test('the focus moves to the next cell with an arrow key', async() => {
+      await grid.goto();
+      expect(await grid.selectCell(3, 0)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.page.keyboard.press('ArrowDown');
+      await expect.poll(() => grid.page.evaluate(() => document.activeElement?.textContent)).toBe('A5');
+
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 1, writes: 1, others: 0 });
+    });
+
+    test('a cell that already holds the focus is not rebuilt when it is selected again', async() => {
+      await grid.goto();
+      expect(await grid.selectCell(3, 0)).toBe(true);
+      await grid.startRoleRecorder();
+      expect(await grid.selectCell(3, 0)).toBe(true);
+
+      expect(rebuilds(await grid.takeRoleMutations())).toEqual({ removals: 0, writes: 0, others: 0 });
+    });
+
+    test('a redraw of a focused cell that shows the same thing writes no role', async() => {
+      await grid.goto();
+      expect(await grid.selectCell(3, 4)).toBe(true);
+      await grid.render();
+      await grid.startRoleRecorder();
+      await grid.render();
+      await grid.render();
+
+      expect(await grid.takeRoleMutations()).toEqual([]);
+    });
+
+    test('a change in a cell that is not focused writes no role', async() => {
+      await grid.goto();
+      expect(await grid.selectCell(3, 4)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.setData(5, 4, 'elsewhere');
+
+      expect(await grid.takeRoleMutations()).toEqual([]);
+    });
+
+    test('a column header level added by the settings rebuilds every rendered cell once', async() => {
+      await grid.goto({ colHeaders: false });
+      await grid.startRoleRecorder();
+      await grid.updateSettings({ colHeaders: true });
+
+      const mutations = await grid.takeRoleMutations();
+      const cells = await grid.countPlainMasterCells();
+
+      expect(cells).toBeGreaterThan(0);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && mutation.removed).length).toBe(cells);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && !mutation.removed).length).toBe(cells);
+
+      // The next draws, with the same headers, rebuild nothing.
+      await grid.startRoleRecorder();
+      await grid.render();
+
+      expect(await grid.takeRoleMutations()).toEqual([]);
+    });
+
+    test('a row header column added by the settings rebuilds every rendered cell once', async() => {
+      await grid.goto({ rowHeaders: false });
+      await grid.startRoleRecorder();
+      await grid.updateSettings({ rowHeaders: true });
+
+      const mutations = await grid.takeRoleMutations();
+      const cells = await grid.countPlainMasterCells();
+
+      expect(cells).toBeGreaterThan(0);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && mutation.removed).length).toBe(cells);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && !mutation.removed).length).toBe(cells);
+    });
+
+    test('a header level added to a grid that paints only changed cells rebuilds every rendered cell', async() => {
+      await grid.goto({ colHeaders: false, renderMode: 'onChange' });
+      await grid.startRoleRecorder();
+      await grid.updateSettings({ colHeaders: true });
+
+      const mutations = await grid.takeRoleMutations();
+      const cells = await grid.countPlainMasterCells();
+
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && mutation.removed).length).toBe(cells);
+    });
+
+    test('a focused column header that shows something else is announced again', async() => {
+      await grid.goto({ navigableHeaders: true });
+      expect(await grid.selectCell(-1, 4)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.updateSettings({ colHeaders: ['A', 'B', 'C', 'D', 'Renamed'] });
+
+      expect(rebuilds(await grid.takeRoleMutations(), 'TH')).toEqual({ removals: 1, writes: 1, others: 0 });
+    });
+
+    test('a grid without ARIA tags writes no role when the cell takes a value or the headers change', async() => {
+      await grid.goto({ ariaTags: false, colHeaders: false });
+      await grid.selectCell(3, 4);
+      await grid.startRoleRecorder();
+      await grid.setData(3, 4, 'changed');
+      await grid.updateSettings({ colHeaders: true });
+
+      expect(await grid.takeRoleMutations()).toEqual([]);
+    });
+
+    test('an element recycled for another column while the grid scrolls sideways is not rebuilt', async() => {
+      await grid.goto();
+      expect(await grid.selectCell(3, 4)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.scrollToColumn(30);
+
+      expect(rebuilds(await grid.takeRoleMutations()).removals).toBe(0);
+    });
   });
 });

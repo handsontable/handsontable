@@ -6,13 +6,13 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T10:57:57.134Z"
+    "at": "2026-11-24T11:06:16.123Z"
   },
   "steps": {
     "arrow-right-pending": "old a loading selected busy name row 2 column 3",
-    "value-resolves": "new a",
+    "value-resolves": "new a name row 2 column 3",
     "arrow-down-pending": "old b loading selected busy name row 3 column 3",
-    "request-fails": "invalid entry old b price service unavailable price service unavailable",
+    "request-fails": "old b price service unavailable selected invalid entry name row 3 column 3 price service unavailable",
     "arrow-up-resolved": "new a name row 2 column 3",
     "arrow-down-failed": "old b price service unavailable selected invalid entry name row 3 column 3"
   }

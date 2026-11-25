@@ -123,16 +123,6 @@ export function releaseKeyUntil(releaseUntil: string): string {
 }
 
 /**
- * The first tier of the manifest that does not list a feature.
- *
- * @param {string} id The feature id.
- * @returns {string | null} The tier, or `null` when every tier lists it.
- */
-function tierWithout(id: string): string | null {
-  return manifestTiers().find(tier => !tiersOf(id).includes(tier)) ?? null;
-}
-
-/**
  * The first tier of the manifest that lists every one of the features.
  *
  * @param {string[]} ids The feature ids.
@@ -154,24 +144,6 @@ export function featuresMissingFrom(tier: string, ids: readonly string[]): strin
 }
 
 /**
- * The first tier of the manifest that leaves a feature out, for a test that needs it off. It throws when
- * every tier lists the feature, so the test fails rather than passing on a key that switched nothing
- * off: a case no real tier can express belongs in the unit suite, which builds keys with made-up tiers.
- *
- * @param {string} id The feature id.
- * @returns {string}
- */
-export function requiredTierWithout(id: string): string {
-  const tier = tierWithout(id);
-
-  if (tier === null) {
-    throw new Error(`No tier of the manifest leaves ${id} out, so no real key can switch it off.`);
-  }
-
-  return tier;
-}
-
-/**
  * The first tier of the manifest that lists every one of the features. It throws when no tier lists them
  * all, so the test fails rather than passing on a key that switched some of them off.
  *
@@ -186,17 +158,6 @@ export function requiredTierWithEvery(ids: readonly string[]): string {
   }
 
   return tier;
-}
-
-/**
- * Every tier of the manifest that leaves at least one of the features out, in manifest order: one key
- * per distinct way a real key can switch some of them off.
- *
- * @param {string[]} ids The feature ids.
- * @returns {string[]}
- */
-export function tiersLeavingOut(ids: readonly string[]): string[] {
-  return manifestTiers().filter(tier => featuresMissingFrom(tier, ids).length > 0);
 }
 
 /**

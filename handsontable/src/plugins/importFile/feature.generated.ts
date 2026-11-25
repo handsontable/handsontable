@@ -9,7 +9,6 @@ export const LICENSE: PluginLicense = Object.freeze({
   name: 'Import from file',
   gate: 'call',
   tiers: Object.freeze([
-    'standard',
     'professional',
   ]),
 });

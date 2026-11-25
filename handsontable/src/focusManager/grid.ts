@@ -1,5 +1,6 @@
 import type { HotInstance } from '../core/types';
 import EventManager from '../eventManager';
+import { hasCellChangedSinceAnnounced, rebuildAccessibilityObject, rememberAnnouncedCell } from '../helpers/a11y';
 import { warn } from '../helpers/console';
 import {
   getDeepActiveElement,
@@ -9,6 +10,7 @@ import {
   isOutsideInput,
 } from '../helpers/dom/element';
 import { debounce } from '../helpers/function';
+import { isRootInstance } from '../utils/rootInstance';
 
 /**
  * Possible focus modes.
@@ -423,6 +425,97 @@ export class FocusGridManager {
   }
 
   /**
+   * Makes a screen reader read a data cell that is about to take the focus as a move onto that cell, with its
+   * column and row. The cell is drawn into an element the grid recycles, and the draw leaves the element's
+   * attributes as they were when they hold the same values, so the browser would keep the accessibility object
+   * of the cell the element showed before, and a reader hears a name change or nothing. A cell that has the
+   * focus already is left alone: nothing moved. The state of the cell or header is recorded, so that the draw
+   * after a change made while it holds the focus can tell it from a repeated paint.
+   *
+   * Only the grid the application created gets the rebuild: the lists the editors build are grids of their own,
+   * a reader reaches their options through the editor that keeps the focus, and a rebuilt option can lose the
+   * reference the editor holds to it. Their cells are still recorded, so a checkbox in a menu list that is
+   * toggled is read again.
+   *
+   * @param {HTMLElement} elementToBeFocused The element that is about to take the focus.
+   * @param {HTMLElement | null} cell The highlighted cell or header, which the `modifyFocusedElement` hook may have
+   * replaced.
+   */
+  #announceCellFocus(elementToBeFocused: HTMLElement, cell: HTMLElement | null): void {
+    const isDataCell = elementToBeFocused.nodeName === 'TD';
+
+    if (elementToBeFocused !== cell || (!isDataCell && elementToBeFocused.nodeName !== 'TH')) {
+      return;
+    }
+
+    const coords = this.#readHighlight();
+
+    if (coords === null) {
+      return;
+    }
+
+    if (getDeepActiveElement(this.#hot.rootDocument) === elementToBeFocused) {
+      // The browser focused an element that was pressed before the grid selected it. Nothing moved, but the draw that
+      // follows needs a record of what it showed, to tell a change from a repeated paint.
+      rememberAnnouncedCell(elementToBeFocused, coords.row, coords.col, true);
+
+      return;
+    }
+
+    if (isDataCell && isRootInstance(this.#hot)) {
+      rebuildAccessibilityObject(elementToBeFocused);
+    }
+
+    rememberAnnouncedCell(elementToBeFocused, coords.row, coords.col);
+  }
+
+  /**
+   * Reads the cell the selection highlights, which is the cell that gets the browser focus. It asks the selection
+   * and not the element, because looking an element up fires the public `modifyGetCoordsElement` hook.
+   *
+   * @returns {{ row: number, col: number } | null} The visual coordinates, `null` without a selection.
+   */
+  #readHighlight(): { row: number, col: number } | null {
+    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
+
+    return highlight && highlight.row !== null && highlight.col !== null
+      ? { row: highlight.row, col: highlight.col }
+      : null;
+  }
+
+  /**
+   * Makes a screen reader read the focused cell or header again when what it shows changed in place, or when the
+   * grid drew another cell into the element that holds the focus (a jump to a row that is rendered only then).
+   * The browser keeps the accessibility object of an element whose attributes keep their values, so the reader
+   * hears nothing or a name that changed. It only counts when the element is a cell of this grid, not of a grid
+   * nested in one of its cells, and shows the selected cell: a scroll that recycles the focused element for a cell
+   * the user is not on says nothing.
+   */
+  #announceChangeInPlace(): void {
+    const activeElement = getDeepActiveElement(this.#hot.rootDocument);
+
+    if (
+      !isHTMLElement(activeElement) ||
+      (activeElement.nodeName !== 'TD' && activeElement.nodeName !== 'TH') ||
+      !isInternalElement(activeElement, this.#hot.rootElement)
+    ) {
+      return;
+    }
+
+    const coords = this.#readHighlight();
+
+    // The element shows the selected cell when it is the one the grid renders for the highlight. The `current` class
+    // says the same, but a grid with `disableVisualSelection` never gets it.
+    if (coords === null || this.#hot.getCell(coords.row, coords.col, true) !== activeElement) {
+      return;
+    }
+
+    if (hasCellChangedSinceAnnounced(activeElement, coords.row, coords.col)) {
+      rebuildAccessibilityObject(activeElement);
+    }
+  }
+
+  /**
    * Set the browser's focus to the highlighted cell of the last selection.
    *
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
@@ -447,6 +540,7 @@ export class FocusGridManager {
         elementToBeFocused &&
         !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
       ) {
+        this.#announceCellFocus(elementToBeFocused as HTMLElement, element);
         this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
       }
     };
@@ -718,11 +812,17 @@ export class FocusGridManager {
    * Focuses the cell after the render event when the selection has changed.
    */
   #onAfterRender() {
-    const suspended = this.#pendingFocus;
-
     // A listener from the settings runs before this one, and the hook run keeps walking its listeners
     // after such a listener destroyed the grid.
-    if (suspended === null || this.#hot.isDestroyed) {
+    if (this.#hot.isDestroyed) {
+      return;
+    }
+
+    this.#announceChangeInPlace();
+
+    const suspended = this.#pendingFocus;
+
+    if (suspended === null) {
       return;
     }
 

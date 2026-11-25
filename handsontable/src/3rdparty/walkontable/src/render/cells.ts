@@ -9,7 +9,8 @@ import {
   A11Y_COLINDEX,
   A11Y_DESCRIBED_BY,
   A11Y_GRIDCELL,
-  A11Y_TABINDEX
+  A11Y_TABINDEX,
+  rebuildAccessibilityObject
 } from '../../../../helpers/a11y';
 import {
   isClearedAriaAttribute,
@@ -124,6 +125,12 @@ export class CellsRenderer extends BaseRenderer {
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
 
   /**
+   * The offsets the cells' `aria-colindex` and the rows' `aria-rowindex` were counted from on the last draw,
+   * `null` before the first one.
+   */
+  #lastPositionOffsets: string | null = null;
+
+  /**
    * Creates a new CellsRenderer instance.
    */
   constructor() {
@@ -146,6 +153,35 @@ export class CellsRenderer extends BaseRenderer {
     }
 
     return this.orderViews.get(rootNode)!;
+  }
+
+  /**
+   * Tells whether the offsets that position the cells changed since the last draw that painted cells: the number of
+   * row headers (`aria-colindex`) and of column headers (`aria-rowindex` of the rows). The first draw, a draw with
+   * no cells (the change waits for the draw that shows them), and a grid that writes no ARIA, answer `false`.
+   *
+   * @param {boolean} ariaEnabled Whether the grid writes accessibility attributes.
+   * @param {number} ariaColIndexOffset The offset of the cells' `aria-colindex`.
+   * @param {boolean} hasColumnHeaders Whether the grid has column headers.
+   * @returns {boolean}
+   */
+  #hasPositionOffsetChanged(ariaEnabled: boolean, ariaColIndexOffset: number, hasColumnHeaders: boolean): boolean {
+    if (!ariaEnabled) {
+      this.#lastPositionOffsets = null;
+
+      return false;
+    }
+
+    if (this.table.rowsToRender === 0 || this.table.columnsToRender === 0) {
+      return false;
+    }
+
+    const offsets = `${ariaColIndexOffset},${this.table.columnHeadersCount},${hasColumnHeaders}`;
+    const hasChanged = this.#lastPositionOffsets !== null && this.#lastPositionOffsets !== offsets;
+
+    this.#lastPositionOffsets = offsets;
+
+    return hasChanged;
   }
 
   /**
@@ -176,11 +212,14 @@ export class CellsRenderer extends BaseRenderer {
     // instance id (DEV-29). `isAriaEnabled()` is checked first so an `ariaTags: false` grid never calls
     // `hasColumnHeaders()`, which fires the public `afterGetColumnHeaderRenderers` hook.
     const ariaEnabled = this.table.isAriaEnabled();
-    const columnHeaderIdPrefix = ariaEnabled && this.table.hasColumnHeaders()
-      ? this.table.getAriaColumnHeaderIdPrefix() : '';
+    const hasColumnHeaders = ariaEnabled && this.table.hasColumnHeaders();
+    const columnHeaderIdPrefix = hasColumnHeaders ? this.table.getAriaColumnHeaderIdPrefix() : '';
     const ariaColIndexOffset = ariaEnabled
       ? ((this.table.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0) + 1
       : 0;
+    // A reader keeps the position it learned for a cell. When the headers that shift every cell's position
+    // appear or go, each painted cell gets a new accessibility object, once, so the reader counts again.
+    const rebuildAllCells = this.#hasPositionOffsetChanged(ariaEnabled, ariaColIndexOffset, hasColumnHeaders);
 
     for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -243,6 +282,10 @@ export class CellsRenderer extends BaseRenderer {
 
         if (ariaEnabled) {
           restoreCellAriaAttributes(TD, ariaColIndex, columnHeaderId);
+
+          if (rebuildAllCells) {
+            rebuildAccessibilityObject(TD);
+          }
         }
       }
 

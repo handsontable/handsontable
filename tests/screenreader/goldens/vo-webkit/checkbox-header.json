@@ -6,14 +6,14 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T11:25:11.800Z"
+    "at": "2026-11-24T11:21:15.126Z"
   },
   "steps": {
     "arrow-up-to-header": "",
-    "space-check-all": "",
-    "space-uncheck-all": "",
+    "space-check-all": "check all 5 of 5 checked done",
+    "space-uncheck-all": "check all 0 of 5 checked done",
     "arrow-down-to-cell": "check all 0 of 5 checked done unchecked",
-    "space-check-one": "",
+    "space-check-one": "check all 1 of 5 checked done checked",
     "arrow-up-header-mixed": "check all 1 of 5 checked done"
   }
 }
