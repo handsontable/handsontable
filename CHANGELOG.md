@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [19.0.0-rc9] - 2026-11-25
+## [19.0.0-rc10] - 2026-11-25
 
 ### Added
 - **Breaking change**: Added treegrid accessibility to the NestedRows plugin: tree attributes on rows, Ctrl/Cmd+arrow keys on a row header to expand, collapse, or move to the parent row, and screen reader announcements. On a row header, Ctrl/Cmd+arrow keys no longer jump to the edge of the row, and Enter no longer toggles while an overlay covers the grid. [#13759](https://github.com/handsontable/handsontable/pull/13759)
@@ -108,6 +108,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: Changed `@handsontable/react-wrapper` to declare `react` and `react-dom` 18.0.0 or later as peer dependencies, matching the documented React 18 minimum. [#14009](https://github.com/handsontable/handsontable/pull/14009)
 - Angular: Changed the wrapper to build with Angular 22, which replaces the per-file type declarations with a single bundled types file, while the supported range stays Angular 16 to 22. [#13835](https://github.com/handsontable/handsontable/pull/13835)
 - Angular: Changed the `[data]` input to update the grid outside Angular's zone, like the `[settings]` input. A callback added with `addHook()` now runs outside the zone on a `[data]` change too, so async work it starts no longer triggers change detection by itself. [#14388](https://github.com/handsontable/handsontable/pull/14388)
+- Changed the "Powered by Handsontable DataGrid" bar so that a trial license key shows it only when the key's terms ask for it, like any other key. [#14465](https://github.com/handsontable/handsontable/pull/14465)
 
 ### Deprecated
 - Deprecated writing past the last column of an object data source. A paste, `populateFromArray()`, or `setDataAtCell()` still adds a property named after the column index, which no column can display, and prints a one-time console warning; the write will be ignored in Handsontable 20.0.0. Use `setDataAtRowProp()` to write a field the grid shows no column for. [#13343](https://github.com/handsontable/handsontable/pull/13343)
