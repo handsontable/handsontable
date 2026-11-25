@@ -240,16 +240,25 @@ Two Escape shortcuts exist, in two contexts, and both are needed (DEV-4008).
   cell: they differ when the API opened the editor over another cell. The focus move blurs the textarea at
   once, so the blur's save runs inside the shortcut, not a frame later. Tab and Shift+Tab are left alone:
   they forward to the grid, whose selection change focuses the cell.
-- **`grid`, unfocused editor.** A comment a hover or `showAtCell()` opened is not focused, so the active
-  context is `grid` and the plugin's Escape never runs for it. The grid-context Escape
-  (`runOnlyIf: visible && !focused`) hides it (WCAG 1.4.13). It returns nothing, so the other Escape
-  shortcuts of the grid context still run. The pointer still rests on the cell afterwards, and nothing
-  shows the comment again until it enters another cell: `#cellBelowCursor` short-circuits, and no
-  `mouseover` fires without a move.
+- **`grid`, a comment a hover opened.** Such a comment is not focused, so the active context is `grid` and
+  the plugin's Escape never runs for it. The grid-context Escape hides it (WCAG 1.4.13). Its guard is
+  `#shownByHover && visible && !focused`: `show()` clears the flag, the display switch's `show` hook sets
+  it after `showAtCell()` returns, and `hide()` clears it. So a comment `showAtCell()` or `show()` opened
+  from the API stays on Escape, as before: an application may show one on purpose. The shortcut returns
+  nothing and sets `preventDefault: false`, so the grid's other Escape shortcuts run and the host page
+  still gets an Escape it can act on (a dialog around the grid closes on the same press).
 
-**Known limits.** Escape reaches a shortcut only while the grid listens, so a comment hovered on a grid
-the user never activated is not dismissed by it. And Escape in a focused editor closes nothing when no
-cell is selected (the editor opened through the API and focused by a click): that was so before DEV-4008.
+**Known limits.**
+
+- Escape reaches a shortcut only while the grid listens, so a comment hovered on a grid the user never
+  activated is not dismissed by it.
+- After Escape the pointer still rests on the cell. A plain cell fires no `mouseover` until the pointer
+  leaves it, so the comment stays hidden. A cell with child elements (a checkbox, a dropdown arrow, HTML
+  from a renderer) fires one when the pointer crosses onto a child, and the comment shows again after the
+  display delay.
+- A show already armed for another commented cell is not canceled: it is a new hover.
+- Escape in a focused editor closes nothing when no cell is selected (the editor opened through the API
+  and focused by a click). That was so before DEV-4008.
 
 Pinned by `tests/e2e/comments-escape-focus.spec.ts`.
 

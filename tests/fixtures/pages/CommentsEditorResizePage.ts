@@ -29,6 +29,18 @@ type CommentsFixtureWindow = Window & {
 };
 
 /**
+ * The part of the UndoRedo plugin the undo helpers below call through the fixture's `hot`.
+ */
+type UndoFixtureWindow = Window & {
+  hot: {
+    getPlugin: (name: 'undoRedo') => {
+      undo: () => void,
+      isUndoAvailable: () => boolean,
+    },
+  },
+};
+
+/**
  * Page Object for the comment editor resize fixture (DEV-2871).
  *
  * The editor is a portal element on the document, not a descendant of the grid, so its locators
@@ -314,6 +326,24 @@ export class CommentsEditorResizePage {
 
       return highlight ? [highlight.row, highlight.col] as [number, number] : null;
     });
+  }
+
+  /**
+   * Whether the grid holds an undo step.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async undoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as UndoFixtureWindow)
+      .hot.getPlugin('undoRedo').isUndoAvailable());
+  }
+
+  /**
+   * Undoes the last step through the API.
+   */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as UndoFixtureWindow)
+      .hot.getPlugin('undoRedo').undo());
   }
 
   /**

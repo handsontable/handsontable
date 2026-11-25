@@ -282,6 +282,13 @@ export class Comments extends BasePlugin {
    */
   #preventEditorHiding = false;
   /**
+   * Whether a pointer hover opened the comment on screen. Escape in the grid's shortcut context hides
+   * only such a comment: one the API or a shortcut opened is left alone.
+   *
+   * @type {boolean}
+   */
+  #shownByHover = false;
+  /**
    * Prevents saving the comment value when the editor is blurred.
    *
    * @type {boolean}
@@ -358,7 +365,11 @@ export class Comments extends BasePlugin {
     if (!this.#displaySwitch) {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
       this.#displaySwitch.addLocalHook('hide', () => this.hide());
-      this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
+      this.#displaySwitch.addLocalHook('show', (row: number, col: number) => {
+        this.showAtCell(row, col);
+        // Set after the show, which clears the flag.
+        this.#shownByHover = this.#editor?.isVisible() ?? false;
+      });
     }
 
     registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
@@ -453,15 +464,19 @@ export class Comments extends BasePlugin {
       group: SHORTCUTS_GROUP,
     });
 
-    // A comment a hover or the API opened is not focused, so the grid's context is the active one and
-    // the plugin's own Escape below never runs for it. Without this shortcut only a pointer move could
-    // hide such a comment (WCAG 1.4.13). It returns nothing, so the grid's other Escape shortcuts run.
+    // A comment a hover opened is not focused, so the grid's context is the active one and the
+    // plugin's own Escape below never runs for it. Without this shortcut only a pointer move could
+    // hide such a comment (WCAG 1.4.13). It returns nothing and leaves the event's default alone, so
+    // the grid's other Escape shortcuts and the host page's own Escape handling work as before. A
+    // comment the API opened stays: an application may show one on purpose.
     gridContext?.addShortcut({
       keys: [['Escape']],
       callback: () => {
         this.hide();
       },
-      runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && !this.#editor?.isFocused()),
+      runOnlyIf: (): boolean =>
+        !!(this.#shownByHover && this.#editor?.isVisible() && !this.#editor?.isFocused()),
+      preventDefault: false,
       group: SHORTCUTS_GROUP,
     });
 
@@ -775,6 +790,8 @@ export class Comments extends BasePlugin {
 
     const meta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, col);
 
+    // Every show starts as "not by hover"; the hover path sets the flag after this call returns.
+    this.#shownByHover = false;
     this.#displaySwitch?.cancelHiding();
     const commentMeta = meta[META_COMMENT];
 
@@ -814,6 +831,7 @@ export class Comments extends BasePlugin {
    * Hides the comment editor.
    */
   hide(): void {
+    this.#shownByHover = false;
     this.#resize?.cancel();
     this.#editor?.hide();
   }
