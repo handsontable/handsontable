@@ -578,7 +578,10 @@ export class ScrollbarProxies {
     // color) shapes the proxy too and its bar keeps filling the gutter it sits in. The track is left to
     // the proxy's background, like the fillers'.
     setStyle(elements.proxy, 'scrollbarWidth', holderStyle.scrollbarWidth);
-    setStyle(elements.proxy, 'scrollbarColor', resolveProxyScrollbarColor(holderStyle.scrollbarColor));
+
+    if (typeof holderStyle.scrollbarColor === 'string') {
+      setStyle(elements.proxy, 'scrollbarColor', resolveProxyScrollbarColor(holderStyle.scrollbarColor));
+    }
 
     elements.fillers.forEach((filler, index) => {
       const box = layout.fillers[index];
