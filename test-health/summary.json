@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-25T12:58:26.966Z",
+  "generatedAt": "2026-11-25T13:07:59.961Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 468,
     "needsTicket": 7,
     "quarantined": 1,
-    "entries": 2365
+    "entries": 2367
   },
   "rows": [
     {
@@ -197,9 +197,9 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 493,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
-      "count7": 5,
-      "count30": 6,
-      "countAll": 6,
+      "count7": 6,
+      "count30": 7,
+      "countAll": 7,
       "runs30": 5,
       "flakyRuns30": 5,
       "branches30": 4,
@@ -214,8 +214,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-11-25T12:46:33Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45601506484",
+        "seenAt": "2026-11-25T13:07:07Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45601506484/attempts/2",
         "branch": "feature/DEV-4082_Docs-example-grid-Tab-trap",
         "leg": "e2e-webkit",
         "status": "flaky",
@@ -265,9 +265,9 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 521,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 15,
-      "count30": 17,
-      "countAll": 17,
+      "count7": 16,
+      "count30": 18,
+      "countAll": 18,
       "runs30": 11,
       "flakyRuns30": 11,
       "branches30": 11,
@@ -282,8 +282,8 @@
       "isolation": [],
       "quarantine": "DEV-4110 until 2026-12-18 — read before the scroll settles",
       "lastSeen": {
-        "seenAt": "2026-11-25T12:46:33Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45601506484",
+        "seenAt": "2026-11-25T13:07:07Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45601506484/attempts/2",
         "branch": "feature/DEV-4082_Docs-example-grid-Tab-trap",
         "leg": "e2e-webkit",
         "status": "flaky",
