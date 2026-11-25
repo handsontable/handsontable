@@ -215,22 +215,21 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
       expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
     });
 
-    it('should not be put on a cell a renderer made editable, which the workaround did not touch', () => {
+    it('should not be put on a highlighted cell a renderer made editable, which the workaround did not touch', () => {
       createGrid({
         renderer(_hot: unknown, TD: HTMLTableCellElement, row: number, column: number, _prop: unknown, value: string) {
           TD.textContent = value;
 
-          if (row === 0 && column === 0) {
+          if (row === 1 && column === 1) {
             TD.setAttribute('contenteditable', 'true');
           }
         },
       });
-      // The workaround runs on the highlighted cell (1, 1). Cell (0, 0) is editable by its renderer.
-      leaveBody();
+      // The pointer never left the body, so the highlighted cell (1, 1) is editable by its renderer only.
       hot.render();
 
-      expect(hot.getCell(0, 0)?.hasAttribute('contenteditable')).toBe(true);
-      expect(hot.getCell(0, 0)?.hasAttribute('aria-hidden')).toBe(false);
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
     });
 
     it('should stay on the highlighted cell after a draw that no full render follows, as a scroll makes', () => {
@@ -259,6 +258,37 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
 
       expect(cell?.hasAttribute('contenteditable')).toBe(false);
       expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it.each([
+      ['`fragmentSelection`', { fragmentSelection: true }],
+      ['`copyPaste`', { copyPaste: { copyColumnHeaders: true } }],
+    ])('should stay on the highlighted cell after an update of %s, which updates the plugin', (_name, settings) => {
+      createGrid();
+      leaveBody();
+
+      hot.updateSettings(settings);
+
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+
+      enterBody();
+
+      expect(cellIsContentEditable()).toBe(false);
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should be gone, with `contenteditable`, once the plugin is disabled', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      hot.updateSettings({ copyPaste: false });
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
     });
 
     it('should take the workaround off the previous cell when it moves on to another one', () => {

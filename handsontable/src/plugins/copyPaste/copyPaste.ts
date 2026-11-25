@@ -496,8 +496,17 @@ export class CopyPaste extends BasePlugin {
    *  - [`fragmentSelection`](@/api/options.md#fragmentselection)
    */
   updatePlugin(): void {
+    // The Safari `mouseleave` workaround outlives an update: the pointer is still outside the body, so
+    // no `mouseleave` would put it back, and the draw that follows has to find the element it restores
+    // `aria-hidden` on. `disablePlugin()` would take the workaround off.
+    const safariEditableElement = this.#safariEditableElement;
+
+    this.#safariEditableElement = null;
+
     this.disablePlugin();
     this.enablePlugin();
+
+    this.#safariEditableElement = safariEditableElement;
 
     super.updatePlugin();
   }
@@ -510,7 +519,15 @@ export class CopyPaste extends BasePlugin {
 
     this.#pastePlan = null;
     this.#appliedPasteRange = null;
+
+    // The listeners that take the Safari `mouseleave` workaround off are gone, so it is taken off here.
+    const safariEditableElement = this.#safariEditableElement;
+
     this.#safariEditableElement = null;
+
+    if (safariEditableElement?.hasAttribute('contenteditable')) {
+      removeContentEditableFromElementAndDeselect(safariEditableElement);
+    }
   }
 
   /**
