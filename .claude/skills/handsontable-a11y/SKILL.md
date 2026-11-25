@@ -82,7 +82,8 @@ moves focus" is a decision; a missing line is not.
 - **A change without a focus move is announced** through `announce()` from
   `src/utils/a11yAnnouncer.ts`. It defaults to `'assertive'`, so a status message passes `'polite'`
   explicitly, as nested rows do for a row expanded or collapsed. `assertive` is for errors only,
-  and one user action makes one announcement. Pagination, the sheets bar and row selection announce
+  and one user action makes one announcement. A newer `announce()` into the same region within its
+  100 ms replaces the pending message, so the earlier one is never written. Pagination, the sheets bar and row selection announce
   assertively today: a known gap, not the model to copy.
 - **Core announces every user selection politely** (`src/core/selectionAnnouncer/`): a range, whole
   columns or rows, all cells, or a Ctrl/Cmd-added layer, 200 ms after the last key press or the

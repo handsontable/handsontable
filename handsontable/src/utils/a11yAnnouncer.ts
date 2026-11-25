@@ -5,6 +5,11 @@ let announcerElement: HTMLElement | null = null;
 let politeAnnouncerElement: HTMLElement | null = null;
 const installedPortals: HTMLElement[] = [];
 let announcementCount = 0;
+/**
+ * The pending write of each live region. A later announcement cancels it, so the region never
+ * shows an earlier message after a newer one was announced.
+ */
+const pendingWrites = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
 
 /**
  * How urgently an announcement interrupts the screen reader. `assertive` interrupts the current
@@ -102,6 +107,10 @@ export function uninstall(rootPortalElement?: HTMLElement) {
 /**
  * Announces a message to assistive technologies by updating the content of the a11y announcer element.
  *
+ * The message is written 100 ms after the call. A newer call into the same region within that time
+ * replaces the pending message, so the earlier one is never written: two polite messages for one
+ * gesture, less than 100 ms apart, reach the screen reader as the second one only.
+ *
  * @param {string} message The message to announce.
  * @param {AnnouncementPoliteness} [politeness='assertive'] `polite` waits for the screen reader to
  * finish what it is reading, which suits a confirmation of an action the user just took.
@@ -118,11 +127,15 @@ export function announce(message: string, politeness: AnnouncementPoliteness = '
   // The value needs to be cleared first to ensure that screen readers announce the new message.
   liveRegion.textContent = '';
 
-  setTimeout(() => {
+  clearTimeout(pendingWrites.get(liveRegion));
+
+  pendingWrites.set(liveRegion, setTimeout(() => {
+    pendingWrites.delete(liveRegion);
+
     if (liveRegion === announcerElement || liveRegion === politeAnnouncerElement) {
       liveRegion.textContent = message;
     }
-  }, 100);
+  }, 100));
 }
 
 /**
