@@ -17,6 +17,7 @@ import path from 'node:path';
 import { isNewJasmineSpec } from '../../.github/scripts/lib/presence-gate.mjs';
 import { repoRoot, sessionEditsFile, stopVerdict, toRepoRelative } from './session.mjs';
 import {
+  resolveBase,
   changedPlaywrightSpecs,
   changedUnitTests,
   unitTestPattern,
@@ -84,6 +85,9 @@ function git(cmd) {
   }
 }
 
+// Resolved on first use and shared by every path: it costs a `gh` call and several git spawns.
+let sessionBase = null;
+
 /**
  * Status letter for a path (A for added/untracked, M for modified). Checks the
  * working tree first; when the tree is clean (the agent already COMMITTED the
@@ -106,9 +110,11 @@ function statusOf(p) {
     return code.includes('?') ? 'A' : (code.trim()[0] || 'M');
   }
 
-  // Clean tree — classify against the merge-base with the trunk instead.
-  const mergeBase = git('git merge-base origin/develop HEAD') || git('git merge-base develop HEAD');
-  const diff = mergeBase ? git(`git diff --name-status ${mergeBase} HEAD -- "${p}"`) : null;
+  // Clean tree — classify against the branch's real base instead (the same one the
+  // pre-push gate uses, so a branch cut from a release line is not judged against develop).
+  sessionBase ??= resolveBase(root);
+
+  const diff = git(`git diff --name-status ${sessionBase} HEAD -- "${p}"`);
 
   return diff ? (diff.trim()[0] || 'M') : 'M';
 }
