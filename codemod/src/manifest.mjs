@@ -25,6 +25,8 @@ export const VERSIONS_DIR = join(PACKAGE_ROOT, 'versions');
  * - `boolean`: `true` or `false`.
  * - `objects`: an array whose items are all plain objects.
  * - `stringOrStrings`: a non-empty string or an array of non-empty strings.
+ * - `stringOrObject`: a non-empty string or a plain object.
+ * - `index`: a non-negative integer.
  */
 const FIELD_TYPES = {
   string: value => typeof value === 'string' && value.length > 0,
@@ -37,6 +39,7 @@ const FIELD_TYPES = {
     && !Array.isArray(item)),
   stringOrObject: value => (typeof value === 'string' && value.length > 0)
     || (value !== null && typeof value === 'object' && !Array.isArray(value)),
+  index: value => Number.isInteger(value) && value >= 0,
 };
 
 /**
@@ -105,6 +108,8 @@ export const RULE_KINDS = {
       readerAdvice: 'string',
       levels: 'strings',
       levelAdvice: 'string',
+      onlyTypes: 'strings',
+      typeAdvice: 'string',
     },
   },
   optionRemove: { required: { name: 'string' }, optional: { todo: 'boolean', readerAdvice: 'string' } },
@@ -113,7 +118,7 @@ export const RULE_KINDS = {
     required: { methods: 'object', via: 'object', receiver: 'stringOrObject' },
     optional: { properties: 'object' },
   },
-  callUnwrap: { required: { callee: 'string' }, optional: {} },
+  callUnwrap: { required: { callee: 'string' }, optional: { arg: 'index' } },
   cssVariable: {
     required: { from: 'string' },
     optional: { to: 'string', removed: 'boolean', zeroAdvice: 'string', scopedAdvice: 'string' },

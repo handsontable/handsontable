@@ -4,7 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { ManifestError } from '../src/errors.mjs';
-import { PACKAGE_ROOT, RULE_KINDS, buildPlan, loadManifest, loadManifests, validateRule } from '../src/manifest.mjs';
+import {
+  COMMON_FIELDS, PACKAGE_ROOT, RULE_KINDS, buildPlan, loadManifest, loadManifests, validateRule,
+} from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { KIND_ORDER, registry } from '../src/transforms/index.mjs';
 import { anchorsOf, checkAnchors, slugOf } from './helpers/guide-anchors.mjs';
@@ -192,6 +194,37 @@ describe('validateRule', () => {
     assert.match(first({ ...remove, safe: 'yes' }), /"safe" must be of type boolean/);
     assert.match(first({ ...remove, minConfidence: 'low' }), /minConfidence/);
     assert.deepEqual(validateRule('text', '18.0.0'), ['the rule is not an object']);
+  });
+
+  it('checks the optionMove fields onlyTypes and typeAdvice and the callUnwrap field arg', () => {
+    const move = { id: '18.0.0/x', kind: 'optionMove', from: 'a.b', to: 'c', safe: true };
+    const unwrap = { id: '18.0.0/x', kind: 'callUnwrap', callee: 'Handsontable.helper.sanitize', safe: true };
+
+    assert.deepEqual(validateRule({ ...move, onlyTypes: ['numeric'], typeAdvice: 'Move it by hand.' }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...unwrap, arg: 0 }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...unwrap, arg: 2 }, '18.0.0'), []);
+
+    assert.match(validateRule({ ...move, onlyTypes: 'numeric' }, '18.0.0')[0], /"onlyTypes" must be of type strings/);
+    assert.match(validateRule({ ...move, onlyTypes: [] }, '18.0.0')[0], /"onlyTypes" must be of type strings/);
+    assert.match(validateRule({ ...move, onlyTypes: ['numeric', 1] }, '18.0.0')[0], /"onlyTypes"/);
+    assert.match(validateRule({ ...move, typeAdvice: 5 }, '18.0.0')[0], /"typeAdvice" must be of type string/);
+    assert.match(validateRule({ ...move, typeAdvice: '' }, '18.0.0')[0], /"typeAdvice" must be of type string/);
+    assert.match(validateRule({ ...unwrap, arg: '1' }, '18.0.0')[0], /"arg" must be of type index/);
+    assert.match(validateRule({ ...unwrap, arg: 1.5 }, '18.0.0')[0], /"arg" must be of type index/);
+    assert.match(validateRule({ ...unwrap, arg: -1 }, '18.0.0')[0], /"arg" must be of type index/);
+  });
+
+  it('knows every field the schema lists for a kind', () => {
+    const common = new Set([...Object.keys(COMMON_FIELDS.required), ...Object.keys(COMMON_FIELDS.optional)]);
+
+    for (const branch of schema.$defs.rule.allOf) {
+      const kind = branch.if.properties.kind.const;
+      const known = new Set([...Object.keys(RULE_KINDS[kind].required), ...Object.keys(RULE_KINDS[kind].optional)]);
+      const listed = Object.keys(branch.then.properties ?? {});
+      const missing = listed.filter(field => !known.has(field) && !common.has(field));
+
+      assert.deepEqual(missing, [], `fields of ${kind} that the schema lists and the validator does not check`);
+    }
   });
 
   it('requires a noKeyAdvice when a plugin maps to no option key and the advice uses {optionKey}', () => {

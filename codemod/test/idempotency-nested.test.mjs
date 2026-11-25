@@ -330,12 +330,14 @@ describe('a call that shares its line with other code stays stable across three 
     }
   });
 
-  it('keeps one comment for each of two calls on one line, and none is added by a second run', async() => {
+  it('puts one shared comment above two calls on one line, reports both, and adds none on a second run', async() => {
     const body = BODIES[0];
     const source = `${HEADER}export default { mounted() { this.hot.undo(); this.hot.redo(); } };\n`;
     const [one, two, three] = await threeRuns(body, source);
 
-    assert.ok(count(one.output) >= 1);
+    // One line takes one marker per rule, so the two calls share it; each call still has its own report entry.
+    assert.equal(count(one.output), 1, one.output);
+    assert.deepEqual(one.entries.filter(entry => entry.severity === 'manual').map(entry => entry.marked), [true, true]);
     assert.equal(two.changed, false);
     assert.equal(three.changed, false);
   });

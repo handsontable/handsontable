@@ -443,7 +443,9 @@ the common fields (`id`, `kind`, optional `guide`, `safe`, `minConfidence`, `mes
 required for every kind except `detect` and `exportRemoved` (see "The `safe` contract"). The field sets
 are provisional. The author of a kind's transform owns its row: add the fields the transform reads and mirror the
 change in `src/manifest.schema.json`. Extra properties on a rule are allowed. `test/manifest.test.mjs` pins the
-kind list and each required list against the schema, and `KIND_ORDER` against both.
+kind list and each required list against the schema, and `KIND_ORDER` against both. It also fails when the schema lists
+a field of a kind that the kind's row does not know, so a field added to one copy cannot be left out of the other.
+`FIELD_TYPES` has an `index` type (a non-negative integer) for `callUnwrap` `arg`.
 
 `include` files (`{ "rules": [...] }`, relative to the version directory) are appended after the inline rules.
 `custom` rules name a module, relative to the version directory, that default-exports
