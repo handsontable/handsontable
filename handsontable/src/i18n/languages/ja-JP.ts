@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'キャンセル',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: '利用可能なオプションはありません',
   [C.CONTEXTMENU_LABEL]: 'コンテキストメニュー',
   [C.DROPDOWNMENU_LABEL]: '列メニュー',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '行を上に挿入',
@@ -147,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'シート [name] を [count] 中 [position] 番目に移動しました',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'シート',
 
+  [C.CHECKBOX_CHECKED]: 'チェック済み',
+  [C.CHECKBOX_UNCHECKED]: '未チェック',
+
   [C.LOADING_TITLE]: '読み込み中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '閉じる',
 
@@ -179,6 +183,13 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: '下部の 固定された行',
   [C.FREEZE_BAR_COLUMNS_START]: '先頭の 固定された列',
   [C.FREEZE_BAR_COLUMNS_END]: '末尾の 固定された列',
+  [C.ARMED_PICK_STARTED]: '移動先をクリックまたはタップして完了します。キャンセルするには Esc キーを押します。',
+  [C.ARMED_PICK_CANCELED]: 'キャンセルしました。',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]: '列の幅を変更しています。左右の矢印キーで幅を変更し、Enter キーで適用、Esc キーでキャンセルします。',
+  [C.MANUAL_RESIZE_ROW_STARTED]: '行の高さを変更しています。上下の矢印キーで高さを変更し、Enter キーで適用、Esc キーでキャンセルします。',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]: 'コメントボックスのサイズを変更しています。矢印キーでサイズを変更し、Enter キーで適用、Esc キーでキャンセルします。',
+  [C.MANUAL_RESIZE_WIDTH]: '幅: [size] ピクセル',
+  [C.MANUAL_RESIZE_HEIGHT]: '高さ: [size] ピクセル',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'レベル [level]、[setSize] 件中 [position] 件目',
@@ -194,6 +205,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: '[label] で昇順に並べ替えました',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: '[label] で降順に並べ替えました',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: '[label] の並べ替えを解除しました',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: '[label] で昇順に並べ替えました(優先順位 [order])',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: '[label] で降順に並べ替えました(優先順位 [order])',
   [C.SELECTION_ANNOUNCEMENT_RANGE]: '列 [startColumn]、行 [startRow] から列 [endColumn]、行 [endRow] までを選択しました',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'すべてのセルを選択しました',
   [C.SELECTION_ANNOUNCEMENT_COLUMN]: '列 [column] を選択しました',

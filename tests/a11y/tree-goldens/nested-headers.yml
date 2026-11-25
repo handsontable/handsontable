@@ -57,12 +57,12 @@
       - gridcell "I5"
       - gridcell "J5"
   - rowgroup:
-    - row "Select whole grid Header title I/J":
-      - gridcell "Select whole grid"
+    - row "Header title I/J":
+      - gridcell
       - columnheader "Header title" [expanded]
       - columnheader "I/J" [expanded]
-    - row "Select whole grid This is a very long header title B C D/E F G H":
-      - gridcell "Select whole grid"
+    - row "This is a very long header title B C D/E F G H":
+      - gridcell
       - columnheader "This is a very long header title"
       - columnheader "B"
       - columnheader "C"
@@ -70,8 +70,8 @@
       - columnheader "F"
       - columnheader "G"
       - columnheader "H"
-    - row "Select whole grid B2 C2 F2 G2 H2 I2 J2":
-      - gridcell "Select whole grid"
+    - row "B2 C2 F2 G2 H2 I2 J2":
+      - gridcell
       - columnheader "B2"
       - columnheader "C2"
       - columnheader "F2"
@@ -91,12 +91,12 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
+    - row:
+      - gridcell
+    - row:
+      - gridcell
 # portal
 - status
 - status

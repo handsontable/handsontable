@@ -17,7 +17,6 @@ vue:
   metaTitle: Custom plugins | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
 Extend Handsontable DataGrid's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 

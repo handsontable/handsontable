@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 import './windowTypes';
+import { chromiumAccessibility } from '../accessibility';
 
 /**
  * Page Object for the formula cell description fixture. Row 0 holds the plain values 1 and 2 and
@@ -55,24 +56,7 @@ export class FormulasCellDescriptionPage {
    * from it (Playwright's `toHaveAccessibleName()` computes the name from the DOM and the styles instead).
    */
   async chromiumAccessibleName(row: number, col: number): Promise<string> {
-    const client = await this.page.context().newCDPSession(this.page);
-
-    try {
-      await client.send('Accessibility.enable');
-
-      const { result } = await client.send('Runtime.evaluate', {
-        expression: `document.querySelector('[data-testid="cell-${row}-${col}"]')`,
-      });
-      const { nodes } = await client.send('Accessibility.getPartialAXTree', {
-        objectId: result.objectId,
-        fetchRelatives: false,
-      });
-
-      // The no-break space and the space Chromium adds around the generated block read as one gap.
-      return String(nodes[0]?.name?.value ?? '').replace(/\s+/g, ' ');
-    } finally {
-      await client.detach();
-    }
+    return (await chromiumAccessibility(this.page, `[data-testid="cell-${row}-${col}"]`)).name;
   }
 
   /**

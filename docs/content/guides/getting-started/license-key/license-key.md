@@ -27,7 +27,7 @@ We require you to specify which terms apply to your usage, by passing a license 
 
 ## Commercial license
 
-If you use the paid version of Handsontable, pass the string of numbers delivered to you after the purchase. Note that the license key is a string, so you need to wrap it in quotes `''`.
+If you use the paid version of Handsontable, pass the license key delivered to you after the purchase. The license key is a string, so wrap it in quotes `''`.
 
 ::: only-for javascript
 
@@ -44,21 +44,14 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 <code-block title="React" active>
 
 ```jsx
-<HotTable settings={settings} licenseKey="00000-00000-00000-00000-00000" />
+<HotTable {...settings} licenseKey="00000-00000-00000-00000-00000" />
 ```
 
 </code-block>
 <code-block title="Angular">
 
 ```html
-<hot-table [settings]="settings" licenseKey="00000-00000-00000-00000-00000"></hot-table>
-```
-
-</code-block>
-<code-block title="Vue 2">
-
-```html
-<hot-table :settings="settings" licenseKey="00000-00000-00000-00000-00000" />
+<hot-table [settings]="{ licenseKey: '00000-00000-00000-00000-00000' }"></hot-table>
 ```
 
 </code-block>
@@ -328,93 +321,93 @@ the bar takes its room from the grid, as the pagination bar does.
 
 ## Keys that name a tier
 
-An entitlement key can name one or more tiers. The grid turns on the features of those tiers and
-keeps every other feature off. A key that names no tier turns on every feature, as every key did
+An entitlement key can name a tier. Handsontable has one tier, Professional, and it includes every
+feature. The grid turns on the features of the tiers the key names and keeps every other feature off. A key that names no tier turns on every feature, as every key did
 before 19.0. The 25-character keys also turn on every feature.
 
-The table lists the tiers that include each feature. For prices, see the
+The table lists the tier that includes each feature. For prices, see the
 [pricing page](https://handsontable.com/pricing).
 
 <!-- license-tiers:start -->
 
-| Feature | Standard | Professional |
-| --- | :---: | :---: |
-| Data grid | Yes | Yes |
-| Async values | Yes | Yes |
-| Auto column size | Yes | Yes |
-| Auto link | Yes | Yes |
-| Auto row header size | Yes | Yes |
-| Auto row size | Yes | Yes |
-| Autofill | Yes | Yes |
-| Bind rows with headers | Yes | Yes |
-| Checkbox header | Yes | Yes |
-| Collapsible columns | Yes | Yes |
-| Column freezing | Yes | Yes |
-| Column menu | Yes | Yes |
-| Column moving | Yes | Yes |
-| Column resizing | Yes | Yes |
-| Column sorting | Yes | Yes |
-| Column stretching | Yes | Yes |
-| Column summary | Yes | Yes |
-| Comments | Yes | Yes |
-| Context menu | Yes | Yes |
-| Copy and paste | Yes | Yes |
-| Custom borders | Yes | Yes |
-| Data provider | Yes | Yes |
-| Dialog | Yes | Yes |
-| Drag to scroll | Yes | Yes |
-| Editable headers | Yes | Yes |
-| Empty data state | Yes | Yes |
-| Export to file | Yes | Yes |
-| Filters | Yes | Yes |
-| Formula builder | Yes | Yes |
-| Formulas | Yes | Yes |
-| Freeze bar | Yes | Yes |
-| Hidden columns | Yes | Yes |
-| Hidden rows | Yes | Yes |
-| Import from file | Yes | Yes |
-| Loading | Yes | Yes |
-| Merge cells | Yes | Yes |
-| Move cells | Yes | Yes |
-| Multi-column sorting | Yes | Yes |
-| Nested headers | Yes | Yes |
-| Nested rows | Yes | Yes |
-| Notifications | Yes | Yes |
-| Pagination | Yes | Yes |
-| Row moving | Yes | Yes |
-| Row resizing | Yes | Yes |
-| Row selection | Yes | Yes |
-| Search | Yes | Yes |
-| Selection handles | Yes | Yes |
-| Sheets bar | Yes | Yes |
-| Trim rows | Yes | Yes |
-| Undo and redo | Yes | Yes |
-| View state | Yes | Yes |
-| Cell type: Autocomplete | Yes | Yes |
-| Cell type: Checkbox | Yes | Yes |
-| Cell type: Date | Yes | Yes |
-| Cell type: Date (Intl) | Yes | Yes |
-| Cell type: Date and time (Intl) | Yes | Yes |
-| Cell type: Dropdown | Yes | Yes |
-| Cell type: Handsontable | Yes | Yes |
-| Cell type: Multiselect | Yes | Yes |
-| Cell type: Numeric | Yes | Yes |
-| Cell type: Password | Yes | Yes |
-| Cell type: Select | Yes | Yes |
-| Cell type: Text | Yes | Yes |
-| Cell type: Time | Yes | Yes |
-| Cell type: Time (Intl) | Yes | Yes |
-| XLSX export | Yes | Yes |
-| XLSX import | Yes | Yes |
-| XLSX: Cell styles | No | Yes |
-| XLSX: Comments | No | Yes |
-| XLSX: Conditional formatting | No | Yes |
-| XLSX: Data validation | No | Yes |
-| XLSX: Formulas | Yes | Yes |
-| XLSX: Import report | Yes | Yes |
-| XLSX: Number formats | No | Yes |
-| XLSX: Sheet layout | Yes | Yes |
-| XLSX: Sheet protection | No | Yes |
+| Feature | Professional |
+| --- | :---: |
+| Data grid | Yes |
+| Async values | Yes |
+| Auto column size | Yes |
+| Auto link | Yes |
+| Auto row header size | Yes |
+| Auto row size | Yes |
+| Autofill | Yes |
+| Bind rows with headers | Yes |
+| Checkbox header | Yes |
+| Collapsible columns | Yes |
+| Column freezing | Yes |
+| Column menu | Yes |
+| Column moving | Yes |
+| Column resizing | Yes |
+| Column sorting | Yes |
+| Column stretching | Yes |
+| Column summary | Yes |
+| Comments | Yes |
+| Context menu | Yes |
+| Copy and paste | Yes |
+| Custom borders | Yes |
+| Data provider | Yes |
+| Dialog | Yes |
+| Drag to scroll | Yes |
+| Editable headers | Yes |
+| Empty data state | Yes |
+| Export to file | Yes |
+| Filters | Yes |
+| Formula builder | Yes |
+| Formulas | Yes |
+| Freeze bar | Yes |
+| Hidden columns | Yes |
+| Hidden rows | Yes |
+| Import from file | Yes |
+| Loading | Yes |
+| Merge cells | Yes |
+| Move cells | Yes |
+| Multi-column sorting | Yes |
+| Nested headers | Yes |
+| Nested rows | Yes |
+| Notifications | Yes |
+| Pagination | Yes |
+| Row moving | Yes |
+| Row resizing | Yes |
+| Row selection | Yes |
+| Search | Yes |
+| Selection handles | Yes |
+| Sheets bar | Yes |
+| Trim rows | Yes |
+| Undo and redo | Yes |
+| View state | Yes |
+| Cell type: Autocomplete | Yes |
+| Cell type: Checkbox | Yes |
+| Cell type: Date | Yes |
+| Cell type: Date (Intl) | Yes |
+| Cell type: Date and time (Intl) | Yes |
+| Cell type: Dropdown | Yes |
+| Cell type: Handsontable | Yes |
+| Cell type: Multiselect | Yes |
+| Cell type: Numeric | Yes |
+| Cell type: Password | Yes |
+| Cell type: Select | Yes |
+| Cell type: Text | Yes |
+| Cell type: Time | Yes |
+| Cell type: Time (Intl) | Yes |
+| XLSX export | Yes |
+| XLSX import | Yes |
+| XLSX: Cell styles | Yes |
+| XLSX: Comments | Yes |
+| XLSX: Conditional formatting | Yes |
+| XLSX: Data validation | Yes |
+| XLSX: Formulas | Yes |
+| XLSX: Import report | Yes |
+| XLSX: Number formats | Yes |
+| XLSX: Sheet layout | Yes |
+| XLSX: Sheet protection | Yes |
 
 <!-- license-tiers:end -->
 
@@ -447,6 +440,9 @@ a tier, so a key that names only that tier turns off the plugins and the parts o
 the table, and reports them as missing. The grid itself keeps working. To use the key, upgrade to a
 Handsontable version released after the tier was added.
 
+A key that names only a tier that was removed, such as `standard`, unlocks nothing in any version.
+Reissue the key with `tier:professional`.
+
 The `handsontable` package lists every feature with the tiers that include it in
 `dist/manifest.json`.
 
@@ -455,19 +451,18 @@ The `handsontable` package lists every feature with the tiers that include it in
 An additional add-on extends Excel import and export. Available as a bundle, it carries formulas,
 styles, layout (column widths, row heights, merged cells, and frozen panes), number formats,
 comments, conditional formatting, data validation, and sheet protection into and out of `.xlsx`
-files. The tier your key names decides which parts of the add-on are on. The table in
-[Keys that name a tier](#keys-that-name-a-tier) lists them in the rows that start with `XLSX`. See the
+files. The Professional tier includes the whole add-on. The table in
+[Keys that name a tier](#keys-that-name-a-tier) lists it in the rows that start with `XLSX`. See the
 [pricing page](https://handsontable.com/pricing) for prices.
 
 A key that names no tier includes the whole add-on, so keys issued before 19.0 work as before. When
-your tier leaves out part of the add-on, an import or export skips that part, does the rest, and
-prints one console warning that names what it skipped. An import also reports each skipped part on
-`result.dropped` as a `license:xlsx:<id>` entry. See the
-[Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
+your key names only a tier that your version does not know, the add-on is off: the import and
+export methods throw, and `supportsImportFormat('xlsx')` and `supportsExportFormat('xlsx')` return
+`false`.
 
 ## Result
 
-Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
+Your grid is now licensed. A valid commercial key shows no license lock and no expiry notice.
 
 ## The validation process
 
@@ -495,7 +490,7 @@ A **missing or invalid key** blocks the grid. Handsontable covers it with a moda
 
 The modal covers only the grid. The rest of your page keeps working. The modal does not appear on this site, so this page shows it as an image.
 
-An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
+An **expired key** does not block the grid, and every feature keeps working, with one exception: a trial key blocks the grid once its grace period passes. See [Trial keys](#trial-keys). A perpetual key and a key in the 25-character format show a message below the table and in the console. A lapsed subscription shows its message in the console only.
 
 A **key that does not include a feature** your grid uses blocks nothing either. The feature stays off, and its message appears below the table and in the console. See [Keys that name a tier](#keys-that-name-a-tier).
 
@@ -519,9 +514,19 @@ Since Handsontable 19.0, the `non-commercial-and-evaluation` key, and its second
 
 ### Expired license key
 
-Shown below the table and in the console:
+For a perpetual key and a key in the 25-character format, the message is shown below the table and in the console. The console prints an error for a perpetual key and a warning for a 25-character key. The wording differs slightly by key type. A 25-character key says:
 
-_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
+_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_date]`. If you need any help, contact us at `[email]`._
+
+A perpetual key says:
+
+_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`. Renew your license key or downgrade to a version released on or before `[expiration_date]`. If you need any help, contact us at `[email]`._
+
+A trial key shows its own message next to the badge and below the grid, and the console prints an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. See [Trial keys](#trial-keys).
+
+A lapsed subscription prints this error in the console only:
+
+_Your Handsontable subscription license expired on `[expiration_date]` (UTC). To continue using the software, contact sales@handsontable.com to purchase a valid license key._
 
 ### Feature not included in the license key
 
@@ -542,15 +547,71 @@ In the console, `[features]` lists each missing feature as its name and token, f
 
 ### How do I update the license key in many tables at once?
 
-There's no built-in method to update all existing instances automatically. You have two options:
+There's no built-in method to update all existing instances automatically. You have two options.
 
-- **Before creating any instances:** set the key globally so every new instance picks it up.
+**Before creating any instances:** keep the key in one place, so every new instance picks it up. A grid created without a key shows the license lock.
 
-  ```js
-  Handsontable.defaults.licenseKey = 'your-new-key';
-  ```
+::: only-for javascript
 
-- **For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The tiers a key names are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the features of its tiers and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
+Handsontable has no global default for `licenseKey`. Store the key in a constant and pass it to every grid:
+
+```js
+const LICENSE_KEY = 'your-new-key';
+
+let hot1 = new Handsontable(container1, { ...settings1, licenseKey: LICENSE_KEY });
+let hot2 = new Handsontable(container2, { ...settings2, licenseKey: LICENSE_KEY });
+```
+
+:::
+
+::: only-for react
+
+Handsontable has no global default for `licenseKey`. Store the key in a constant and pass it to every `HotTable`:
+
+```jsx
+const LICENSE_KEY = 'your-new-key';
+
+<>
+  <HotTable {...settings1} licenseKey={LICENSE_KEY} />
+  <HotTable {...settings2} licenseKey={LICENSE_KEY} />
+</>
+```
+
+:::
+
+::: only-for angular
+
+Pass the key as `license` in the `HOT_GLOBAL_CONFIG` provider. Every `hot-table` in the application picks it up, except a table that sets its own `licenseKey` in its `settings`:
+
+```ts
+import { ApplicationConfig } from '@angular/core';
+import { HOT_GLOBAL_CONFIG } from '@handsontable/angular-wrapper';
+
+export const appConfig: ApplicationConfig = {
+  providers: [{ provide: HOT_GLOBAL_CONFIG, useValue: { license: 'your-new-key' } }],
+};
+```
+
+:::
+
+::: only-for vue
+
+Handsontable has no global default for `licenseKey`. Store the key in a constant and pass it to every `HotTable`:
+
+```html
+<script setup>
+const LICENSE_KEY = 'your-new-key';
+</script>
+
+<template>
+  <hot-table :settings="settings1" :license-key="LICENSE_KEY" />
+  <hot-table :settings="settings2" :license-key="LICENSE_KEY" />
+</template>
+```
+
+:::
+
+**For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The tiers a key names are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the features of its tiers and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
 
 ::: only-for javascript
 
@@ -577,18 +638,20 @@ The wrapper component creates its instance once, when it mounts. A later change 
 What you can do depends on your license type:
 
 - **Subscription license:** once your subscription expires, you can no longer use Handsontable. Renew your subscription to keep using the grid.
-- **Perpetual license:** you can keep using any version of Handsontable that was released _before_ your license expired. You won't be able to upgrade to versions released after that date.
+- **Perpetual license:** you can keep using any version of Handsontable that was released on or before the day your license expired. You won't be able to upgrade to versions released after that date.
 
-If you load a version that your license doesn't cover, you'll see a [console warning](#expired-license-key) and a watermark on the grid. To keep support and access to updates, keep your license up to date.
+If you load a version that your license doesn't cover, what you see depends on your license type. A perpetual license shows a console error and a [notice bar](#expired-license-key) below the grid. A key in the 25-character format shows a console warning and the same notice bar. A lapsed subscription shows a console error only. To keep support and access to updates, keep your license up to date.
 
 ### What will I see if I update to a newer version with a stale key?
 
-If your license key is expired and you update to a version of Handsontable released after it expired, you'll see:
+If your perpetual license key, or your key in the 25-character format, is expired and you update to a version of Handsontable released after it expired, you'll see:
 
-- A watermark below the table saying the license is invalid.
-- A warning in the browser console (see [Expired license key](#expired-license-key)).
+- A message in the browser console (see [Expired license key](#expired-license-key)): an error for a perpetual key, a warning for a 25-character key.
+- A notice bar below the table saying the license key expired.
 
-All features still work, but you're not entitled to use that version under an expired license. To remove the warning and watermark, either downgrade to the last version released while your license was still active, or renew the license.
+A lapsed subscription works differently: see the previous question.
+
+All features still work, but you're not entitled to use that version under an expired license. To remove the message and the notice bar, either downgrade to the last version released while your license was still active, or renew the license.
 
 ## Related articles
 

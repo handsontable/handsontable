@@ -145,10 +145,10 @@ If you were using custom CSS variables in version 15.3, you'll need to:
 
 In version 16.0, Handsontable updates how custom borders are positioned to improve accuracy and consistency. This change affects the visual positioning of borders, particularly for cells with custom borders.
 
-#### What changed?
+### What changed?
 - Border positions are adjusted to prevent overlapping with adjacent cells and headers.
 
-#### Why is this a breaking change?
+### Why is this a breaking change?
 It's very unlikely, but if your application relies on specific border positioning or you've implemented custom styling based on border positions, you may need to update your styles. 
 
 The visual appearance of borders in version `16.0` will be slightly different compared to version `15.3`.

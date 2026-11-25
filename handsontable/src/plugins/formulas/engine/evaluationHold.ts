@@ -55,7 +55,7 @@ interface EvaluationHold {
   heldWriteKind: HeldWriteKind | null;
   /**
    * Whether the engine listeners are attached. They are attached at the first suspension the plugin makes,
-   * so a hold with no engine write (every render's internal `batchExecution()`) costs no engine call.
+   * so a hold with no engine write (a filter, a hidden row, a page change) costs no engine call.
    */
   listening: boolean;
   /**

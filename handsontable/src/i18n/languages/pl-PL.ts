@@ -183,6 +183,16 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zablokowane wiersze na dole',
   [C.FREEZE_BAR_COLUMNS_START]: 'Zablokowane kolumny na początku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Zablokowane kolumny na końcu',
+  [C.ARMED_PICK_STARTED]: 'Kliknij lub dotknij cel, aby zakończyć. Naciśnij Escape, aby anulować.',
+  [C.ARMED_PICK_CANCELED]: 'Anulowano.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Zmiana szerokości kolumny. Strzałkami w lewo i w prawo zmieniasz szerokość, Enter zatwierdza, Escape anuluje.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Zmiana wysokości wiersza. Strzałkami w górę i w dół zmieniasz wysokość, Enter zatwierdza, Escape anuluje.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Zmiana rozmiaru pola komentarza. Strzałkami zmieniasz rozmiar, Enter zatwierdza, Escape anuluje.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Szerokość: [size] pikseli',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Wysokość: [size] pikseli',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Poziom [level], [position] z [setSize]',
@@ -198,6 +208,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Posortowano według [label], rosnąco',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Posortowano według [label], malejąco',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Usunięto sortowanie z [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Posortowano według [label], rosnąco, priorytet sortowania [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Posortowano według [label], malejąco, priorytet sortowania [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Zaznaczenie od kolumny [startColumn], wiersza [startRow] do kolumny [endColumn], wiersza [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Zaznaczono wszystkie komórki',

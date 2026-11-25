@@ -191,7 +191,7 @@
           "alice"
         ]
       ],
-      "note": "Escape leaves the editor and the focus returns to the cell, so the reader is expected to say the cell again. The committed goldens are empty until the screen reader run re-records them."
+      "note": "Escape leaves the editor and the focus returns to the cell, and every reader says the cell again."
     },
     {
       "id": "open-context-menu",
@@ -209,7 +209,7 @@
           "menu"
         ]
       ],
-      "note": "Shift+F10 opens the context menu with its first item highlighted. Finding: NVDA announces the menu as a table; Chromium said `menu` only in the run that recorded its golden, and Firefox says it last. VoiceOver says `menu item` on both browsers and calls the menu a `group, table`."
+      "note": "Shift+F10 opens the context menu with its first item highlighted. NVDA with Firefox says the item and then `context menu, menu`; VoiceOver says `menu item` on both browsers. Finding: NVDA with Chromium reads the item and its position (`1 of 12`) without the word menu. Finding (the grid's): the readers disagree on the item's position: NVDA with Chromium says `1 of 12`, NVDA with Firefox `1 of 2`, counting within a group between separators, and VoiceOver with WebKit `1 of 19`, counting the separators; VoiceOver with Chromium names none. The items carry no `aria-posinset` or `aria-setsize`, so each browser counts them its own way."
     },
     {
       "id": "menu-arrow-down",
@@ -246,7 +246,7 @@
           "alice"
         ]
       ],
-      "note": "Escape closes the menu, and the focus should return to the cell that opened it. Finding: NVDA and VoiceOver announce the document instead on every browser (the committed goldens): the focus leaves the grid."
+      "note": "Escape closes the menu, the focus returns to the cell that opened it, and every reader says the cell. Finding (the grid's): VoiceOver with Chromium counts 13 rows in this grid of six (`tree grid 4 columns 13 rows`), because the overlay clones add rows of their own to Chromium's accessibility tree."
     },
     {
       "id": "reselect-cell",
@@ -256,21 +256,8 @@
           0
         ]
       },
-      "expect": [
-        [
-          "alice"
-        ],
-        [
-          "name"
-        ],
-        [
-          "row 2"
-        ],
-        [
-          "column 2"
-        ]
-      ],
-      "note": "The API selection a host makes after the menu: the focus is back on the cell whatever the previous step left, so the range steps start from a known state. Finding (the grid's): VoiceOver with Chromium counts 13 rows in this grid of six (`tree grid 4 columns 13 rows`), because the overlay clones add rows of their own to Chromium's accessibility tree."
+      "expect": [],
+      "note": "The API selection a host makes after the menu, so the range steps start from a known state. Escape has already put the focus back on this cell, so the selection changes nothing and no reader says anything: nothing is required, and the golden pins the silence. A reader that says the cell here again means Escape left the focus elsewhere (the close step)."
     },
     {
       "id": "extend-range",

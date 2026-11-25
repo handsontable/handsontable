@@ -22,8 +22,8 @@
         - checkbox "Unchecked"
       - gridcell "In progress"
   - rowgroup:
-    - row "Select whole grid Task Reviewed Status":
-      - gridcell "Select whole grid"
+    - row "Task Reviewed Status":
+      - gridcell
       - columnheader "Task"
       - columnheader "Reviewed"
       - columnheader "Status"
@@ -37,8 +37,8 @@
     - row "4":
       - rowheader "4"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
 # portal
 - status
 - status

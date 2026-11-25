@@ -215,8 +215,8 @@
       - gridcell "g17"
       - gridcell "C:\\Users\\example.com\\file"
   - rowgroup:
-    - row "Select whole grid A B C D E F G H":
-      - gridcell "Select whole grid"
+    - row "A B C D E F G H":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
@@ -261,8 +261,8 @@
     - row "17":
       - rowheader "17"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
 # portal
 - status
 - status

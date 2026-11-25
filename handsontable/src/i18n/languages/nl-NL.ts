@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuleren',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Geen opties beschikbaar',
   [C.CONTEXTMENU_LABEL]: 'Contextmenu',
   [C.DROPDOWNMENU_LABEL]: 'Kolommenu',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Rij boven invoegen',
@@ -147,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blad [name] verplaatst naar positie [position] van [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blad',
 
+  [C.CHECKBOX_CHECKED]: 'Aangevinkt',
+  [C.CHECKBOX_UNCHECKED]: 'Uitgevinkt',
+
   [C.LOADING_TITLE]: 'Laden...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',
 
@@ -179,6 +183,20 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Vastgezette rijen onderaan',
   [C.FREEZE_BAR_COLUMNS_START]: 'Vastgezette kolommen aan het begin',
   [C.FREEZE_BAR_COLUMNS_END]: 'Vastgezette kolommen aan het einde',
+  [C.ARMED_PICK_STARTED]: 'Klik of tik op het doel om te voltooien. Druk op Escape om te annuleren.',
+  [C.ARMED_PICK_CANCELED]: 'Geannuleerd.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Kolombreedte wijzigen. Gebruik de pijltoetsen links en rechts om de breedte te wijzigen, ' +
+    'Enter om toe te passen, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Rijhoogte wijzigen. Gebruik de pijltoetsen omhoog en omlaag om de hoogte te wijzigen, Enter om toe te passen, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Grootte van het opmerkingenvak wijzigen. Gebruik de pijltoetsen om de grootte te wijzigen, Enter om toe te ' +
+    'passen, Escape om te annuleren.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Breedte: [size] pixels',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Hoogte: [size] pixels',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] van [setSize]',
@@ -194,6 +212,8 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Gesorteerd op [label], oplopend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Gesorteerd op [label], aflopend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortering verwijderd van [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Gesorteerd op [label], oplopend, sorteerprioriteit [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Gesorteerd op [label], aflopend, sorteerprioriteit [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Selectie van kolom [startColumn], rij [startRow] tot kolom [endColumn], rij [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle cellen geselecteerd',

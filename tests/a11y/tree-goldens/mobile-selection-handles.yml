@@ -32,8 +32,8 @@
       - gridcell "D5"
       - gridcell "E5"
   - rowgroup:
-    - row "Select whole grid A B C D E":
-      - gridcell "Select whole grid"
+    - row "A B C D E":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
@@ -51,8 +51,8 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - textbox "B, row 2"
 # portal
 - status

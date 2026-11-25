@@ -30,6 +30,10 @@ type HotLike = {
   scrollViewportTo(options: Record<string, unknown>): boolean;
   render(): void;
   updateSettings(settings: Record<string, unknown>): void;
+  selectCell(row: number, column: number): boolean;
+  setCellMeta(row: number, column: number, key: string, value: unknown): void;
+  loadData(data: unknown[][]): void;
+  setDataAtCell(row: number, column: number, value: unknown): void;
   addHook(name: string, callback: () => void): void;
   removeHook(name: string, callback: () => void): void;
   rootElement: HTMLElement;
@@ -49,7 +53,16 @@ type FixtureWindow = Window & {
   ariaMutations?: { attribute: string; tag: string }[];
   ariaObserver?: MutationObserver;
   handleAriaRecords?: (records: MutationRecord[]) => void;
+  roleMutations?: RoleMutation[];
+  roleObserver?: MutationObserver;
+  collectRoleRecords?: (records: MutationRecord[]) => void;
 };
+
+/**
+ * One write of a master cell's `role`. `removed` is `true` for the removal and `false` for the write that
+ * follows; `focused` says whether the cell held the focus when the observer delivered it.
+ */
+export type RoleMutation = { tag: 'TD' | 'TH'; focused: boolean; removed: boolean };
 
 /**
  * Page Object for the cell ARIA recycle fixture.
@@ -374,5 +387,144 @@ export class CellAriaRecyclePage {
 
       return fixtureWindow.ariaMutations ?? [];
     });
+  }
+
+  /**
+   * Selects a cell through the API and reports whether a master cell now holds the browser focus.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   * @returns {Promise<boolean>}
+   */
+  async selectCell(row: number, column: number): Promise<boolean> {
+    return this.page.evaluate(([targetRow, targetColumn]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.selectCell(targetRow, targetColumn);
+
+      const active = document.activeElement;
+
+      return ['TD', 'TH'].includes(active?.tagName ?? '') && hot.rootElement.contains(active);
+    }, [row, column]);
+  }
+
+  /**
+   * Turns a cell into a checkbox cell with the given value.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   * @param {boolean} checked The value.
+   */
+  async makeCheckboxCell(row: number, column: number, checked: boolean): Promise<void> {
+    await this.page.evaluate(([targetRow, targetColumn, value]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.setCellMeta(targetRow as number, targetColumn as number, 'type', 'checkbox');
+      hot.setDataAtCell(targetRow as number, targetColumn as number, value);
+    }, [row, column, checked]);
+  }
+
+  /**
+   * Sets a cell's value through the API.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   * @param {string} value The value.
+   */
+  async setData(row: number, column: number, value: string): Promise<void> {
+    await this.page.evaluate(([targetRow, targetColumn, nextValue]) => {
+      (window as unknown as FixtureWindow).hot
+        .setDataAtCell(targetRow as number, targetColumn as number, nextValue);
+    }, [row, column, value]);
+  }
+
+  /**
+   * Starts recording every write of `role` on a master cell, with the old value, and whether the cell held
+   * the focus when the write was delivered.
+   */
+  async startRoleRecorder(): Promise<void> {
+    await this.page.evaluate(() => {
+      const fixtureWindow = window as unknown as FixtureWindow;
+      const { rootElement } = fixtureWindow.hot;
+
+      fixtureWindow.roleObserver?.disconnect();
+      fixtureWindow.roleMutations = [];
+      fixtureWindow.collectRoleRecords = (records) => {
+        records.forEach((record) => {
+          const target = record.target as Element;
+
+          // Column B's custom renderer writes its own role on every paint of the rows it takes.
+          if (['TD', 'TH'].includes(target.tagName) && !fixtureWindow.customPainted.has(target)) {
+            fixtureWindow.roleMutations!.push({
+              tag: target.tagName as 'TD' | 'TH',
+              focused: target === document.activeElement,
+              removed: record.oldValue !== null,
+            });
+          }
+        });
+      };
+      fixtureWindow.roleObserver = new MutationObserver(records => fixtureWindow.collectRoleRecords!(records));
+      fixtureWindow.roleObserver.observe(rootElement, {
+        attributes: true,
+        attributeFilter: ['role'],
+        attributeOldValue: true,
+        subtree: true,
+      });
+    });
+  }
+
+  /**
+   * Stops the recorder and returns what it recorded.
+   *
+   * @returns {Promise<RoleMutation[]>}
+   */
+  async takeRoleMutations(): Promise<RoleMutation[]> {
+    return this.page.evaluate(() => {
+      const fixtureWindow = window as unknown as FixtureWindow;
+      const observer = fixtureWindow.roleObserver;
+
+      if (observer) {
+        // Records not delivered yet go through the same filter as delivered ones.
+        fixtureWindow.collectRoleRecords!(observer.takeRecords());
+        observer.disconnect();
+        fixtureWindow.roleObserver = undefined;
+      }
+
+      return fixtureWindow.roleMutations ?? [];
+    });
+  }
+
+  /**
+   * Counts the cells the master renders, leaving out the ones column B's custom renderer paints.
+   *
+   * @returns {Promise<number>}
+   */
+  async countPlainMasterCells(): Promise<number> {
+    return this.page.evaluate(() => {
+      const fixtureWindow = window as unknown as FixtureWindow;
+
+      return Array.from(fixtureWindow.hot.rootElement.querySelectorAll('.ht_master tbody td'))
+        .filter(cell => !fixtureWindow.customPainted.has(cell)).length;
+    });
+  }
+
+  /**
+   * Loads a spreadsheet of the given size and gives the grid a small viewport, so that a jump to the last row
+   * reaches rows the grid renders only then.
+   *
+   * @param {number} rows The row count.
+   * @param {number} columns The column count.
+   * @param {number} height The grid height in pixels.
+   */
+  async loadSmallViewportSpreadsheet(rows: number, columns: number, height: number): Promise<void> {
+    await this.page.evaluate(([rowCount, columnCount, gridHeight]) => {
+      const { hot } = window as unknown as FixtureWindow;
+      const { Handsontable } = window as unknown as {
+        Handsontable: { helper: { createSpreadsheetData(rows: number, columns: number): unknown[][] } };
+      };
+
+      hot.updateSettings({ height: gridHeight });
+      hot.loadData(Handsontable.helper.createSpreadsheetData(rowCount, columnCount));
+    }, [rows, columns, height]);
   }
 }

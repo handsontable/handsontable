@@ -10,8 +10,7 @@ import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
   A11Y_COLUMNHEADER,
-  A11Y_GRIDCELL_BUTTON,
-  A11Y_LABEL,
+  A11Y_GRIDCELL,
   A11Y_SCOPE_COL,
   A11Y_TABINDEX,
 } from '../../../../helpers/a11y';
@@ -28,10 +27,10 @@ const COLINDEX = A11Y_COLINDEX(0)[0];
 const [TABINDEX, TABINDEX_VALUE] = A11Y_TABINDEX(-1);
 const [ROLE, COLUMNHEADER] = A11Y_COLUMNHEADER();
 const [SCOPE, SCOPE_COL] = A11Y_SCOPE_COL();
-// The corner headers get their own role to prevent
-// https://github.com/handsontable/dev-handsontable/issues/1574
-const GRIDCELL_BUTTON = A11Y_GRIDCELL_BUTTON()[1];
-const [LABEL, CORNER_LABEL] = A11Y_LABEL('Select whole grid');
+// The corner headers are plain grid cells, not column headers, to prevent
+// https://github.com/handsontable/dev-handsontable/issues/1574. They carry no name of their own, so a control
+// rendered into one (the RowSelection "select all" checkbox) names itself.
+const GRIDCELL = A11Y_GRIDCELL()[1];
 
 /**
  * Lists the accessibility attributes of a column header, in the order a new element gets them.
@@ -58,8 +57,7 @@ function getCornerAriaAttributes(ariaColIndex: string): KeptAriaAttributes {
   return {
     [COLINDEX]: ariaColIndex,
     [TABINDEX]: String(TABINDEX_VALUE),
-    [ROLE]: GRIDCELL_BUTTON,
-    [LABEL]: CORNER_LABEL,
+    [ROLE]: GRIDCELL,
   };
 }
 

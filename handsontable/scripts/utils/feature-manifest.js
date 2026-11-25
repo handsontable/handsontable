@@ -59,6 +59,20 @@ const RECORDED_LICENSING = ['core', 'token', 'none'];
 // What the record of released ids lists for a tier: its key token (`tier:<name>`), with this one value.
 const RECORDED_TIER = 'tier';
 const TIER_TOKEN_PREFIX = 'tier:';
+// The tiers that were released and then removed on purpose, with the task that decided it. A released tier is
+// otherwise permanent (keys name it, and the license portal refuses a build that lacks a tier it sells). A name
+// listed here may be missing from `tiers.json` and from the record of released ids, and may not come back.
+// Add a name only with a business decision to drop the tier, and never to rename one.
+const REMOVED_TIERS = Object.freeze({
+  // Handsontable has a single tier, named `professional`, that unlocks every feature. `standard` was removed. A
+  // key that names only `tier:standard` unlocks nothing and must be reissued with `tier:professional`. The
+  // removal is non-breaking because it is picked to `release/19.0.0` before 19.0.0 GA, so no stable release lists
+  // `standard`. By the myHOT side, myHOT production never issued tier tokens: tiers exist only on myHOT staging
+  // (since DEV-4142) and in the HubSpot sandbox. myHOT must stop selling `standard` before this merges to develop,
+  // because the `experimental` build publishes from develop and the portal refuses a build that lacks a tier it
+  // sells.
+  standard: 'DEV-4198',
+});
 const STATUSES = ['stable', 'planned'];
 
 /**
@@ -664,6 +678,8 @@ function checkTiersFile(sources) {
     tiers.filter(name => typeof name !== 'string' || !TIER_RULE.test(name))
       .forEach(name => problems.push(`tier ${JSON.stringify(name)} must match ${TIER_RULE}`));
     problems.push(...findRepeatedTiers(tiers));
+    tiers.filter(name => isRemovedTier(name))
+      .forEach(name => problems.push(`tier "${name}" was removed (${REMOVED_TIERS[name]}) and cannot come back`));
   }
 
   return problems.map(problem => `${TIERS_FILE}: ${problem}`);
@@ -1222,6 +1238,16 @@ function renderLicenseGuide(sources) {
 }
 
 /**
+ * Tells whether a tier name is on the list of tiers removed on purpose (`REMOVED_TIERS`).
+ *
+ * @param {string} name The tier name.
+ * @returns {boolean}
+ */
+function isRemovedTier(name) {
+  return Object.prototype.hasOwnProperty.call(REMOVED_TIERS, name);
+}
+
+/**
  * Checks the shape of a record of released ids: every id lists the distinct `licensing` values it has had.
  *
  * @param {object} record The parsed record.
@@ -1289,7 +1315,9 @@ function checkReleased(sources) {
 
   return Object.entries(sources.released).flatMap(([id, values]) => {
     if (id.startsWith(TIER_TOKEN_PREFIX)) {
-      return sources.tiers.includes(id.slice(TIER_TOKEN_PREFIX.length)) ? [] : [`"${id}" was released as a tier, ` +
+      const tierName = id.slice(TIER_TOKEN_PREFIX.length);
+
+      return sources.tiers.includes(tierName) || isRemovedTier(tierName) ? [] : [`"${id}" was released as a tier, ` +
         `so it can never be removed or renamed (keys already name it). Restore it in ${TIERS_FILE}. If it never ` +
         `reached the base branch, delete its line from ${RELEASED_FILE} instead.`];
     }
@@ -1323,6 +1351,10 @@ function checkRecordAgainstBase(base, current) {
 
   return Object.entries(base).flatMap(([id, values]) => {
     if (current[id] === undefined) {
+      if (id.startsWith(TIER_TOKEN_PREFIX) && isRemovedTier(id.slice(TIER_TOKEN_PREFIX.length))) {
+        return [];
+      }
+
       return [`"${id}" is in the base branch's ${RELEASED_FILE}, so it must stay in it`];
     }
 
@@ -1405,3 +1437,4 @@ exports.renderXlsxLicenseModule = renderXlsxLicenseModule;
 exports.renderTierMatrix = renderTierMatrix;
 exports.buildCommittedOutputs = buildCommittedOutputs;
 exports.findStaleOutputs = findStaleOutputs;
+exports.REMOVED_TIERS = REMOVED_TIERS;

@@ -23,7 +23,6 @@ vue:
   metaTitle: MUI theme | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Themes
-menuTag: updated
 ---
 
 This tutorial shows you how to integrate Handsontable DataGrid into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.

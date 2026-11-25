@@ -76,6 +76,20 @@ test('a11y.yml runs the axe scan as one job, axe, in the Playwright container, r
   assert.match(post, /^ {8}continue-on-error: true$/m, `${A11Y}: the check run reports and never decides the job. ${DOC}`);
   assert.match(post, /A11Y_REPORT_URL: \$\{\{ steps\.report\.outputs\.artifact-url \}\}/);
   assert.match(post, /^ {8}id: check$/m, `${A11Y}: the comment links the check run through this step's output. ${DOC}`);
+  // The baseline guard (tests/lib/a11y-baseline-guard.mjs) judges what a pull request adds to the baseline on the check run.
+  const GUARD_DOC = 'See tests/AGENTS.md, "Baselining a finding, and fixing one".';
+
+  for (const [name, value] of [
+    ['A11Y_PR_NUMBER', 'github\\.event\\.pull_request\\.number'],
+    ['A11Y_CHECKOUT_SHA', 'steps\\.checkout\\.outputs\\.commit'],
+    ['A11Y_BASE_SHA', 'github\\.event\\.pull_request\\.base\\.sha'],
+    ['A11Y_HEAD_REF', 'github\\.event\\.pull_request\\.head\\.ref'],
+    ['A11Y_EXCEPTION_APPROVERS', 'vars\\.A11Y_EXCEPTION_APPROVERS'],
+  ]) {
+    assert.match(post, new RegExp(`^ {10}${name}: \\$\\{\\{ ${value} \\}\\}$`, 'm'),
+      `${A11Y}: the check run judges the baseline growth: it needs ${name} (the pull request, the base at the merge commit's first parent, `
+        + `the branch whose runs say which head the a11y-exception-approved label approved, and who may approve). ${GUARD_DOC}`);
+  }
 
   const comment = step('Post the report comment');
 
@@ -90,13 +104,19 @@ test('a11y.yml runs the axe scan as one job, axe, in the Playwright container, r
   assert.match(comment, /A11Y_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
     `${A11Y}: the event's base commit is the fallback for a checkout that is not a merge commit. ${DOC}`);
   assert.match(comment, /A11Y_CHECK_URL: \$\{\{ steps\.check\.outputs\.check-url \}\}/);
+  assert.match(comment, /A11Y_HEAD_REF: \$\{\{ github\.event\.pull_request\.head\.ref \}\}/,
+    `${A11Y}: the comment judges the baseline growth as the check run does, so it reads the same label and approved head. ${DOC}`);
+  assert.match(comment, /A11Y_EXCEPTION_APPROVERS: \$\{\{ vars\.A11Y_EXCEPTION_APPROVERS \}\}/);
 });
 
-test('the axe job can write its check run on the pull request\'s head commit, and nothing else', () => {
+test('the axe job can write its check run on the pull request\'s head commit, and read what the baseline guard needs', () => {
   const axe = job(stripYamlComments(read(A11Y)), 'axe');
 
-  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write\n {6}pull-requests: write$/m,
-    `${A11Y}: job-level permissions: read for the checkout, write for the check run and the sticky comment only. ${DOC}`);
+  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write\n {6}pull-requests: write\n {6}actions: read$/m,
+    `${A11Y}: job-level permissions: read for the checkout, write for the check run and the sticky comment only (the Pull requests `
+      + `permission also reads the pull request's events, where the baseline guard finds the a11y-exception-approved label), and `
+      + `read for the pull request's runs, where it finds the head the label approved. Never issues: the rc and stable test jobs `
+      + `of publish.yml grant no issues scope. ${DOC}`);
   assert.match(axe, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
     `${A11Y}: a check run on the merge commit never shows on the pull request; it goes on the head. ${DOC}`);
 });

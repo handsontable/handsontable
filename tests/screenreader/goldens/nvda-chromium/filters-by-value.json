@@ -6,15 +6,15 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "chromium 151.0.7922.34",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T10:51:45.151Z"
+    "at": "2026-11-23T11:01:23.973Z"
   },
   "steps": {
-    "open-menu": "table insert column left",
+    "open-menu": "insert column left 1 of 9",
     "tab-to-condition": "list",
-    "tab-to-search": "search edit blank",
+    "tab-to-search": "filter by value grouping filter by value edit search blank",
     "type-search": "",
-    "arrow-into-list": "checked green row 1 column 1",
-    "arrow-down-next": "checked red row 2",
+    "arrow-into-list": "table checked green row 1 column 1",
+    "arrow-down-next": "checked red row 2 column 1",
     "space-uncheck": "",
     "tab-to-ok": "ok button",
     "apply-filter": "table green color row 2 name column 3",

@@ -5,6 +5,8 @@ metaTitle: Changelog 17.x - JavaScript Data Grid | Handsontable
 description: See the full history of changes made to Handsontable 17.x in each minor and patch release.
 permalink: /changelog-17
 canonicalUrl: /changelog-17
+tableOfContents:
+  maxHeadingLevel: 2
 react:
   metaTitle: Changelog 17.x - React Data Grid | Handsontable
 angular:
@@ -30,7 +32,7 @@ For more information about this release, see:
 
 </div>
 
-#### Added
+### Added
 - Added a hit area for dropdown menu and collapsible buttons [#12070](https://github.com/handsontable/handsontable/pull/12070)
 - Added `rowspan` support to the [`NestedHeaders`](@/api/nestedHeaders.md) plugin, allowing column headers to span multiple header rows. [#191](https://github.com/handsontable/handsontable/issues/191)
 - Added the [`DataProvider`](@/api/dataProvider.md) plugin and [`dataProvider`](@/api/options.md#dataprovider) table option for server-side row loading and mutations. [#12147](https://github.com/handsontable/handsontable/pull/12147)
@@ -40,14 +42,14 @@ For more information about this release, see:
 - Added long-press gesture detection on touch devices to open the context menu. [#12306](https://github.com/handsontable/handsontable/issues/12306)
 - Added dedicated `paginationButton*` theme tokens so pagination navigation button colors can be customized independently for default, hover, focus, and disabled states via the theme builder. [#12404](https://github.com/handsontable/handsontable/issues/12404) [#12317](https://github.com/handsontable/handsontable/issues/12317)
 
-#### Changed
+### Changed
 - Added a frame-based e2e test wait helper and replaced selected hook test sleeps. [#12161](https://github.com/handsontable/handsontable/pull/12161)
 - Improve the rendering performance [#12189](https://github.com/handsontable/handsontable/pull/12189)
 - Change the columnHeaders property name to colHeaders in the exportFile plugin [#12224](https://github.com/handsontable/handsontable/issues/12224)
 - Improve rendering performance for fast scrollbar movements [#12235](https://github.com/handsontable/handsontable/pull/12235)
 - Angular: Modernized the Angular wrapper to align with Angular 17–19, simplify setup, reduce dependencies, and clean up tooling. [#12451](https://github.com/handsontable/handsontable/issues/12451)
 
-#### Fixed
+### Fixed
 - Fixed an issue where the Nested Rows plugin was disabled after calling updateSettings with an empty data array. [#10556](https://github.com/handsontable/handsontable/issues/10556)
 - Fixed `setSourceDataAtCell()` updating parent rows instead of nested child rows when `nestedRows` is enabled. [#10657](https://github.com/handsontable/handsontable/issues/10657)
 - Fixed an issue where the `stretchH: 'last'` option ignored the column's defined `width` value when the viewport was too narrow, causing the last column to shrink to `0px`. As of 17.1.0, the defined `width` is always respected — the last column will never be rendered below its configured width, regardless of viewport size. Prior to this fix, a sufficiently narrow container could collapse the last column to `0px` even when an explicit width was set. [#11761](https://github.com/handsontable/handsontable/issues/11761)
@@ -95,7 +97,7 @@ For more information about this release, see:
 - Fixed a memory leak where IntersectionObserver instances were not properly disconnected when `document.body` had zero height. [#12578](https://github.com/handsontable/handsontable/issues/12578)
 - Fixed the browser page scrolling to the grid when `dataProvider` loads rows for the first time into an empty grid with `emptyDataState` enabled. [#12591](https://github.com/handsontable/handsontable/issues/12591)
 
-#### Security
+### Security
 - Patched critical and high dependency vulnerabilities across the monorepo and aligned Angular wrapper tooling for compatibility. [#12237](https://github.com/handsontable/handsontable/issues/12237)
 
 ## 17.0.1
@@ -110,7 +112,7 @@ For more information about this release, see:
 
 </div>
 
-#### Fixed
+### Fixed
 - Fix UndoRedo crash when nullified changes [#12000](https://github.com/handsontable/handsontable/pull/12000)
 - Fix UndoRedo beforeChange order [#12001](https://github.com/handsontable/handsontable/pull/12001)
 - Fixed a bug where the editor does not receive the user inputs [#12042](https://github.com/handsontable/handsontable/pull/12042)
@@ -141,7 +143,7 @@ For more information about this release, see:
 
 </div>
 
-#### Added
+### Added
 - **Breaking change**: Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)
 - Introduced a simple way to define custom editors using the new [`BaseEditor.factory`](@/api/baseEditor.md) method. [#11899](https://github.com/handsontable/handsontable/pull/11899)
 - Implemented a new MultiSelect cell type with a dedicated editor, renderer, and validator. [#11981](https://github.com/handsontable/handsontable/pull/11981)
@@ -151,13 +153,13 @@ For more information about this release, see:
 - Added a new [`sanitizer`](@/api/options.md#sanitizer) table option. [#12016](https://github.com/handsontable/handsontable/pull/12016)
 - React: Introduced a simple way to define custom editors using the new `ComponentEditor`. [#11978](https://github.com/handsontable/handsontable/pull/11978)
 
-#### Changed
+### Changed
 - Improved differentiation between Handsontable errors and other errors. [#11780](https://github.com/handsontable/handsontable/pull/11780)
 - Added a hit area to the fill handle. [#11952](https://github.com/handsontable/handsontable/pull/11952)
 - Added a new `parsePastedValue` option to fix issues with pasting object-based values. [#12020](https://github.com/handsontable/handsontable/pull/12020)
 - Introduced a new publishing flow for versions 17.0.0 and above. [#12028](https://github.com/handsontable/handsontable/pull/12028)
 
-#### Deprecated
+### Deprecated
 - Deprecated **numbro.js** for numeric formatting. Copy it to your project or replace it with the `Intl.NumberFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_3-migrate-from-numbro-format-to-intl-numberformat)
 - Deprecated **Pikaday** for date picking. Switch to native date input. [Migration guide](https://handsontable.com/docs/javascript-data-grid/recipes/cell-types/pikaday)
 - Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
@@ -165,13 +167,13 @@ For more information about this release, see:
 - Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
 - Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `formulas: { engine: HyperFormula }`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
 
-#### Removed
+### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)
 - **Breaking change**: Removed `core-js` from dependencies. [#12017](https://github.com/handsontable/handsontable/pull/12017)
 - **Breaking change**: Removed the legacy CSS stylesheets (e.g. `handsontable.full.min.css`), which were the default styling prior to version 16. [#11950](https://github.com/handsontable/handsontable/pull/11950)
 - Removed the `languages` folder from git + updated the `17.0+` release workflow. [#12049](https://github.com/handsontable/handsontable/pull/12049)
 
-#### Fixed
+### Fixed
 - Fixed errors triggered by certain keyboard shortcuts. [#11951](https://github.com/handsontable/handsontable/pull/11951)
 - Fixed unwanted layout shifts caused by the editor. [#11955](https://github.com/handsontable/handsontable/pull/11955)
 - Fixed an issue with scrolling in Firefox. [#11962](https://github.com/handsontable/handsontable/pull/11962)

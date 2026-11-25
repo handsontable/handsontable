@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Cancelar',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'No hay opciones disponibles',
   [C.CONTEXTMENU_LABEL]: 'Menú contextual',
   [C.DROPDOWNMENU_LABEL]: 'Menú de columna',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insertar fila arriba',
@@ -147,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Hoja [name] movida a la posición [position] de [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Hoja',
 
+  [C.CHECKBOX_CHECKED]: 'Marcado',
+  [C.CHECKBOX_UNCHECKED]: 'Desmarcado',
+
   [C.LOADING_TITLE]: 'Cargando...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Cerrar',
 
@@ -179,6 +183,19 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Filas inmovilizadas en la parte inferior',
   [C.FREEZE_BAR_COLUMNS_START]: 'Columnas inmovilizadas al inicio',
   [C.FREEZE_BAR_COLUMNS_END]: 'Columnas inmovilizadas al final',
+  [C.ARMED_PICK_STARTED]: 'Haga clic o toque el destino para terminar. Presione Escape para cancelar.',
+  [C.ARMED_PICK_CANCELED]: 'Cancelado.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Cambiar el ancho de la columna. Use las flechas izquierda y derecha para cambiar el ancho, Enter para aplicar, ' +
+    'Escape para cancelar.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Cambiar el alto de la fila. Use las flechas arriba y abajo para cambiar el alto, Enter para aplicar, ' +
+    'Escape para cancelar.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Cambiar el tamaño del cuadro de comentario. Use las flechas para cambiar el tamaño, Enter para aplicar, Escape ' +
+    'para cancelar.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Ancho: [size] píxeles',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Alto: [size] píxeles',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivel [level], [position] de [setSize]',
@@ -194,6 +211,10 @@ const dictionary = {
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Ordenado por [label], ascendente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Ordenado por [label], descendente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Se quitó el orden de [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Ordenado por [label], ascendente, prioridad de ordenación [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Ordenado por [label], descendente, prioridad de ordenación [order]',
   [C.SELECTION_ANNOUNCEMENT_RANGE]:
     'Selección de la columna [startColumn], fila [startRow] a la columna [endColumn], fila [endRow]',
   [C.SELECTION_ANNOUNCEMENT_ALL]: 'Todas las celdas seleccionadas',

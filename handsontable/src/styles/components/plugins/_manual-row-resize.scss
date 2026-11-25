@@ -35,6 +35,7 @@
       }
 
       &:hover,
+      &.ht-resize-handle--armed,
       &.active {
         opacity: 1;
       }

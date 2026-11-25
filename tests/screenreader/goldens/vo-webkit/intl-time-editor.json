@@ -6,10 +6,10 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-10T12:11:19.938Z"
+    "at": "2026-11-23T11:25:02.063Z"
   },
   "steps": {
-    "arrive-on-time": "",
+    "arrive-on-time": "9 hour stepper",
     "open-editor": "9 hour stepper",
     "type-time": "45",
     "commit-time": "10 hour stepper",

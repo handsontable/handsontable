@@ -70,6 +70,7 @@ describe('ResizeGesture', () => {
       },
       listen: jest.fn(),
       render: jest.fn(),
+      getTranslatedPhrase: jest.fn(key => key),
       getSelectedRange: () => selectedRanges,
       getSettings: () => ({ fixedRowsTop: 0, fixedRowsBottom: 0, fixedColumnsStart: 0, ...frozen }),
       countRows: () => frozen.rows ?? 10,
@@ -851,7 +852,8 @@ describe('ResizeGesture', () => {
       mouse('mousedown', handle());
       mouse('mouseup', window);
 
-      expect(hot._registerTimeout).toHaveBeenCalledTimes(1);
+      // the double-click window, and the announcement of the pick that the first release armed
+      expect(hot._registerTimeout).toHaveBeenCalledTimes(2);
 
       owner.isActive.mockReturnValue(false);
       timeouts[0]();
@@ -864,7 +866,168 @@ describe('ResizeGesture', () => {
       mouse('mouseover', th);
       mouse('mousedown', handle());
 
-      expect(hot._registerTimeout).toHaveBeenCalledTimes(2);
+      expect(hot._registerTimeout).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('click, then click', () => {
+    function press(target, { clientX = 0, clientY = 0 } = {}) {
+      target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, clientX, clientY }));
+      target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX, clientY }));
+    }
+
+    // a click on the handle that moves nothing arms the pick
+    function arm({ th, handle }) {
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 30, pageY: 30 });
+      mouse('mouseup', window, { pageX: 30, pageY: 30 });
+    }
+
+    function placeHeader(th) {
+      th.getBoundingClientRect = () => ({ left: 100, right: 150, top: 20, bottom: 40, width: 50, height: 20 });
+    }
+
+    it('should store the distance from the start of the header to the click, on the column axis', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      arm(context);
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize.mock.calls).toEqual([[3, 160]]);
+      expect(context.hot.runHooks).toHaveBeenCalledWith('beforeTestResize', 160, 3, false);
+      expect(context.hot.runHooks).toHaveBeenCalledWith('afterTestResize', 160, 3, false);
+    });
+
+    it('should store the distance from the top of the header to the click, on the row axis', () => {
+      const context = createGesture({ orientation: 'vertical' });
+
+      placeHeader(context.th);
+      arm(context);
+      press(context.th, { clientY: 110 });
+
+      expect(context.owner.setManualSize.mock.calls).toEqual([[2, 90]]);
+    });
+
+    it('should measure from the inline end of the header under RTL', () => {
+      const context = createGesture({ orientation: 'horizontal', rtl: true });
+
+      placeHeader(context.th);
+      arm(context);
+      press(context.th, { clientX: 20 });
+
+      expect(context.owner.setManualSize.mock.calls).toEqual([[3, 130]]);
+    });
+
+    it('should measure from the inline end of the grid for a header anchored there', () => {
+      const context = createGesture({ orientation: 'horizontal', axis: { isAnchoredAtInlineEnd: () => true } });
+
+      placeHeader(context.th);
+      arm(context);
+      press(context.th, { clientX: 70 });
+
+      expect(context.owner.setManualSize.mock.calls).toEqual([[3, 80]]);
+    });
+
+    it('should store nothing when a drag of the handle moved, and arm no pick', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      mouse('mouseover', context.th);
+      mouse('mousedown', context.handle(), { pageX: 30 });
+      mouse('mousemove', window, { pageX: 50 });
+      mouse('mouseup', window, { pageX: 50 });
+      context.owner.setManualSize.mockClear();
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should arm no pick when the clamp leaves the size as it was after a drag', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      // a column at its minimum width dragged narrower: the clamp answers the start size again
+      context.owner.clampSize.mockImplementation(() => 0);
+      placeHeader(context.th);
+      mouse('mouseover', context.th);
+      mouse('mousedown', context.handle(), { pageX: 30 });
+      mouse('mousemove', window, { pageX: 15 });
+      mouse('mouseup', window, { pageX: 15 });
+      context.owner.setManualSize.mockClear();
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should arm the pick for a press held past the double-click window', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      mouse('mouseover', context.th);
+      mouse('mousedown', context.handle(), { pageX: 30 });
+      // 500ms later the window ends and the count is back to 0
+      context.gesture.afterMouseDownTimeout();
+      mouse('mouseup', window, { pageX: 30 });
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize.mock.calls).toEqual([[3, 160]]);
+    });
+
+    it('should stay armed through detach(), which a wrapper re-render runs', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      arm(context);
+      context.gesture.detach();
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize.mock.calls).toEqual([[3, 160]]);
+    });
+
+    it('should end the pick when abort() runs, so the next click resizes nothing', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      arm(context);
+      context.gesture.abort();
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should end the pick when destroy() runs', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      arm(context);
+      context.gesture.destroy();
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should resize nothing when the header the pick waited on is another one by the click', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      arm(context);
+      // the grid scrolled and recycled the header element for another column
+      context.hot.view._wt.wtTable.getCoords = () => ({ row: 2, col: 5 });
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should resize nothing when a press on the handle ended the pick', () => {
+      const context = createGesture({ orientation: 'horizontal' });
+
+      placeHeader(context.th);
+      arm(context);
+      mouse('mousedown', context.handle(), { pageX: 30 });
+      mouse('mouseup', window, { pageX: 30 });
+      press(context.th, { clientX: 260 });
+
+      expect(context.owner.setManualSize).not.toHaveBeenCalled();
     });
   });
 

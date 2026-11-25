@@ -14,8 +14,8 @@
       - gridcell "B3"
       - gridcell "C3"
   - rowgroup:
-    - row "Select whole grid A B C":
-      - gridcell "Select whole grid"
+    - row "A B C":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
@@ -27,7 +27,7 @@
     - row "3":
       - rowheader "3"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
 # portal
 

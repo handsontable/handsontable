@@ -28,7 +28,7 @@ The purpose of this guide is to make it easier to migrate from v8.4.0 to v9.0.0.
 
 ## Plugin initialization
 
-The plugin uses HyperFormula, which is meant to be passed in as an external dependency every time you want to initialize the plugin. HyperFormula installation guide is available [here](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
+The plugin uses HyperFormula, which is meant to be passed in as an external dependency every time you want to initialize the plugin. See the [HyperFormula installation guide](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
 ::: only-for javascript
 
@@ -46,7 +46,7 @@ The plugin uses HyperFormula, which is meant to be passed in as an external depe
 
 :::
 
-See other available initialization methods [here](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
+See the other [initialization methods](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
 
 ## Available methods
 

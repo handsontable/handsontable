@@ -1535,7 +1535,7 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     if (growths.size > 0) {
-      this.hot.batchExecution(() => {
+      this.hot._batchExecutionWithoutHooks(() => {
         growths.forEach((width, visualColumn) => {
           this.columnWidthsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), width);
         });
@@ -1717,7 +1717,7 @@ export class AutoColumnSize extends BasePlugin {
     let stylesChanged = false;
     const changedColumns: number[] = [];
 
-    this.hot.batchExecution(() => {
+    this.hot._batchExecutionWithoutHooks(() => {
       this.ghostTable.getWidths((visualColumn: number, width: number) => {
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -1970,7 +1970,7 @@ export class AutoColumnSize extends BasePlugin {
    */
   clearCache(physicalColumns?: number[]): void {
     if (Array.isArray(physicalColumns)) {
-      this.hot.batchExecution(() => {
+      this.hot._batchExecutionWithoutHooks(() => {
         physicalColumns.forEach((physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
           this.#columnSamplesCache.delete(physicalIndex);

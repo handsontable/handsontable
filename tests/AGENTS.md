@@ -508,18 +508,23 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
   throws, like the other two.
 - **License specs name no real tier, and the plugin specs use made-up ones.** Which features
-  `standard` or `professional` include can change in any release, so no spec
-  writes a real tier's name or a list of what it holds. The xlsx license specs
+  a tier includes can change in any release, so no spec
+  writes a real tier's name or a list of what it holds. The one name a spec may write
+  is `standard`, the tier removed in DEV-4198: it stands for "a tier this build
+  does not list", whose key unlocks nothing. DataGrid has a single tier, `professional`, so
+  no real key can leave an xlsx feature out. The xlsx license specs
   still run on the build's real tiers, read from the manifest, because a fixture
-  cannot add a made-up tier to the bundle's XLSX tier table: each picks its tier by
-  the feature it needs off or on, and fails with the reason when a tier edit leaves
-  no tier that fits. That is a prompt to move the case to the unit suite. `fixtures/licenseTiers.ts` holds
+  cannot add a made-up tier to the bundle's XLSX tier table: the specs read the manifest only to
+  pick a tier that includes every xlsx feature they need on, and fail with the reason when no tier fits.
+  That is a prompt to move the case to the unit suite. Handsontable has one tier, so the partial-tier
+  gate cases (a feature left out, the console warning and the dropped entry) run in the unit suite only,
+  on the sources with the built-in engine; they have no run on the built bundles or on ExcelJS, and
+  those cases come back to the specs the day a second tier can leave an xlsx feature out. `fixtures/licenseTiers.ts` holds
   the presets (`LICENSE_PRESETS`: a made-up tier, the feature ids it includes,
   and the key flags), builds a preset's key (`presetKey()`, through
   `keyWithTier()`) and its query (`presetLicenseQuery()`, `presetQuery()`), and
   reads the build's real tiers from `handsontable/dist/manifest.json` only to
-  pick one with or without a feature (`requiredTierWithout()`,
-  `requiredTierWithEvery()`, `tiersLeavingOut()`), so rebuild the core before
+  pick one that includes every feature (`requiredTierWithEvery()`), so rebuild the core before
   you trust a run. `demo/license-capabilities.html` applies the made-up tiers of
   `?presets=` before the grid is built, by redefining each sold plugin's static
   `LICENSE` getter so its `tiers` also list the presets that include it. A case
@@ -1272,6 +1277,48 @@ place. A problem the catalog does not have yet gets an issue too, with a title t
 wrong; its `tracker` waits until someone files the task. The pull request that fixes an issue
 deletes its entries and the issue; one that fixes some of an issue's nodes lowers `nodes`.
 
+**On a pull request the check run judges every entry the pull request adds and every count it
+raises** (`lib/a11y-baseline-guard.mjs`, against the base commit's baseline and page list). Each is
+one of three kinds:
+
+- **Inherited:** the entry's page is new in this pull request (not in the base commit's
+  `a11y/pages.mjs`), and the base baseline has the same finding (the same issue, rule, target and
+  theme) on another page. A new page shows what every grid has. Allowed.
+- **An approved exception:** the entry's issue names the task that owns the fix in `tracker`, and the
+  `a11y-exception-approved` label covers the entry. Allowed, and listed as an exception.
+- **Own:** anything else, a raised count included. The `A11y / axe report` check run is red, whatever
+  the finding's severity: a finding left out of the baseline is reported at its severity, and an entry
+  must not turn it green.
+
+The match for inherited is strict because an issue alone is too wide: `classic-contrast` holds every
+text contrast failure of the classic theme, so a new page filing its own contrast failure under it
+would pass. A new page that shows an old defect on an element no other page shows (a native time
+input the base never scanned) is therefore not inherited either: a person decides that it is old debt.
+
+**The approval is a label a person adds by hand, never an agent.** Sessions push and open pull
+requests from a maintainer's account, so "the author approved" proves nothing, and GitHub takes no
+approving review from the author. The accessibility lead reads the exceptions the check run lists,
+adds the `a11y-exception-approved` label by hand, then re-runs the `A11y / axe` job: the check run
+reads the label live from the pull request's events, the latest by time and id rather than by its place
+in the listing (GitHub documents no order), and no run starts on a label. **An agent never
+adds the label, re-adds it, or asks a tool to add it**, on any pull request, its own included: GitHub
+would record the agent's label under the maintainer's name, as that person's approval. An agent may
+remove it, since withdrawing an approval grants nothing. The label covers the entries the baseline
+held, at those counts, at the head the pull request had when the label went on (the head of the
+latest pull request run of the branch created before it: a run is created when a push arrives, so no
+commit date can move it). An entry added or a count raised after that is not covered, and the check
+run is red again until the label is added again. `A11Y_EXCEPTION_APPROVERS`, a repository variable
+of comma-separated logins, limits who may approve; unset, anyone who can label the pull request may,
+and the check run names who did. The fix task is named on the issue (`tracker`), never in the pull
+request's text: one task id per pull request (root `AGENTS.md`).
+
+A label rather than an environment approval like the visual gate's: an environment holds its job, and
+`CI Gate` needs the a11y job, so an exception would block the merge, which only a required check may
+do. The visual gate dropped its label for being content-blind; this one is bound to the baseline at
+the head it approved. A growth the check run could not judge (the base commit, its baseline or page
+list, the label's events or the approved head's baseline unreadable) is a tooling failure of the
+check run, never a pass.
+
 ### The reports, and the visible gate
 
 The reporter writes four outputs into `test-results/a11y/`, and CI publishes each:
@@ -1308,25 +1355,32 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   the HTML report's overview: a comment holds no script and no image it can fetch, a Mermaid
   chart renders in a frame a screen reader cannot read, and GitHub strips `aria-hidden`, so the
   bars sit in their own `Chart` column beside the numbers.
-- **Baseline growth is in the comment, not the check run.** The comparator judges the scan
-  against the pull request's own baseline, so a pull request that adds entries to it reads as
-  clean. The comment step reads the baseline at the base commit through the REST API
-  (`baseCommit()`, `readBaseBaseline()`) and `baselineGrowth()` lists every entry the pull request
-  adds and every count it raises: the headline turns ⚠️ and says how many, and a section groups
-  them by issue and spells out the first ten. The base commit is the first parent of the
+- **Baseline growth is judged on the check run and listed in the comment.** The comparator judges
+  the scan against the pull request's own baseline, so a pull request that adds entries to it reads
+  as clean. The check-run step and the comment step both read the baseline at the base commit
+  through the REST API (`baseCommit()`, `readBaseBaseline()`), `baselineGrowth()` lists every entry
+  the pull request adds and every count it raises, and `baselineGuard()` judges each as inherited,
+  an approved exception or the pull request's own ("Baselining a finding, and fixing one" above).
+  The check run is red on an own entry and annotates it on its baseline line; the comment's headline
+  says how many, ❌ when one is the pull request's own (the check run is red then) and ⚠️ otherwise,
+  and a section groups them by issue and spells out the first ten, own first, each with its kind. The base commit is the first parent of the
   checked-out merge commit (`A11Y_CHECKOUT_SHA`), never the payload's `base.sha` when there is a
   merge commit: a re-run, or a branch that merged the base in, leaves `base.sha` behind the tip the
   merge ref was built on, and every base change in between would read as growth (`.ai/CI.md`, the
   diff-scoped gate trap). An entry is keyed as the comparator keys it (page, theme, rule, target),
   so one the base has under another issue is moved, not added: renaming or splitting an issue
   moves all its entries, adds no debt, and gets one line saying where they went. A base file that
-  is missing or not JSON is one line saying the growth is unknown, never a failed step. The check
-  run stays as it is: it judges the scan, it never reads the base, and a warning on every pull
-  request that baselines a finding the documented way would stop meaning "the scan found
-  something". Approving the pull request accepts the listed debt. Locally, read the base at the
-  merge base, not at `origin/develop`, or everything `develop` changed since the branch forked
-  reads as this branch's: `git show "$(git merge-base origin/develop HEAD)":tests/a11y/axe-baseline.json > base.json`,
-  then `node scripts/a11y-pr-comment.mjs --dry-run --base base.json`.
+  is missing or not JSON is a tooling failure of the check run and, in the comment, a ❌ headline
+  and one line saying the growth is unknown, never a failed step. Approving the pull request accepts inherited
+  entries and approved exceptions only. Locally, read the base at the merge base, not at
+  `origin/develop`, or everything `develop` changed since the branch forked reads as this branch's:
+  `git show "$(git merge-base origin/develop HEAD)":tests/a11y/axe-baseline.json > base.json` and
+  the same for `tests/a11y/pages.mjs > base-pages.mjs`, then
+  `node scripts/a11y-check-run.mjs --dry-run --base base.json --base-pages base-pages.mjs` (or
+  `a11y-pr-comment.mjs` with the same flags). `--approval <file>` stands in for the label:
+  `{"by": "<login>", "at": "<ISO time>", "baseline": "<the baseline file at the approved head>"}`;
+  one that cannot be read or is not that object is a tooling error when the baseline grew, as an
+  unreadable label is in CI.
 - **The agent findings** (`a11y-findings.json`, `lib/a11y-findings.mjs`): the same run, concise and
   machine-readable, for an implementer agent. `needsAction` lists each finding that needs action
   with its page, theme, fixture URL, steps, rule, WCAG criteria, element, counts, remedy and up to
@@ -1341,16 +1395,18 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   check run"): on a pull request or a push a new or grown finding counts at its impact (a tracked
   one as a warning at most), on the nightly every open finding counts; `failure` on a critical or
   serious one or a tooling failure, `neutral` on a moderate or minor one, `success` otherwise, and
-  `failure` on any finding that needs action in block mode. The counts are in its title, the
-  summary and the report link on its page, and an annotation per finding on the line to change
-  (`pages.mjs` for new and grown, the baseline for known, improved and fixed). Only `CI Gate` is
-  required, so it never blocks a merge by itself.
+  `failure` on any finding that needs action in block mode, and on a pull request `failure` on a
+  baseline entry the pull request added as its own (the baseline guard above). The counts are in its
+  title, the summary and the report link on its page, and an annotation per finding on the line to
+  change (`pages.mjs` for new and grown, the baseline for known, improved and fixed, and for an own
+  entry or an approved exception). Only `CI Gate` is required, so it never blocks a merge by itself.
 
 A fork's or Dependabot's token can write neither checks nor comments, so both steps carry the
 canonical fork guard and `continue-on-error`; the summary, the report and the agent findings
-still carry everything there. Locally, `node scripts/a11y-check-run.mjs --dry-run` and
-`node scripts/a11y-pr-comment.mjs --dry-run --base <file>` print what CI would post (without
-`--base` the comment leaves the baseline growth out, which CI always reports). The raw axe result per page
+still carry everything there, without the baseline guard, which reports on the check run alone.
+Locally, `node scripts/a11y-check-run.mjs --dry-run` and `node scripts/a11y-pr-comment.mjs --dry-run`
+print what CI would post (without `--base` both leave the baseline growth out, which CI always
+judges on a pull request). The raw axe result per page
 and theme, with its screenshot, is in the `a11y-axe-results` artifact (`scans/<page>--<theme>.json`,
 three days), beside `comparison.json`, `a11y-findings.json` and `summary.md`. GitHub shows at most
 ten warning annotations per step, so a run with many findings shows the first ten there and the

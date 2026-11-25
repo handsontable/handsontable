@@ -22,8 +22,8 @@
       - gridcell "B4"
       - gridcell "C4"
   - rowgroup:
-    - row "Select whole grid Name Price Stock":
-      - gridcell "Select whole grid"
+    - row "Name Price Stock":
+      - gridcell
       - columnheader "Name"
       - columnheader "Price" [selected]
       - columnheader "Stock"
@@ -39,8 +39,8 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - textbox "Header name": Price
 # portal
 - status

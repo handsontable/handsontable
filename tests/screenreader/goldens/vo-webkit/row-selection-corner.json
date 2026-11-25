@@ -3,15 +3,15 @@
   "scenario": "row-selection-corner",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-05T08:42:26.110Z"
+    "at": "2026-11-23T11:26:49.680Z"
   },
   "steps": {
-    "arrow-left-row-checkbox": "",
-    "space-select-row": "select row 1 row 1 selected",
-    "arrow-up-corner": "select whole grid select all rows 1 of 5 selected",
+    "arrow-left-row-checkbox": "select row 1",
+    "space-select-row": "row 1 selected",
+    "arrow-up-corner": "select all rows 1 of 5 selected",
     "space-select-all": "5 of 5 rows selected",
     "space-clear-all": "0 of 5 rows selected",
     "arrow-down-row-header": "select row 1",

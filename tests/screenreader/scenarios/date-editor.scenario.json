@@ -11,8 +11,8 @@
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["date", "month stepper"]],
-      "note": "Enter opens the editor on the Start cell (`6/10/24`) and focuses its native date input, which holds 2024-06-10. Required: the control, in the reader's words; VoiceOver reads a segment of the input as a `month stepper`. The input is named after its cell (`<column>, row <n>`); the findings below were recorded before it had a name. Finding: VoiceOver with Chromium says nothing when the date editor opens, and VoiceOver with WebKit in two recordings of three. NVDA reads the input as a `date edit` and the segment it lands on (`Month, spin button, 06`); with Firefox it adds `multi line`. NVDA says a date as `1 slash 5 slash 24`, the synonyms below."
+      "expect": [["date", "month stepper", "month"]],
+      "note": "Enter opens the editor on the Start cell (`6/10/24`) and focuses its native date input, which holds 2024-06-10. Required: the control, in the reader's words; VoiceOver reads a segment of the input as a `month stepper`. The input is named after its cell (`<column>, row <n>`), and VoiceOver with Chromium reads that name between the segment and its role (`01, month, Start, row 1, stepper`), so `month`, the segment the date input opens on, is a synonym, as `hour` is for the time editor; the findings below were recorded before it had a name. Finding: VoiceOver with Chromium says nothing when the date editor opens, and VoiceOver with WebKit in two recordings of three. NVDA reads the input as a `date edit` and the segment it lands on (`Month, spin button, 06`); with Firefox it adds `multi line`. NVDA says a date as `1 slash 5 slash 24`, the synonyms below."
     },
     {
       "id": "type-date",
@@ -35,14 +35,14 @@
     {
       "id": "reopen-editor",
       "action": {"press": "Enter"},
-      "expect": [["date", "month stepper"]],
-      "note": "The editor opens again, on the new value; VoiceOver reads the month stepper."
+      "expect": [["date", "month stepper", "month"]],
+      "note": "The editor opens again, on the new value; VoiceOver reads the month stepper, with Chromium the input's name between `month` and `stepper` (the open step)."
     },
     {
       "id": "cancel-edit",
       "action": {"press": "Escape"},
       "expect": [["1/1/20", "1 slash 1 slash 20"]],
-      "note": "Escape closes the editor without a change. Finding: neither VoiceOver nor NVDA (with both browsers) says anything, and the focus stays on the closed input, as the commit leaves it; grid-core records the same silence for the text editor."
+      "note": "Escape closes the editor without a change, the focus returns to the cell, and every reader reads it. VoiceOver with WebKit reads `12/10/24`, the date its input took (the typing step), so the step misses there on the typing, not on the reading."
     }
   ]
 }

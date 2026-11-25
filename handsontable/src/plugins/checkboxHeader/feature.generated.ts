@@ -14,7 +14,6 @@ export const LICENSE: PluginLicense = Object.freeze({
   name: 'Checkbox header',
   gate: 'call',
   tiers: Object.freeze([
-    'standard',
     'professional',
   ]),
 });

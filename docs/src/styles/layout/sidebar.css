@@ -118,6 +118,14 @@ starlight-toc a[aria-current='true']:focus {
   border-color: var(--sl-color-accent) !important;
 }
 
+@media (forced-colors: active) {
+  starlight-toc a[aria-current='true'] {
+    border-inline-start-width: 3px;
+    margin-inline-start: calc(0.35rem - 2px);
+    font-weight: 700;
+  }
+}
+
 /* TOC hover border — subtle */
 starlight-toc a:not([aria-current='true']):hover {
   border-inline-start-color: var(--sl-color-gray-4) !important;

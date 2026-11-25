@@ -27,8 +27,8 @@
       - gridcell "C5"
       - gridcell "D5"
   - rowgroup:
-    - row "Select whole grid Name Longer header text City Country":
-      - gridcell "Select whole grid"
+    - row "Name Longer header text City Country":
+      - gridcell
       - columnheader "Name"
       - columnheader "Longer header text"
       - columnheader "City"
@@ -45,8 +45,8 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - textbox "Longer header text, row 1"
 # portal
 - menu "Column menu":
