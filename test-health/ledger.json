@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-25T14:34:43.827Z",
+  "updatedAt": "2026-11-25T15:29:53.503Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-webkit",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 493,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "45632425996",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45632425996",
+      "workflow": "Tests",
+      "branch": "feature/DEV-4132_Safari-rerender-keeps-aria-hidden",
+      "headSha": "d075e2ae4e54b747e630ac5f1bba49c0e2cc1b19",
+      "event": "pull_request",
+      "seenAt": "2026-11-25T15:28:54Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-webkit",

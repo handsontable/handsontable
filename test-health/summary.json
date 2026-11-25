@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-25T14:56:56.020Z",
+  "generatedAt": "2026-11-25T15:29:53.503Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 468,
     "needsTicket": 7,
     "quarantined": 1,
-    "entries": 2369
+    "entries": 2370
   },
   "rows": [
     {
@@ -43,6 +43,39 @@
         "leg": "e2e-firefox",
         "status": "flaky",
         "error": "Error: expect(locator).toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
+      "tier": "playwright",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 493,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
+      "count7": 7,
+      "count30": 8,
+      "countAll": 8,
+      "runs30": 6,
+      "flakyRuns30": 6,
+      "branches30": 5,
+      "nightlyRuns30": 0,
+      "openBranches30": 5,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-25T15:28:54Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45632425996",
+        "branch": "feature/DEV-4132_Safari-rerender-keeps-aria-hidden",
+        "leg": "e2e-webkit",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -187,39 +220,6 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 94 to be 97.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
-      "tier": "playwright",
-      "file": "e2e/side-layout-slots.spec.ts",
-      "line": 493,
-      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
-      "count7": 6,
-      "count30": 7,
-      "countAll": 7,
-      "runs30": 5,
-      "flakyRuns30": 5,
-      "branches30": 4,
-      "nightlyRuns30": 0,
-      "openBranches30": 4,
-      "legs": [
-        "e2e-webkit"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-25T13:07:07Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45601506484/attempts/2",
-        "branch": "feature/DEV-4082_Docs-example-grid-Tab-trap",
-        "leg": "e2e-webkit",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
