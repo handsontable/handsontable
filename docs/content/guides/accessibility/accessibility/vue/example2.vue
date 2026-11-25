@@ -627,7 +627,7 @@ const handleCheckboxChange = (checkboxName: string) => {
           Enable cells virtualization
         </label>
         <a
-          href="https://handsontable.com/docs/vue-data-grid/api/options/#renderAllRows"
+          href="https://handsontable.com/docs/vue-data-grid/api/options/#renderallrows"
           target="_blank"
           class="external-link"
           rel="noopener noreferrer"

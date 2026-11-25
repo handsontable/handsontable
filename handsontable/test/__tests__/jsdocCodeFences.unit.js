@@ -59,9 +59,11 @@ function walk(dir) {
  * Describes what is wrong with the fences of one JSDoc block.
  *
  * @param {string} block The text of one JSDoc block.
- * @returns {string|null} A description of the first defect, or `null` when every fence closes.
+ * @param {number} firstLine The line of the file where the block starts.
+ * @returns {{ line: number, text: string }|null} The file line of the first defect and what is wrong,
+ * or `null` when every fence closes.
  */
-function describeFenceDefect(block) {
+function describeFenceDefect(block, firstLine) {
   const lines = block.split('\n');
   let openedAt = -1;
 
@@ -72,14 +74,17 @@ function describeFenceDefect(block) {
       if (openedAt === -1) {
         openedAt = index;
       } else if (match[1] !== '') {
-        return `\`\`\`${match[1]} at block line ${index + 1} sits inside the fence opened at line ${openedAt + 1}`;
+        return {
+          line: firstLine + index,
+          text: `\`\`\`${match[1]} sits inside the fence opened at line ${firstLine + openedAt}`,
+        };
       } else {
         openedAt = -1;
       }
     }
   }
 
-  return openedAt === -1 ? null : `the fence opened at block line ${openedAt + 1} is never closed`;
+  return openedAt === -1 ? null : { line: firstLine + openedAt, text: 'this fence is never closed' };
 }
 
 /**
@@ -87,16 +92,17 @@ function describeFenceDefect(block) {
  *
  * @param {string} source The source text.
  * @param {string} file The name to report the finding under.
- * @returns {string[]} Findings as `<file>:<line>: <defect>`, where the line is the block's first line.
+ * @returns {string[]} Findings as `<file>:<line>: <defect>`, where the line is the fence's own line.
  */
 function findFenceDefectsInSource(source, file) {
   const findings = [];
 
   for (const match of source.matchAll(JSDOC_BLOCK)) {
-    const defect = describeFenceDefect(match[0]);
+    const firstLine = source.slice(0, match.index).split('\n').length;
+    const defect = describeFenceDefect(match[0], firstLine);
 
     if (defect !== null) {
-      findings.push(`${file}:${source.slice(0, match.index).split('\n').length}: ${defect}`);
+      findings.push(`${file}:${defect.line}: ${defect.text}`);
     }
   }
 
@@ -136,7 +142,7 @@ describe('JSDoc code fences', () => {
     ].join('\n');
 
     expect(findFenceDefectsInSource(source, 'sample.ts')).toEqual([
-      'sample.ts:3: the fence opened at block line 5 is never closed',
+      'sample.ts:7: this fence is never closed',
     ]);
   });
 
@@ -155,7 +161,7 @@ describe('JSDoc code fences', () => {
     ].join('\n');
 
     expect(findFenceDefectsInSource(source, 'sample.ts')).toEqual([
-      'sample.ts:1: ```ts at block line 4 sits inside the fence opened at line 2',
+      'sample.ts:4: ```ts sits inside the fence opened at line 2',
     ]);
   });
 

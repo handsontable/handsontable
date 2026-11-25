@@ -713,7 +713,7 @@ function DemoOptions({
             Enable cells virtualization
           </label>
           <a
-            href="https://handsontable.com/docs/react-data-grid/api/options/#renderAllRows"
+            href="https://handsontable.com/docs/react-data-grid/api/options/#renderallrows"
             target="_blank"
             className="external-link"
             rel="noopener noreferrer"
