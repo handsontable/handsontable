@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a click on HTML markup inside a column header label, such as bold or italic text, did not sort the column.",
+  "type": "fixed",
+  "issueOrPR": 14468,
+  "breaking": false,
+  "framework": "none"
+}
