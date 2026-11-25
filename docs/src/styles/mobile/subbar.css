@@ -13,7 +13,8 @@
     position: fixed;
     top: var(--sl-nav-height);
     right: 0;
-    height: var(--sl-mobile-subheader-height);
+    box-sizing: border-box;
+    min-height: 2.75rem;
     z-index: 10099;
     background-color: var(--sl-rapide-ui-header-bg-color);
     -webkit-backdrop-filter: blur(0.5rem);
@@ -22,6 +23,13 @@
     border-bottom: 1px solid var(--sl-color-gray-5);
     padding: 0 0.5rem;
     gap: 0.25rem;
+  }
+
+  /* An anchor jump or a focused element stops below the sub-bar, which grows
+     with its breadcrumbs (WCAG 2.4.11). :root outranks Starlight's own
+     html rule in Page.astro, which loads later. */
+  :root {
+    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--sl-mobile-subheader-height));
   }
 }
 
@@ -91,10 +99,9 @@
   flex: 1;
   min-width: 0;
   font-size: 0.8125rem;
+  line-height: 1.25;
   color: var(--sl-color-gray-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
   text-align: center;
-  padding: 0 0.25rem;
+  padding: 0.25rem;
 }

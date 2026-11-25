@@ -879,8 +879,8 @@ for a short calculated value can clip a long formula while it's shown.
 
 ### Keyboard shortcut
 
-Press <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> to toggle between showing formulas and showing values.
-On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</kbd>+<kbd>**`**</kbd> -
+Press <kbd>**Ctrl**</kbd>+<kbd>**&#96;**</kbd> to toggle between showing formulas and showing values.
+On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**&#96;**</kbd>, not <kbd>**Cmd**</kbd>+<kbd>**&#96;**</kbd> -
 `Cmd`+`` ` `` is the system's window-cycling shortcut.
 
 ## Formula cells and screen readers

@@ -163,24 +163,78 @@ export function viewportFindings({ condition, viewport, surfaces }) {
 }
 
 /**
+ * The box a control's clipping ancestors leave on screen, in page coordinates. An ancestor clips the control
+ * only when it is on the control's containing-block chain: a `position: absolute` element (the control or an
+ * ancestor) escapes every static ancestor up to the first positioned or transformed one, and a `position:
+ * fixed` element escapes them all.
+ *
+ * @param {object} input The control.
+ * @param {string} input.position The control's computed `position`.
+ * @param {Array<{position: string, transformed: boolean, clipsX: boolean, clipsY: boolean, left: number, top: number, right: number, bottom: number}>} input.ancestors
+ *   Its ancestors from the parent outward, each with its computed `position`, whether it has a transform,
+ *   which axes its `overflow` clips, and its padding box in page coordinates.
+ * @returns {{left: number, top: number, right: number, bottom: number} | undefined} The box, or none when no
+ *   ancestor clips the control.
+ */
+export function clipFromAncestors({ position, ancestors }) {
+  if (position === 'fixed') {
+    return undefined;
+  }
+
+  let clip;
+  let escaping = position === 'absolute';
+
+  for (const ancestor of ancestors) {
+    const containsAbsolute = ancestor.position !== 'static' || ancestor.transformed;
+
+    if ((!escaping || containsAbsolute) && (ancestor.clipsX || ancestor.clipsY)) {
+      clip = clip ?? { left: -Infinity, top: -Infinity, right: Infinity, bottom: Infinity };
+      if (ancestor.clipsX) {
+        clip.left = Math.max(clip.left, ancestor.left);
+        clip.right = Math.min(clip.right, ancestor.right);
+      }
+      if (ancestor.clipsY) {
+        clip.top = Math.max(clip.top, ancestor.top);
+        clip.bottom = Math.min(clip.bottom, ancestor.bottom);
+      }
+    }
+    if (ancestor.position === 'fixed') {
+      break;
+    }
+    escaping = ancestor.position === 'absolute' || (escaping && !containsAbsolute);
+  }
+
+  return clip;
+}
+
+/**
  * Controls drawn over each other: two controls whose boxes share an area, one not inside the other, on the
  * same layer: both outside a popup, or both in the same popup. Text spacing and zoom push labels into their
- * neighbors.
+ * neighbors. A control is judged by the part of it its clipping ancestors show: a checkbox scrolled out of
+ * a list's view is not drawn over the button under the list.
  *
  * @param {object} input The measurement.
  * @param {string} input.condition The condition.
- * @param {Array<{id: number, selector: string, left: number, top: number, right: number, bottom: number, within: number[], layer?: number}>} input.controls
- *   The controls, each with its id, the ids of the controls it sits inside, and its layer: 0 (or none) outside
- *   every popup, and one number per popup otherwise.
+ * @param {Array<{id: number, selector: string, left: number, top: number, right: number, bottom: number, within: number[], layer?: number, clip?: {left: number, top: number, right: number, bottom: number}}>} input.controls
+ *   The controls, each with its id, the ids of the controls it sits inside, its layer: 0 (or none) outside
+ *   every popup, and one number per popup otherwise, and the box its clipping ancestors show (none when no
+ *   ancestor clips it).
  * @returns {object[]} The findings.
  */
 export function overlapFindings({ condition, controls }) {
   const { criteria, label } = CONDITIONS[condition];
   const findings = [];
+  const drawn = controls.map(control => (control.clip ? {
+    ...control,
+    left: Math.max(control.left, control.clip.left),
+    top: Math.max(control.top, control.clip.top),
+    right: Math.min(control.right, control.clip.right),
+    bottom: Math.min(control.bottom, control.clip.bottom),
+  } : control));
 
-  for (let first = 0; first < controls.length; first++) {
-    for (let second = first + 1; second < controls.length; second++) {
-      const [a, b] = [controls[first], controls[second]];
+  for (let first = 0; first < drawn.length; first++) {
+    for (let second = first + 1; second < drawn.length; second++) {
+      const [a, b] = [drawn[first], drawn[second]];
 
       // A control inside the other is not drawn over it, and a popup lies over what is under it by design,
       // the page or another popup (a submenu over its menu; Escape closes it), so only two controls on the
@@ -189,9 +243,13 @@ export function overlapFindings({ condition, controls }) {
         continue;
       }
 
-      const area = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      const area = width * height;
 
-      if (area > OVERLAP) {
+      // Two boxes that share an edge can overlap by a fraction of a pixel: the browser reports boxes as 32-bit
+      // floats, which step by 1/32 px some 300,000 px down a long page, so a 200 px edge makes a sliver of 6 px².
+      if (area > OVERLAP && width > TOLERANCE && height > TOLERANCE) {
         // Both controls name the finding, so one control over two neighbors is two findings with two ids.
         findings.push({
           kind: 'controls-overlap', criteria, severity: 'serious', selector: `${a.selector} × ${b.selector}`, step: label,

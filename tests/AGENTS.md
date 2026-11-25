@@ -1928,7 +1928,8 @@ counts as lost content.
   dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
   (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
   viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
-  box its clipping ancestors leave on screen, never between a control and one inside it, and only between
+  box its clipping ancestors leave on screen, more than a pixel deep on both axes, never between a control
+  and one inside it, and only between
   two controls on the same layer: the page outside every popup is one layer and each popup element is one
   of its own, because a popup lies over what is under it by design, the page or another popup (a submenu
   over its menu), and Escape closes it). The formula builder's suggestion list and function help count as popups and its formula bar as a
@@ -2370,7 +2371,12 @@ and of `.github/workflows/website-a11y.yml`.
   onto two lines has one box around both lines, so it is left out, and so is a control in a fixed layer outside
   the viewport), and a fixed layer whose text reaches past the viewport where scrolling cannot bring it: its
   text, not its box, since a column can be wider than what it holds, and text inside a scroll area is reachable
-  while the area shows.
+  while the area shows. Two controls overlap by the part of each box its clipping ancestors show
+  (`clipFromAncestors()`): a checkbox scrolled out of a list's view is not over the button under the list. Only
+  an ancestor on the control's containing-block chain clips it, so a `position: absolute` control escapes a
+  static scroll box between it and its containing block. The shared part must be more than a pixel on both
+  axes: boxes come back as 32-bit floats, which step by 1/32 px some 300,000 px down the API reference, so two
+  footer links that share an edge read as a 6 px² overlap.
 - **`<site>-forced-colors-motion`** (`forced-colors-motion.spec.ts`): each sample page at rest watched for five
   seconds without the reduced-motion preference (2.2.2, the product check's watch, `a11y/checks/animations.ts`),
   from two frames after load, never after `SITE.settle()`: a settle waits for finite animations to end, so it
