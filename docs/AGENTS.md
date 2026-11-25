@@ -741,3 +741,13 @@ repository; a dated post keeps its text and gets an editor's note with `updatedD
    `report.evaluatedProductVersion`, and moves `report.next` on).
 2. Run `npm run docs:export-accessibility-strings` and commit the export.
 3. Run `npm run test:tooling` at the root; copy the export into the website repository.
+
+## 2.26 The social preview image is set in one module
+
+Starlight emits `og:title`, `og:description`, and `twitter:card=summary_large_image`, but no image, so link previews on LinkedIn, Slack, and X show a blank card unless the site adds one. The VuePress-to-Starlight migration (#12195) dropped it with no failing check. `src/lib/social-image.mjs` now owns it: `SOCIAL_IMAGE` names the file in `public/` (`handsontable-docs-cover.png`), its absolute URL, its size, and its alt text, and `socialImageHead()` returns the `og:image*` and `twitter:image*` entries that `astro.config.mjs` spreads into the Starlight `head`.
+
+- **The URL is absolute,** because crawlers don't resolve a relative `og:image`. So a pull request preview serves the production copy of the file: a new or resized image shows only after the production deploy.
+- **The size is declared by hand and checked.** `src/lib/__tests__/social-image.test.mjs` (`npm run docs:test:plugins`) reads the PNG header and fails when `width` or `height` does not match the file, and it fails when the config stops spreading `socialImageHead()`. Replace the image with another 1200x630 PNG, or update both numbers.
+- **Every page gets the same image.** A page-specific image needs a frontmatter `head` entry, which Starlight merges over the config's.
+
+This is tooling, not content, so the docs sync does not port it to `prod-docs/*`: it reaches the live site at the next prod-docs cut or through a hand cherry-pick.
