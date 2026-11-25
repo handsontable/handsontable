@@ -135,7 +135,7 @@ Two things defeat a rule keyed on the class and the cell's own text:
 - **A render rewrites the cell's `className`** and drops the class, while the cell's other attributes and the
   selection stay. The pointer can stay outside the body for any length of time, so a render lands in between
   (the container's `ResizeObserver` after a filter shrank the grid is one). The same render also drops the
-  `aria-hidden` the helper set, which nothing puts back.
+  `aria-hidden` the helper set; the plugin puts it back (below).
 - **Text in a nested element is not covered by the cell's own `::selection`**: WebKit does not apply an
   ancestor's `::selection` to descendants. Every header label is a nested `span.colHeader` (the highlighted
   cell is a header after a header click with `navigableHeaders`, and after a column's dropdown menu closes),
@@ -147,6 +147,23 @@ editable for inline editing, and a selection the user makes there must show. Kee
 Safari's Edit → Copy needs it. Pinned by `tests/e2e/clipboard-safari-invisible-selection.spec.ts` (the header
 and nested-markup cases on the WebKit leg, the editable cell on every engine; a mutant of each part of the
 rule fails one of them) and the helper's unit tests in `helpers/dom/__tests__/element.unit.ts`.
+
+**A render must not expose the editable cell to assistive technology (DEV-4132).** The helper sets
+`aria-hidden="true"` with `contenteditable`, and a render clears every `aria-*` attribute of a cell or a
+header while `contenteditable` stays. Until the pointer came back into the body, the highlighted cell was
+exposed as an editable region. `#addContentEditableToHighlightedCell()` keeps the element in
+`#safariEditableElement`, and an `afterRender` listener, registered in Safari only, writes the attribute back.
+Three conditions, each with a test in `__tests__/safariMouseLeave.unit.ts`:
+
+- **Only the element the workaround made editable.** A cell an application's renderer made editable is not
+  the workaround's, and hiding it would hide a working control.
+- **Only while it is still the highlighted cell** (`getCell(highlight) === element`). The grid reuses its
+  elements, so after a scroll or a selection change the kept element can draw another cell.
+- **Only while it is still `contenteditable`.** `#removeContentEditableFromHighlightedCell()` drops the
+  reference, and so does `disablePlugin()`.
+
+A cell the selection has left gets no `aria-hidden` back, by the second condition. The WebKit cases are in
+`tests/e2e/clipboard-safari-invisible-selection.spec.ts`.
 
 ## Ragged clipboard payloads (DEV-2615, #7389)
 

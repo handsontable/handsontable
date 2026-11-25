@@ -168,4 +168,81 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
       expect(cellIsContentEditable()).toBe(true);
     });
   });
+  describe('the `aria-hidden` the workaround sets', () => {
+    const enterBody = () => {
+      document.body.dispatchEvent(new MouseEvent('mouseenter'));
+    };
+
+    it('should stay on the highlighted cell after a render', () => {
+      createGrid();
+      leaveBody();
+
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+
+      hot.render();
+
+      // The positive control: the render left the cell editable, so the workaround is still on.
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should stay on a highlighted column header after a render', () => {
+      createGrid({ colHeaders: true, navigableHeaders: true });
+      hot.selectCell(-1, 1);
+      hot.listen();
+      leaveBody();
+
+      expect(hot.getCell(-1, 1, true)?.hasAttribute('contenteditable')).toBe(true);
+      expect(hot.getCell(-1, 1, true)?.getAttribute('aria-hidden')).toBe('true');
+
+      hot.render();
+
+      expect(hot.getCell(-1, 1, true)?.hasAttribute('contenteditable')).toBe(true);
+      expect(hot.getCell(-1, 1, true)?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should be gone, with a render in between, once the pointer is back in the body', () => {
+      createGrid();
+      leaveBody();
+      hot.render();
+      enterBody();
+
+      expect(cellIsContentEditable()).toBe(false);
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
+
+      hot.render();
+
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should not be put on a cell a renderer made editable, which the workaround did not touch', () => {
+      createGrid({
+        renderer(_hot: unknown, TD: HTMLTableCellElement, row: number, column: number, _prop: unknown, value: string) {
+          TD.textContent = value;
+
+          if (row === 0 && column === 0) {
+            TD.setAttribute('contenteditable', 'true');
+          }
+        },
+      });
+      // The workaround runs on the highlighted cell (1, 1). Cell (0, 0) is editable by its renderer.
+      leaveBody();
+      hot.render();
+
+      expect(hot.getCell(0, 0)?.hasAttribute('contenteditable')).toBe(true);
+      expect(hot.getCell(0, 0)?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should not be put back on a cell the selection has left', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      hot.selectCell(0, 0);
+      hot.render();
+
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+    });
+  });
 });

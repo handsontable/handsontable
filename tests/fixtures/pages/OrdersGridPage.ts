@@ -1,6 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { assertKnownBundle, awaitBundle } from '../bundle';
-import { pointerLeavesBody } from '../gestures';
+import { pointerEntersBody, pointerLeavesBody } from '../gestures';
 import { FiltersValueListPage } from './FiltersValueListPage';
 
 /**
@@ -247,6 +247,14 @@ export class OrdersGridPage extends FiltersValueListPage {
    */
   async pointerLeavesBody(): Promise<void> {
     await pointerLeavesBody(this.page);
+  }
+
+  /**
+   * Sends the `mouseenter` the page body reports when the pointer comes back into its box
+   * (`pointerEntersBody()` in `fixtures/gestures.ts`).
+   */
+  async pointerEntersBody(): Promise<void> {
+    await pointerEntersBody(this.page);
   }
 
   /**

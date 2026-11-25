@@ -90,6 +90,66 @@ test.describe('the Safari copy selection', { tag: CROSS_BROWSER_TAG }, () => {
       .toBe(true);
   });
 
+  test('keeps the cell hidden from assistive technology across a render, until the pointer is back', async({ browserName }) => {
+    const cell = grid.cell(0, 1);
+
+    await cell.click();
+    expect(await grid.selected()).toEqual([[0, 1, 0, 1]]);
+    await expect(cell).not.toHaveAttribute('aria-hidden');
+
+    await grid.pointerLeavesBody();
+
+    if (browserName !== 'webkit') {
+      // Only WebKit runs the workaround: nothing made the cell editable, so nothing has to hide it.
+      await expect(cell).not.toHaveAttribute('contenteditable');
+      await expect(cell).not.toHaveAttribute('aria-hidden');
+
+      return;
+    }
+
+    await expect(cell).toHaveAttribute('contenteditable', 'true');
+    await expect(cell).toHaveAttribute('aria-hidden', 'true');
+
+    await grid.render();
+
+    // The render keeps the cell editable. Without `aria-hidden` a screen reader reads it as an editable
+    // region for as long as the pointer stays outside the body.
+    await expect(cell).toHaveAttribute('contenteditable', 'true');
+    await expect(cell).toHaveAttribute('aria-hidden', 'true');
+
+    await grid.pointerEntersBody();
+
+    await expect(cell).not.toHaveAttribute('contenteditable');
+    await expect(cell).not.toHaveAttribute('aria-hidden');
+
+    await grid.render();
+
+    await expect(cell).not.toHaveAttribute('aria-hidden');
+  });
+
+  test('keeps a highlighted column header hidden from assistive technology across a render', async({ browserName }) => {
+    const header = grid.header(6);
+
+    await grid.keepSearchedValues('Country', 'India', ['India']);
+    expect(await grid.selected()).toEqual([[-1, 6, -1, 6]]);
+
+    await grid.pointerLeavesBody();
+
+    if (browserName !== 'webkit') {
+      await expect(header).not.toHaveAttribute('aria-hidden');
+
+      return;
+    }
+
+    await expect(header).toHaveAttribute('contenteditable', 'true');
+    await expect(header).toHaveAttribute('aria-hidden', 'true');
+
+    await grid.render();
+
+    await expect(header).toHaveAttribute('contenteditable', 'true');
+    await expect(header).toHaveAttribute('aria-hidden', 'true');
+  });
+
   test('leaves a selection painted in a cell a renderer made editable', async() => {
     const cell = grid.cell(1, 1);
 

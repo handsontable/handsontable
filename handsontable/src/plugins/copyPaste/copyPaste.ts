@@ -14,11 +14,13 @@ import {
   isHTMLElement,
   isInternalElement,
   isShadowRoot,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { sanitizeHTML } from '../../utils/sanitizer';
 import { warnOnce } from '../../helpers/console';
 import { extractText, getTextExtractor } from '../../utils/textExtractor';
 import { isSafari, isMacOS } from '../../helpers/browser';
+import { A11Y_HIDDEN } from '../../helpers/a11y';
 import { GRID_SCOPE, GRID_CLIPBOARD_KEYS } from '../../shortcuts/contexts/constants';
 import { normalizeKeys, getEventKeyCombinations } from '../../shortcuts/utils';
 import copyItem from './contextMenuItem/copy';
@@ -324,6 +326,13 @@ export class CopyPaste extends BasePlugin {
    */
   #processedClipboardEvents: WeakSet<object> = new WeakSet();
   /**
+   * The cell or header the Safari `mouseleave` workaround made editable, until the workaround is taken
+   * off it. A render drops the `aria-hidden` the workaround set, and this is the element it is put back on.
+   *
+   * @type {HTMLElement | null}
+   */
+  #safariEditableElement: HTMLElement | null = null;
+  /**
    * Flag that is used to prevent copying when the native shortcut was not pressed.
    *
    * @type {boolean}
@@ -470,6 +479,7 @@ export class CopyPaste extends BasePlugin {
       );
 
       this.addHook('afterSelection', this.#onSafariAfterSelection);
+      this.addHook('afterRender', this.#onSafariAfterRender);
     }
 
     super.enablePlugin();
@@ -498,6 +508,7 @@ export class CopyPaste extends BasePlugin {
 
     this.#pastePlan = null;
     this.#appliedPasteRange = null;
+    this.#safariEditableElement = null;
   }
 
   /**
@@ -941,6 +952,7 @@ export class CopyPaste extends BasePlugin {
 
         if (currentlySelectedCell) {
           makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
+          this.#safariEditableElement = currentlySelectedCell;
         }
       }
     }
@@ -967,6 +979,30 @@ export class CopyPaste extends BasePlugin {
           removeContentEditableFromElementAndDeselect(currentlySelectedCell);
         }
       }
+    }
+
+    this.#safariEditableElement = null;
+  }
+
+  /**
+   * Puts the `aria-hidden` of the Safari `mouseleave` workaround back on the highlighted cell after a
+   * render. The render clears the attribute and keeps `contenteditable`, so until the pointer came back
+   * into the body the cell was exposed to assistive technology as an editable region. Only the element
+   * the workaround itself made editable is touched, and only while it is still the highlighted cell: a
+   * cell an application's renderer made editable is left alone, and so is an element the grid has
+   * reused for another cell.
+   */
+  #restoreAriaHiddenOnEditableCell() {
+    const element = this.#safariEditableElement;
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!element || !highlight || highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    if (element.hasAttribute('contenteditable') && !element.hasAttribute('aria-hidden') &&
+        this.hot.getCell(highlight.row, highlight.col, true) === element) {
+      setAttribute(element, [A11Y_HIDDEN()]);
     }
   }
 
@@ -1787,6 +1823,13 @@ export class CopyPaste extends BasePlugin {
    */
   #onSafariAfterSelection = () => {
     this.#removeContentEditableFromHighlightedCell();
+  };
+
+  /**
+   * `afterRender` hook callback triggered only on Safari.
+   */
+  #onSafariAfterRender = () => {
+    this.#restoreAriaHiddenOnEditableCell();
   };
 
   /**

@@ -108,3 +108,15 @@ export async function pointerLeavesBody(page: Page): Promise<void> {
     document.body.dispatchEvent(new MouseEvent('mouseleave'));
   });
 }
+
+/**
+ * Sends the `mouseenter` the page body reports when the pointer comes back into its box. In Safari the
+ * CopyPaste plugin answers it by taking its `mouseleave` workaround off the highlighted cell.
+ *
+ * @param {Page} page The page whose body the pointer enters.
+ */
+export async function pointerEntersBody(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    document.body.dispatchEvent(new MouseEvent('mouseenter'));
+  });
+}
