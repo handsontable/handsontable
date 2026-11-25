@@ -500,13 +500,13 @@ The messages are as follows:
 
 Shown in a blocking modal and in the console:
 
-_The license key for Handsontable is missing. Use your purchased key to activate the product.  Read more about it in the documentation or contact us at `[email]`._
+_The license key for Handsontable is missing. Use your purchased key to activate the product.  Read more about it in the documentation, or contact us at `[email]`._
 
 ### Invalid license key
 
 Shown in a blocking modal and in the console:
 
-_The license key for Handsontable is invalid.  Read more on how to install it properly or contact us at `[email]`._
+_The license key for Handsontable is invalid.  Read more in the documentation on how to install it properly, or contact us at `[email]`._
 
 Since Handsontable 19.0, the `non-commercial-and-evaluation` key, and its second form
 `ht68e-1f2b7-47158-70b05-0842f`, show this message too. To keep using Handsontable, pass a key from

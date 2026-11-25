@@ -888,19 +888,25 @@ describe('licenseBranding', () => {
       }
     );
 
-    it.each(['invalid', 'missing'])(
+    it.each([
+      ['invalid', 'Read more in the documentation on how to install it properly, ' +
+        'or contact us at support@handsontable.com.'],
+      ['missing', 'Use your purchased key to activate the product. Read more about it in the documentation, ' +
+        'or contact us at support@handsontable.com.'],
+    ])(
       'should keep the documentation link of the old bottom bar inside the "%s" modal',
-      (state) => {
+      (state, sentence) => {
         const hotInstance = mountLock(state);
-        const link = hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description a');
+        const description = hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description');
+        const link = description.querySelector('a');
 
         // Built as a node, so the copy can never become markup - and being a real link, it is in
         // the Tab order along with the button.
         expect(link).not.toBe(null);
-        expect(link.textContent).toBe('Read more');
+        // The link's own text says where it goes (2.4.4), not "Read more", which reads as plain text.
+        expect(link.textContent).toBe('documentation');
         expect(link.getAttribute('href')).toBe('https://handsontable.com/docs/tutorial-license-key.html');
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description').textContent)
-          .toContain('support@handsontable.com');
+        expect(description.textContent).toBe(sentence);
       }
     );
 

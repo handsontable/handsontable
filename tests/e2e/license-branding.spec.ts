@@ -348,7 +348,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
         // Focus is not taken at init; it lands on the action once the user reaches the lock.
         await expect(license.outsideField).toBeFocused();
 
-        await license.lock.click();
+        await license.lockTitle.click();
 
         await expect(license.lockSupportButton).toBeFocused();
 
@@ -363,7 +363,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await license.goto(INSTANT.duringTrial, { key: 'missing' });
 
       // Focus has to be brought in first - the lock never claims it on its own.
-      await license.lock.click();
+      await license.lockTitle.click();
 
       await expect(license.lockSupportButton).toBeFocused();
 

@@ -55,6 +55,7 @@ export class LicenseBrandingPage {
   readonly lockContactButton: Locator;
   readonly lockSupportButton: Locator;
   readonly lockDocsLink: Locator;
+  readonly lockTitle: Locator;
   readonly corner: Locator;
   readonly cornerHeaderCell: Locator;
 
@@ -83,7 +84,9 @@ export class LicenseBrandingPage {
     this.afterField = page.getByTestId('after-field');
     this.lockContactButton = this.lock.getByRole('link', { name: 'Contact Sales' });
     this.lockSupportButton = this.lock.getByRole('link', { name: 'Contact Support' });
-    this.lockDocsLink = this.lock.getByRole('link', { name: 'Read more' });
+    this.lockDocsLink = this.lock.getByRole('link', { name: 'documentation' });
+    // Plain text: a press on it focuses the lock and activates no control (the lock's centre can be the docs link).
+    this.lockTitle = this.lock.getByRole('heading');
     // This grid's OWN corner clone, marked by the class the branding stamps on it. A nested grid
     // (the `handsontable` cell type) renders a corner clone of its own inside the same root, and a
     // structural `.ht_clone_top_inline_start_corner` selector would match that one too.
