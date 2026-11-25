@@ -1131,6 +1131,21 @@
       "level": 3,
       "markdown": "How to migrate",
       "id": "how-to-migrate-55"
+    },
+    {
+      "level": 2,
+      "markdown": "63. A border added from the context menu takes its color from the theme",
+      "id": "a-border-added-from-the-context-menu-takes-its-color-from-the-theme"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-55"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-56"
     }
   ]
 }

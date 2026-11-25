@@ -1,0 +1,15 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/auto-row-size-use-headers",
+      "severity": "manual",
+      "line": 10
+    },
+    {
+      "ruleId": "19.0.0/auto-row-size-use-headers",
+      "severity": "manual",
+      "line": 11
+    }
+  ]
+}

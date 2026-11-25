@@ -210,6 +210,23 @@ describe('validateRule', () => {
     assert.deepEqual(validateRule({ ...rule, optionKeys: { autofill: 'fillHandle' } }, '18.0.0'), []);
   });
 
+  it('requires a noKeyAdvice when the message uses {optionKey}, as expandAdvice() expands the message too', () => {
+    const rule = {
+      id: '18.0.0/x',
+      kind: 'exportRemoved',
+      source: 'handsontable/plugins/*',
+      name: 'Settings',
+      message: 'Use GridSettings[\'{optionKey}\'] instead of the plugin type.',
+      advice: 'Use the option.',
+      optionKeys: { touchScroll: null },
+    };
+
+    assert.match(validateRule(rule, '18.0.0')[0], /noKeyAdvice/);
+    assert.deepEqual(validateRule({ ...rule, noKeyAdvice: 'Use boolean.' }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...rule, message: 'Use the option.' }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...rule, optionKeys: { autofill: 'fillHandle' } }, '18.0.0'), []);
+  });
+
   it('requires safe on every kind except detect and exportRemoved, which only report', () => {
     const problems = rule => validateRule({ id: '18.0.0/x', ...rule }, '18.0.0');
 

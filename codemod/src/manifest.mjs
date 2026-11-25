@@ -207,10 +207,13 @@ export function validateRule(rule, version) {
     }
   }
 
+  const usesOptionKey = ['advice', 'message']
+    .some(field => typeof rule[field] === 'string' && rule[field].includes('{optionKey}'));
+
   if (FIELD_TYPES.object(rule.optionKeys) && Object.values(rule.optionKeys).includes(null)
-    && typeof rule.advice === 'string' && rule.advice.includes('{optionKey}') && typeof rule.noKeyAdvice !== 'string') {
-    problems.push('"optionKeys" maps a plugin to null (no option) and the advice uses {optionKey}, so the rule needs '
-      + 'a "noKeyAdvice" text for that plugin');
+    && usesOptionKey && typeof rule.noKeyAdvice !== 'string') {
+    problems.push('"optionKeys" maps a plugin to null (no option) and the advice or the message uses {optionKey}, '
+      + 'so the rule needs a "noKeyAdvice" text for that plugin');
   }
 
   if (rule.inGuide === false && 'guide' in rule) {

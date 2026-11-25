@@ -551,6 +551,14 @@ Traps of this draft:
   says Handsontable (a shared `license.ts`) is read. `rescue()` keeps only that rule alive for such a file, so nothing
   else runs there. The Angular constant `NON_COMMERCIAL_LICENSE` is still found as a word in the raw text. A Vue block or a
   page that never says Handsontable is not rescued by the adapters that parse blocks (their script precheck is their own).
+- `19.0.0/custom-borders-menu-color` reports a `getBorders()` call on a `customBorders` plugin receiver
+  (`receiver: { plugin: "customBorders" }`) and nothing else. The guide section is about the color a menu border stores,
+  and a comparison with `'#000'` has no precise pattern (the string is a common color). So the rule asks the reader of
+  the borders to check whether the code reads `color` as a hex string.
+- `19.0.0/auto-row-size-use-headers` has `inGuide: false`: the develop guide has no section for the removed default key
+  `useHeaders` of the `AutoRowSize` plugin yet. It reports `getSetting('useHeaders')` on an `autoRowSize` plugin receiver
+  (`argMatches: "^useHeaders$"`), and never the same read on `autoColumnSize`, which keeps the key. When the guide gets
+  a section, replace `inGuide` with the `guide` anchor.
 - `19.0.0/loading-without-dialog` uses the `pluginRegistration` matcher: the `registerPlugin()` calls (any callee named
   `registerPlugin`, or a local name of that import) whose argument is `Loading` imported from `handsontable/plugins` or
   `handsontable/plugins/loading` under any local name, or a member of a namespace import of either, and no such call

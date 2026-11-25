@@ -101,14 +101,14 @@ export function checkAnchors(manifest, markdown, context) {
 }
 
 /**
- * Every anchor a Markdown page offers, in document order: the slug of each `##` to `######` heading outside a code
- * fence, with the numeric suffix that the site gives a heading whose slug was seen before.
+ * Every heading of a Markdown page with its level and its anchor, in document order: the slug of each `##` to `######`
+ * heading outside a code fence, with the numeric suffix that the site gives a heading whose slug was seen before.
  *
  * @param {string} markdown Page text.
- * @returns {string[]} The anchors, one per heading.
+ * @returns {Array<{level: number, anchor: string}>} One entry per heading.
  */
-export function anchorListOf(markdown) {
-  const anchors = [];
+export function headingAnchorsOf(markdown) {
+  const headings = [];
   const seen = new Map();
   let fence = null;
 
@@ -125,18 +125,28 @@ export function anchorListOf(markdown) {
       continue;
     }
 
-    const heading = fence === null ? /^#{2,6}\s+(.+?)\s*$/.exec(line) : null;
+    const heading = fence === null ? /^(#{2,6})\s+(.+?)\s*$/.exec(line) : null;
 
     if (heading) {
-      const slug = slugOf(heading[1]);
+      const slug = slugOf(heading[2]);
       const count = seen.get(slug) ?? 0;
 
       seen.set(slug, count + 1);
-      anchors.push(count === 0 ? slug : `${slug}-${count}`);
+      headings.push({ level: heading[1].length, anchor: count === 0 ? slug : `${slug}-${count}` });
     }
   }
 
-  return anchors;
+  return headings;
+}
+
+/**
+ * Every anchor a Markdown page offers, in document order.
+ *
+ * @param {string} markdown Page text.
+ * @returns {string[]} The anchors, one per heading.
+ */
+export function anchorListOf(markdown) {
+  return headingAnchorsOf(markdown).map(heading => heading.anchor);
 }
 
 /**

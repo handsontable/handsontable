@@ -392,6 +392,28 @@
         ]
       },
       "message": "Check whether this updateSettings() call changes dataSchema on a grid that sets no columns. Handsontable 19.0 compares the columns the new schema defines with the grid's columns, and when they differ it re-initializes the row and column index mappers, which resets the order of columns and rows that users or the API changed, sorting and filtering, hidden and trimmed rows and columns, and the sizes users dragged. A call that sends data alone keeps that state. To keep it, read it before the call and apply it again after it, for example with getSortConfig() and sort()."
+    },
+    {
+      "id": "19.0.0/custom-borders-menu-color",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "a-border-added-from-the-context-menu-takes-its-color-from-the-theme",
+      "match": { "call": "getBorders", "receiver": { "plugin": "customBorders" } },
+      "message": "Check whether this code reads the color of the borders it gets. Handsontable 19.0 stores color 'var(--ht-custom-borders-default-color, #000)' for a border added from the context menu, where 18.1 stored '#000', so code that compares, parses, or converts the color as a hex string must read it as a CSS value. Borders you declare in the customBorders option or add with setBorders() keep the color you give them."
+    },
+    {
+      "id": "19.0.0/auto-row-size-use-headers",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "inGuide": false,
+      "files": ["js"],
+      "requires": "hot-file",
+      "match": { "call": "getSetting", "argMatches": "^useHeaders$", "receiver": { "plugin": "autoRowSize" } },
+      "message": "Remove this read of useHeaders from the autoRowSize plugin. Handsontable 19.0 removes the key from the plugin's default settings, so getSetting('useHeaders') returns undefined. AutoRowSize never used the value. To count the column headers in the column widths, set useHeaders in the autoColumnSize option."
     }
   ]
 }
