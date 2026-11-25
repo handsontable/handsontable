@@ -451,6 +451,9 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
   removal and insertion, with a row inside the moved block mapped to the same offset on the other
   side. The formula text Formulas writes back after a detach depends on it (pinned by
   `__tests__/restoredCells.unit.ts` and `../formulas/__tests__/nestedRowsDetachUndo.unit.js`).
+  `toFinalIndex()` also maps the hide and trim flags a structural restore keeps (`readRemovedFlags()`,
+  `applyKeptFlags()` in `restore.ts`), so in a step that also inserts or removes rows those flags follow
+  the move too.
 - The value maps and the row and column order of a structural step are restored from its snapshot,
   so a size or an order set outside any step after the step (a `manualColumnResize` or
   `manualColumnMove` settings update) is lost on undo. Trims and hides are kept (step 4 of the

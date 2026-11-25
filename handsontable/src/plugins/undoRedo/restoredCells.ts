@@ -30,14 +30,19 @@ interface InsertedBlock {
 }
 
 /**
- * Tells whether a journal entry moves data rows with the cell meta rows (a NestedRows detach).
+ * A half of a data rows move: a `metaRows` entry whose data rows moved with it.
+ */
+type DataRowsMoveJournalOp = MetaRowsJournalOp & { movesData: true };
+
+/**
+ * Tells whether a journal entry is one half of a data rows move (a NestedRows detach). The caller
+ * reads `insert` for the direction.
  *
  * @param {JournalOp|undefined} op The journal entry.
- * @param {boolean} insert `true` for the insertion half of the move, `false` for the removal half.
  * @returns {boolean}
  */
-function isDataRowsMove(op: JournalOp | undefined, insert: boolean): op is MetaRowsJournalOp {
-  return op?.type === 'metaRows' && op.movesData === true && op.insert === insert;
+function isDataRowsMove(op: JournalOp | undefined): op is DataRowsMoveJournalOp {
+  return op?.type === 'metaRows' && op.movesData === true;
 }
 
 /**
@@ -56,7 +61,7 @@ function insertionOn(op: JournalOp, axis: 'row' | 'column'): InsertedBlock | nul
     return axis === 'column' ? op : null;
   }
 
-  if (axis === 'row' && isDataRowsMove(op, true)) {
+  if (axis === 'row' && isDataRowsMove(op) && op.insert) {
     return { physicalIndex: op.physicalRow, amount: op.amount };
   }
 
@@ -79,7 +84,7 @@ function removalOn(op: JournalOp, axis: 'row' | 'column'): number[] | null {
     return axis === 'column' ? op.physicalIndexes : null;
   }
 
-  if (axis === 'row' && isDataRowsMove(op, false)) {
+  if (axis === 'row' && isDataRowsMove(op) && !op.insert) {
     return Array.from({ length: op.amount }, (_, offset) => op.physicalRow + offset);
   }
 
@@ -94,16 +99,16 @@ function removalOn(op: JournalOp, axis: 'row' | 'column'): number[] | null {
  * @param {number} position The position of the entry.
  * @returns {MetaRowsJournalOp|null} The removal for an insertion, the insertion for a removal.
  */
-function pairedDataRowsMove(journal: JournalOp[], position: number): MetaRowsJournalOp | null {
+function pairedDataRowsMove(journal: JournalOp[], position: number): DataRowsMoveJournalOp | null {
   const op = journal[position];
 
-  if (op?.type !== 'metaRows' || op.movesData !== true) {
+  if (!isDataRowsMove(op)) {
     return null;
   }
 
   const other = journal[op.insert ? position - 1 : position + 1];
 
-  return isDataRowsMove(other, !op.insert) && other.amount === op.amount ? other : null;
+  return isDataRowsMove(other) && other.insert !== op.insert && other.amount === op.amount ? other : null;
 }
 
 /**
@@ -128,7 +133,9 @@ function moveIndexPastRemoved(index: number, removedIndexes: number[]): number {
 /**
  * Maps an index recorded by a journal entry to the grid as it was before the step: the row and column
  * changes recorded before the entry are reversed, last one first. A row a data rows move brought in
- * maps to the same offset of the block the move took out.
+ * maps to the same offset of the block the move took out. The walk then crosses the whole move as one
+ * step: it moves `position` onto the paired removal, and the loop's own decrement steps past it, so
+ * the removal is not reversed a second time.
  *
  * @param {JournalOp[]} journal The step journal.
  * @param {number} opIndex The position of the entry in the journal.
@@ -174,7 +181,9 @@ function toIndexBeforeStep(
 /**
  * Maps an index recorded by a journal entry to the grid as it was after the step: the row and column
  * changes recorded after the entry are applied, first one first. A row a data rows move takes out maps
- * to the same offset of the block the move puts back.
+ * to the same offset of the block the move puts back. The walk then crosses the whole move as one
+ * step: it moves `position` onto the paired insertion, and the loop's own increment steps past it, so
+ * the insertion is not applied a second time.
  *
  * @param {JournalOp[]} journal The step journal.
  * @param {number} opIndex The position of the entry in the journal.

@@ -538,10 +538,24 @@ the guard is down, inside the detach's operation. Without it the source kept the
 row that now reads `A2`, and the values moved to other rows. The undo journal holds the write, and
 UndoRedo maps it through the detach's row move (`movesData` in `../undoRedo/AGENTS.md`, "Known gaps").
 Pinned by `__tests__/nestedRowsDetachUndo.unit.js` and `tests/e2e/formulas-nested-rows-detach-undo.spec.ts`.
-**Known limit:** the moved rows themselves are written into the engine from their source text, which
-still names the cells by their rows before the move, so a formula in the detached row reads another row
-after the detach (`=A3*10` in the child reads row 3, which now holds the next record). Fixing it means
-sending the detach to the engine as a `moveRows()` instead of a removal and an insertion.
+**Known limits**, all from the detach reaching the engine as a removal and an insertion; fixing them means
+sending it as a `moveRows()` instead:
+- The moved rows are written into the engine from their source text, which still names the cells by their
+  rows before the move, so a formula in the detached row reads another row after the detach (`=A3*10` in
+  the child reads row 3, which now holds the next record).
+- A formula in any row that reads a detached row becomes `#REF!` in the engine (the removal), and the
+  write-back skips a `#REF!` cell, so the source keeps the old text: `=A2*10` shows `#REF!` after the
+  detach, and a reload from the source (a redo, an `updateSettings({})`) shows a value read from another
+  row. An undo alone shows the right value. Develop leaves the same text. Pinned as it is by `keeps the
+  old text of a formula that read the detached row`.
+- A detach that lands in the middle of the tree (into a grandparent, not at the end) shifts the engine
+  sheet down by a row before the write-back runs, so the detached row shows its formula as text and the
+  formula below it is lost from the engine until an undo. Develop does the same.
+
+**Cost:** the write-back reads every formula of the sheet (`getSheetFormulas()`) and writes the changed
+ones in one `setSourceDataAtCell()`. A detach of N selected rows runs `afterDetachChild` once per row, so it
+pays N such scans inside the one operation. Not measured; a write-back once at the end of the outermost
+detach would pay one.
 
 **`#onBeforeRemoveRow` relies on NestedRows expanding the removal list first.** NestedRows rewrites the
 `beforeRemoveRow` list by reference to cover the removed parent's whole subtree. It registers that listener
