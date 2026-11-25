@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-25T18:20:01.788Z",
+  "generatedAt": "2026-11-25T18:39:38.170Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2197,13 +2197,13 @@
       "line": 567,
       "title": "moveCells edge move bands › a selection crossing a frozen pane › draws bands on the outer edges only, across frozen rows and columns",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 3,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-horizon"
       ],
@@ -2230,13 +2230,13 @@
       "line": 214,
       "title": "walkontable inline-end overlay (ltr) › selects the cell that is clicked in the end columns",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 3,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-horizon"
       ],
@@ -2263,13 +2263,13 @@
       "line": 100,
       "title": "walkontable overlay self-resize › resizes once when the column header height becomes known",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 3,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-main"
       ],
@@ -2296,13 +2296,13 @@
       "line": 132,
       "title": "walkontable overlay self-resize › resizes when the container changes size, with no row or column change",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 3,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-main"
       ],
