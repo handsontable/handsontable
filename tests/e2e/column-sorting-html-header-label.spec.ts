@@ -23,6 +23,14 @@ test.describe('column sorting: HTML inside a header label', { tag: THEMES_TAG },
     ['a label', '<label>label</label>', 'label'],
     ['an element with a button role', '<span role="button">role</span>', '[role="button"]'],
     ['a text field', '<input type="text" value="field" size="4">', 'input'],
+    ['a list box', '<select size="2"><option>one</option><option>two</option></select>', 'select'],
+    ['a text area', '<textarea rows="1" cols="4">area</textarea>', 'textarea'],
+    ['a summary', '<details><summary>summary</summary></details>', 'summary'],
+    ['an element with a link role', '<span role="link">role link</span>', '[role="link"]'],
+    ['an element with a checkbox role', '<span role="checkbox" aria-checked="false">role box</span>', '[role="checkbox"]'],
+    ['an editable element', '<span contenteditable="true">editable</span>', '[contenteditable]'],
+    ['a focusable element', '<span tabindex="0">focusable</span>', '[tabindex]'],
+    ['an element with an `onclick` attribute', '<span onclick="void 0">onclick</span>', '[onclick]'],
   ] as const;
 
   for (const variant of ['column', 'multi'] as const) {
