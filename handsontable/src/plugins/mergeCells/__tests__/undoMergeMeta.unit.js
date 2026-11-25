@@ -411,6 +411,68 @@ describe('MergeCells cell meta after the undo of a merge', () => {
       expect(hot.getCopyableText(0, 0, 1, 3)).toBe('A1\tB1\tC1\tD1\nA2\tB2\tC2\tD2');
     });
 
+    it('takes the keys off the cells when the undo removes the first column of the merge', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
+
+      // The merge starts on the inserted column, so its anchor column maps to nothing after the undo.
+      hot.batch(() => {
+        hot.alter('insert_col_start', 1);
+        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+      });
+      readMeta([0, 0, 7, 8]);
+      hot.getPlugin('undoRedo').undo();
+
+      expect(merges()).toEqual([]);
+      expect(storedMergeKeys(ALL_CELLS)).toEqual([]);
+      expect(hot.getCopyableText(0, 0, 7, 7)).toBe(plainText());
+    });
+
+    it('cleans a recorded merge that lost a row while the restored side holds a merge with no anchor', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
+
+      [[1, 1], [1, 2], [2, 1], [2, 2]].forEach(([row, column]) => {
+        // Unrecorded, as `afterGetCellMeta` writes it.
+        hot.getCellMeta(row, column).copyable = false;
+      });
+      hot.getPlugin('mergeCells').restoreState([{ row: 5, col: 5, rowspan: 2, colspan: 2, anchor: null }], {
+        other: [{
+          row: 1,
+          col: 1,
+          rowspan: 3,
+          colspan: 2,
+          anchor: { physicalRows: [1, 2, 3], physicalColumn: 1 },
+          physicalColumns: [1, 2],
+        }],
+        direction: 'undo',
+        reordered: true,
+        toRestoredIndex: (index, axis) => (axis === 'row' && index === 3 ? null : index),
+      });
+
+      expect(storedMergeKeys([1, 1, 2, 2])).toEqual([]);
+    });
+
+    it('cleans nothing for a recorded merge with no anchor or no recorded columns', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
+
+      const cells = [[1, 1], [1, 2], [2, 1], [2, 2], [4, 4], [4, 5], [5, 4], [5, 5]];
+
+      cells.forEach(([row, column]) => {
+        hot.getCellMeta(row, column).copyable = false;
+      });
+      hot.getPlugin('mergeCells').restoreState([], {
+        other: [
+          { row: 1, col: 1, rowspan: 2, colspan: 2, anchor: null, physicalColumns: [1, 2] },
+          { row: 4, col: 4, rowspan: 2, colspan: 2, anchor: { physicalRows: [4, 5], physicalColumn: 4 } },
+        ],
+        direction: 'undo',
+        reordered: true,
+        toRestoredIndex: index => index,
+      });
+
+      // Neither merge names its cells, so the cleanup cannot tell which ones it covered.
+      expect(storedMergeKeys([1, 1, 5, 5])).toEqual(cells.map(([row, column]) => `${row},${column}:copyable`));
+    });
+
     it('cleans the cell a restored merge is drawn from when the step grew it by an inserted row', () => {
       createGrid({ data: Handsontable.helper.createSpreadsheetData(8, 8) });
 

@@ -160,8 +160,9 @@ function isMergeState(value: unknown): value is readonly MergeStateEntry[] {
 
 /**
  * Maps the physical cells a captured merge names to another numbering of the rows and columns. A row or
- * column that does not exist there is dropped. The anchor takes the first column that is left, and a merge
- * with no row or no column left has no anchor.
+ * column that does not exist there is dropped. The anchor keeps its own column, mapped, or takes the first
+ * recorded column that is left when its own does not exist there. A merge with no row or no column left has
+ * no anchor.
  *
  * @param {object} entry The captured merge.
  * @param {Function} toIndex Maps a physical index, or answers `null` for one that does not exist there.
@@ -180,8 +181,8 @@ function mapRecordedMerge(
   const physicalRows = entry.anchor.physicalRows
     .map(row => toIndex(row, 'row'))
     .filter((row): row is number => row !== null);
-  const physicalColumn = physicalColumns === undefined ?
-    toIndex(entry.anchor.physicalColumn, 'column') : (physicalColumns.find(column => column !== null) ?? null);
+  const physicalColumn = toIndex(entry.anchor.physicalColumn, 'column') ??
+    physicalColumns?.find(column => column !== null) ?? null;
 
   return {
     ...entry,
