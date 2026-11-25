@@ -107,6 +107,79 @@ export function isFieldStop({ shape, role }) {
 }
 
 /**
+ * How far an outline reaches past its element's box: its offset plus its width, when it shows. An inset outline
+ * (a negative offset) reaches no further than the box, and one with no style or no width reaches nothing.
+ *
+ * @param {{style: string, width: number, offset: number}} outline The computed outline.
+ * @returns {number} The reach, in CSS pixels.
+ */
+export function outlineReach({ style, width, offset }) {
+  if (style === 'none' || style === 'hidden' || !(width > 0)) {
+    return 0;
+  }
+
+  return Math.max(0, offset + width);
+}
+
+/**
+ * The area a focus indicator paints, to capture before and after the focus arrives: the element's box grown by its
+ * own outline's reach, and the box of each other ring the focus drew, grown by that ring's reach: an ancestor's (a
+ * card ringed through `:has()` or `:focus-within`) or the element's own pseudo-element's (a link's overlay stretched
+ * over its card). A ring 4 px off its element (an outline offset of 4 px and a width of
+ * 2 px) lies outside the element's box and its margin, so a capture of the box alone saw nothing change.
+ *
+ * @param {{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number}}} element
+ *   The focused element: its box and its outline while focused.
+ * @param {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number}}>} [rings]
+ *   The other rings the focus drew, read while focused.
+ * @returns {{x: number, y: number, width: number, height: number}} The area, in page pixels.
+ */
+export function focusExtent(element, rings = []) {
+  const reach = ({ box, outline }) => {
+    const by = outlineReach(outline);
+
+    return { left: box.x - by, top: box.y - by, right: box.x + box.width + by, bottom: box.y + box.height + by };
+  };
+  const parts = [element, ...rings].map(reach);
+  const left = Math.min(...parts.map(part => part.left));
+  const top = Math.min(...parts.map(part => part.top));
+
+  return {
+    x: left,
+    y: top,
+    width: Math.max(...parts.map(part => part.right)) - left,
+    height: Math.max(...parts.map(part => part.bottom)) - top,
+  };
+}
+
+/**
+ * An element's box placed in a capture of an area around it. A capture is clipped from the whole pixel at or before
+ * the area's corner (`capture()` floors it), so the box is placed from that pixel. Placed from the area's own
+ * corner, a box was read up to a pixel off whenever the corner fell between pixels, and a field's 1 px edge then lay
+ * outside the band that measures it.
+ *
+ * @param {{x: number, y: number, width: number, height: number}} box The element's box, in page pixels.
+ * @param {{x: number, y: number}} area The captured area's corner, in page pixels.
+ * @returns {{x: number, y: number, width: number, height: number}} The box, in pixels from the capture's corner.
+ */
+export function boxInCapture(box, area) {
+  return { x: box.x - Math.floor(area.x), y: box.y - Math.floor(area.y), width: box.width, height: box.height };
+}
+
+/**
+ * What a site's focus indicator is judged against (`focusFindings()`'s `against`): an indicator drawn wholly inside
+ * its element (a ring inset in a filled segment, a fill that repaints the control) against what it replaced, and any
+ * other against the colors next to it. A white ring inset in a black fill stands 18:1 from the fill it sits on, and
+ * read against the white page around the control it stood 1:1.
+ *
+ * @param {{changed: number, outside?: number}} change The change (`indicatorChange()` with the element's box).
+ * @returns {'replaced'|'adjacent'} The colors to judge it against.
+ */
+export function focusJudgedAgainst({ changed, outside }) {
+  return changed > 0 && outside === 0 ? 'replaced' : 'adjacent';
+}
+
+/**
  * The 1.4.11 finding of a text field or a select that nothing sets apart from the page: its boundary and its fill
  * both stand under 3:1 from the color around it. A control set apart by either passes.
  *

@@ -2352,7 +2352,15 @@ and of `.github/workflows/website-a11y.yml`.
   points of each stop sampled with `elementFromPoint()`; a stop the keyboard check calls hidden is its finding,
   never sampled here. The indicator of the first stop of each shape is captured with nothing focused and again
   after a key press and the focus (what makes `:focus-visible` match), and judged by `focusFindings()` of
-  `lib/contrast.mjs`; a text field's or a select's boundary and fill against the page around it
+  `lib/contrast.mjs`. The capture covers what the focus paints (`focusExtent()` of `lib/site-visual.mjs`), not the
+  element's box alone: its own outline's reach (a ring 4 px off and 2 px wide stands past the 4 px margin), the
+  outline of its absolutely placed `::before` or `::after` (a link's overlay stretched over its card), and the ring of
+  each ancestor up to a landmark that the focus changed (a card ringed through `:has()`); a capture of the box alone
+  read all three as `focus-not-visible`. An indicator drawn wholly inside the element (a ring inset in a filled
+  segment) is judged against what it replaced, any other against the colors next to it (`focusJudgedAgainst()`): a
+  white ring inset in a black fill read 1:1 against the white page. The element's box is placed in the capture from
+  the whole pixel the capture starts at (`boxInCapture()`), or a field's 1 px edge is read a row off whenever its box
+  starts past half a pixel. A text field's or a select's boundary and fill against the page around it
   (`boundaryFindings()`, 1.4.11), for every stop `isFieldStop()` reads as a field: shaped like one in its own part
   (`isFieldShape()`), so a plain input named inside its ancestor (`label.option-label input`) is measured too, and given
   a field's role by the accessibility tree (a text box, search box, combo box, list box or spin button), so a toggle,

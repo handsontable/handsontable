@@ -282,3 +282,34 @@ test('the check\'s findings are valid evidence', () => {
 
   assert.deepEqual(validatePart({ schema: EVIDENCE_SCHEMA, target: { page: 'grid', theme: 'main' }, durationMs: 1, findings }), []);
 });
+
+test('an indicator change counts the changed pixels outside the element\'s own box, when it is given', () => {
+  const black = [20, 20, 20];
+  const inset = [];
+  const around = [];
+
+  for (let x = 3; x < 7; x++) {
+    inset.push([x, 3, WHITE]);
+    around.push([x, 0, [26, 66, 232]]);
+  }
+
+  const inner = { x: 2, y: 2, width: 6, height: 6 };
+  const fill = [];
+
+  for (let x = 2; x < 8; x++) {
+    for (let y = 2; y < 8; y++) {
+      fill.push([x, y, black]);
+    }
+  }
+
+  const before = image(10, 10, WHITE, fill);
+  const insetChange = indicatorChange(before, image(10, 10, WHITE, [...fill, ...inset]), 2, inner);
+
+  assert.equal(insetChange.changed, 4);
+  assert.equal(insetChange.outside, 0, 'a ring inset in the fill changes nothing outside the box');
+  assert.ok(insetChange.ratio > 15, 'and stands far from the black it replaced');
+  assert.equal(indicatorChange(before, image(10, 10, WHITE, [...fill, ...around]), 2, inner).outside, 4,
+    'a ring around the box changes pixels outside it');
+  assert.equal(indicatorChange(before, before, 2, inner).outside, 0);
+  assert.equal('outside' in indicatorChange(before, before, 2), false, 'without a box the change has no count of it');
+});

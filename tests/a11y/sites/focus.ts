@@ -1,5 +1,6 @@
 import { type Page } from '@playwright/test';
 import { contrastRatio, dominantColor, indicatorChange, strongestPixel } from '../../lib/contrast.mjs';
+import { boxInCapture, focusExtent } from '../../lib/site-visual.mjs';
 import { capture, grow, MARGIN, settle as frames, type Box, type Image } from '../checks/pixels';
 import { focusByKey, type SiteStop } from './harness';
 
@@ -69,29 +70,89 @@ export async function indicator(page: Page, stop: SiteStop) {
   }
 
   // The box is read while the element has the focus: a skip link is drawn only then, and the area to compare is where
-  // it shows, which the capture at rest then shows without it.
-  const box = await page.evaluate(() => {
+  // it shows, which the capture at rest then shows without it. So is what the focus paints around it: the element's
+  // own outline, which can stand past the margin (an offset of 4 px and a width of 2 px reach 6 px out), the outline of
+  // its `::before` or `::after` placed absolutely (a link's overlay stretched over its card, ringed on focus), and the
+  // ring of each ancestor the focus changed (a card ringed through `:has()` or `:focus-within`), read again after the
+  // blur to tell a ring the focus drew from one the ancestor always has. The walk up stops at a landmark: a ring on
+  // the page's main region or its header is no part of one control's indicator.
+  const read = await page.evaluate(() => {
     const element = document.activeElement as HTMLElement;
 
     element.scrollIntoView({ block: 'center', inline: 'nearest' });
 
-    const rect = element.getBoundingClientRect();
+    const ring = (node: Element) => {
+      const style = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+
+      return {
+        box: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        outline: { style: style.outlineStyle, width: parseFloat(style.outlineWidth) || 0, offset: parseFloat(style.outlineOffset) || 0 },
+        paint: `${style.outlineStyle} ${style.outlineColor} ${style.boxShadow}`,
+      };
+    };
+    const LANDMARK = 'body, main, header, footer, nav, aside, form, [role="main"], [role="banner"], [role="contentinfo"], '
+      + '[role="navigation"], [role="complementary"], [role="region"], [role="dialog"]';
+    const chain: Element[] = [];
+
+    for (let node = element.parentElement; node && !node.matches(LANDMARK); node = node.parentElement) {
+      chain.push(node);
+    }
+
+    // A pseudo-element's box is not in the DOM: an absolutely placed one is read from its containing block (the
+    // nearest positioned element, the element itself included) and its resolved offsets and size. One in the flow
+    // lies inside the element's box, so the element's own extent covers it.
+    const pseudoRings = ['::before', '::after'].flatMap((pseudo) => {
+      const style = getComputedStyle(element, pseudo);
+
+      if (style.content === 'none' || style.outlineStyle === 'none' || !['absolute', 'fixed'].includes(style.position)) {
+        return [];
+      }
+
+      let block: Element = document.documentElement;
+
+      for (let node: Element | null = element; node; node = node.parentElement) {
+        if (getComputedStyle(node).position !== 'static') {
+          block = node;
+          break;
+        }
+      }
+
+      const rect = block.getBoundingClientRect();
+
+      return [{
+        box: {
+          x: rect.x + block.clientLeft + (parseFloat(style.left) || 0),
+          y: rect.y + block.clientTop + (parseFloat(style.top) || 0),
+          width: parseFloat(style.width) || 0,
+          height: parseFloat(style.height) || 0,
+        },
+        outline: { style: style.outlineStyle, width: parseFloat(style.outlineWidth) || 0, offset: parseFloat(style.outlineOffset) || 0 },
+      }];
+    });
+    const self = ring(element);
+    const focused = chain.map(ring);
 
     element.blur();
 
-    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    const ancestors = focused.filter((before, index) => ring(chain[index]).paint !== before.paint)
+      .map(({ box, outline }) => ({ box, outline }));
+
+    return { box: self.box, extent: { box: self.box, outline: self.outline }, rings: [...pseudoRings, ...ancestors] };
   });
+  const box = read.box;
 
   await frames(page);
 
   const viewport = page.viewportSize()!;
-  const grown = grow(box);
+  const grown = grow(focusExtent(read.extent, read.rings));
   const area = {
     x: Math.max(0, grown.x),
     y: Math.max(0, grown.y),
     width: Math.min(viewport.width, grown.x + grown.width) - Math.max(0, grown.x),
     height: Math.min(viewport.height, grown.y + grown.height) - Math.max(0, grown.y),
   };
+  const inner = boxInCapture(box, area);
 
   // A control scrolling cannot bring fully into the viewport (a header wider than a phone) is measured on the part
   // that shows; one that shows nothing is not measured.
@@ -127,13 +188,16 @@ export async function indicator(page: Page, stop: SiteStop) {
 
   const focusVisible = await page.evaluate(() => document.activeElement?.matches(':focus-visible') ?? false);
   const after = await capture(page, area);
-  const change = indicatorChange(before, after, MARGIN);
+  const change = indicatorChange(before, after, MARGIN, {
+    x: Math.floor(inner.x), y: Math.floor(inner.y), width: Math.ceil(inner.x + inner.width) - Math.floor(inner.x),
+    height: Math.ceil(inner.y + inner.height) - Math.floor(inner.y),
+  });
 
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 
   return {
     change,
-    boundary: boundaryOf(before, { x: box.x - area.x, y: box.y - area.y, width: box.width, height: box.height }),
+    boundary: boundaryOf(before, inner),
     summary: { focusVisible, changed: change.changed, ratio: Math.round(change.adjacentRatio * 100) / 100 },
   };
 }

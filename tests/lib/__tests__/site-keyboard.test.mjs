@@ -10,7 +10,18 @@ import {
   walkProblem,
   walkVerdict,
 } from '../site-keyboard.mjs';
-import { boundaryFindings, isFieldShape, isFieldStop, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
+import {
+  boundaryFindings,
+  boxInCapture,
+  focusExtent,
+  focusJudgedAgainst,
+  isFieldShape,
+  isFieldStop,
+  orientationFindings,
+  outlineReach,
+  pageReflowFindings,
+  stateLostFindings,
+} from '../site-visual.mjs';
 
 // tests/AGENTS.md ("A11y: the site checks beyond axe"): the verdicts of the keyboard walk on a site (2.1.1, 2.1.2,
 // 2.1.4, 2.4.1, 2.4.3, 3.2.1, 3.2.2, 4.1.2) and the visual judges the site checks add (1.4.10, 1.3.4, 1.4.11, 1.4.1).
@@ -226,4 +237,39 @@ test('1.4.1 in forced colors: a state that differed only in colors forced colors
     element: { normal: style({ 'border-left-color': 'rgb(26, 86, 219)' }), forced: style({ 'border-left-color': 'rgb(0, 0, 0)' }) },
     sibling: { normal: style({ 'border-left-color': 'rgb(200, 200, 200)' }), forced: style({ 'border-left-color': 'rgb(255, 255, 255)' }) },
   })), [], 'with no border width the colors differ in the strings only, so the item never looked different');
+});
+
+test('2.4.7: the focus capture covers a ring that stands past the margin, and a ring an ancestor draws', () => {
+  const box = { x: 100, y: 40, width: 171, height: 24 };
+  const solid = (width, offset) => ({ style: 'solid', width, offset });
+
+  assert.equal(outlineReach(solid(2, 4)), 6, 'an outline 4 px off and 2 px wide reaches 6 px past the box');
+  assert.equal(outlineReach(solid(2, -4)), 0, 'an inset outline reaches no further than the box');
+  assert.equal(outlineReach({ style: 'none', width: 3, offset: 0 }), 0, 'an outline that does not show reaches nothing');
+  assert.equal(outlineReach(solid(0, 4)), 0);
+  assert.deepEqual(focusExtent({ box, outline: solid(2, 4) }), { x: 94, y: 34, width: 183, height: 36 },
+    'the logo\'s ring, 4 to 6 px out: inside the area once it is grown by the margin');
+  assert.deepEqual(focusExtent({ box, outline: { style: 'none', width: 0, offset: 0 } }), box,
+    'no outline: the box itself, as before');
+
+  const card = { box: { x: 16, y: 400, width: 806, height: 395 }, outline: solid(2, 2) };
+
+  assert.deepEqual(focusExtent({ box: { x: 62, y: 477, width: 324, height: 51 }, outline: { style: 'none', width: 0, offset: 0 } }, [card]),
+    { x: 12, y: 396, width: 814, height: 403 }, 'a title link whose card draws the ring: the card and its ring');
+});
+
+test('2.4.7: an indicator drawn wholly inside its control is judged against what it replaced', () => {
+  assert.equal(focusJudgedAgainst({ changed: 444, outside: 0 }), 'replaced', 'a ring inset in a filled segment');
+  assert.equal(focusJudgedAgainst({ changed: 304, outside: 120 }), 'adjacent', 'a ring around the control');
+  assert.equal(focusJudgedAgainst({ changed: 0, outside: 0 }), 'adjacent', 'nothing changed: the finding is focus-not-visible either way');
+  assert.equal(focusJudgedAgainst({ changed: 10 }), 'adjacent', 'a change measured without the box counts as outside');
+});
+
+test('1.4.11: a box is placed in a capture from the whole pixel the capture starts at', () => {
+  // The footer field of the audit: its top at 618.67, the area grown 4 px around it starts at 614.67, and the capture
+  // starts at pixel 614. Placed from 614.67, the field's last row (its 1 px underline) was read one row too high.
+  assert.deepEqual(boxInCapture({ x: 972.4, y: 618.67, width: 259.2, height: 48 }, { x: 968.4, y: 614.67 }),
+    { x: 972.4 - 968, y: 618.67 - 614, width: 259.2, height: 48 });
+  assert.deepEqual(boxInCapture({ x: 10, y: 20, width: 5, height: 5 }, { x: 6, y: 16 }), { x: 4, y: 4, width: 5, height: 5 },
+    'a corner on a whole pixel is placed as before');
 });

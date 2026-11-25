@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { siteCheckId, siteOf } from '../../lib/a11y-site-checks.mjs';
 import { distinctName, focusFindings, obscuredFindings } from '../../lib/contrast.mjs';
 import { walkProblem, walkVerdict } from '../../lib/site-keyboard.mjs';
-import { boundaryFindings, isFieldShape, isFieldStop } from '../../lib/site-visual.mjs';
+import { boundaryFindings, focusJudgedAgainst, isFieldShape, isFieldStop } from '../../lib/site-visual.mjs';
 import { focusedAx, openAxSession } from '../checks/walker';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
 import { indicator, samplePoints } from './focus';
@@ -138,7 +138,11 @@ for (const theme of SITE.themes) {
             continue;
           }
           indicators.push({ selector: name, ...measured.summary });
-          findings.push(...focusFindings({ selector: name, step: 'Tab', change: measured.change }) as EvidenceFinding[]);
+          // An indicator drawn wholly inside the control (a ring inset in its fill) is judged against what it replaced,
+          // any other against the colors next to it (`focusJudgedAgainst()`).
+          findings.push(...focusFindings({
+            selector: name, step: 'Tab', change: measured.change, against: focusJudgedAgainst(measured.change),
+          }) as EvidenceFinding[]);
           // The walk reads no roles (`ax: false`), so a stop shaped like a field has its role read here: a toggle or a
           // radio button is an input too, and its own box is not what a visitor sees.
           if (isFieldShape(shape)) {
