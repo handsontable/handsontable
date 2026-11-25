@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Row recycling focus e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A short grid with default settings, so a vertical scroll rotates the rendered rows: the TR of a row
+    that leaves the band moves to the band's other end. `window.focusEvents` records every focus
+    event the grid root sees in the capture phase, and `window.verticalScrolls` counts the
+    `afterScrollVertically` calls, which run after the scroll's draw.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    window.focusEvents = [];
+    window.verticalScrolls = 0;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(200, 3),
+        colHeaders: true,
+        height: 120,
+        afterScrollVertically() {
+          window.verticalScrolls += 1;
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+
+      ['focusin', 'focusout', 'focus', 'blur'].forEach((type) => {
+        window.hot.rootElement.addEventListener(type, (event) => {
+          window.focusEvents.push({ type, tag: event.target.tagName });
+        }, true);
+      });
+      window.hot.rootElement.setAttribute('data-testid', 'grid-root');
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+  </script>
+</body>
+</html>

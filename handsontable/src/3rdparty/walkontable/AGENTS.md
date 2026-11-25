@@ -2075,6 +2075,23 @@ or one of its `getShadowHostChain()` hosts (`contains()` stops at a web-componen
 root). The unit tests emulate an engine that blurs at once by wrapping the fragment the rotation
 moves rows through; without that, jsdom keeps the focus like Chromium and the restore never runs.
 
+**The restore is a focus event, and a screen reader in reading mode follows it.** The restored element
+already shows a later row (A6 after a few steps down from A1), and NVDA with Firefox and VoiceOver
+take the `focus` event as a focus move and jump the reading cursor there, so reading mode skipped
+rows at the band's edge. So while a focused element is in the band and the engine has
+`Element#moveBefore()` (Chromium, Firefox), the rows move one by one inside the TBODY with it
+(`#rotateRowsInPlace`): the element is never detached, the focus never leaves it, and no event fires.
+`moveBefore()` needs both ends connected, which is why this path cannot go through the fragment; the
+fresh TRs of a band that grows are not connected yet and keep `insertBefore()`. The focused-row swap
+of a shrinking band goes through the same `moveRow()`. Without focus in the band, and on an engine
+without the method (WebKit), the fragment move and the restore stay exactly as above, so VoiceOver
+with Safari still skips rows there: a known, open limit. The method is newer than the browser floor
+and is detected (`canMoveWithoutDetaching`), never polyfilled: a polyfill would detach. Pinned by the
+in-place cases of `test/unit/renderer/rowRecycling.unit.ts` (their `moveBefore` stub gives the focus
+back, because jsdom drops it on a removal and a real `moveBefore` does not) and
+`tests/e2e/row-recycling-keeps-focus.spec.ts`, which asserts no focus event only where the engine has
+the method.
+
 Only rows that LEAVE the band wrap. A band that moves up and grows past its old end at the same time
 (a refill re-pass in `table/drawCycle.ts`, or a recompute with non-uniform heights) keeps every tail
 row's TR in place and gets fresh TRs for the front slots the leaving rows cannot fill; `start()`

@@ -295,29 +295,15 @@ export class RowsRenderer extends BaseRenderer {
       rootNode.contains(focusedElement) ||
       getShadowHostChain(focusedElement).some(host => rootNode.contains(host))
     );
-    const fragment = rootDocument.createDocumentFragment();
+    const rotated = delta > 0 ?
+      delta :
+      Math.min(shift, Math.max(0, (this.#lastOffset + lastSize) - (nextOffset + nextSize)));
+    const movesInPlace = focusedInBand && canMoveWithoutDetaching(rootNode);
 
-    if (delta > 0) {
-      // Scrolled down: the first `delta` rows left the band – send them to the bottom, in order.
-      for (let i = 0; i < delta; i++) {
-        fragment.appendChild(rootNode.firstElementChild!);
-      }
-      rootNode.appendChild(fragment);
-
+    if (movesInPlace) {
+      this.#rotateRowsInPlace(delta, rotated);
     } else {
-      // Scrolled up: the rows past the new band's end left it – send them to the top, in order. When
-      // the band also grew at its end, fewer than `-delta` rows leave, and the remaining front slots
-      // get fresh TRs so that every row still in the band keeps its own element.
-      const leaving = Math.max(0, (this.#lastOffset + lastSize) - (nextOffset + nextSize));
-      const rotated = Math.min(shift, leaving);
-
-      for (let i = 0; i < rotated; i++) {
-        fragment.insertBefore(rootNode.lastElementChild!, fragment.firstChild);
-      }
-      for (let i = rotated; i < shift; i++) {
-        fragment.insertBefore(this.nodesPool!.obtain() as HTMLElement, fragment.firstChild);
-      }
-      rootNode.insertBefore(fragment, rootNode.firstChild);
+      this.#rotateRowsThroughFragment(delta, rotated);
     }
 
     if (!focusedInBand) {
@@ -337,11 +323,68 @@ export class RowsRenderer extends BaseRenderer {
       const survivor = rootNode.children[nextSize - 1];
       const after = focusedRow.nextSibling;
 
-      rootNode.insertBefore(focusedRow, survivor);
-      rootNode.insertBefore(survivor, after);
+      moveRow(rootNode, focusedRow, survivor, movesInPlace);
+      moveRow(rootNode, survivor, after, movesInPlace);
     }
 
     return focusedElement as HTMLElement;
+  }
+
+  /**
+   * Rotates the rows that left the band to its other end one by one, with `moveBefore()`, so that no
+   * row is detached on the way. The order matches `#rotateRowsThroughFragment`.
+   *
+   * @param {number} delta The change of the band's offset.
+   * @param {number} rotated The number of rows that leave the band.
+   */
+  #rotateRowsInPlace(delta: number, rotated: number) {
+    const rootNode = this.rootNode as HTMLElement;
+
+    if (delta > 0) {
+      for (let i = 0; i < rotated; i++) {
+        moveRow(rootNode, rootNode.firstElementChild!, null, true);
+      }
+
+      return;
+    }
+
+    for (let i = 0; i < rotated; i++) {
+      moveRow(rootNode, rootNode.lastElementChild!, rootNode.firstChild, true);
+    }
+    for (let i = rotated; i < -delta; i++) {
+      rootNode.insertBefore(this.nodesPool!.obtain() as HTMLElement, rootNode.firstChild);
+    }
+  }
+
+  /**
+   * Rotates the rows that left the band to its other end through a document fragment, which detaches
+   * them for the length of the move.
+   *
+   * @param {number} delta The change of the band's offset.
+   * @param {number} rotated The number of rows that leave the band.
+   */
+  #rotateRowsThroughFragment(delta: number, rotated: number) {
+    const rootNode = this.rootNode as HTMLElement;
+    const fragment = rootNode.ownerDocument.createDocumentFragment();
+
+    if (delta > 0) {
+      // Scrolled down: the first `delta` rows left the band – send them to the bottom, in order.
+      for (let i = 0; i < rotated; i++) {
+        fragment.appendChild(rootNode.firstElementChild!);
+      }
+      rootNode.appendChild(fragment);
+
+      return;
+    }
+
+    // Scrolled up: the rows past the new band's end left it – send them to the top, in order.
+    for (let i = 0; i < rotated; i++) {
+      fragment.insertBefore(rootNode.lastElementChild!, fragment.firstChild);
+    }
+    for (let i = rotated; i < -delta; i++) {
+      fragment.insertBefore(this.nodesPool!.obtain() as HTMLElement, fragment.firstChild);
+    }
+    rootNode.insertBefore(fragment, rootNode.firstChild);
   }
 
   /**
@@ -359,5 +402,35 @@ export class RowsRenderer extends BaseRenderer {
     const row = lightNode?.closest('tr') ?? null;
 
     return row !== null && row.parentNode === rootNode ? row as HTMLElement : null;
+  }
+}
+
+/**
+ * Tells whether the engine can move a connected element inside the TBODY without detaching it
+ * (`Element#moveBefore()`). A detached focused cell makes Firefox and WebKit blur it, and the rows
+ * renderer then focuses it again while it shows another row; a screen reader takes that `focus` event
+ * as a move and jumps its reading cursor to that row. A move that never detaches the cell keeps the
+ * focus where it is, so no event fires. The method is newer than the browser floor, so it is detected.
+ *
+ * @param {HTMLElement} rootNode The TBODY.
+ * @returns {boolean}
+ */
+function canMoveWithoutDetaching(rootNode: HTMLElement): boolean {
+  return typeof rootNode.moveBefore === 'function';
+}
+
+/**
+ * Moves a row of the TBODY before the reference node, without detaching it when `inPlace` is set.
+ *
+ * @param {HTMLElement} rootNode The TBODY.
+ * @param {Element} row The row to move.
+ * @param {Node|null} referenceNode The node to move the row before; `null` moves it to the end.
+ * @param {boolean} inPlace `true` to move with `moveBefore()`, `false` to move with `insertBefore()`.
+ */
+function moveRow(rootNode: HTMLElement, row: Element, referenceNode: Node | null, inPlace: boolean) {
+  if (inPlace) {
+    rootNode.moveBefore(row, referenceNode);
+  } else {
+    rootNode.insertBefore(row, referenceNode);
   }
 }
