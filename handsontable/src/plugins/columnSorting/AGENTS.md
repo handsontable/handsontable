@@ -716,6 +716,23 @@ sibling selector), and `wasClickableHeaderClicked()` accepts `SORT_INDICATOR_SLO
 alongside `HEADER_SPAN_CLASS`. Pinned by "a click precisely on the indicator icon toggles the sort
 order" in `tests/e2e/icon-elements.spec.ts`.
 
+**The label is matched by ancestor too, not by the target's own class.** A header label may carry markup
+(`<b>Age</b> in <i>years</i>`), and the press targets the innermost element, so a test on the target's own
+class sorted only on the bare text of `span.colHeader`. `wasClickableHeaderClicked()` therefore asks
+`closest('.colHeader')` for the label and `closest('.ht-sort-indicator')` for the arrow. Two rules keep that
+from over-matching, and both are pinned:
+
+- **The label must sit inside the pressed `th`** (`#isPressOnPlainLabelContent()`). `closest()` walks to the
+  document root, so a host element that carries the class `colHeader` around the grid would otherwise make every
+  part of a header, its padding included, sort.
+- **Markup that handles a press on its own is excluded** (`INTERACTIVE_LABEL_CONTENT_SELECTOR`: links, buttons,
+  form fields, `label`, `summary`, the button, link and checkbox roles, `contenteditable`, `tabindex`,
+  `onclick`). A press on a link must follow the link, not also sort, and a label around a checkbox must toggle it
+  alone. A listener added with `addEventListener()` to any other element cannot be seen from here, so such markup
+  sorts as well as running its handler. Before the ancestor match, a press on any child of the label did nothing.
+
+Pinned by `tests/e2e/column-sorting-html-header-label.spec.ts`.
+
 ## The `initialConfig` sort applied ahead of its data waits for `onDataReady()`
 
 While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,

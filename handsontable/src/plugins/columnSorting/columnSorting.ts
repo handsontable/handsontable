@@ -121,6 +121,26 @@ const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
  */
 const SORT_INDICATOR_SLOT_CLASS = 'ht-sort-indicator';
 
+/**
+ * Markup inside a header label that handles a press itself. A press on it does not sort the column.
+ * A listener added with `addEventListener()` to any other element cannot be seen from here.
+ */
+const INTERACTIVE_LABEL_CONTENT_SELECTOR = [
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'summary',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="checkbox"]',
+  '[contenteditable]',
+  '[tabindex]',
+  '[onclick]',
+].join(', ');
+
 registerRootComparator(PLUGIN_KEY, rootComparator);
 markBuiltInRootComparator(rootComparator, positionComparator);
 
@@ -1581,9 +1601,35 @@ export class ColumnSorting extends BasePlugin {
     // span), and a press then targets that child.
     const pressedIndicator = target.closest(`.${SORT_INDICATOR_SLOT_CLASS}`) !== null;
 
-    return (
-      headerActionEnabled && (hasClass(target, HEADER_SPAN_CLASS) || pressedIndicator)
-    );
+    // The same goes for the label: a header label may carry markup (`<b>Age</b> in <i>years</i>`),
+    // and the press targets the innermost element, so the label is matched by ancestor. Markup that is
+    // interactive on its own (a link, a button, a form field) keeps its own behavior and does not sort.
+    const pressedLabel = this.#isPressOnPlainLabelContent(target);
+
+    return headerActionEnabled && (pressedLabel || pressedIndicator);
+  }
+
+  /**
+   * Checks whether a press landed on the header label's own content: the label itself or markup inside it
+   * that does not handle a press on its own.
+   *
+   * The label is looked up from the pressed header cell, never from the page: a host element that happens
+   * to carry the class `colHeader` around the grid must not make every part of a header sort.
+   *
+   * @param {HTMLElement} target The element the press targeted.
+   * @returns {boolean}
+   */
+  #isPressOnPlainLabelContent(target: HTMLElement): boolean {
+    const label = target.closest(`.${HEADER_SPAN_CLASS}`);
+    const header = target.closest('th');
+
+    if (label === null || (header !== null && !header.contains(label))) {
+      return false;
+    }
+
+    const interactive = target.closest(INTERACTIVE_LABEL_CONTENT_SELECTOR);
+
+    return interactive === null || !label.contains(interactive);
   }
 
   /**
