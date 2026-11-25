@@ -740,7 +740,12 @@ export class FreezeBar extends BasePlugin {
     }
 
     if (this.hot.getSettings().ariaTags) {
-      separator.setAttribute('aria-valuenow', String(count));
+      // VoiceOver reads `aria-valuenow` of a separator as a percentage of its range, so the count is also the value text.
+      // Digits need no plural form in any language, and the bar's name says what the count is of.
+      setAttribute(separator, [
+        ['aria-valuenow', count],
+        ['aria-valuetext', count],
+      ]);
     }
   }
 
