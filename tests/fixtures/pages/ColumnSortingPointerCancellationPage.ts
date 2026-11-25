@@ -151,12 +151,37 @@ export class ColumnSortingPointerCancellationPage {
     return { x: box.x + (box.width / 2), y: box.y + (box.height / 2) };
   }
 
-  /** Move to the sorting label of a header and hold the left button there. */
-  async pressLabel(name: string): Promise<void> {
-    const point = await this.centreOf(this.sortLabel(name));
+  /** Move to the centre of any element and hold the left button there. */
+  async pressOn(locator: Locator): Promise<void> {
+    const point = await this.centreOf(locator);
 
     await this.page.mouse.move(point.x, point.y);
     await this.page.mouse.down();
+  }
+
+  /** Press and release on the centre of the same element, a click with the real pointer. */
+  async clickOn(locator: Locator): Promise<void> {
+    await this.pressOn(locator);
+    await this.releaseOver(locator);
+  }
+
+  /** Sets the header labels, which may carry markup. */
+  async setColHeaders(labels: string[]): Promise<void> {
+    await this.page.evaluate((colHeaders) => {
+      (window as unknown as { hot: any }).hot.updateSettings({ colHeaders });
+    }, labels);
+  }
+
+  /** Move to the sorting label of a header and hold the left button there. */
+  async pressLabel(name: string): Promise<void> {
+    await this.pressOn(this.sortLabel(name));
+  }
+
+  /** Tap the centre of any element with a finger. Needs `hasTouch`. */
+  async tapOn(locator: Locator): Promise<void> {
+    const point = await this.centreOf(locator);
+
+    await this.page.touchscreen.tap(point.x, point.y);
   }
 
   /** Move to the centre of a locator and release the button there. */
