@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CONDITIONS, clippingFindings, hoverFindings, nameApart, orientationFindings, overlapFindings, viewportFindings } from '../reflow.mjs';
+import { CONDITIONS, clipFromAncestors, clippingFindings, hoverFindings, nameApart, orientationFindings, overlapFindings, viewportFindings } from '../reflow.mjs';
 import { EVIDENCE_SCHEMA, findingId, mergeEvidence, validatePart } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", zoom, reflow, text spacing, hover content): the
@@ -205,6 +205,43 @@ test('two controls that share an edge do not overlap, even when the edge is long
     ['nav.hot-footer__nav a × button.over', 404],
     ['a.hot-footer__cell × button.over', 3781],
   ]);
+});
+
+const scrollBox = (fields = {}) => ({
+  position: 'static', transformed: false, clipsX: true, clipsY: true, left: 0, top: 0, right: 300, bottom: 280, ...fields,
+});
+const plain = (fields = {}) => ({
+  position: 'static', transformed: false, clipsX: false, clipsY: false, left: -1000, top: -1000, right: 5000, bottom: 5000, ...fields,
+});
+
+test('a control in the flow is clipped by every scroll box around it, each on the axes it clips', () => {
+  assert.deepEqual(clipFromAncestors({
+    position: 'static',
+    ancestors: [scrollBox(), scrollBox({ clipsX: false, top: 50, bottom: 200, left: -50, right: 900 })],
+  }), { left: 0, top: 50, right: 300, bottom: 200 });
+  assert.equal(clipFromAncestors({ position: 'relative', ancestors: [plain({ position: 'relative' })] }), undefined);
+});
+
+test('an absolutely positioned control escapes a static scroll box between it and its containing block', () => {
+  assert.equal(clipFromAncestors({ position: 'absolute', ancestors: [scrollBox(), plain({ position: 'relative' })] }), undefined);
+  assert.deepEqual(clipFromAncestors({ position: 'absolute', ancestors: [scrollBox({ position: 'relative' })] }), { left: 0, top: 0, right: 300, bottom: 280 });
+  assert.deepEqual(clipFromAncestors({ position: 'absolute', ancestors: [scrollBox({ transformed: true })] }), { left: 0, top: 0, right: 300, bottom: 280 });
+});
+
+test('past the containing block the scroll boxes clip again, and an absolute ancestor escapes in turn', () => {
+  assert.deepEqual(clipFromAncestors({
+    position: 'absolute',
+    ancestors: [scrollBox({ right: 100 }), plain({ position: 'relative' }), scrollBox({ bottom: 120 })],
+  }), { left: 0, top: 0, right: 300, bottom: 120 });
+  assert.equal(clipFromAncestors({ position: 'static', ancestors: [plain({ position: 'absolute' }), scrollBox()] }), undefined);
+});
+
+test('a fixed control, and anything inside a fixed ancestor, is clipped by nothing outside the fixed layer', () => {
+  assert.equal(clipFromAncestors({ position: 'fixed', ancestors: [scrollBox()] }), undefined);
+  assert.deepEqual(clipFromAncestors({
+    position: 'static',
+    ancestors: [scrollBox({ position: 'fixed', bottom: 44 }), scrollBox({ bottom: 10 })],
+  }), { left: 0, top: 0, right: 300, bottom: 44 });
 });
 
 test('a control is judged by the part its clipping ancestors show', () => {

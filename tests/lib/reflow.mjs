@@ -163,6 +163,51 @@ export function viewportFindings({ condition, viewport, surfaces }) {
 }
 
 /**
+ * The box a control's clipping ancestors leave on screen, in page coordinates. An ancestor clips the control
+ * only when it is on the control's containing-block chain: a `position: absolute` element (the control or an
+ * ancestor) escapes every static ancestor up to the first positioned or transformed one, and a `position:
+ * fixed` element escapes them all.
+ *
+ * @param {object} input The control.
+ * @param {string} input.position The control's computed `position`.
+ * @param {Array<{position: string, transformed: boolean, clipsX: boolean, clipsY: boolean, left: number, top: number, right: number, bottom: number}>} input.ancestors
+ *   Its ancestors from the parent outward, each with its computed `position`, whether it has a transform,
+ *   which axes its `overflow` clips, and its padding box in page coordinates.
+ * @returns {{left: number, top: number, right: number, bottom: number} | undefined} The box, or none when no
+ *   ancestor clips the control.
+ */
+export function clipFromAncestors({ position, ancestors }) {
+  if (position === 'fixed') {
+    return undefined;
+  }
+
+  let clip;
+  let escaping = position === 'absolute';
+
+  for (const ancestor of ancestors) {
+    const containsAbsolute = ancestor.position !== 'static' || ancestor.transformed;
+
+    if ((!escaping || containsAbsolute) && (ancestor.clipsX || ancestor.clipsY)) {
+      clip = clip ?? { left: -Infinity, top: -Infinity, right: Infinity, bottom: Infinity };
+      if (ancestor.clipsX) {
+        clip.left = Math.max(clip.left, ancestor.left);
+        clip.right = Math.min(clip.right, ancestor.right);
+      }
+      if (ancestor.clipsY) {
+        clip.top = Math.max(clip.top, ancestor.top);
+        clip.bottom = Math.min(clip.bottom, ancestor.bottom);
+      }
+    }
+    if (ancestor.position === 'fixed') {
+      break;
+    }
+    escaping = ancestor.position === 'absolute' || (escaping && !containsAbsolute);
+  }
+
+  return clip;
+}
+
+/**
  * Controls drawn over each other: two controls whose boxes share an area, one not inside the other, on the
  * same layer: both outside a popup, or both in the same popup. Text spacing and zoom push labels into their
  * neighbors. A control is judged by the part of it its clipping ancestors show: a checkbox scrolled out of

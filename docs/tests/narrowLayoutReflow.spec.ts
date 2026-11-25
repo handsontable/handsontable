@@ -2,6 +2,8 @@ import { test, expect, type Page } from '@playwright/test';
 
 const PHONE_320 = { width: 320, height: 256 };
 const ZOOM_200 = { width: 640, height: 512 };
+const TEXT_SPACING_CSS = '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }'
+  + ' p { margin-bottom: 2em !important; }';
 
 /**
  * Reads how far the page reaches past the viewport's right edge. Zero means the page reads with one
@@ -56,14 +58,38 @@ test.describe('docs layout at 320 CSS px and at 200% zoom', () => {
       const bar = document.querySelector<HTMLElement>('.mobile-subheader')!.getBoundingClientRect();
       const frame = document.querySelector<HTMLElement>('.main-frame')!;
 
+      const range = document.createRange();
+
+      range.selectNodeContents(crumbs);
+
       return {
         textFits: crumbs.scrollWidth <= crumbs.clientWidth,
-        wrapped: crumbs.getClientRects()[0].height > parseFloat(getComputedStyle(crumbs).lineHeight) * 1.5,
+        wrapped: new Set([...range.getClientRects()].map(line => Math.round(line.top))).size > 1,
         barInsideViewport: bar.right <= document.documentElement.clientWidth,
         contentStartsBelowBar: Math.abs(parseFloat(getComputedStyle(frame).paddingTop) - bar.bottom) <= 1,
       };
     })).toEqual({ textFits: true, wrapped: true, barInsideViewport: true, contentStartsBelowBar: true });
     expect(await sidewaysOverflow(page)).toBeLessThanOrEqual(0);
+  });
+
+  test('a heading scrolled into view stops below the sub-bar the breadcrumbs make taller', async({ page, baseURL }) => {
+    await page.setViewportSize(PHONE_320);
+    await page.goto(`${baseURL}/angular-data-grid/accessibility/`);
+    await expect(page.locator('.mobile-breadcrumbs')).toContainText('Accessibility and navigation / Accessibility');
+    await page.addStyleTag({ content: TEXT_SPACING_CSS });
+
+    await expect.poll(() => page.evaluate(() => {
+      const bar = document.querySelector<HTMLElement>('.mobile-subheader')!.getBoundingClientRect();
+      const heading = [...document.querySelectorAll<HTMLElement>('.sl-markdown-content h2[id]')].at(-1)!;
+
+      heading.scrollIntoView({ block: 'start', behavior: 'instant' });
+
+      return {
+        barWrapped: bar.height > 50,
+        paddingFollowsBar: Math.abs(parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) - (bar.bottom + 24)) <= 1,
+        headingBelowBar: heading.getBoundingClientRect().top >= bar.bottom,
+      };
+    })).toEqual({ barWrapped: true, paddingFollowsBar: true, headingBelowBar: true });
   });
 
   test('card titles wrap instead of ending in an ellipsis', async({ page, baseURL }) => {
@@ -119,7 +145,6 @@ test.describe('docs layout at 320 CSS px and at 200% zoom', () => {
   for (const [what, path] of [
     ['keys in prose', 'javascript-data-grid/formula-calculation/'],
     ['inline code in a callout', 'javascript-data-grid/autocomplete-cell-type/'],
-    ['the not-found page\'s game', 'javascript-data-grid/page-that-does-not-exist/'],
   ]) {
     test(`${what} fit at 320 CSS px`, async({ page, baseURL }) => {
       await page.setViewportSize(PHONE_320);
@@ -129,6 +154,31 @@ test.describe('docs layout at 320 CSS px and at 200% zoom', () => {
       expect(await sidewaysOverflow(page)).toBeLessThanOrEqual(0);
     });
   }
+
+  test('the not-found page\'s game draws 28 px cells at 320 CSS px, and follows the width when it changes', async({ page, baseURL }) => {
+    const gameState = () => page.evaluate(() => {
+      const cell = document.querySelector<HTMLElement>('.minesweeper-grid .ht_master .htCore tbody td');
+      const game = document.querySelector<HTMLElement>('.minesweeper')!.getBoundingClientRect();
+
+      return {
+        cell: cell?.offsetWidth ?? 0,
+        gameInsideViewport: game.right <= document.documentElement.clientWidth,
+        pageFits: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      };
+    });
+
+    await page.setViewportSize(ZOOM_200);
+    await page.goto(`${baseURL}/javascript-data-grid/page-that-does-not-exist/`);
+    await expect(page.locator('.minesweeper-grid .handsontable').first()).toBeVisible();
+    await expect.poll(gameState).toEqual({ cell: 36, gameInsideViewport: true, pageFits: true });
+
+    await page.setViewportSize(PHONE_320);
+    await expect.poll(gameState).toEqual({ cell: 28, gameInsideViewport: true, pageFits: true });
+
+    await page.reload();
+    await expect(page.locator('.minesweeper-grid .handsontable').first()).toBeVisible();
+    await expect.poll(gameState).toEqual({ cell: 28, gameInsideViewport: true, pageFits: true });
+  });
 
   test('the hook names in the events example wrap instead of ending in an ellipsis', async({ page, baseURL }) => {
     await page.setViewportSize(PHONE_320);

@@ -76,9 +76,9 @@
   margin-top: 0;
 }
 
-/* An example's own output (a log, a value readout) wraps at narrow widths
-   instead of being cut off by .hot-example (WCAG 1.4.10). The grid keeps its
-   own text rules. */
+/* An example's own output (a log, a value readout) wraps at every width
+   instead of being cut off by .hot-example (WCAG 1.4.10, 1.4.4, 1.4.12). The
+   grid keeps its own text rules. */
 .hot-example-preview pre:not(:where(.handsontable *)) {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
