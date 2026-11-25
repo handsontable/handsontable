@@ -32,6 +32,7 @@ import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
 import { registerMenuEntries } from '../../utils/menu/menuEntries';
+import { returnFocusToGrid } from '../../utils/menu/menu/utils';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { LICENSE } from './feature.generated';
 import { COMMENT_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
@@ -452,6 +453,18 @@ export class Comments extends BasePlugin {
       group: SHORTCUTS_GROUP,
     });
 
+    // A comment a hover or the API opened is not focused, so the grid's context is the active one and
+    // the plugin's own Escape below never runs for it. Without this shortcut only a pointer move could
+    // hide such a comment (WCAG 1.4.13). It returns nothing, so the grid's other Escape shortcuts run.
+    gridContext?.addShortcut({
+      keys: [['Escape']],
+      callback: () => {
+        this.hide();
+      },
+      runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && !this.#editor?.isFocused()),
+      group: SHORTCUTS_GROUP,
+    });
+
     this.#resize?.registerShortcuts(pluginContext, SHORTCUTS_GROUP);
 
     pluginContext.addShortcut({
@@ -460,6 +473,7 @@ export class Comments extends BasePlugin {
         this.#editor?.setValue(this.#commentValueBeforeSave);
         this.hide();
         manager.setActiveContextName('grid');
+        this.#returnFocusToCell();
       },
       runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && this.#editor?.isFocused()),
       group: SHORTCUTS_GROUP,
@@ -470,6 +484,7 @@ export class Comments extends BasePlugin {
       callback: () => {
         this.hide();
         manager.setActiveContextName('grid');
+        this.#returnFocusToCell();
       },
       runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && this.#editor?.isFocused()),
       group: SHORTCUTS_GROUP,
@@ -1097,6 +1112,16 @@ export class Comments extends BasePlugin {
     }
 
     return comment[property as keyof CommentMeta];
+  }
+
+  /**
+   * Returns the browser focus to the highlighted cell after a shortcut closed the focused editor.
+   * Hiding the editor leaves the focus on its hidden textarea, and then on the document body, where a
+   * screen reader has nothing to read (WCAG 2.4.3). The focus is moved only while it is still in the
+   * editor or on the body, and only to a rendered cell: with no cell selected it stays where it is.
+   */
+  #returnFocusToCell() {
+    returnFocusToGrid(this.hot, this.#editor?.getEditorElement());
   }
 
   /**

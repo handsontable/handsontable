@@ -18,6 +18,8 @@ const GRAB_INSET = 4;
 type CommentsFixtureWindow = Window & {
   hot: {
     getCellMetaTransient: (row: number, col: number) => { comment?: { value?: string } },
+    selectCell: (row: number, col: number) => boolean,
+    getSelectedRangeActive: () => { highlight: { row: number, col: number } } | undefined,
     getPlugin: (name: 'comments') => {
       showAtCell: (row: number, col: number) => boolean,
       hide: () => void,
@@ -286,6 +288,32 @@ export class CommentsEditorResizePage {
   async hideEditor(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as CommentsFixtureWindow)
       .hot.getPlugin('comments').hide());
+  }
+
+  /**
+   * Selects a cell through the API, which also makes the grid listen to the keyboard. A real click
+   * on a commented cell would rest the pointer on it and arm the hover show.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as CommentsFixtureWindow).hot.selectCell(r, c);
+    }, [row, col]);
+  }
+
+  /**
+   * The highlighted cell of the active selection, or null when nothing is selected.
+   *
+   * @returns {Promise<[number, number] | null>}
+   */
+  async highlightedCell(): Promise<[number, number] | null> {
+    return this.page.evaluate(() => {
+      const highlight = (window as unknown as CommentsFixtureWindow).hot.getSelectedRangeActive()?.highlight;
+
+      return highlight ? [highlight.row, highlight.col] as [number, number] : null;
+    });
   }
 
   /**

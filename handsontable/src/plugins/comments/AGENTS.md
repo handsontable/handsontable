@@ -227,6 +227,32 @@ true and so would never observe a hide that is still pending.
 
 Pinned by `tests/e2e/comments-editor-resize-alternatives.spec.ts`.
 
+## Closing from the keyboard: the focus returns, and Escape reaches a hover comment
+
+Two Escape shortcuts exist, in two contexts, and both are needed (DEV-4008).
+
+- **`plugin:comments`, focused editor.** Escape and Ctrl/Cmd+Enter hide the editor, hand the keyboard back
+  to `grid`, and then call `#returnFocusToCell()`. Hiding leaves the focus on the hidden textarea and then
+  on `body`: the grid still listens, so the arrow keys work, but a screen reader has nothing focused (WCAG
+  2.4.3). The helper is `returnFocusToGrid()` from `../../utils/menu/menu/utils.ts`, called with the
+  editor element as the closing surface, so it moves the focus only while it is still in the editor or on
+  `body`, and only to a rendered highlighted cell. The target is the highlighted cell, not the comment's
+  cell: they differ when the API opened the editor over another cell. The focus move blurs the textarea at
+  once, so the blur's save runs inside the shortcut, not a frame later. Tab and Shift+Tab are left alone:
+  they forward to the grid, whose selection change focuses the cell.
+- **`grid`, unfocused editor.** A comment a hover or `showAtCell()` opened is not focused, so the active
+  context is `grid` and the plugin's Escape never runs for it. The grid-context Escape
+  (`runOnlyIf: visible && !focused`) hides it (WCAG 1.4.13). It returns nothing, so the other Escape
+  shortcuts of the grid context still run. The pointer still rests on the cell afterwards, and nothing
+  shows the comment again until it enters another cell: `#cellBelowCursor` short-circuits, and no
+  `mouseover` fires without a move.
+
+**Known limits.** Escape reaches a shortcut only while the grid listens, so a comment hovered on a grid
+the user never activated is not dismissed by it. And Escape in a focused editor closes nothing when no
+cell is selected (the editor opened through the API and focused by a click): that was so before DEV-4008.
+
+Pinned by `tests/e2e/comments-escape-focus.spec.ts`.
+
 ## What survives a disable, and what has to be registered again
 
 `disablePlugin()` removes every hook registered through the tracked `this.addHook()`, but the objects the
@@ -409,6 +435,8 @@ another cell, and the save wrote one cell's comment over another's. Pinned by `t
   behavior, which needs a real browser)
 - `npm run test:e2e --prefix tests -- comments-merged-editor-size` (Playwright — the box height on merged
   ranges)
+- `npm run test:e2e --prefix tests -- comments-escape-focus` (Playwright — the focus after a keyboard close,
+  and Escape on a hover comment)
 
 ## `renderMode: 'onChange'`
 

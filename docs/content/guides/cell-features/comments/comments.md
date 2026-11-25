@@ -451,7 +451,7 @@ Cells with comments display a small indicator in the corner. Users can view, edi
 | <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>⌥</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd> | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**R**</kbd> | Resize the comment box with the arrow keys | &cross; | &cross; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
-| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving and return the focus to the cell. Also hides a comment shown on hover | &cross; | &cross; |
 
 ## Related API reference
 
