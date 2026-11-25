@@ -199,7 +199,7 @@ test.describe('Headway changelog bell', () => {
     await openPage(page, { width: 360, height: 800 });
 
     const box = await page.locator('#headway-bell').boundingBox();
-    const title = await page.locator('.header-row-1 .title-wrapper').boundingBox();
+    const title = await page.locator('.header-row-1 .site-title').boundingBox();
     const controls = await page.locator('.mobile-controls').boundingBox();
 
     // 24px is WCAG 2.2's target size minimum (2.5.8).

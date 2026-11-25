@@ -20,10 +20,8 @@ html {
   }
 }
 
-/* Omit demo `.placeholder-input` fields: their example CSS uses an accent border on `:focus`;
-   this outline would stack and read as a double ring. */
-:focus-visible:not(.handsontable *, .ht-portal *, .hot-example .placeholder-input, .DocSearch-Input) {
-  outline: 2px solid var(--sl-color-accent);
+:focus-visible:not(.handsontable *, .ht-portal *, .DocSearch-Input) {
+  outline: 2px solid var(--sl-color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -81,7 +79,7 @@ html {
 .hot-example input[type="checkbox"]:checked:focus-visible:not(.handsontable input) {
   outline: 2px solid var(--sl-color-bg);
   outline-offset: 0;
-  box-shadow: 0 0 0 4px var(--sl-color-accent);
+  box-shadow: 0 0 0 4px var(--sl-color-focus-ring);
 }
 
 .sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after,

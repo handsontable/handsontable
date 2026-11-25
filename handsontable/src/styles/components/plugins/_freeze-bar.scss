@@ -61,7 +61,9 @@
           var(--ht-freeze-bar-color) var(--ht-freeze-bar-header-to)
         );
 
-        &.ht-freeze-bar--active {
+        // a bar that waits for the click that picks the freeze line is drawn as a held one
+        &.ht-freeze-bar--active,
+        &.ht-freeze-bar--armed {
           --ht-freeze-bar-header-paint: var(--ht-freeze-bar-highlight-color);
         }
 
@@ -171,7 +173,8 @@
             background: var(--ht-freeze-bar-hover-color);
           }
 
-          &.ht-freeze-bar--hover.ht-freeze-bar--active::after {
+          &.ht-freeze-bar--hover.ht-freeze-bar--active::after,
+          &.ht-freeze-bar--hover.ht-freeze-bar--armed::after {
             background: var(--ht-freeze-bar-highlight-color);
           }
 

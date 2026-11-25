@@ -22,7 +22,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-### Changes to IME
+## Changes to IME
 Handsontable 14.0 changes how it manages browser focus. The focus now goes to the cell/header elements, not an underlying `TEXTAREA` element as in versions <=13.1.0. This change allows screen readers to recognize the table contents correctly.
 However, this makes the IME editor not compatible with our "fast edit" functionality (the ability to start editing a cell without opening the editor first).
 
@@ -30,23 +30,23 @@ To maintain the IME functionalities, Handsontable 14.0 introduces the [`imeFastE
 
 To utilize it in your implementation, set the [`imeFastEdit`](@/api/options.md#imefastedit) option to `true` in your settings object.
 
-### Adjust your application to the modified keyboard shortcuts
+## Adjust your application to the modified keyboard shortcuts
 The new Handsontable version comes with an updated set of keyboard shortcuts. Most of them are new additions, but some existing shortcuts also change. Make sure to adjust your application to the current specification.
 
-##### <kbd>Ctrl/Cmd</kbd> + <kbd>A</kbd>
+### <kbd>Ctrl/Cmd</kbd> + <kbd>A</kbd>
 
 | Before  | After  |
 | ------------ | ------------ |
 | Selects all cells and headers  | Selects all cells _without_ headers  |
 | Selection highlight moves to the top-left cell of the selection  | Focused cell does not move  |
 
-##### <kbd>TAB</kbd> in the filtering menu
+### <kbd>TAB</kbd> in the filtering menu
 
 | Before  | After  |
 | ------------ | ------------ |
 | Iterates through the content list  | Iterates through the menu items. When focused on the search input, the arrow keys allow iterating through the content list  |
 
-##### Hover behavior in the filtering menu
+### Hover behavior in the filtering menu
 
 | Before  | After  |
 | ------------ | ------------ |
@@ -54,7 +54,7 @@ The new Handsontable version comes with an updated set of keyboard shortcuts. Mo
 
 More information: [Keyboard Shortcuts page in the documentation](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
 
-### Check if your template looks fine with the updated colors
+## Check if your template looks fine with the updated colors
 To make the table more accessible, this release changes the color of the invalid cells and some of the cell icons. Make sure it looks good with your application template.
 
 | Before  | After  |
@@ -64,7 +64,7 @@ To make the table more accessible, this release changes the color of the invalid
 | Invalid autocomplete-typed cells arrow: `#eeeeee`  | Invalid autocomplete-typed cells arrow: `#555555`   |
 | Invalid autocomplete-typed cells arrow on hover: `#777777`   | Invalid autocomplete-typed cells arrow on hover: `#1a1a1a`    |
 
-### Update `ContextMenu.open()` and `DropdownMenu.open()` calls
+## Update `ContextMenu.open()` and `DropdownMenu.open()` calls
 
 Handsontable 14.0 changes the accepted `position` argument for `ContextMenu.open()` and `DropdownMenu.open()`. When you open the menu programmatically with a literal position, use an object with `top` and `left` properties instead of `pageX` and `pageY`. Passing a native browser `Event` instance still works the same as before.
 

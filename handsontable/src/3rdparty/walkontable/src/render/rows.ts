@@ -12,9 +12,10 @@ import {
 } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
-  A11Y_ROWGROUP,
-  A11Y_ROWINDEX
+  A11Y_ROWINDEX,
+  rebuildAccessibilityObject
 } from '../../../../helpers/a11y';
+import { dropRowGroupRole, dropRowRole, giveRowGroupRole } from './ariaAttributes';
 
 const ROW_CLASSNAMES = {
   rowEven: 'ht__row_even',
@@ -61,6 +62,12 @@ export class RowsRenderer extends BaseRenderer {
   #lastEpoch = 0;
 
   /**
+   * The number of column header rows the rows' `aria-rowindex` was counted from on the last draw, `null` before
+   * the first one and for a grid that writes no ARIA.
+   */
+  #lastColumnHeadersCount: number | null = null;
+
+  /**
    * Creates a new RowsRenderer instance.
    *
    * @param {HTMLElement} rootNode - The root node (TBODY element) for managing TR elements.
@@ -86,6 +93,32 @@ export class RowsRenderer extends BaseRenderer {
   }
 
   /**
+   * Tells whether the number of column header rows changed since the last draw that painted rows. The first draw,
+   * a draw with no rows (the change waits for the draw that shows them), and a grid that writes no ARIA, answer
+   * `false`.
+   *
+   * @returns {boolean}
+   */
+  #hasColumnHeadersCountChanged(): boolean {
+    if (!this.table.isAriaEnabled()) {
+      this.#lastColumnHeadersCount = null;
+
+      return false;
+    }
+
+    if (this.table.rowsToRender === 0) {
+      return false;
+    }
+
+    const { columnHeadersCount } = this.table;
+    const hasChanged = this.#lastColumnHeadersCount !== null && this.#lastColumnHeadersCount !== columnHeadersCount;
+
+    this.#lastColumnHeadersCount = columnHeadersCount;
+
+    return hasChanged;
+  }
+
+  /**
    * Renders the cells.
    */
   render() {
@@ -98,12 +131,21 @@ export class RowsRenderer extends BaseRenderer {
         turning off the "renderAllRows" option.`);
     }
 
+    // A row is a `row`, and its section a `rowgroup`, only while the row holds a cell: a side clone that was
+    // turned off is drawn one last time with the master's rows and none of its columns.
+    const rowsHoldCells = this.table.columnsToRender + this.table.rowHeadersCount > 0;
+
     if (this.table.isAriaEnabled()) {
-      setAttribute(this.rootNode as HTMLElement, [
-        A11Y_ROWGROUP()
-      ]);
+      if (rowsToRender > 0 && rowsHoldCells) {
+        giveRowGroupRole(this.rootNode as HTMLElement);
+      } else {
+        dropRowGroupRole(this.rootNode as HTMLElement);
+      }
     }
 
+    // A reader keeps the position it learned for a row. When the column headers that shift every row's index
+    // appear or go, each row gets a new accessibility object, once, so the reader counts again.
+    const rebuildAllRows = this.#hasColumnHeadersCountChanged();
     const nextOffset = rowsToRender > 0 ? this.table.renderedRowToSource(0) : 0;
     const focusedElement = this.#recycleRows(nextOffset, rowsToRender);
 
@@ -129,7 +171,7 @@ export class RowsRenderer extends BaseRenderer {
         continue; // eslint-disable-line no-continue
       }
 
-      if (this.table.isAriaEnabled()) {
+      if (this.table.isAriaEnabled() && rowsHoldCells) {
         setAttribute(TR, [
           A11Y_ROW(),
           // `aria-rowindex` is incremented by both tbody and thead rows.
@@ -137,6 +179,12 @@ export class RowsRenderer extends BaseRenderer {
             (this.table.rowUtils?.deps?.getColumnHeaders() as Function[])?.length ?? 0
           ) + 1),
         ]);
+
+        if (rebuildAllRows) {
+          rebuildAccessibilityObject(TR);
+        }
+      } else if (this.table.isAriaEnabled()) {
+        dropRowRole(TR);
       }
 
       if ((sourceRowIndex + 1) % 2 === 0) {

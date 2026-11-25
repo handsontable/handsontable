@@ -11,7 +11,7 @@
  * test:unit`, which runs `build:styles` first). The full unit/E2E suites are
  * CI's job.
  */
-import { execSync, spawnSync } from 'node:child_process';
+import { execFileSync, execSync, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -83,21 +83,113 @@ export function checkEntryFilenames(root) {
 }
 
 /**
- * Resolve the base ref to diff against — the merge-base with the trunk.
+ * Run git and return trimmed stdout. Arguments go through an argv array, so a ref
+ * name is never parsed by a shell.
  *
  * @param {string} cwd Directory inside the repository to run git from.
+ * @param {string[]} args Git arguments.
+ * @returns {string} Trimmed stdout. Throws when git exits non-zero.
+ */
+function git(cwd, args) {
+  return execFileSync('git', args, { encoding: 'utf8', cwd, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+}
+
+/**
+ * Ask GitHub which branch the current branch's open pull request targets. Optional
+ * and offline-safe: no `gh`, no network, no login, no open pull request, or a slow
+ * answer all read as "unknown", and nothing is printed. A closed or merged pull
+ * request is ignored, so a reused branch name cannot inherit an old base.
+ *
+ * @param {string} cwd Directory inside the repository to run `gh` from.
+ * @returns {string|null} The base branch name, or `null` when it cannot be told.
+ */
+export function pullRequestBaseRef(cwd) {
+  const result = spawnSync('gh', ['pr', 'view', '--json', 'baseRefName,state', '--jq', '.state + " " + .baseRefName'], {
+    cwd,
+    encoding: 'utf8',
+    timeout: 3000,
+    stdio: ['ignore', 'pipe', 'ignore'],
+    env: { ...process.env, GH_PROMPT_DISABLED: '1', GH_NO_UPDATE_NOTIFIER: '1' },
+  });
+
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+
+  const [state, name] = result.stdout.trim().split(' ');
+
+  return state === 'OPEN' && name ? name : null;
+}
+
+/**
+ * Resolve the base ref to diff against — the merge-base with the branch the push is
+ * really based on. A branch cut from `release/x.y.z` must not count the release line's
+ * own commits as its changes, so `origin/develop` alone is not enough.
+ *
+ * In order:
+ * 1. The base branch of the branch's pull request, when GitHub can say and
+ *    `origin/<name>` exists.
+ * 2. The closest of `origin/develop`, `origin/release/*` and `origin/lts/*`: the one
+ *    whose merge-base with HEAD is the fewest commits behind it. A tie goes to
+ *    `origin/develop`, which is listed first.
+ * 3. The merge-base with a local `develop`, then the literal `develop`.
+ *
+ * @param {string} cwd Directory inside the repository to run git from.
+ * @param {object} [options] Test seam.
+ * @param {(cwd: string) => (string|null)} [options.prBaseRef] Returns the pull request's
+ *   base branch name, or `null`. Defaults to a `gh` lookup.
  * @returns {string} A ref/SHA usable in `git diff <base>...HEAD`.
  */
-function resolveBase(cwd) {
-  for (const ref of ['origin/develop', 'develop']) {
+export function resolveBase(cwd, { prBaseRef = pullRequestBaseRef } = {}) {
+  const mergeBaseWith = ref => git(cwd, ['merge-base', ref, 'HEAD']);
+
+  try {
+    const name = prBaseRef(cwd);
+
+    if (name) {
+      return mergeBaseWith(`refs/remotes/origin/${name}`);
+    }
+  } catch {
+    // no pull request, or its base is not fetched: fall through to the heuristic
+  }
+
+  let refs = [];
+
+  try {
+    refs = git(cwd, [
+      'for-each-ref',
+      '--format=%(refname)',
+      'refs/remotes/origin/release',
+      'refs/remotes/origin/lts',
+    ]).split('\n').filter(Boolean);
+  } catch {
+    // no release refs to consider
+  }
+
+  let best = null;
+
+  for (const ref of ['refs/remotes/origin/develop', ...refs]) {
     try {
-      return execSync(`git merge-base ${ref} HEAD`, { encoding: 'utf8', cwd }).trim();
+      const mergeBase = mergeBaseWith(ref);
+      const distance = Number(git(cwd, ['rev-list', '--count', `${mergeBase}..HEAD`]));
+
+      if (best === null || distance < best.distance) {
+        best = { mergeBase, distance };
+      }
     } catch {
-      // try the next candidate
+      // unknown ref, or no common ancestor (a shallow clone): not a candidate
     }
   }
 
-  return 'develop';
+  if (best) {
+    return best.mergeBase;
+  }
+
+  try {
+    return mergeBaseWith('develop');
+  } catch {
+    return 'develop';
+  }
 }
 
 /**

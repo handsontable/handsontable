@@ -17,11 +17,10 @@
       - gridcell "Eve"
       - gridcell "Red" [selected]
   - rowgroup:
-    - row "Select whole grid Name Color":
-      - gridcell "Select whole grid"
+    - row "Name Color":
+      - gridcell
       - columnheader "Name"
       - columnheader "Color"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -34,9 +33,8 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+    - row:
+      - gridcell
   - textbox "Color, row 1"
 # portal
 - menu "Column menu":

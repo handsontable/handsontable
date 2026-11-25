@@ -19,7 +19,7 @@ export interface SyncBudgetGrid {
  */
 export type AfterBuild =
   'toggleAutoColumnSize' | 'toggleAutoColumnSizeWithoutRender' | 'enableAutoRowSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'selectCell0x25InBatch' |
-  'selectCell0x25WhileSuspended' | 'suspendRender';
+  'selectCell0x25WhileSuspended' | 'suspendRender' | 'recordRenderCount' | 'selectCell0x159' | 'scrollViewportToColumn159' | 'scrollViewportToColumn159CountingReads';
 
 /**
  * What the constructor did: the visual columns it read cell meta for (the columns measured before the
@@ -59,6 +59,10 @@ interface FixtureHot {
 
 interface FixtureWindow extends Window {
   hot: FixtureHot;
+  Handsontable: { hooks: { add(key: string, callback: () => void): void } };
+  renderCount: number;
+  rendersAtBuild: number;
+  metaReadsDuringCall: number;
   constructorColumns: number[];
   buildGrid(settings: Record<string, unknown>, budget?: number): void;
 }
@@ -151,6 +155,37 @@ export class AutoColumnSizeSyncBudgetPage {
           break;
         case 'suspendRender':
           win.hot.suspendRender();
+          break;
+        case 'selectCell0x159':
+          win.hot.selectCell(0, 159);
+          break;
+        case 'scrollViewportToColumn159':
+          win.hot.scrollViewportTo({ col: 159 });
+          break;
+        case 'scrollViewportToColumn159CountingReads': {
+          // The sampler reads the cell meta of a column it measures, and the draw does not read it this way, so
+          // the reads during the call are the columns the call measured.
+          const read = win.hot.getCellMetaTransient;
+          let reads = 0;
+
+          win.hot.getCellMetaTransient = (row: number, column: number) => {
+            reads += 1;
+
+            return read(row, column);
+          };
+
+          try {
+            win.hot.scrollViewportTo({ col: 159 });
+          } finally {
+            win.hot.getCellMetaTransient = read;
+          }
+
+          win.metaReadsDuringCall = reads;
+          break;
+        }
+        case 'recordRenderCount':
+          // Read in the constructor's task, before any idle chunk can end the sweep.
+          win.rendersAtBuild = win.renderCount;
           break;
         default:
           break;
@@ -395,6 +430,79 @@ export class AutoColumnSizeSyncBudgetPage {
       const { hot } = window as unknown as FixtureWindow;
 
       return (hot.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement).scrollWidth;
+    });
+  }
+
+  /**
+   * Counts the draws of every grid the fixture builds from now on. A case reads the draws made after the
+   * constructor with `build(…, 'recordRenderCount')` and `rendersSinceBuild()`.
+   */
+  async countRenders(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as FixtureWindow;
+
+      win.renderCount = 0;
+      win.rendersAtBuild = 0;
+      win.Handsontable.hooks.add('afterRender', () => {
+        win.renderCount += 1;
+      });
+    });
+  }
+
+  /**
+   * The draws made since the grid built with `build(…, 'recordRenderCount')` returned from its constructor.
+   */
+  async rendersSinceBuild(): Promise<number> {
+    return this.page.evaluate(() => {
+      const win = window as unknown as FixtureWindow;
+
+      return win.renderCount - win.rendersAtBuild;
+    });
+  }
+
+  /**
+   * Calls `scrollViewportTo({ col })` once, with no `render()` before it, and does not wait for a draw.
+   */
+  async scrollViewportToColumn(column: number): Promise<void> {
+    await this.page.evaluate((col) => {
+      (window as unknown as FixtureWindow).hot.scrollViewportTo({ col });
+    }, column);
+  }
+
+  /**
+   * The cell meta reads the call made by `build(…, 'scrollViewportToColumn159CountingReads')` caused.
+   */
+  async metaReadsDuringCall(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).metaReadsDuringCall);
+  }
+
+  /**
+   * Whether the cell is drawn and any part of it lies inside the master holder's visible box. A column wider
+   * than the viewport is never fully visible, so the full-visibility reads cannot say.
+   */
+  async cellIsInView(row: number, column: number): Promise<boolean> {
+    return this.page.evaluate(([visualRow, visualColumn]) => {
+      const { hot } = window as unknown as FixtureWindow;
+      const cell = (hot as unknown as { getCell(r: number, c: number): HTMLElement | null }).getCell(visualRow, visualColumn);
+      const holder = hot.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      if (cell === null) {
+        return false;
+      }
+
+      const box = cell.getBoundingClientRect();
+      const view = holder.getBoundingClientRect();
+
+      return box.right > view.left && box.left < view.right;
+    }, [row, column]);
+  }
+
+  /**
+   * The last column the master table renders.
+   */
+  async lastRenderedColumn(): Promise<number> {
+    return this.page.evaluate(() => {
+      return (window as unknown as FixtureWindow).hot.view.getLastRenderedVisibleColumn();
     });
   }
 }

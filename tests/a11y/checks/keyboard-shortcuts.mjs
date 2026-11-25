@@ -204,6 +204,23 @@ export const SHORTCUT_PROBES = [
     probe: { setup: 'comment', at: [5, 5], prepare: [{ type: 'Discarded' }], press: 'Escape', expect: 'comment-closes', forbid: ['comment-changes'] } },
   { section: 'Comments keyboard shortcuts', keys: 'Tab', probe: { setup: 'comment', at: [5, 5], press: 'Tab', expect: 'comment-closes' } },
   { section: 'Comments keyboard shortcuts', keys: 'Shift+Tab', probe: { setup: 'comment', at: [5, 5], press: 'Shift+Tab', expect: 'comment-closes' } },
+  // The resize shortcuts change a size, which the walker's snapshot does not read. The pointer check proves each
+  // one (the `column-resize`, `row-resize` and `comment-resize` entries of `drag-operations.mjs`: the keys resize),
+  // and `e2e/manual-resize-alternatives.spec.ts` and `e2e/comments-editor-resize-alternatives.spec.ts` press them.
+  { section: 'Comments keyboard shortcuts', keys: 'Ctrl+Alt+R',
+    notProbed: 'Changes the size of the comment editor, which the walker snapshot does not read; the pointer check\'s comment-resize entry and e2e/comments-editor-resize-alternatives.spec.ts press it' },
+  { section: 'Column and row resize keyboard shortcuts', keys: 'Ctrl+Alt+R',
+    notProbed: 'Starts a resize that changes a size, which the walker snapshot does not read; the pointer check\'s column-resize and row-resize entries and e2e/manual-resize-alternatives.spec.ts press it' },
+  { section: 'Column and row resize keyboard shortcuts', keys: '← / →',
+    notProbed: 'Changes the size shown by the resize guide and stores nothing until Enter; e2e/manual-resize-alternatives.spec.ts presses it' },
+  { section: 'Column and row resize keyboard shortcuts', keys: '↑ / ↓',
+    notProbed: 'Changes the size shown by the resize guide and stores nothing until Enter; e2e/manual-resize-alternatives.spec.ts presses it' },
+  { section: 'Column and row resize keyboard shortcuts', keys: 'Shift+arrow',
+    notProbed: 'Changes the size by one pixel; e2e/manual-resize-alternatives.spec.ts presses it' },
+  { section: 'Column and row resize keyboard shortcuts', keys: 'Enter',
+    notProbed: 'Stores the size, which the walker snapshot does not read; e2e/manual-resize-alternatives.spec.ts presses it' },
+  { section: 'Column and row resize keyboard shortcuts', keys: 'Escape',
+    notProbed: 'Puts the old size back, which the walker snapshot does not read; e2e/manual-resize-alternatives.spec.ts presses it' },
   // Row 2 of the row-selection fixture holds a read-only checkbox on purpose, so the probes use rows 3 and 4.
   { section: 'Row selection keyboard shortcuts', keys: 'Space', ordinal: 1,
     probe: { page: 'row-selection', setup: 'cell', at: [3, 0], press: 'Space', expect: ['value-changes', 'row-selection-changes'] } },

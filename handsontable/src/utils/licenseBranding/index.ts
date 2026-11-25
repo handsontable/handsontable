@@ -65,18 +65,18 @@ function mountBrandingSurface(
 
 /**
  * Tells whether a license shows the "Powered by Handsontable DataGrid" bar: a trial (every trial state,
- * the `trial` flag needs no `badge`) or a key whose Handsontable entry carries the `badge` flag.
+ * the `trial` flag needs no `attribution-bar`) or a key whose Handsontable entry carries the `attribution-bar` flag.
  *
  * The bar is branding the licensee agreed to, not a license warning, so no channel closes it -
  * `no-ui-warns` included - and no option turns it off. Every other key (a regular or sponsored key
- * without `badge`, a legacy key, the non-commercial key, a missing or unreadable key) shows none, and
+ * without `attribution-bar`, a legacy key, the non-commercial key, a missing or unreadable key) shows none, and
  * neither does a grid on `*.handsontable.com`, which `_getLicenseState` resolves before this.
  *
  * @param {LicenseStateDescriptor} descriptor The resolved license state descriptor.
  * @returns {boolean}
  */
 function showsPoweredByBar(descriptor: LicenseStateDescriptor): boolean {
-  return descriptor.lifecycle.isTrial || descriptor.badge;
+  return descriptor.lifecycle.isTrial || descriptor.attributionBar;
 }
 
 /**

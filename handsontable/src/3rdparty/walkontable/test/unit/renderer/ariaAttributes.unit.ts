@@ -1,6 +1,7 @@
 import {
   clearStaleAriaAttributes,
   isClearedAriaAttribute,
+  isKeptDescribedBy,
   NO_KEPT_ARIA_ATTRIBUTES,
   setAttributeIfChanged,
   setAttributeIfMissing,
@@ -148,5 +149,36 @@ describe('setAttributeIfMissing', () => {
     setAttributeIfMissing(TD, 'aria-describedby', 'header-1');
 
     expect(attributesOf(TD)).toEqual([['role', 'checkbox'], ['aria-describedby', 'header-1']]);
+  });
+});
+
+describe('isKeptDescribedBy', () => {
+  it('keeps the reference to the column header alone', () => {
+    expect(isKeptDescribedBy('ht_1_header-2', 'ht_1_header-2')).toBe(true);
+  });
+
+  it('keeps the header reference followed by the references of a cell description', () => {
+    expect(isKeptDescribedBy('ht_1_header-2 ht-description-ht_1-0', 'ht_1_header-2')).toBe(true);
+    expect(isKeptDescribedBy('ht_1_header-2 ht-description-ht_1-0 ht-description-ht_1-3', 'ht_1_header-2')).toBe(true);
+  });
+
+  it('keeps a value of description references alone for a cell with no column header', () => {
+    expect(isKeptDescribedBy('ht-description-ht_1-0', '')).toBe(true);
+  });
+
+  it('does not keep the header reference of another column, so a recycled cell is pointed at its own', () => {
+    expect(isKeptDescribedBy('ht_1_header-1 ht-description-ht_1-0', 'ht_1_header-2')).toBe(false);
+    expect(isKeptDescribedBy('ht_1_header-1', 'ht_1_header-2')).toBe(false);
+  });
+
+  it('does not keep a reference of anyone else, a renderer\'s own included', () => {
+    expect(isKeptDescribedBy('ht_1_header-2 my-note', 'ht_1_header-2')).toBe(false);
+    expect(isKeptDescribedBy('my-note', '')).toBe(false);
+    expect(isKeptDescribedBy('ht_1_header-2 ht-description-ht_1-0 my-note', 'ht_1_header-2')).toBe(false);
+  });
+
+  it('does not keep a missing or empty value', () => {
+    expect(isKeptDescribedBy(null, 'ht_1_header-2')).toBe(false);
+    expect(isKeptDescribedBy('', '')).toBe(false);
   });
 });

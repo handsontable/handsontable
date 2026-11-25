@@ -2,7 +2,7 @@ import Core from 'handsontable/core';
 import { Hooks } from 'handsontable/core/hooks';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
-import { registerPlugin, AutoColumnSize, AutoRowSize } from 'handsontable/plugins';
+import { registerPlugin, AutoColumnSize, AutoRowSize, MergeCells, Pagination } from 'handsontable/plugins';
 import { safeBatch } from 'handsontable/utils/safeBatch';
 import { rootInstanceSymbol } from 'handsontable/utils/rootInstance';
 import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
@@ -12,6 +12,8 @@ registerRenderer(baseRenderer);
 registerRenderer(textRenderer);
 registerPlugin(AutoColumnSize);
 registerPlugin(AutoRowSize);
+registerPlugin(MergeCells);
+registerPlugin(Pagination);
 
 const EXECUTION_HOOKS = [
   'beforeSuspendExecution',
@@ -274,14 +276,19 @@ describe('execution suspend hooks', () => {
       expect(log).toEqual([...SUSPEND_PAIR, 'callback', ...RESUME_PAIR]);
     });
 
-    it('should also fire for the suspensions Handsontable makes itself, after the batch resumed', () => {
-      // AutoColumnSize and AutoRowSize measure in `batchExecution()` on the render that `batch()` ends with.
-      hot = createHot(container, {
+    it.each([
+      ['the default settings', {}],
+      ['AutoColumnSize and AutoRowSize', {
         autoColumnSize: true,
         autoRowSize: true,
         renderAllRows: true,
         renderAllColumns: true,
-      });
+      }],
+      ['Pagination with an auto page size', { autoRowSize: true, pagination: { pageSize: 'auto' } }],
+    ])('should fire each pair once for a batch that writes a cell, with %s', (name, settings) => {
+      // AutoColumnSize and AutoRowSize store the sizes they measure on the render that `batch()` ends with,
+      // and Pagination stores the rows of an auto-sized page there.
+      hot = createHot(container, settings);
 
       const log = recordExecutionHooks(hot);
 
@@ -291,14 +298,240 @@ describe('execution suspend hooks', () => {
         hot.setDataAtCell(1, 0, 'x');
       });
 
-      expect(log.slice(0, 5)).toEqual([...SUSPEND_PAIR, 'callback', ...RESUME_PAIR]);
+      expect(log).toEqual([...SUSPEND_PAIR, 'callback', ...RESUME_PAIR]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
 
-      const trailing = log.slice(5);
+    it.each([
+      ['a cell write', instance => instance.setDataAtCell(0, 0, 'a much longer value than before')],
+      ['a render', instance => instance.render()],
+      ['AutoColumnSize#clearCache', instance => instance.getPlugin('autoColumnSize').clearCache([0])],
+      ['AutoRowSize#clearCache', instance => instance.getPlugin('autoRowSize').clearCache([0])],
+      ['AutoRowSize#clearCacheByRange', instance => instance.getPlugin('autoRowSize').clearCacheByRange(0)],
+    ])('should fire nothing for the sizes the auto-size plugins store on %s', (name, run) => {
+      hot = createHot(container, {
+        autoColumnSize: true,
+        autoRowSize: true,
+        renderAllRows: true,
+        renderAllColumns: true,
+      });
 
-      // The render adds whole cycles, each one a suspension of its own (3 with these two plugins in jsdom).
-      expect(trailing.length).toBeGreaterThan(0);
-      expect(trailing.length % FULL_CYCLE.length).toBe(0);
-      expect(trailing).toEqual(Array.from({ length: trailing.length / 4 }, () => FULL_CYCLE).flat());
+      const log = recordExecutionHooks(hot);
+
+      run(hot);
+
+      expect(log).toEqual([]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should fire nothing for the width AutoColumnSize grows in place after a cell write', () => {
+      hot = createHot(container, { autoColumnSize: true });
+
+      const plugin = hot.getPlugin('autoColumnSize');
+
+      // jsdom measures every width as 0, so the probe of a changed cell never finds a value wider than the
+      // cached width. Only the probe measures with the headers off.
+      jest.spyOn(plugin.ghostTable, 'getWidths').mockImplementation((callback) => {
+        const width = plugin.ghostTable.getSetting('useHeaders') ? 100 : 500;
+
+        plugin.ghostTable.columns.forEach(column => callback(column.col, width));
+      });
+
+      const setValueAtIndex = jest.spyOn(plugin.columnWidthsMap, 'setValueAtIndex');
+      const log = recordExecutionHooks(hot);
+
+      hot.setDataAtCell(0, 0, 'a much longer value than before');
+
+      expect(setValueAtIndex).toHaveBeenCalledWith(0, 500);
+      expect(log).toEqual([]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should fire each pair once for a batch that hides the row a merged block is drawn on', () => {
+      hot = createHot(container, {
+        autoRowSize: true,
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
+      });
+
+      const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('testHiding', 'hiding', false);
+      const log = recordExecutionHooks(hot);
+
+      // The block moves to its second row, so AutoRowSize drops the heights of both rows on the render.
+      hot.batch(() => {
+        hidingMap.setValueAtIndex(0, true);
+      });
+
+      expect(log).toEqual(FULL_CYCLE);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it.each([
+      ['a cell write', instance => instance.setDataAtCell(0, 0, 'a much longer value than before')],
+      ['a render', instance => instance.render()],
+    ])('should fire nothing for the page Pagination recomputes with an auto page size on %s', (name, run) => {
+      hot = createHot(container, { autoRowSize: true, pagination: { pageSize: 'auto' } });
+
+      const log = recordExecutionHooks(hot);
+
+      run(hot);
+
+      expect(log).toEqual([]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it.each([
+      ['a fixed page size', { pagination: { pageSize: 2 } }],
+      ['an auto page size', { autoRowSize: true, pagination: { pageSize: 'auto' } }],
+    ])('should fire each pair once for a page change, with %s', (name, settings) => {
+      hot = createHot(container, settings);
+
+      const log = recordExecutionHooks(hot);
+
+      hot.getPlugin('pagination').setPage(1);
+
+      expect(log).toEqual(FULL_CYCLE);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should fire each pair once for a page change a listener makes in the render of the recompute', () => {
+      hot = createHot(container, { autoRowSize: true, pagination: { pageSize: 'auto' } });
+
+      const log = recordExecutionHooks(hot);
+      let isPageChanged = false;
+
+      // The recompute renders the grid, so the first `afterRender` of a render comes from inside it.
+      hot.addHook('afterRender', () => {
+        if (!isPageChanged) {
+          isPageChanged = true;
+          log.push('setPage');
+          hot.getPlugin('pagination').setPage(1);
+        }
+      });
+
+      hot.render();
+
+      expect(log).toEqual(['setPage', ...FULL_CYCLE]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should suspend the execution and apply the callback\'s writes in a silent batch', () => {
+      hot = createHot(container, { autoColumnSize: true });
+
+      const plugin = hot.getPlugin('autoColumnSize');
+      const log = recordExecutionHooks(hot);
+
+      hot._batchExecutionWithoutHooks(() => {
+        expect(hot.isExecutionSuspended()).toBe(true);
+        plugin.columnWidthsMap.setValueAtIndex(0, 123);
+      }, true);
+
+      expect(plugin.columnWidthsMap.getValueAtIndex(0)).toBe(123);
+      expect(log).toEqual([]);
+    });
+
+    it('should run the callback of a silent batch as a `batch` operation', () => {
+      hot = createHot(container);
+
+      let operationName;
+
+      hot._batchExecutionWithoutHooks(() => {
+        operationName = hot._getOperationScope().current()?.name;
+      });
+
+      expect(operationName).toBe('batch');
+      expect(hot._getOperationScope().current()).toBe(null);
+    });
+
+    it('should update the index cache on the resume of a nested silent batch only when forced', () => {
+      hot = createHot(container);
+
+      const cacheUpdated = jest.fn();
+
+      hot.columnIndexMapper.addLocalHook('cacheUpdated', cacheUpdated);
+      hot.suspendExecution();
+
+      hot._batchExecutionWithoutHooks(() => hot.columnIndexMapper.setIndexesSequence([1, 0]));
+
+      expect(cacheUpdated).toHaveBeenCalledTimes(0);
+
+      hot._batchExecutionWithoutHooks(() => hot.columnIndexMapper.setIndexesSequence([0, 1]), true);
+
+      expect(cacheUpdated).toHaveBeenCalledTimes(1);
+      expect(hot.isExecutionSuspended()).toBe(true);
+
+      hot.resumeExecution();
+    });
+
+    it('should not force the index cache update of a nested silent batch whose callback throws', () => {
+      hot = createHot(container);
+
+      const cacheUpdated = jest.fn();
+
+      hot.columnIndexMapper.addLocalHook('cacheUpdated', cacheUpdated);
+      hot.suspendExecution();
+
+      expect(() => {
+        hot._batchExecutionWithoutHooks(() => {
+          hot.columnIndexMapper.setIndexesSequence([1, 0]);
+
+          throw new Error('callback error');
+        }, true);
+      }).toThrow('callback error');
+
+      expect(cacheUpdated).toHaveBeenCalledTimes(0);
+      expect(hot.isExecutionSuspended()).toBe(true);
+
+      hot.resumeExecution();
+
+      expect(cacheUpdated).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fire a full cycle for a batch a cache update listener makes while a silent batch resumes', () => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+      let batched = false;
+
+      hot.columnIndexMapper.addLocalHook('cacheUpdated', () => {
+        if (!batched) {
+          batched = true;
+          hot.batch(() => log.push('listener batch'));
+        }
+      });
+
+      hot._batchExecutionWithoutHooks(() => {
+        hot.batchExecution(() => log.push('nested batch'));
+        hot.columnIndexMapper.setIndexesSequence([1, 0]);
+      }, true);
+
+      expect(log).toEqual(['nested batch', ...SUSPEND_PAIR, 'listener batch', ...RESUME_PAIR]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should fire nothing for a silent batch made inside a batch, and resume with the outer one', () => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+
+      hot.batch(() => {
+        hot._batchExecutionWithoutHooks(() => log.push('silent'), true);
+
+        expect(hot.isExecutionSuspended()).toBe(true);
+      });
+
+      expect(log).toEqual([...SUSPEND_PAIR, 'silent', ...RESUME_PAIR]);
+    });
+
+    it('should resume the execution when the callback of a silent batch throws', () => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+
+      expect(() => hot._batchExecutionWithoutHooks(() => {
+        throw new Error('boom');
+      })).toThrow('boom');
+
+      expect(log).toEqual([]);
       expect(hot.isExecutionSuspended()).toBe(false);
     });
 

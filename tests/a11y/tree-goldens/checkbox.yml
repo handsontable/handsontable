@@ -26,13 +26,12 @@
       - gridcell "Unchecked":
         - checkbox "Unchecked"
   - rowgroup:
-    - row "Select whole grid Task Check all (1 of 5 checked) Done":
-      - gridcell "Select whole grid"
+    - row "Task Check all (1 of 5 checked) Done":
+      - gridcell
       - columnheader "Task"
       - columnheader "Check all (1 of 5 checked) Done":
         - checkbox "Check all (1 of 5 checked)" [checked=mixed]
         - text: Done
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -47,9 +46,8 @@
     - row "6":
       - rowheader "6"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+    - row:
+      - gridcell
 # portal
 - status
 - status

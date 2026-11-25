@@ -521,6 +521,7 @@ describe('Formulas general', () => {
         validator: validator1,
       });
       spec().$container2.handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: [
           ['=Sheet1!A1', 2, '=D1', 'D', '=A1+1']
         ],

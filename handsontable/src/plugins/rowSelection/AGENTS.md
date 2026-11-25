@@ -64,11 +64,22 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   state of this plugin's own, so every change calls `markAllCellsChanged()` before `render()`. A user
   edit of the bound column renders BEFORE `afterChange` (`core.ts`, `beforeChangeRender` → `render()` →
   `afterChange`), so the marking happens in `#onBeforeChangeRender`, or the tint lagged one edit behind.
-- **A press on a checkbox is handled on `mousedown`, and the `click` is cancelled.** The state is
-  applied and rendered on `mousedown`; the browser's own toggle on `click` would then flip it back, so
-  `#onRootClick` prevents it. The `mousedown` itself sets `isImmediatePropagationEnabled = false` (the
-  CollapsibleColumns pattern, not `stopImmediatePropagation()` — DEV-214) and `preventDefault()`, which
-  keeps the browser focus off the input so the keyboard stays with the grid.
+- **A press on a checkbox is claimed on `mousedown`, acts on the `mouseup` over the same control, and the
+  `click` is cancelled** (WCAG 2.5.2 Pointer Cancellation: a pointer moved off the control before the release
+  cancels it). `#onBeforeOnCellMouseDown` sets `isImmediatePropagationEnabled = false` (the
+  CollapsibleColumns pattern, not `stopImmediatePropagation()` — DEV-214), calls `preventDefault()`, which
+  keeps the browser focus off the input so the keyboard stays with the grid, fires its synthetic `mouseup`, and
+  only then arms `armPressRelease()` (`helpers/dom/pointerRelease.ts`), so the synthetic event is not taken for
+  the release. The write (`#toggleAll()`, `#toggleRow()`, `#selectRangeTo()`) runs from the release. The
+  Shift key is read at the press. The press is kept by the physical row (or "select all"), and the release
+  target is resolved again (`#isSameControl()`), because a render replaces the nodes between the two; the
+  control is the one the press gate accepts (`#isControl()`: the checkbox, or the whole header cell with the row
+  header location). The state is rendered on the `mouseup`, which comes before the `click`, so `#onRootClick`
+  still cancels the browser's own toggle and no opposite state flashes. A tap acts at once (the touch path is
+  already the release), but a long press does not: Walkontable replays it with the finger still down and marks it
+  (`markLongPressReplay()`), so the hook claims the press and skips the write for `isLongPressReplay(event)`; a press of another button than the main one is ignored.
+  The press that is still held is dropped first, then the synthetic `mouseup` fires, then the new press is armed: an earlier press whose release was lost would otherwise take the synthetic event for its own and act on it. A press still held when the plugin is disabled or destroyed needs no disposal of its own: the plugin's event manager, which owns its listeners, is cleared by `BasePlugin#disablePlugin()` and `destroy()`. `beforeRowSelectionChange`, `afterRowSelectionChange`, `afterChange` of a bound
+  column and the announcement fire at the release.
 - **`headerCheckbox: false` and `'singleRow'` turn the corner off completely** (`#hasHeaderCheckbox()`).
   No checkbox, no `htRowSelectionHeader` class (the pointer cursor and the hit area key on it), no
   toggle on a press or on Space, and the press is not swallowed, so the corner selects the grid as a
@@ -86,7 +97,7 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   the next Shift+click then started a range from a row the user never selected.
 - **Taps arrive with the deferred `touchstart`.** Walkontable calls `onMouseDown` with it on `touchend`
   (`3rdparty/walkontable/src/event.ts`), and a `TouchEvent` has no `button`, so both mouse handlers accept
-  `isLeftClick(event) || isTouchEvent(event)`. A bare `button !== 0` check made every tap a no-op on iPad.
+  `isLeftClick(event) || hasTouchList(event)`. A bare `button !== 0` check made every tap a no-op on iPad. The touch branch is found by `hasTouchList(event)`, not `isTouchEvent()`: `instanceof TouchEvent` is false for an event of a grid inside an iframe, and that tap would be armed as a mouse press and never released.
   The unit test calls the hook with a `TouchEvent`; `tests/e2e/row-selection.spec.ts` ("on a touch screen")
   taps for real.
 - **Space on a checkbox must be marked handled.** Both Space shortcuts set

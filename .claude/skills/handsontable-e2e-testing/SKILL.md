@@ -34,6 +34,8 @@ describe('MyFeature', () => {
 
 ESLint enforces: every `it()` callback is `async`, and every HOT API call (~50+ methods) is `await`-ed.
 
+`handsontable()` adds the internal test key to every grid it builds. A second grid built any other way (`new Handsontable(el, {…})`, `$('<div>').handsontable({…})`) passes `licenseKey: TEST_LICENSE_KEY` (a global in specs) itself, or it runs behind the license lock; the root `test:tooling` fails on one that does not (`handsontable/.ai/TESTING.md`, "The license key every test grid takes").
+
 ## Global helpers
 
 Injected automatically; full list in `test/helpers/common.js`.

@@ -2,11 +2,34 @@ import {
   install,
   uninstall,
   announce,
+  getAnnouncementCount,
 } from '../a11yAnnouncer';
+
+/**
+ * More installations than any test makes, so releasing that many leaves none behind.
+ */
+const MAX_INSTALLATIONS_PER_TEST = 10;
+
+/**
+ * Releases every installation and pending write a test left behind, so a test that fails before its
+ * own `uninstall()` does not leave the regions installed for the tests after it. `uninstall()` without
+ * an argument does nothing once nothing is installed.
+ */
+function releaseAllInstallations() {
+  jest.clearAllTimers();
+
+  for (let index = 0; index < MAX_INSTALLATIONS_PER_TEST; index += 1) {
+    uninstall();
+  }
+}
 
 describe('a11yAnnouncer', () => {
   beforeAll(() => {
     jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    releaseAllInstallations();
   });
 
   afterAll(() => {
@@ -61,6 +84,48 @@ describe('a11yAnnouncer', () => {
     jest.runAllTimers();
 
     expect(internalAnnouncer.textContent).toBe('Test announcement');
+
+    uninstall();
+    portalElement.remove();
+  });
+
+  it('should never write an earlier message once a later one was announced within the timeout', () => {
+    const portalElement = document.createElement('div');
+
+    install(portalElement);
+
+    const assertiveRegion = portalElement.querySelector('[aria-live="assertive"]');
+
+    announce('First message');
+    jest.advanceTimersByTime(50);
+    announce('Second message');
+    jest.advanceTimersByTime(50);
+
+    expect(assertiveRegion.textContent).toBe('');
+
+    jest.advanceTimersByTime(50);
+
+    expect(assertiveRegion.textContent).toBe('Second message');
+
+    uninstall();
+    portalElement.remove();
+  });
+
+  it('should keep a pending message in one region when the other region announces', () => {
+    const portalElement = document.createElement('div');
+
+    install(portalElement);
+
+    const assertiveRegion = portalElement.querySelector('[aria-live="assertive"]');
+    const politeRegion = portalElement.querySelector('[aria-live="polite"]');
+
+    announce('Assertive message');
+    jest.advanceTimersByTime(50);
+    announce('Polite message', 'polite');
+    jest.runAllTimers();
+
+    expect(assertiveRegion.textContent).toBe('Assertive message');
+    expect(politeRegion.textContent).toBe('Polite message');
 
     uninstall();
     portalElement.remove();
@@ -188,5 +253,29 @@ describe('a11yAnnouncer', () => {
     expect(politeRegion.textContent).toBe('');
 
     portalElement.remove();
+  });
+
+  it('should count every announcement made into an installed region, in either politeness', () => {
+    const portalElement = document.createElement('div');
+
+    install(portalElement);
+
+    const countBefore = getAnnouncementCount();
+
+    announce('First');
+    announce('Second', 'polite');
+
+    expect(getAnnouncementCount()).toBe(countBefore + 2);
+
+    uninstall();
+    portalElement.remove();
+  });
+
+  it('should not count an announcement made while no region is installed', () => {
+    const countBefore = getAnnouncementCount();
+
+    announce('Nobody hears this', 'polite');
+
+    expect(getAnnouncementCount()).toBe(countBefore);
   });
 });

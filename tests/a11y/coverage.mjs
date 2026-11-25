@@ -50,7 +50,10 @@ export const PLUGIN_COVERAGE = {
     pages: ['formula-builder', 'formula-builder-suggestions', 'formula-builder-function-help', 'formula-builder-tokens',
       'formula-builder-named-expression'],
   },
-  formulas: { none: 'computes cell values; a formula is edited in the text editor or the formula builder editor' },
+  formulas: {
+    none: 'computes cell values; a formula is edited in the text editor or the formula builder editor, and the ' +
+      'hidden text that names a formula cell is asserted by e2e/formulas-cell-description.spec.ts (axe cannot see it)',
+  },
   freezeBar: { pages: ['freeze-bar'] },
   hiddenColumns: { pages: ['shared-demo'] },
   hiddenRows: { pages: ['complex-demo'] },

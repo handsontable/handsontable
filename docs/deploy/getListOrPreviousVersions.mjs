@@ -1,116 +1,36 @@
-import { Octokit } from '@octokit/rest';
-import semver from 'semver';
-
-/** You might think this violates DRY principle with docs/.vuepress/plugins/dump-docs-data/docs-versions.js but
- * DRY applies when you're repeating the same concept (visual or otherwise), not when you're repeating the same code.
- */
+import { resolveReleaseVersions } from '../src/lib/docs-versions.mjs';
 
 /**
- * Min docs version that is used for creating canonicals.
- */
-const MIN_DOCS_VERSION = '9.0';
-
-/**
- * Reads the list of Docs versions from GitHub using the releases list.
+ * Prints the Docs versions as shell variable assignments for the deploy scripts:
+ * `LATEST_VERSION` is the newest stable minor and `PREVIOUS_VERSIONS` the older
+ * minors down to the oldest deployed docs version (`MIN_DOCS_VERSION` in
+ * `src/lib/docs-versions.mjs`).
  *
- * Uses the GraphQL API (authenticated with GITHUB_TOKEN) rather than REST
- * listReleases. REST returns full release bodies (~280 KB) and was consistently
- * failing on GitHub Actions runners with an undici "Premature close", which
- * blocked production docs deploys. GraphQL returns only the tag names in a
- * single small response over a different endpoint.
- *
- * @returns {object}
+ * The release list comes from the same module that writes `data/common.json`
+ * for the version dropdown (`src/lib/docs-versions.mjs`), so both read the same
+ * history. With GITHUB_TOKEN it uses the GraphQL API, which returns only the tag
+ * names. The anonymous REST list returned full release bodies and failed on
+ * GitHub Actions runners with an undici "Premature close", which blocked
+ * production docs deploys. The module retries each request and reads further
+ * pages until the list reaches the oldest deployed version.
  */
-async function readFromGitHub() {
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN || undefined });
-
-  const result = await octokit.graphql(`
-    query ($owner: String!, $repo: String!) {
-      repository(owner: $owner, name: $repo) {
-        releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
-          nodes {
-            tagName
-          }
-        }
-      }
-    }
-  `, {
-    owner: 'handsontable',
-    repo: 'handsontable',
+try {
+  const { minors } = await resolveReleaseVersions({
+    token: process.env.GITHUB_TOKEN || undefined,
+    requireFloor: true,
   });
 
-  const nodes = result?.repository?.releases?.nodes;
+  // Please keep in mind that we have more versions than displayed, for the
+  // purpose of creating canonicals.
+  const [latestVersion, ...previousVersions] = minors;
 
-  if (!Array.isArray(nodes) || nodes.length === 0) {
-    throw new Error('GitHub returned no releases.');
-  }
-
-  const tags = [];
-
-  nodes
-    .map(item => item.tagName)
-    .filter(tag => semver.valid(tag) && !semver.prerelease(tag))
-    .sort((a, b) => semver.rcompare(a, b))
-    .forEach((tag) => {
-      const minorVersion = `${semver.parse(tag).major}.${
-        semver.parse(tag).minor
-      }`;
-
-      if (!tags.includes(minorVersion)) {
-        tags.push(minorVersion);
-      }
-    });
-
-  const versions = tags.slice(0, tags.indexOf(MIN_DOCS_VERSION) + 1);
-  const latestVersion = versions.shift();
-
-  return {
-
-    previousVersions: versions, // Please keep in mind that we have more version than displayed for purpose of creating canonicals.
-    latestVersion
-  };
-}
-
-/**
- * Calls readFromGitHub with retries so a transient GitHub API hiccup (rate
- * limit, "Premature close", 5xx) does not abort the whole production deploy.
- * After the final attempt the error propagates and the caller fails closed.
- *
- * @returns {object}
- */
-async function readWithRetry() {
-  const maxAttempts = 5;
-  let lastError;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      return await readFromGitHub();
-    } catch (error) {
-      lastError = error;
-
-      if (attempt < maxAttempts) {
-        const delayMs = 2000 * (2 ** (attempt - 1)); // 2s, 4s, 8s, 16s
-
-        // eslint-disable-next-line no-console
-        console.error(`Attempt ${attempt}/${maxAttempts} to read Docs versions failed (${error.message}); retrying in ${delayMs}ms.`);
-        await new Promise((resolve) => { setTimeout(resolve, delayMs); });
-      }
-    }
-  }
-
-  throw lastError;
-}
-
-try {
-  const versions = await readWithRetry();
-
-  if (!versions.latestVersion) {
+  if (!latestVersion) {
     throw new Error('Resolved an empty latest Docs version from the GitHub releases list.');
   }
 
   // eslint-disable-next-line no-console
-  console.log(`PREVIOUS_VERSIONS="${versions.previousVersions.join(' ')}"
-LATEST_VERSION="${versions.latestVersion}"`);
+  console.log(`PREVIOUS_VERSIONS="${previousVersions.join(' ')}"
+LATEST_VERSION="${latestVersion}"`);
 } catch (error) {
   // Exit non-zero so the caller (build_current_version.sh, run under `set -e`)
   // aborts instead of producing an empty VERSIONS_VARS file and deploying a

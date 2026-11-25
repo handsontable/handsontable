@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { keyWithTier } from './xlsxLicenseKeys';
+import { buildTestKey } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/buildTestKey';
 
 /**
  * The license tiers of the build under test, read from `handsontable/dist/manifest.json` when a test
@@ -9,6 +10,20 @@ import { keyWithTier } from './xlsxLicenseKeys';
  */
 interface ManifestCapability {
   id: string;
+  kind: string;
+  name: string;
+  licensing: string;
+  gate: string | null;
+  tiers: string[];
+}
+
+/**
+ * A sold plugin's license token as the manifest lists it, in the shape of the plugin's static `LICENSE`.
+ */
+export interface PluginLicenseEntry {
+  capability: string;
+  name: string;
+  gate: string;
   tiers: string[];
 }
 
@@ -65,13 +80,46 @@ export function manifestTiers(): string[] {
 }
 
 /**
- * The first tier of the manifest that does not list a feature.
+ * The tiers the manifest lists for a feature.
  *
- * @param {string} id The feature id.
- * @returns {string | null} The tier, or `null` when every tier lists it.
+ * @param {string} id The feature id, for example `'feat:filters'`.
+ * @returns {string[]}
  */
-function tierWithout(id: string): string | null {
-  return manifestTiers().find(tier => !tiersOf(id).includes(tier)) ?? null;
+export function featureTiers(id: string): string[] {
+  return [...tiersOf(id)];
+}
+
+/**
+ * Every plugin the manifest sells (`kind: 'plugin'`, `licensing: 'token'`), with the token, the display
+ * name, the gate and the tiers its static `LICENSE` must carry in the built bundle.
+ *
+ * @returns {PluginLicenseEntry[]}
+ */
+export function soldPluginLicenses(): PluginLicenseEntry[] {
+  return readManifest().capabilities
+    .filter(entry => entry.kind === 'plugin' && entry.licensing === 'token')
+    .map(entry => ({ capability: entry.id, name: entry.name, gate: entry.gate as string, tiers: [...entry.tiers] }));
+}
+
+/**
+ * A perpetual key that names no tier and covers the builds released on or before `releaseUntil`. Whether
+ * a build is past it is decided by the release date the build inlined, never by the clock.
+ *
+ * @param {string} releaseUntil The last covered release day, `YYYY-MM-DD`.
+ * @returns {string}
+ */
+export function releaseKeyUntil(releaseUntil: string): string {
+  return buildTestKey({
+    products: {
+      handsontable: {
+        capabilities: ['core'],
+        release_until: releaseUntil,
+        notice: 60,
+        grace: 90,
+        flags: [],
+      },
+    },
+  });
 }
 
 /**
@@ -96,24 +144,6 @@ export function featuresMissingFrom(tier: string, ids: readonly string[]): strin
 }
 
 /**
- * The first tier of the manifest that leaves a feature out, for a test that needs it off. It throws when
- * every tier lists the feature, so the test fails rather than passing on a key that switched nothing
- * off: a case no real tier can express belongs in the unit suite, which builds keys with made-up tiers.
- *
- * @param {string} id The feature id.
- * @returns {string}
- */
-export function requiredTierWithout(id: string): string {
-  const tier = tierWithout(id);
-
-  if (tier === null) {
-    throw new Error(`No tier of the manifest leaves ${id} out, so no real key can switch it off.`);
-  }
-
-  return tier;
-}
-
-/**
  * The first tier of the manifest that lists every one of the features. It throws when no tier lists them
  * all, so the test fails rather than passing on a key that switched some of them off.
  *
@@ -128,17 +158,6 @@ export function requiredTierWithEvery(ids: readonly string[]): string {
   }
 
   return tier;
-}
-
-/**
- * Every tier of the manifest that leaves at least one of the features out, in manifest order: one key
- * per distinct way a real key can switch some of them off.
- *
- * @param {string[]} ids The feature ids.
- * @returns {string[]}
- */
-export function tiersLeavingOut(ids: readonly string[]): string[] {
-  return manifestTiers().filter(tier => featuresMissingFrom(tier, ids).length > 0);
 }
 
 /**

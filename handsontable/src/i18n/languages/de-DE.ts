@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Abbrechen',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Keine Optionen verfügbar',
   [C.CONTEXTMENU_LABEL]: 'Kontextmenü',
   [C.DROPDOWNMENU_LABEL]: 'Spaltenmenü',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Zeile einfügen oberhalb',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zellen teilen',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopieren',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Mit Überschrift kopieren', 'Mit Überschriften kopieren'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Mit Gruppenüberschrift kopieren',
+    'Mit Gruppenüberschriften kopieren',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Nur Überschrift kopieren', 'Nur Überschriften kopieren'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Ausschneiden',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportieren',
@@ -141,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blatt [name] an Position [position] von [count] verschoben',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blatt',
 
+  [C.CHECKBOX_CHECKED]: 'Angekreuzt',
+  [C.CHECKBOX_UNCHECKED]: 'Nicht angekreuzt',
+
   [C.LOADING_TITLE]: 'Lädt...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Schließen',
 
@@ -173,16 +183,51 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Fixierte Zeilen unten',
   [C.FREEZE_BAR_COLUMNS_START]: 'Fixierte Spalten am Anfang',
   [C.FREEZE_BAR_COLUMNS_END]: 'Fixierte Spalten am Ende',
+  [C.ARMED_PICK_STARTED]: 'Klicken oder tippen Sie auf das Ziel, um abzuschließen. Escape bricht ab.',
+  [C.ARMED_PICK_CANCELED]: 'Abgebrochen.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Spaltenbreite ändern. Mit den Pfeiltasten nach links und rechts ändern Sie die Breite, Enter wendet sie an, ' +
+    'Escape bricht ab.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Zeilenhöhe ändern. Mit den Pfeiltasten nach oben und unten ändern Sie die Höhe, Enter wendet sie an, Escape ' +
+    'bricht ab.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Größe des Kommentarfelds ändern. Mit den Pfeiltasten ändern Sie die Größe, Enter wendet sie an, Escape bricht ab.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Breite: [size] Pixel',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Höhe: [size] Pixel',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Zeile [label] aufgeklappt, angezeigte aufgeklappte Zeilen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zeile [label] zugeklappt',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Ebene [level], [position] von [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Ebene [level], [position] von [setSize], aufgeklappt',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Ebene [level], [position] von [setSize], zugeklappt',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formel: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'schreibgeschützt',
+  [C.CELL_DESCRIPTION_LINK]: 'Link',
+  [C.CELL_DESCRIPTION_MERGED]: 'verbunden bis Zeile [row] Spalte [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Spaltengruppe [label] aufgeklappt',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Spaltengruppe [label] zugeklappt',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortiert nach [label], aufsteigend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortiert nach [label], absteigend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortierung von [label] entfernt',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortiert nach [label], aufsteigend, Sortierpriorität [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortiert nach [label], absteigend, Sortierpriorität [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Auswahl von Spalte [startColumn], Zeile [startRow] bis Spalte [endColumn], Zeile [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle Zellen ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Spalte [column] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Spalten [startColumn] bis [endColumn] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Zeile [row] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Zeilen [startRow] bis [endRow] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Auswahl hinzugefügt: [selection]. Auswahlen insgesamt: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'Spalte [column], Zeile [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'von Spalte [startColumn], Zeile [startRow] bis Spalte [endColumn], Zeile [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'alle Zellen',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'Spalte [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'Spalten [startColumn] bis [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'Zeile [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'Zeilen [startRow] bis [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Formeleditor',
   [C.FORMULA_BUILDER_INPUT]: 'Formeleingabe',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Zellbezug',

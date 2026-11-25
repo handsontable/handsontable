@@ -117,7 +117,7 @@
   color: var(--sl-color-text);
 }
 .da-header-btn:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid var(--sl-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -296,7 +296,7 @@
   background: var(--sl-color-blue-low);
 }
 .da-reply-support:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid var(--sl-color-focus-ring);
   outline-offset: 2px;
 }
 /* The gray line under a reader's message that went to Support, not to the bot. */
@@ -612,7 +612,7 @@
   flex-direction: column;
 }
 .da-input-wrap.has-support-strip:focus-within {
-  box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+  box-shadow: inset 0 0 0 1px var(--sl-color-focus-ring);
 }
 .da-input-wrap.has-support-strip .da-input:focus {
   box-shadow: none;
@@ -653,7 +653,7 @@
   text-decoration-thickness: 2px;
 }
 .da-support-strip-back:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid var(--sl-color-focus-ring);
   outline-offset: 2px;
 }
 .da-support-strip-remove {
@@ -674,7 +674,7 @@
   background: var(--sl-color-blue);
 }
 .da-support-strip-remove:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid var(--sl-color-focus-ring);
   outline-offset: 1px;
 }
 /* Short notice under the input after the reader closes the strip. Empty it takes no room. */
@@ -714,7 +714,7 @@
 }
 .da-input:focus {
   outline: none;
-  box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+  box-shadow: inset 0 0 0 1px var(--sl-color-focus-ring);
 }
 .da-input::placeholder {
   color: var(--sl-color-gray-3);
@@ -818,7 +818,7 @@
   background: var(--sl-color-gray-6);
 }
 .da-proactive-ask:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid var(--sl-color-focus-ring);
   outline-offset: -2px;
 }
 .da-proactive-title {

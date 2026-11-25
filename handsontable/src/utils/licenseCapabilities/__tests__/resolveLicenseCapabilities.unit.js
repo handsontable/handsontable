@@ -9,6 +9,7 @@ import {
 } from 'handsontable/utils/licenseCapabilities';
 import { registerAsRootInstance } from 'handsontable/utils/rootInstance';
 import { resolveXlsxEntitlement } from 'handsontable/utils/xlsxEngine/xlsxEntitlement';
+import { XLSX_TIERS_BY_ID } from 'handsontable/utils/xlsxEngine/licenseCapabilities';
 import {
   SUBSCRIPTION_KEY,
   TRIAL_KEY,
@@ -235,6 +236,27 @@ describe('a key that names a tier', () => {
 
     expect(hasLicenseCapability(hot, 'feat:tier_stub')).toBe(false);
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(false);
+  });
+
+  // DEV-4198: Handsontable has a single tier. The `standard` tier was removed, so a key that names
+  // only `tier:standard` is a restricted key whose tier no feature lists, and unlocks nothing. The single tier's
+  // name is read from the generated table, so a later rename does not break this test.
+  it('should unlock every shipped plugin for the single tier', () => {
+    const [singleTier] = XLSX_TIERS_BY_ID['xlsx:import'];
+    const hot = gridWithKey(keyWithTier([singleTier]));
+
+    ['feat:filters', 'feat:comments', 'feat:formulas', 'feat:export_file'].forEach((id) => {
+      expect([id, hasLicenseCapability(hot, id)]).toEqual([id, true]);
+    });
+  });
+
+  it('should unlock no feature for a key that names only the removed tier "standard"', () => {
+    const hot = gridWithKey(keyWithTier(['standard']));
+
+    expect(resolveLicenseCapabilities(hot)).toBeInstanceOf(Set);
+    ['feat:filters', 'feat:comments', 'feat:formulas', 'feat:export_file'].forEach((id) => {
+      expect([id, hasLicenseCapability(hot, id)]).toEqual([id, false]);
+    });
   });
 
   it.each(['__proto__', 'constructor'])('should unlock no feature for the tier %s', (tier) => {

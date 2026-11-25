@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed AutoRowSize keeping a row too tall when its long text sits in a column that AutoColumnSize measures after the first paint (past about the 100th column).",
+  "type": "fixed",
+  "issueOrPR": 14392,
+  "breaking": false,
+  "framework": "none"
+}

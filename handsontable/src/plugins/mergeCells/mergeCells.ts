@@ -55,6 +55,28 @@ const MERGE_META_KEYS = [...COVERED_CELL_META_KEYS, 'spanned', 'rowspan', 'colsp
 const DRAWN_CELL_COLUMN_STRIDE = 2 ** 24;
 
 /**
+ * A `merge()` or `unmerge()` call held back until the index caches are current: what it does, and the corners
+ * of its range as physical indexes.
+ */
+interface DeferredRangeOperation {
+  kind: 'merge' | 'unmerge';
+  startRow: number;
+  startColumn: number;
+  endRow: number;
+  endColumn: number;
+}
+
+/**
+ * A call held back in the queue, with the structure version of the grid when it was held back. The corners are
+ * physical indexes, which a row or column insert or removal renumbers, so a call held back before one is dropped
+ * instead of run on other cells.
+ */
+interface DeferredRangeEntry {
+  operation: DeferredRangeOperation;
+  structure: number;
+}
+
+/**
  * The visual indexes along one axis that a move permutes. A merge outside it covers the same cells before and
  * after the move.
  */
@@ -156,6 +178,55 @@ function isMergeListed(list: readonly MergeStateEntry[], entry: MergeStateEntry)
  */
 function isMergeState(value: unknown): value is readonly MergeStateEntry[] {
   return Array.isArray(value);
+}
+
+/**
+ * Maps the physical cells a captured merge names to another numbering of the rows and columns. A row or
+ * column that does not exist there is dropped. The anchor keeps its own column, mapped, or takes the first
+ * recorded column that is left when its own does not exist there. A merge with no row or no column left has
+ * no anchor.
+ *
+ * @param {object} entry The captured merge.
+ * @param {Function} toIndex Maps a physical index, or answers `null` for one that does not exist there.
+ * @returns {object} The merge with its anchor and `physicalColumns` mapped.
+ */
+function mapRecordedMerge(
+  entry: MergeStateEntry,
+  toIndex: (physicalIndex: number, axis: 'row' | 'column') => number | null,
+): MergeStateEntry {
+  const physicalColumns = entry.physicalColumns?.map(column => (column === null ? null : toIndex(column, 'column')));
+
+  if (entry.anchor === null) {
+    return { ...entry, physicalColumns };
+  }
+
+  const physicalRows = entry.anchor.physicalRows
+    .map(row => toIndex(row, 'row'))
+    .filter((row): row is number => row !== null);
+  const physicalColumn = toIndex(entry.anchor.physicalColumn, 'column') ??
+    physicalColumns?.find(column => column !== null) ?? null;
+
+  return {
+    ...entry,
+    anchor: physicalRows.length === 0 || physicalColumn === null ? null : { physicalRows, physicalColumn },
+    physicalColumns,
+  };
+}
+
+/**
+ * Returns a key for the physical cells a captured merge names (its anchor rows, its anchor column and its
+ * columns), so two merges with the same key name the same cells. A merge with no anchor or no recorded columns
+ * has none.
+ *
+ * @param {object} entry The captured merge.
+ * @returns {string | null}
+ */
+function getFootprintKey(entry: MergeStateEntry): string | null {
+  if (entry.anchor === null || entry.physicalColumns === undefined) {
+    return null;
+  }
+
+  return `${entry.anchor.physicalRows.join(',')}|${entry.anchor.physicalColumn}|${entry.physicalColumns.join(',')}`;
 }
 
 /**
@@ -339,6 +410,28 @@ export class MergeCells extends BasePlugin {
    * @type {Map<MergedCellCoords, number[]> | null}
    */
   #columnMoveSnapshot: Map<MergedCellCoords, number[]> | null = null;
+  /**
+   * The `merge()` and `unmerge()` calls made in a batch while an index cache was behind the indexes sequence.
+   * Each holds the corners of its range as physical indexes, read from the live order, and runs when the
+   * execution resumes and the caches are current (see `#deferRangeOperation()`).
+   *
+   * @type {Array<object>}
+   */
+  #deferredRangeOperations: DeferredRangeEntry[] = [];
+  /**
+   * `true` while the held back calls run, so a call a listener makes meanwhile waits behind the ones still
+   * queued.
+   *
+   * @type {boolean}
+   */
+  #isFlushingDeferredOperations = false;
+  /**
+   * Counts the row and column inserts and removals. A held back call that finds it moved was held back before
+   * one, so its physical corners are renumbered (see `DeferredRangeEntry`).
+   *
+   * @type {number}
+   */
+  #structureVersion = 0;
   /**
    * Snapshot of physical row indexes per merge, captured before a row move.
    *
@@ -555,6 +648,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyRowHeightByOverlayName', this.#onModifyRowHeightByOverlayName);
     this.addHook('modifySinglePassLayout', this.#onModifySinglePassLayout);
     this.addHook('afterMergeCells', this.#onAfterMergeCellsCapture);
+    this.addHook('afterResumeExecution', this.#onAfterResumeExecution);
 
     this.registerShortcuts();
 
@@ -580,6 +674,7 @@ export class MergeCells extends BasePlugin {
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
     this.#coveredBeforeMove = null;
+    this.#deferredRangeOperations = [];
     this.clearCollections();
     this.#appliedMergeKeys.clear();
     this.#appliedAreas.clear();
@@ -1973,10 +2068,11 @@ export class MergeCells extends BasePlugin {
     }
 
     const other = context?.other;
+    const isReplayed = context?.reordered === true;
     // The restore replaces merges, and a step can leave the cell a merge was drawn from in no merge.
     const drawnFromBefore = this.#snapshotDrawnFromCells();
 
-    if (!isMergeState(other) || context?.reordered === true || !this.#restoreChangedMerges(state, other)) {
+    if (!isMergeState(other) || isReplayed || !this.#restoreChangedMerges(state, other)) {
       this.mergedCellsCollection.clear();
       this.#mergeAnchors = new WeakMap();
       this.#purgedMerges = new WeakSet();
@@ -1986,9 +2082,12 @@ export class MergeCells extends BasePlugin {
     this.#reanchorMergesToVisibleRows();
     this.#clearSpanKeysOfCellsNoLongerDrawnFrom(drawnFromBefore);
 
-    // A replay that inserted or removed columns renumbered the physical indexes the recorded merges name.
-    if (isMergeState(other) && context?.reordered !== true) {
+    if (isMergeState(other) && !isReplayed) {
       this.#clearCoveredFlagsOfCellsReleasedByStep(state, other);
+
+    } else if (isMergeState(other) && context?.toRestoredIndex) {
+      // A replay that inserted or removed rows or columns renumbered the physical indexes the other side records.
+      this.#clearMergeKeysOfCellsReleasedByReplay(state, other, context.toRestoredIndex);
     }
 
     this.hot.markAllCellsChanged();
@@ -2026,8 +2125,16 @@ export class MergeCells extends BasePlugin {
    * restored side does not. `restoreState()` runs after UndoRedo restored the index maps, so the visual columns
    * of a live merge name the wrong physical columns and a set built from them cannot see the cell a redo takes
    * out of a merge. The recorded merges carry their physical columns, so the two sides are compared by those.
-   * A cell the restored side's changed merges cover is left alone. One an unchanged merge covers may be
-   * cleaned, and `afterGetCellMeta` stores the flags again on the next read.
+   * A cell the restored side's changed merges cover keeps what they put on it. The cell one of them is drawn
+   * from loses `hidden` and `copyable` and keeps its span keys, because `afterGetCellMeta` never writes
+   * `copyable` back on a top-left. A covered cell a merge of the other side was drawn from loses its span keys
+   * and keeps its covered flags, because the hook never takes a span off a covered cell. One an unchanged merge
+   * covers may be cleaned, and `afterGetCellMeta` stores the flags again on the next read.
+   *
+   * The span keys go too, and neither removal waits for the `hidden` or `spanned` mark. The merge stored both
+   * marks through `setCellMeta()`, so on the undo of a merge the UndoRedo journal has already taken them back,
+   * while the `copyable`, `rowspan` and `colspan` the hook wrote are not in the journal. The recorded other side
+   * is the proof that a merge covered the cell. A recorded `copyable`, `rowspan` or `colspan` still stays.
    *
    * @param {Array} state The merges on the restored side of the step.
    * @param {Array} other The merges on the other side of the step.
@@ -2039,15 +2146,128 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const covered = this.#collectRecordedCoveredCells(state.filter(entry => !isMergeListed(other, entry)));
+    const restored = state.filter(entry => !isMergeListed(other, entry));
 
-    this.#collectRecordedCoveredCells(left).forEach((key) => {
-      if (covered.has(key)) {
+    this.#clearMergeKeysOfReleasedCells(
+      this.#collectRecordedCoveredCells(left),
+      this.#collectRecordedTopLeftCells(left),
+      this.#collectRecordedCoveredCells(restored),
+      this.#collectRecordedTopLeftCells(restored),
+    );
+  }
+
+  /**
+   * Does what {@link MergeCells#clearCoveredFlagsOfCellsReleasedByStep} does, after a replay that inserted or
+   * removed rows or columns. The physical indexes the other side records are numbered like the grid before that
+   * replay, so each merge's anchor rows and recorded columns are first mapped to the restored grid through the
+   * rows and columns the step inserted or removed. Neither the live merges nor their visual columns can stand in:
+   * the replay runs in the physical order and the column order is restored before this runs. A merge whose
+   * mapped cells equal those of a restored merge is one the step left alone, and both are left out.
+   *
+   * @param {Array} state The merges on the restored side of the step.
+   * @param {Array} other The merges on the other side of the step.
+   * @param {Function} toRestoredIndex Maps a physical index of `other` to the restored grid.
+   */
+  #clearMergeKeysOfCellsReleasedByReplay(
+    state: readonly MergeStateEntry[],
+    other: readonly MergeStateEntry[],
+    toRestoredIndex: NonNullable<PluginRestoreContext['toRestoredIndex']>,
+  ) {
+    const mapped = other.map((entry) => {
+      const mappedEntry = mapRecordedMerge(entry, toRestoredIndex);
+      // A merge that lost a row or a column to the mapping covered a cell the restored grid lacks, so it is
+      // not the same merge as one of the restored side with the cells that are left.
+      const isWhole = mappedEntry.anchor?.physicalRows.length === entry.anchor?.physicalRows.length &&
+        !mappedEntry.physicalColumns?.includes(null);
+
+      return { entry: mappedEntry, key: isWhole ? getFootprintKey(mappedEntry) : null };
+    });
+    const restoredKeys = new Set(state.map(getFootprintKey));
+    const left = mapped
+      .filter(({ key }) => key === null || !restoredKeys.has(key))
+      .map(({ entry }) => entry);
+
+    if (left.length === 0) {
+      return;
+    }
+
+    const mappedKeys = new Set(mapped.map(({ key }) => key));
+    const restored = state.filter((entry) => {
+      const key = getFootprintKey(entry);
+
+      return key === null || !mappedKeys.has(key);
+    });
+
+    this.#clearMergeKeysOfReleasedCells(
+      this.#collectRecordedCoveredCells(left),
+      this.#collectRecordedTopLeftCells(left),
+      this.#collectRecordedCoveredCells(restored),
+      this.#collectRecordedTopLeftCells(restored),
+    );
+  }
+
+  /**
+   * Removes the merge keys from cells a merge covered on the other side of an undo step. A cell the restored
+   * side covers keeps what its merge put on it, except the cell a restored merge is drawn from: it loses `hidden`
+   * and `copyable` and keeps its span keys, because `afterGetCellMeta` never writes `copyable` back on a top-left.
+   * A covered cell a merge of the other side was drawn from loses its span keys and keeps its covered flags,
+   * because the hook never takes a span off a covered cell. Neither removal waits for the `hidden` or `spanned`
+   * mark (see {@link MergeCells#clearCoveredFlagsOfCellsReleasedByStep}).
+   *
+   * @param {Set<number>} released The cells a merge covered on the other side of the step.
+   * @param {Set<number>} leftTopLefts The cells the merges of the other side were drawn from.
+   * @param {Set<number>} covered The cells the restored merges cover.
+   * @param {Set<number>} restoredTopLefts The cells the restored merges are drawn from.
+   */
+  #clearMergeKeysOfReleasedCells(
+    released: Set<number>,
+    leftTopLefts: Set<number>,
+    covered: Set<number>,
+    restoredTopLefts: Set<number>,
+  ) {
+    released.forEach((key) => {
+      const isRestoredTopLeft = restoredTopLefts.has(key);
+      const isCovered = covered.has(key);
+      // A restored merge drawn from the cell keeps its span keys; one that covers it keeps its covered flags.
+      const clearsCoveredFlags = !isCovered || isRestoredTopLeft;
+      const clearsSpanKeys = !isRestoredTopLeft && (!isCovered || leftTopLefts.has(key));
+
+      if (!clearsCoveredFlags && !clearsSpanKeys) {
         return;
       }
 
-      this.#clearCoveredFlagsOfTopLeftCell(Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE), key % DRAWN_CELL_COLUMN_STRIDE);
+      const physicalRow = Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE);
+      const physicalColumn = key % DRAWN_CELL_COLUMN_STRIDE;
+
+      if (clearsCoveredFlags) {
+        this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn, true);
+      }
+
+      if (clearsSpanKeys) {
+        this.#clearSpanKeysOfCell(physicalRow, physicalColumn, true);
+      }
     });
+  }
+
+  /**
+   * Collects the physical cell each recorded merge is drawn from (`#getTopLeftPhysicalRow()` in the anchor's
+   * column). A merge with no anchor, or with no visible top-left, is left out.
+   *
+   * @param {Array} entries The recorded merges.
+   * @returns {Set<number>} The cells, packed as `physicalRow * DRAWN_CELL_COLUMN_STRIDE + physicalColumn`.
+   */
+  #collectRecordedTopLeftCells(entries: readonly MergeStateEntry[]): Set<number> {
+    const cells = new Set<number>();
+
+    entries.forEach(({ anchor }) => {
+      const physicalRow = anchor === null ? null : this.#getTopLeftPhysicalRow(anchor);
+
+      if (anchor !== null && physicalRow !== null) {
+        cells.add((physicalRow * DRAWN_CELL_COLUMN_STRIDE) + anchor.physicalColumn);
+      }
+    });
+
+    return cells;
   }
 
   /**
@@ -2060,10 +2280,15 @@ export class MergeCells extends BasePlugin {
    *   rows are all trimmed, so the lookup does not reach it); nothing is changed then.
    */
   #restoreChangedMerges(target: readonly MergeStateEntry[], from: readonly MergeStateEntry[]): boolean {
+    // UndoRedo restores the row index maps before the plugin states, so a merge the step made has already
+    // been re-anchored to the restored order, while the recorded entry still holds the visual coordinates
+    // of the order it was made in. An entry with an anchor is told apart by the anchor, which survives
+    // reordering; one without keeps the coordinates.
     const liveToRemove = from.filter(entry => !isMergeListed(target, entry)).map(entry => (
       this.mergedCellsCollection.mergedCells.find(merge => (
-        merge.row === entry.row && merge.col === entry.col && merge.rowspan === entry.rowspan &&
-        merge.colspan === entry.colspan && areAnchorsEqual(entry.anchor, this.#mergeAnchors.get(merge))
+        (entry.anchor !== null || (merge.row === entry.row && merge.col === entry.col)) &&
+        merge.rowspan === entry.rowspan && merge.colspan === entry.colspan &&
+        areAnchorsEqual(entry.anchor, this.#mergeAnchors.get(merge))
       ))
     ));
 
@@ -2209,6 +2434,12 @@ export class MergeCells extends BasePlugin {
   /**
    * Merges the specified range.
    *
+   * Inside a [`batch()`](@/api/core.md#batch) that holds a column move, a row move, or a sort made before this
+   * call, the merge takes effect when the batch ends, and `beforeMergeCells` and `afterMergeCells` fire then.
+   * The range is the one you see after that move or sort. `mergeSelection()` and `mergeRange()` do not wait, so in
+   * the same batch they run first. A call held back is dropped with a warning when rows or columns are added or
+   * removed, or when a row or column of its range is trimmed, before the batch ends.
+   *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
    * @param {number} endRow Visual end row of the merged cell.
@@ -2217,14 +2448,14 @@ export class MergeCells extends BasePlugin {
    * @fires Hooks#afterMergeCells
    */
   merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
-    const start = this.hot._createCellCoords(startRow, startColumn);
-    const end = this.hot._createCellCoords(endRow, endColumn);
-
-    this.mergeRange(this.hot._createCellRange(start, start, end));
+    this.#runRangeOperation({ kind: 'merge', startRow, startColumn, endRow, endColumn });
   }
 
   /**
    * Unmerges the merged cell in the provided range.
+   *
+   * Like `merge()`, the call waits for the end of a [`batch()`](@/api/core.md#batch) that holds a column move,
+   * a row move, or a sort made before it, and it keeps its order with the `merge()` calls around it.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -2234,11 +2465,191 @@ export class MergeCells extends BasePlugin {
    * @fires Hooks#afterUnmergeCells
    */
   unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
+    this.#runRangeOperation({ kind: 'unmerge', startRow, startColumn, endRow, endColumn });
+  }
+
+  /**
+   * Runs a `merge()` or `unmerge()` call, or holds it back until the execution resumes.
+   *
+   * Inside `batch()` a move or a sort changes the indexes sequence but not the translation caches, and the
+   * merges the plugin keeps are described in the order of the caches until the batch ends. A merge written
+   * from the live order would sit beside them in another coordinate system, and every listener that reads
+   * the caches (the next move, the overlap check, the cleanup at the end of the batch) would misread it. So
+   * while a cache is behind, the call keeps only the physical corners of its range, and the batch's end runs
+   * it on current caches. Once one call waits, the later ones wait too, which keeps their order, and so does
+   * a call a listener makes while the waiting ones run.
+   *
+   * @param {object} operation The call: its kind and the visual corners of its range.
+   */
+  #runRangeOperation(operation: DeferredRangeOperation) {
+    if (this.#isFlushingDeferredOperations) {
+      if (!this.#deferRangeOperation(operation)) {
+        this.#applyRangeOperation(operation);
+      }
+
+      return;
+    }
+
+    if (this.#deferredRangeOperations.length > 0 && !this.hot.isExecutionSuspended()) {
+      this.#flushDeferredRangeOperations();
+    }
+
+    if (this.hot.isExecutionSuspended() &&
+        (this.#deferredRangeOperations.length > 0 || this.#isIndexSequenceBehind()) &&
+        this.#deferRangeOperation(operation)) {
+      return;
+    }
+
+    this.#applyRangeOperation(operation);
+  }
+
+  /**
+   * Puts a call at the end of the queue, with its corners as physical indexes.
+   *
+   * @param {object} operation The call: its kind and the visual corners of its range.
+   * @returns {boolean} `false` when a corner has no physical index, and the call is not queued.
+   */
+  #deferRangeOperation(operation: DeferredRangeOperation): boolean {
+    const physical = this.#translateRangeCorners(operation, 'physical');
+
+    if (physical === null) {
+      return false;
+    }
+
+    this.#deferredRangeOperations.push({
+      operation: physical,
+      structure: this.#structureVersion,
+    });
+
+    return true;
+  }
+
+  /**
+   * Tells whether a move or a sort made while the operations are suspended has not reached the caches yet.
+   *
+   * @returns {boolean}
+   */
+  #isIndexSequenceBehind(): boolean {
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+
+    return (rowIndexMapper.isBatched && rowIndexMapper.indexesSequenceChanged) ||
+      (columnIndexMapper.isBatched && columnIndexMapper.indexesSequenceChanged);
+  }
+
+  /**
+   * Translates the corners of a range between visual and physical indexes.
+   *
+   * To physical, it reads the live order, the one a move or a sort in the batch has already made. To visual,
+   * it reads the caches, which the caller has made current.
+   *
+   * @param {object} operation The call, with its corners in the other kind of indexes.
+   * @param {'physical'|'visual'} to The kind of indexes to translate to.
+   * @returns {object|null} The call with translated corners, or `null` when a corner has no such index.
+   */
+  #translateRangeCorners(operation: DeferredRangeOperation, to: 'physical' | 'visual'): DeferredRangeOperation | null {
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const translate = (): DeferredRangeOperation | null => {
+      const toRow = to === 'physical' ? this.hot.toPhysicalRow : this.hot.toVisualRow;
+      const toColumn = to === 'physical' ? this.hot.toPhysicalColumn : this.hot.toVisualColumn;
+      const startRow = toRow(operation.startRow);
+      const endRow = toRow(operation.endRow);
+      const startColumn = toColumn(operation.startColumn);
+      const endColumn = toColumn(operation.endColumn);
+
+      if (startRow === null || endRow === null || startColumn === null || endColumn === null) {
+        return null;
+      }
+
+      return { kind: operation.kind, startRow, startColumn, endRow, endColumn };
+    };
+
+    return to === 'physical'
+      ? rowIndexMapper.runWithLiveCache(() => columnIndexMapper.runWithLiveCache(translate))
+      : translate();
+  }
+
+  /**
+   * Merges or unmerges the range of a `merge()` or `unmerge()` call, now.
+   *
+   * @param {object} operation The call: its kind and the visual corners of its range.
+   */
+  #applyRangeOperation({ kind, startRow, startColumn, endRow, endColumn }: DeferredRangeOperation) {
     const start = this.hot._createCellCoords(startRow, startColumn);
     const end = this.hot._createCellCoords(endRow, endColumn);
+    const range = this.hot._createCellRange(start, start, end);
 
-    this.unmergeRange(this.hot._createCellRange(start, start, end));
+    if (kind === 'merge') {
+      this.mergeRange(range);
+
+    } else {
+      this.unmergeRange(range);
+    }
   }
+
+  /**
+   * Runs the calls `#runRangeOperation()` held back, in order, on the caches of the order the batch made.
+   * A call whose corners no longer have a visual index (their rows or columns were trimmed) is dropped, and so
+   * is one held back before a row or column insert or removal, because its physical corners were renumbered.
+   * Both come with a warning. Every call runs, and the first error is thrown after the last one.
+   */
+  #flushDeferredRangeOperations() {
+    if (this.#isFlushingDeferredOperations || this.#deferredRangeOperations.length === 0 ||
+        this.#isIndexSequenceBehind()) {
+      return;
+    }
+
+    let failure: { error: unknown } | null = null;
+
+    this.#isFlushingDeferredOperations = true;
+
+    try {
+      while (this.#deferredRangeOperations.length > 0) {
+        try {
+          this.#runDeferredEntry(this.#deferredRangeOperations.shift() as DeferredRangeEntry);
+        } catch (error) {
+          failure = failure ?? { error };
+        }
+      }
+    } finally {
+      this.#isFlushingDeferredOperations = false;
+    }
+
+    if (failure !== null) {
+      throw (failure as { error: unknown }).error;
+    }
+  }
+
+  /**
+   * Runs one held back call on the caches of the order the batch made.
+   *
+   * @param {object} entry The held back call, with the structure version when it was held back.
+   */
+  #runDeferredEntry({ operation, structure }: DeferredRangeEntry) {
+    if (structure !== this.#structureVersion) {
+      warn(`A ${operation.kind}() call made in a batch was dropped, because rows or columns were added or ` +
+        'removed before the batch ended.');
+
+      return;
+    }
+
+    const visual = this.#translateRangeCorners(operation, 'visual');
+
+    if (visual === null) {
+      warn(`A ${operation.kind}() call made in a batch was dropped, because a row or column of its range was ` +
+        'trimmed before the batch ended.');
+
+      return;
+    }
+
+    this.#applyRangeOperation(visual);
+  }
+
+  /**
+   * `afterResumeExecution` hook callback. The caches are current again, so it runs the calls held back.
+   */
+  #onAfterResumeExecution = () => {
+    this.#flushDeferredRangeOperations();
+  };
 
   /**
    * `afterMergeCells` hook callback. Captures the physical anchor of the just-created merge so it can
@@ -3312,18 +3723,25 @@ export class MergeCells extends BasePlugin {
    * applies it again on the next read.
    * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
    *
+   * A caller that knows from a recorded undo step that a merge covered the cell skips the `spanned` check: the
+   * UndoRedo journal takes `spanned` back before `restoreState()` runs, and it never held `rowspan` or `colspan`.
+   *
    * @param {number} physicalRow The physical row of the cell.
    * @param {number} physicalColumn The physical column of the cell.
+   * @param {boolean} [wasInMerge=false] `true` when a recorded undo step shows that a merge covered the cell.
    */
-  #clearSpanKeysOfCell(physicalRow: number, physicalColumn: number) {
+  #clearSpanKeysOfCell(physicalRow: number, physicalColumn: number, wasInMerge = false) {
     const metaManager = this.hot._getMetaManager();
     const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+    const hasMark = !!storedMeta && hasOwnProperty(storedMeta, 'spanned');
 
-    if (!storedMeta || !hasOwnProperty(storedMeta, 'spanned')) {
+    if (!storedMeta || (!wasInMerge && !hasMark)) {
       return;
     }
 
-    metaManager.removeCellMeta(physicalRow, physicalColumn, 'spanned');
+    if (hasMark) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'spanned');
+    }
 
     ['rowspan', 'colspan'].forEach((key) => {
       if (!metaManager.getCellMetaKeyState(physicalRow, physicalColumn, key).hadOwn) {
@@ -3505,18 +3923,25 @@ export class MergeCells extends BasePlugin {
    * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
    * The check costs one meta lookup per merge and no lookup in the merge collection.
    *
+   * A caller that knows from a recorded undo step that a merge covered the cell skips the `hidden` check: the
+   * UndoRedo journal takes `hidden` back before `restoreState()` runs, and it never held `copyable`.
+   *
    * @param {number} physicalRow The physical row of the cell the merge is drawn from.
    * @param {number} physicalColumn The physical column of the cell the merge is drawn from.
+   * @param {boolean} [wasInMerge=false] `true` when a recorded undo step shows that a merge covered the cell.
    */
-  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number) {
+  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number, wasInMerge = false) {
     const metaManager = this.hot._getMetaManager();
     const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+    const hasMark = !!storedMeta && hasOwnProperty(storedMeta, 'hidden');
 
-    if (!storedMeta || !hasOwnProperty(storedMeta, 'hidden')) {
+    if (!storedMeta || (!wasInMerge && !hasMark)) {
       return;
     }
 
-    metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+    if (hasMark) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+    }
 
     // The merge stores `hidden` through `setCellMeta()`, but the hook writes `copyable` straight onto the stored
     // object and never records it. A recorded `copyable` is left alone (a recorded `true` was already overwritten by the hook).
@@ -3890,6 +4315,8 @@ export class MergeCells extends BasePlugin {
    * @param {number} count Number of created columns.
    */
   #onAfterCreateCol = (column: number, count: number) => {
+    this.#structureVersion += 1;
+
     this.mergedCellsCollection.shiftCollections('right', column, count);
     this.#captureMergeAnchors();
     // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
@@ -3904,6 +4331,8 @@ export class MergeCells extends BasePlugin {
    * @param {number} count Number of removed columns.
    */
   #onAfterRemoveCol = (column: number, count: number) => {
+    this.#structureVersion += 1;
+
     this.mergedCellsCollection.shiftCollections('left', column, count);
     this.#captureMergeAnchors();
     // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
@@ -3922,6 +4351,8 @@ export class MergeCells extends BasePlugin {
     if (source === 'auto') {
       return;
     }
+
+    this.#structureVersion += 1;
 
     // Inserting renumbers physical rows at/after the insertion point up by `count`; mirror that onto
     // the anchors, which stay the authoritative description of the merge. The remap has to run before
@@ -3952,6 +4383,8 @@ export class MergeCells extends BasePlugin {
    * @param {number[]} physicalRows Physical indexes of the removed rows.
    */
   #onAfterRemoveRow = (row: number, count: number, physicalRows: number[]) => {
+    this.#structureVersion += 1;
+
     // Removing renumbers each surviving physical row down by how many removed rows sat above it;
     // mirror that onto the anchors, which stay the authoritative description of the merge. The remap
     // runs before the shift so the anchors, not the shift, decide which merges are gone: while rows
@@ -3993,9 +4426,23 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
-    this.#captureDrawnFromBeforeMove(this.#getMoveWindow('column', columns, finalIndex));
+    this.#captureColumnsBeforeReorder(this.#getMoveWindow('column', columns, finalIndex));
   };
+
+  /**
+   * Records the physical columns of every merge right before a column move or freeze. The after hook
+   * rewrites the columns of the merges in the live order (see `#translateMergesAfterColumnReorder()`), so a
+   * second move in the same batch has to read them in that order too, or it would take a merge's columns
+   * for ones that are not next to each other and split it.
+   *
+   * @param {object|null} window The visual columns the move permutes, or `null` for a freeze.
+   */
+  #captureColumnsBeforeReorder(window: MoveWindow | null = null) {
+    this.hot.columnIndexMapper.runWithLiveCache(() => {
+      this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
+      this.#captureDrawnFromBeforeMove(window);
+    });
+  }
 
   /**
    * Records the cells the merges are drawn from right before a move or a freeze, for the cleanup that
@@ -4060,16 +4507,29 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const replacements = this.mergedCellsCollection.translateAfterAxisMove(
-      'column', snapshot, this.#planColumnMoveRetention(snapshot));
+    this.#translateMergesAfterColumnReorder(snapshot);
+  };
 
-    this.#transferAnchorsAfterAxisMove(replacements, 'column');
-    this.#captureMergeAnchors();
+  /**
+   * Moves the merges onto the column order a move or a freeze has just made. Inside `batch()` the column
+   * index cache still holds the order from before the batch, and no `cacheUpdated` hook re-anchors the
+   * columns afterwards (the rows have one), so the translation reads the live order for the call.
+   *
+   * @param {Map} snapshot The merges with their physical columns before the reorder.
+   */
+  #translateMergesAfterColumnReorder(snapshot: Map<MergedCellCoords, number[]>) {
+    this.hot.columnIndexMapper.runWithLiveCache(() => {
+      const replacements = this.mergedCellsCollection.translateAfterAxisMove(
+        'column', snapshot, this.#planColumnMoveRetention(snapshot));
 
-    this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
+      this.#transferAnchorsAfterAxisMove(replacements, 'column');
+      this.#captureMergeAnchors();
+
+      this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
+    });
 
     this.hot.render();
-  };
+  }
 
   /**
    * `beforeRowMove` hook callback. Captures physical row positions of every merge
@@ -4096,8 +4556,13 @@ export class MergeCells extends BasePlugin {
     // keeps its stale-but-present coordinates, survives the move, and the re-anchor that follows puts
     // it back on the rows the transferred anchor names. A trimmed row inside a partly visible merge
     // makes no difference either way, since it has no visual index to translate.
-    this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
-    this.#captureDrawnFromBeforeMove(this.#getMoveWindow('row', rows, finalIndex));
+    //
+    // The merges' columns are read on the live column order: a column move earlier in the same batch has
+    // rewritten them in it (`#translateMergesAfterColumnReorder()`).
+    this.hot.columnIndexMapper.runWithLiveCache(() => {
+      this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
+      this.#captureDrawnFromBeforeMove(this.#getMoveWindow('row', rows, finalIndex));
+    });
   };
 
   /**
@@ -4132,16 +4597,21 @@ export class MergeCells extends BasePlugin {
     // sequence to build its position map — which on a large grid is real allocation on every drop.
     // Skipping it leaves the split on the path it took before, which is the right answer when no row
     // is trimmed: a fragment then draws exactly the rows it owns.
-    const plan = this.mergedCellsCollection.mergedCells.length > 0 && this.#isRowTrimmingActive()
-      ? this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions())
-      : null;
+    //
+    // The merges' columns are read on the live column order: a column move earlier in the same batch has
+    // rewritten them in it, and the anchor capture below would take them for columns of the stale order.
+    this.hot.columnIndexMapper.runWithLiveCache(() => {
+      const plan = this.mergedCellsCollection.mergedCells.length > 0 && this.#isRowTrimmingActive()
+        ? this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions())
+        : null;
 
-    const replacements = this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers);
+      const replacements = this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers);
 
-    this.#transferAnchorsAfterAxisMove(replacements, 'row', plan?.context);
-    this.#captureMergeAnchors();
+      this.#transferAnchorsAfterAxisMove(replacements, 'row', plan?.context);
+      this.#captureMergeAnchors();
 
-    this.#settleMergesAfterAxisMove(replacements, snapshot, 'row');
+      this.#settleMergesAfterAxisMove(replacements, snapshot, 'row');
+    });
 
     this.hot.render();
   };
@@ -4163,8 +4633,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
-    this.#captureDrawnFromBeforeMove();
+    this.#captureColumnsBeforeReorder();
   };
 
   /**
@@ -4185,15 +4654,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const replacements = this.mergedCellsCollection.translateAfterAxisMove(
-      'column', snapshot, this.#planColumnMoveRetention(snapshot));
-
-    this.#transferAnchorsAfterAxisMove(replacements, 'column');
-    this.#captureMergeAnchors();
-
-    this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
-
-    this.hot.render();
+    this.#translateMergesAfterColumnReorder(snapshot);
   };
 
   /**

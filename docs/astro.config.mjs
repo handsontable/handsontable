@@ -17,6 +17,7 @@ import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
 import {
   injectLicenseKey,
   isExecutedExampleId,
+  isKeyedSiteScriptId,
   previewLicenseKeyCheck,
   resolvePreviewLicenseKey,
 } from './src/plugins/preview-license-key.mjs';
@@ -24,7 +25,9 @@ import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/s
 import { AGENT_NOTE_MD } from './src/agent-note.mjs';
 import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
+import { socialImageHead } from './src/lib/social-image.mjs';
 import { resolveSentryRelease } from './src/lib/sentry-release.mjs';
+import { buildVersionList, createCommonJsonHooks, toMinor } from './src/lib/docs-versions.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
@@ -59,8 +62,12 @@ if (!existsSync(symlinkTarget)) {
 // BUILD_MODE env var is set by the deployment pipeline. When set to
 // 'production', production-only 3rd-party scripts (GTM, HotJar) are injected
 // and the "dev" badge next to the logo is hidden.
+// DOCS_SEARCH=true adds the Algolia search to a build that is not production
+// (the staging and pull request previews), so the functional specs can test it.
+// It changes nothing else production mode controls.
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
+const searchEnabled = isProduction || process.env.DOCS_SEARCH === 'true';
 
 // The internal test key for the executed examples of a staging or pull request
 // preview build (DOCS_TEST_LICENSE_KEY=true, never in production). Those builds run
@@ -189,7 +196,19 @@ function resolveMonorepoPackages() {
     // A staging or preview build first writes the internal test key over the
     // license placeholder of each executed example (preview-license-key.mjs).
     async transform(source, id) {
-      if (!id.includes('/content/')) return null;
+      if (!id.includes('/content/')) {
+        // A site script that builds a grid (the 404 page's game) gets the key the same way.
+        if (!previewLicenseKey || !isKeyedSiteScriptId(id)) return null;
+
+        const keyed = injectLicenseKey(source, previewLicenseKey);
+
+        if (keyed === source) return null;
+
+        licenseKeyRewrittenIds.add(id);
+
+        // Vite's own TypeScript transform runs after this `pre` plugin; the line count is unchanged.
+        return { code: keyed, map: null };
+      }
 
       // Runs first, on the source, before the JSX and Angular transpiles drop
       // the placeholder comments.
@@ -350,9 +369,13 @@ function resolveMonorepoPackages() {
  *     urls: [string, string][]                 // [url-path, max-version]
  *   }
  *
- * Version data is fetched from the GitHub Releases API at build time and
- * supplemented with the local handsontable package.json. Network failures
- * are tolerated -- the file is written with only the local version.
+ * Version data is fetched from the GitHub Releases API at build time
+ * (src/lib/docs-versions.mjs, authenticated with GITHUB_TOKEN when set) and
+ * supplemented with the local handsontable package.json. A production build
+ * (BUILD_MODE=production) fails when the fetch fails, because this file is
+ * shared by every deployed docs version and a one-version list would strip the
+ * older versions from all of their dropdowns (DEV-4146). Other builds tolerate
+ * the failure and write only the local version.
  *
  * The file is written to:
  *   - public/data/common.json  (dev server)
@@ -360,18 +383,10 @@ function resolveMonorepoPackages() {
  */
 function commonJsonIntegration() {
   const matter = _require('gray-matter');
-  const semver = _require('semver');
   const contentDir = resolve(__dirname, 'content');
   const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
-  const MIN_DOCS_VERSION = '9.0';
 
   // ── Version helpers ──────────────────────────────────────────────────────
-
-  function toMinor(patchVersion) {
-    const parsed = semver.parse(patchVersion);
-
-    return parsed ? `${parsed.major}.${parsed.minor}` : null;
-  }
 
   function getLocalVersion() {
     try {
@@ -381,49 +396,6 @@ function commonJsonIntegration() {
     } catch {
       return null;
     }
-  }
-
-  /**
-   * Fetches release tags from GitHub and returns version data.
-   * Returns null on network error so callers can fall back gracefully.
-   */
-  async function fetchGitHubVersions() {
-    const url =
-      'https://api.github.com/repos/handsontable/handsontable/releases?per_page=100';
-
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'handsontable-docs-build' },
-    });
-
-    if (!res.ok) return null;
-
-    const releases = await res.json();
-
-    // Collect all stable patch tags, sort newest-first.
-    const patchTags = releases
-      .map((r) => r.tag_name)
-      .filter((tag) => !semver.prerelease(tag) && semver.valid(tag))
-      .sort((a, b) => semver.rcompare(a, b));
-
-    // Group by minor version.
-    const minorMap = new Map(); // minor -> [patch, ...]
-
-    for (const tag of patchTags) {
-      const minor = toMinor(tag);
-
-      if (!minor) continue;
-
-      if (!minorMap.has(minor)) minorMap.set(minor, []);
-
-      minorMap.get(minor).push(tag);
-    }
-
-    // Build list of minor versions, newest-first, capped at MIN_DOCS_VERSION.
-    const minors = [...minorMap.keys()].sort((a, b) => semver.rcompare(`${a}.0`, `${b}.0`));
-    const minIdx = minors.indexOf(MIN_DOCS_VERSION);
-    const cappedMinors = minIdx === -1 ? minors : minors.slice(0, minIdx + 1);
-
-    return { minors: cappedMinors, minorMap };
   }
 
   // ── URL collection ────────────────────────────────────────────────────────
@@ -533,37 +505,15 @@ function commonJsonIntegration() {
     const localPatch = getLocalVersion(); // e.g. "17.0.1"
     const localMinor = localPatch ? toMinor(localPatch) : null;
 
-    let minors = localMinor ? [localMinor] : [];
-    let minorMap = new Map();
-
-    if (localMinor && localPatch) {
-      minorMap.set(localMinor, [localPatch]);
-    }
-
-    // Attempt to augment with the full release history from GitHub.
-    try {
-      const gh = await fetchGitHubVersions();
-
-      if (gh) {
-        // GitHub has the complete list of patches per minor version.
-        // Prefer GitHub data for any minor that already appears there.
-        // Keep the local version as fallback for brand-new minors not yet
-        // in GitHub (e.g. a pre-release build on the dev site).
-        for (const [minor, patches] of gh.minorMap) {
-          minorMap.set(minor, patches);
-        }
-
-        // Build merged minor list, newest-first, deduped.
-        const allMinors = new Set([
-          ...(localMinor ? [localMinor] : []),
-          ...gh.minors,
-        ]);
-
-        minors = [...allMinors].sort((a, b) => semver.rcompare(`${a}.0`, `${b}.0`));
-      }
-    } catch {
-      // Network failure -- continue with local version only.
-    }
+    // The local version plus the release history from GitHub. A production
+    // build throws here when the history cannot be read: this file feeds the
+    // version dropdown of every deployed docs version, and a one-version list
+    // would strip the older versions from all of them (DEV-4146).
+    const { minors, minorMap } = await buildVersionList({
+      localPatch,
+      isProduction,
+      token: process.env.GITHUB_TOKEN,
+    });
 
     const latestVersion = minors[0] ?? localMinor ?? 'next';
     const versionsWithPatches = minors.map((m) => [m, minorMap.get(m) ?? []]);
@@ -585,19 +535,15 @@ function commonJsonIntegration() {
   }
 
   // Write to public/data/ at startup so the dev server can serve it.
-  buildAndWrite(resolve(__dirname, 'public')).catch(() => {});
+  // A failure here is reported by the awaited write in `astro:build:done`, which
+  // fails a production build, so the early write only logs it.
+  buildAndWrite(resolve(__dirname, 'public')).catch((error) => {
+    console.warn(`[common-json] ${error.message}`);
+  });
 
   return {
     name: 'common-json',
-    hooks: {
-      'astro:build:done': async ({ dir }) => {
-        const outDir = fileURLToPath(dir);
-
-        // Pass distDir so collectUrls() can scan built HTML files, which
-        // includes auto-generated API pages not present in content/.
-        await buildAndWrite(outDir, outDir);
-      },
-    },
+    hooks: createCommonJsonHooks(buildAndWrite),
   };
 }
 
@@ -818,6 +764,8 @@ export default defineConfig({
             'utf8'
           ),
         },
+        // Social preview image for link previews (LinkedIn, Slack, X).
+        ...socialImageHead(),
         {
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
@@ -1156,7 +1104,7 @@ export default defineConfig({
       plugins: [
         starlightThemeRapide(),
         starlightPageActions(),
-        ...(isProduction
+        ...(searchEnabled
           ? [
               starlightDocSearch({
                 clientOptionsModule: './src/config/docsearch.ts',
@@ -1165,10 +1113,11 @@ export default defineConfig({
           : []),
       ],
 
-      // Algolia DocSearch powers search in production and RC builds.
+      // Algolia DocSearch powers search in production and RC builds, and in any
+      // build with DOCS_SEARCH=true (the staging and pull request previews).
       // Pagefind disabled -- the index is built by the Algolia crawler after each deploy.
-      // Search is hidden in non-production builds via shouldRenderSearch in Header.astro.
-      // RC builds use the production Algolia index; results link to handsontable.com/docs.
+      // Search is hidden in other builds via shouldRenderSearch in Header.astro.
+      // Every build uses the production Algolia index; results link to handsontable.com/docs.
       pagefind: false,
     }),
 
@@ -1250,6 +1199,7 @@ export default defineConfig({
     // env namespace so .astro components can read it at build time.
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
+      'import.meta.env.PUBLIC_DOCS_SEARCH': JSON.stringify(searchEnabled ? 'true' : ''),
       'import.meta.env.PUBLIC_HOT_VERSION': JSON.stringify(HOT_VERSION),
       // Docs-assistant backend base URL, used only off the canonical hosts
       // (handsontable.com and dev.handsontable.com reach the backend through the

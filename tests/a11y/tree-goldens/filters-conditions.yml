@@ -27,13 +27,12 @@
       - gridcell "9" [selected]
       - gridcell "900"
   - rowgroup:
-    - row "Select whole grid Product Category Price Qty":
-      - gridcell "Select whole grid"
+    - row "Product Category Price Qty":
+      - gridcell
       - columnheader "Product"
       - columnheader "Category"
       - columnheader "Price"
       - columnheader "Qty"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -46,9 +45,8 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+    - row:
+      - gridcell
   - textbox "Price, row 1"
 # portal
 - menu "Column menu":

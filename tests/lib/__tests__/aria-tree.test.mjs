@@ -139,8 +139,75 @@ test('the corner clone\'s head row, its corner cell alone, is not a data row', (
     ...row(1, [['gridcell', 'Select whole grid', 1]], corner.id),
   ];
 
-  assert.deepEqual(structureFindings(nodes).map(item => item.kind), ['row-exposed-twice'],
-    'the corner repeats the head row\'s index, and lacks no row header');
+  assert.deepEqual(structureFindings(nodes).map(item => item.kind), ['row-exposed-twice', 'cell-exposed-twice'],
+    'the corner repeats the head row\'s index and its corner cell, and lacks no row header');
+});
+
+test('a cell exposed by more than one overlay is reported with how many cells and copies', () => {
+  // A frozen row and a frozen column: the master, the top clone, the start clone and the corner all
+  // render cell A1, and the master and the start clone both render A2.
+  const nodes = [
+    node('treegrid'),
+    node('rowgroup'),
+    ...row(2, [['gridcell', 'A1', 2], ['gridcell', 'B1', 3]]),
+    ...row(3, [['gridcell', 'A2', 2], ['gridcell', 'B2', 3]]),
+    node('rowgroup'),
+    ...row(2, [['rowheader', '1', 1], ['gridcell', 'A1', 2], ['gridcell', 'B1', 3]]),
+    node('rowgroup'),
+    ...row(2, [['rowheader', '1', 1], ['gridcell', 'A1', 2]]),
+    ...row(3, [['rowheader', '2', 1], ['gridcell', 'A2', 2]]),
+    node('rowgroup'),
+    ...row(2, [['rowheader', '1', 1], ['gridcell', 'A1', 2]]),
+  ];
+  const found = structureFindings(nodes).find(item => item.kind === 'cell-exposed-twice');
+
+  assert.deepEqual([found.criteria, found.severity], [['1.3.1'], 'moderate']);
+  // Row 2: the row header (3 copies), A1 (4), B1 (2). Row 3: A2 (2).
+  assert.deepEqual(found.measured, { duplicatedCells: 4, exampleRow: 2, exampleColumn: 2, mostCopies: 4 });
+});
+
+test('rows that share an index but no cell are rows exposed twice, never cells exposed twice', () => {
+  // The default grid: the start clone repeats each row index with the row header alone.
+  const nodes = [
+    node('treegrid'),
+    ...row(1, [['gridcell', 'Select whole grid', 1], ['columnheader', 'A', 2]]),
+    ...row(2, [['gridcell', 'A1', 2]]),
+    ...row(2, [['rowheader', '1', 1]]),
+  ];
+
+  assert.deepEqual(structureFindings(nodes).map(item => item.kind), ['row-headers-apart', 'row-exposed-twice']);
+});
+
+test('rows and cells without an index are never cells exposed twice', () => {
+  // Without the index filters every such cell would share a `null:…` or `…:null` key.
+  const grid = node('grid');
+  const unindexedRows = [1, 2].flatMap(() => {
+    const tr = node('row', { tag: 'tr', parent: grid.id });
+
+    return [tr, node('gridcell', { name: 'x', parent: tr.id, tag: 'td', attrs: { 'aria-colindex': '1' } })];
+  });
+  const indexedRow = node('row', { tag: 'tr', parent: grid.id, attrs: { 'aria-rowindex': '1' } });
+  const nodes = [
+    grid,
+    ...unindexedRows,
+    indexedRow,
+    node('gridcell', { name: 'a', parent: indexedRow.id, tag: 'td' }),
+    node('gridcell', { name: 'b', parent: indexedRow.id, tag: 'td' }),
+  ];
+
+  assert.deepEqual(structureFindings(nodes), []);
+});
+
+test('the same cell index in two grids is one cell each', () => {
+  const [outer, inner] = [node('treegrid'), node('grid')];
+  const nodes = [
+    outer,
+    ...row(1, [['gridcell', 'A1', 1]], outer.id),
+    inner,
+    ...row(1, [['gridcell', 'x', 1]], inner.id),
+  ];
+
+  assert.deepEqual(structureFindings(nodes), []);
 });
 
 test('only a row whose own rowgroup is a table head is a head row', () => {

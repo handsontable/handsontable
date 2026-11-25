@@ -134,6 +134,7 @@ export class ManualRowResize extends BasePlugin {
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
 
     this.#gesture.bindEvents(this.eventManager);
+    this.#gesture.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -157,8 +158,11 @@ export class ManualRowResize extends BasePlugin {
     // revert a row the user had since dragged to the array's height - neither the dragged height
     // nor the one being requested.
     if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
-      this.disablePlugin();
-      this.enablePlugin();
+      // A keyboard resize survives it, as a drag does: a framework wrapper sends it on every re-render.
+      this.#gesture.keepKeyboardResizeThrough(() => {
+        this.disablePlugin();
+        this.enablePlugin();
+      });
     }
 
     // Runs after the re-initialization, so that the heights replayed on the map's `init` hook are
@@ -176,6 +180,7 @@ export class ManualRowResize extends BasePlugin {
   disablePlugin() {
     // Leaves a drag in flight alone on purpose - see `ResizeGesture#detach()`.
     this.#gesture.detach();
+    this.#gesture.unregisterShortcuts();
 
     if (this.#disposeMapObserver) {
       this.#disposeMapObserver();
@@ -468,6 +473,7 @@ export class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#gesture.unregisterShortcuts();
     this.#gesture.destroy();
     super.destroy();
   }

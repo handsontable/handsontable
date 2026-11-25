@@ -56,6 +56,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'إلغاء دمج الخلايا',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'نسخ',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['نسخ مع العنوان', 'نسخ مع العناوين'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['نسخ مع عنوان المجموعة', 'نسخ مع عناوين المجموعات'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['نسخ العنوان فقط', 'نسخ العناوين فقط'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'قص',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'تصدير',
@@ -143,6 +146,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'تم نقل الورقة [name] إلى الموضع [position] من [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'ورقة',
 
+  [C.CHECKBOX_CHECKED]: 'محدد',
+  [C.CHECKBOX_UNCHECKED]: 'غير محدد',
+
   [C.LOADING_TITLE]: 'جاري التحميل...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'إغلاق',
 
@@ -175,16 +181,49 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'الصفوف المجمّدة في الأسفل',
   [C.FREEZE_BAR_COLUMNS_START]: 'الأعمدة المجمّدة في البداية',
   [C.FREEZE_BAR_COLUMNS_END]: 'الأعمدة المجمّدة في النهاية',
+  [C.ARMED_PICK_STARTED]: 'انقر أو المس الهدف للإنهاء. اضغط Escape للإلغاء.',
+  [C.ARMED_PICK_CANCELED]: 'تم الإلغاء.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'تغيير عرض العمود. استخدم مفتاحي السهم الأيسر والأيمن لتغيير العرض، وEnter للتطبيق، وEscape للإلغاء.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'تغيير ارتفاع الصف. استخدم مفتاحي السهم لأعلى ولأسفل لتغيير الارتفاع، وEnter للتطبيق، وEscape للإلغاء.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'تغيير حجم مربع التعليق. استخدم مفاتيح الأسهم لتغيير الحجم، وEnter للتطبيق، وEscape للإلغاء.',
+  [C.MANUAL_RESIZE_WIDTH]: 'العرض: [size] بكسل',
+  [C.MANUAL_RESIZE_HEIGHT]: 'الارتفاع: [size] بكسل',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'المستوى [level]، [position] من [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'المستوى [level]، [position] من [setSize]، موسّع',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'المستوى [level]، [position] من [setSize]، مطوي',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'الصيغة: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'للقراءة فقط',
+  [C.CELL_DESCRIPTION_LINK]: 'رابط',
+  [C.CELL_DESCRIPTION_MERGED]: 'مدمجة حتى الصف [row] العمود [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع مجموعة الأعمدة [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'تم طي مجموعة الأعمدة [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'تم الفرز حسب [label]، تصاعديًا',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'تم الفرز حسب [label]، تنازليًا',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'تمت إزالة الفرز من [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'تم الفرز حسب [label]، تصاعديًا، أولوية الفرز [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'تم الفرز حسب [label]، تنازليًا، أولوية الفرز [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'تم تحديد من العمود [startColumn]، الصف [startRow] إلى العمود [endColumn]، الصف [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'تم تحديد كل الخلايا',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'تم تحديد العمود [column]',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'تم تحديد الأعمدة من [startColumn] إلى [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'تم تحديد الصف [row]',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'تم تحديد الصفوف من [startRow] إلى [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'تمت إضافة تحديد: [selection]. التحديدات: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'العمود [column]، الصف [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'من العمود [startColumn]، الصف [startRow] إلى العمود [endColumn]، الصف [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'كل الخلايا',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'العمود [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'الأعمدة من [startColumn] إلى [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'الصف [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'الصفوف من [startRow] إلى [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'محرر الصيغ',
   [C.FORMULA_BUILDER_INPUT]: 'إدخال الصيغة',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'عنوان الخلية',

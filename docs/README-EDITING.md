@@ -31,7 +31,7 @@ Each Markdown file can start with the following frontmatter tags:
 | `category`       | The content category for organizing pages. | None (not required) |
 | `addedIn`        | The Handsontable version that introduced the feature the page documents, as a quoted `"MAJOR.MINOR.PATCH"` string (for example `"17.0.0"`). Renders an "Added in Handsontable 17.0.0" badge next to the page title and adds the same sentence under the H1 of the page's Markdown and llms outputs. Set it only for features introduced in 14.0.0 or later; `npm run build` rejects malformed values and versions that were never released. | None (not required) |
 
-The `metaTitle` value reads `<Page> | Handsontable DataGrid for <Framework>`. The docs site does not render it yet: the browser tab title comes from `title` plus the site title.
+The `metaTitle` value reads `<Page> | Handsontable DataGrid for <Framework>`, and the browser tab shows it. When a framework's `metaTitle` has another shape (the changelog and migration pages), or is missing, the tab reads `<title> | Handsontable DataGrid for <Framework>`.
 
 You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JavaScript` or `React`, depending on the framework:
 

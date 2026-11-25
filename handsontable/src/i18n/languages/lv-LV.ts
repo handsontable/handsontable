@@ -145,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Lapa [name] pārvietota uz [position]. vietu no [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Lapa',
 
+  [C.CHECKBOX_CHECKED]: 'Atzīmēts',
+  [C.CHECKBOX_UNCHECKED]: 'Nav atzīmēts',
+
   [C.LOADING_TITLE]: 'Ielādē...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Aizvērt',
 
@@ -177,16 +180,52 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Nofiksētās rindas apakšā',
   [C.FREEZE_BAR_COLUMNS_START]: 'Nofiksētās kolonnas sākumā',
   [C.FREEZE_BAR_COLUMNS_END]: 'Nofiksētās kolonnas beigās',
+  [C.ARMED_PICK_STARTED]: 'Noklikšķiniet vai pieskarieties mērķim, lai pabeigtu. Nospiediet Escape, lai atceltu.',
+  [C.ARMED_PICK_CANCELED]: 'Atcelts.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Kolonnas platuma maiņa. Platumu maina ar kreiso un labo bultiņu taustiņiem, Enter to lieto, Escape atceļ.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Rindas augstuma maiņa. Augstumu maina ar augšupvērsto un lejupvērsto bultiņu taustiņiem, Enter to lieto, Escape ' +
+    'atceļ.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Komentāra lodziņa izmēra maiņa. Izmēru maina ar bultiņu taustiņiem, Enter to lieto, Escape atceļ.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Platums: [size] pikseļi',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Augstums: [size] pikseļi',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Līmenis [level], [position] no [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Līmenis [level], [position] no [setSize], izvērsts',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Līmenis [level], [position] no [setSize], sakļauts',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'tikai lasāms',
+  [C.CELL_DESCRIPTION_LINK]: 'saite',
+  [C.CELL_DESCRIPTION_MERGED]: 'apvienota līdz rindai [row] kolonnai [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta kolonnu grupa [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta kolonnu grupa [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Kārtots pēc [label], augošā secībā',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Kārtots pēc [label], dilstošā secībā',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Kārtošana noņemta no [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Kārtots pēc [label], augošā secībā, kārtošanas prioritāte [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Kārtots pēc [label], dilstošā secībā, kārtošanas prioritāte [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Atlasīts no kolonnas [startColumn], rindas [startRow] līdz kolonnai [endColumn], rindai [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Atlasītas visas šūnas',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Kolonna [column] atlasīta',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Kolonnas no [startColumn] līdz [endColumn] atlasītas',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Rinda [row] atlasīta',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Rindas no [startRow] līdz [endRow] atlasītas',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Atlase pievienota: [selection]. Atlašu skaits: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'kolonna [column], rinda [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'no kolonnas [startColumn], rindas [startRow] līdz kolonnai [endColumn], rindai [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'visas šūnas',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'kolonna [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'kolonnas no [startColumn] līdz [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'rinda [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'rindas no [startRow] līdz [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Formulu redaktors',
   [C.FORMULA_BUILDER_INPUT]: 'Formulas ievade',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Šūnas adrese',

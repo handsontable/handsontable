@@ -506,8 +506,8 @@ export class AutoColumnSize extends BasePlugin {
    */
   #rewalkAfterSweepPending = false;
   /**
-   * `true` while the render that ends a sweep run with `syncViewport` runs. Its visible pass fills in the
-   * widths it lacks and overwrites none.
+   * `true` while the render that ends an idle-task sweep that does not reuse samples runs. Its visible pass
+   * fills in the widths it lacks and overwrites none.
    *
    * @type {boolean}
    */
@@ -540,6 +540,13 @@ export class AutoColumnSize extends BasePlugin {
    * @type {{ column: number, snapping: string | undefined } | null}
    */
   #scrollAfterResumedRender: { column: number, snapping: string | undefined } | null = null;
+  /**
+   * The last horizontal scroll made while a sweep that has no up-front measure was running, to a column whose
+   * columns before it still lacked a width, run again after the render that ends the sweep, or `null`.
+   *
+   * @type {{ column: number, snapping: string | undefined } | null}
+   */
+  #scrollAfterSweep: { column: number, snapping: string | undefined } | null = null;
   /**
    * `true` when a `syncViewport` sweep's idle chunk, or a measure before a scroll, wrote widths after the last
    * render, so the engine still lays the columns out with the widths of an earlier draw: an idle chunk draws
@@ -768,7 +775,7 @@ export class AutoColumnSize extends BasePlugin {
    * Calculates widths for visible columns in the viewport only.
    */
   calculateVisibleColumnsWidth(): void {
-    // One-shot: the render that ends a `syncViewport` sweep fills in widths. A render held by `suspendRender()`
+    // One-shot: the render that ends an idle-task sweep fills in widths. A render held by `suspendRender()`
     // runs later, so the flag waits for it rather than for `render()` to return.
     const fillOnly = this.#fillOnlyRender;
 
@@ -932,8 +939,10 @@ export class AutoColumnSize extends BasePlugin {
    * With `syncViewport`, only the columns on screen (at most `syncColumns` of them) are measured before this
    * method returns, and every other column waits for idle tasks, with no chunk run now. Before the first draw
    * nothing is rendered yet, so the columns on screen are the frozen end columns plus the columns from the
-   * start that fill the viewport's width, measured one at a time until they do. Once the last idle chunk
-   * ends, the grid draws, so the scroll range takes the widths measured meanwhile.
+   * start that fill the viewport's width, measured one at a time until they do.
+   *
+   * Once the last idle chunk of any sweep ends, the grid draws, so the scroll range takes the widths measured
+   * meanwhile. A sweep that ends in the caller's own chunk draws nothing.
    *
    * @param {object} options The sweep options.
    * @param {object} options.rowsRange The visual row range to sample, with `from` and `to` indexes.
@@ -1169,13 +1178,20 @@ export class AutoColumnSize extends BasePlugin {
         this.#sweepDrawPending = true;
         this.hot.render();
 
-      } else if (syncViewport && fromIdleTask && isDone) {
+      } else if (fromIdleTask && isDone) {
         // A full render redraws the rendered columns past the viewport's edge, which the first paint drew at
-        // the fallback width, and a merge whose width changed with the sweep. Its visible pass only fills in
-        // missing widths: overwriting them would sample every column on screen again over the whole row
-        // range, because the synchronous part's samples are dropped (see `recalculateAllColumnsWidth()`).
+        // the fallback width, and a merge whose width changed with the sweep, and it gives the engine the
+        // widths the sweep measured, which size the scroll range. Its visible pass only fills in missing
+        // widths: overwriting them would sample every column on screen again over the whole row range,
+        // because the synchronous part's samples are dropped (see `recalculateAllColumnsWidth()`).
+        // AutoRowSize measured the rows against the widths the columns had before this sweep reached them,
+        // and measures them again in the render's `beforeRender`.
         this.#fillOnlyRender = true;
         this.hot.render();
+      }
+
+      if (fromIdleTask && isDone) {
+        this.#replayScrollAfterSweep();
       }
     };
 
@@ -1519,7 +1535,7 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     if (growths.size > 0) {
-      this.hot.batchExecution(() => {
+      this.hot._batchExecutionWithoutHooks(() => {
         growths.forEach((width, visualColumn) => {
           this.columnWidthsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), width);
         });
@@ -1701,7 +1717,7 @@ export class AutoColumnSize extends BasePlugin {
     let stylesChanged = false;
     const changedColumns: number[] = [];
 
-    this.hot.batchExecution(() => {
+    this.hot._batchExecutionWithoutHooks(() => {
       this.ghostTable.getWidths((visualColumn: number, width: number) => {
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -1791,7 +1807,8 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Checks whether the plugin is measuring columns in idle tasks, or owes a re-measure of every column to
-   * the next render. AutoRowSize waits for it before it measures the rows again after a font load.
+   * the next render. AutoRowSize waits for it before it measures the rows again after `init`, `loadData()`,
+   * or a font load.
    *
    * @private
    * @returns {boolean}
@@ -1953,7 +1970,7 @@ export class AutoColumnSize extends BasePlugin {
    */
   clearCache(physicalColumns?: number[]): void {
     if (Array.isArray(physicalColumns)) {
-      this.hot.batchExecution(() => {
+      this.hot._batchExecutionWithoutHooks(() => {
         physicalColumns.forEach((physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
           this.#columnSamplesCache.delete(physicalIndex);
@@ -1986,25 +2003,30 @@ export class AutoColumnSize extends BasePlugin {
    * columns before it. Walkontable reads the widths from its last draw, so measuring alone does not reach the
    * scroll: the render does, and it only fills in widths, like the render that ends the sweep.
    *
+   * Any other sweep still running (an explicit `syncLimit`, a default grid under the cell budget, AutoRowSize
+   * on a tall grid) measures nothing here, because an application that sets `syncLimit` asks for less
+   * synchronous work. The scroll is remembered instead and runs again after the render that ends the sweep.
+   *
    * @param {number} visualColumn The visual column the viewport scrolls to.
    * @returns {number} The same column.
    */
   #onBeforeViewportScrollHorizontally = (visualColumn: number, snapping?: string | { value?: string }) => {
-    const mayLackDrawnWidths = this.#viewportSweepPending || this.#widthsChangedSinceDraw;
-
-    if (!mayLackDrawnWidths || visualColumn < 0 || this.hot.countRows() === 0) {
+    if (visualColumn < 0 || this.hot.countRows() === 0) {
       return visualColumn;
     }
 
-    const lastColumn = Math.min(visualColumn, this.hot.countCols() - 1);
-    let hasMissingWidth = false;
+    if (!this.#viewportSweepPending && !this.#widthsChangedSinceDraw) {
+      if (this.inProgress) {
+        this.#scrollAfterSweep = this.#hasMissingWidthUpTo(visualColumn) ?
+          { column: visualColumn, snapping: this.#snappingValue(snapping) } : null;
+      }
 
-    rangeEach(0, lastColumn, (column) => {
-      hasMissingWidth ||= this.columnWidthsMap.getValueAtIndex(this.#toPhysicalColumn(column)) === null &&
-        !this.hot._getColWidthFromSettings(column);
-    });
+      return visualColumn;
+    }
 
-    if (hasMissingWidth) {
+    if (this.#hasMissingWidthUpTo(visualColumn)) {
+      const lastColumn = Math.min(visualColumn, this.hot.countCols() - 1);
+
       this.#calculateColumnsWidth({ from: 0, to: lastColumn }, { from: 0, to: this.hot.countRows() - 1 }, () => false);
       this.#widthsChangedSinceDraw = true;
     }
@@ -2020,18 +2042,79 @@ export class AutoColumnSize extends BasePlugin {
     this.hot.render();
 
     if (this.hot.isRenderSuspended()) {
-      if (this.#scrollAfterResumedRender === null) {
-        this.hot.addHookOnce('afterRender', this.#onAfterResumedRender);
-      }
-
-      this.#scrollAfterResumedRender = {
-        column: visualColumn,
-        snapping: typeof snapping === 'object' ? snapping.value : snapping,
-      };
+      this.#scrollAfterResumedRenderTo(visualColumn, this.#snappingValue(snapping));
     }
 
     return visualColumn;
   };
+
+  /**
+   * Tells whether the column a scroll goes to, or a column before it, still has no width.
+   *
+   * @param {number} visualColumn The visual column the viewport scrolls to.
+   * @returns {boolean}
+   */
+  #hasMissingWidthUpTo(visualColumn: number): boolean {
+    const lastColumn = Math.min(visualColumn, this.hot.countCols() - 1);
+    let hasMissingWidth = false;
+
+    rangeEach(0, lastColumn, (column) => {
+      hasMissingWidth ||= this.columnWidthsMap.getValueAtIndex(this.#toPhysicalColumn(column)) === null &&
+        !this.hot._getColWidthFromSettings(column);
+    });
+
+    return hasMissingWidth;
+  }
+
+  /**
+   * Reads the snapping of a horizontal scroll as the hook gets it: a string, or an object holding one.
+   *
+   * @param {string|{ value: (string|undefined) }|undefined} snapping The snapping the hook received.
+   * @returns {string|undefined}
+   */
+  #snappingValue(snapping?: string | { value?: string }): string | undefined {
+    return typeof snapping === 'object' ? snapping.value : snapping;
+  }
+
+  /**
+   * Runs a horizontal scroll again after the render that `resumeRender()` runs.
+   *
+   * @param {number} column The visual column the viewport scrolls to.
+   * @param {string|undefined} snapping The snapping of the scroll.
+   */
+  #scrollAfterResumedRenderTo(column: number, snapping: string | undefined): void {
+    if (this.#scrollAfterResumedRender === null) {
+      this.hot.addHookOnce('afterRender', this.#onAfterResumedRender);
+    }
+
+    this.#scrollAfterResumedRender = { column, snapping };
+  }
+
+  /**
+   * Runs again the last horizontal scroll made while a sweep ran without measuring up front, now that the render
+   * that ends the sweep drew the widths it measured (see `#onBeforeViewportScrollHorizontally`). A render held
+   * by `suspendRender()` runs at `resumeRender()`, so the scroll waits for it.
+   */
+  #replayScrollAfterSweep(): void {
+    const target = this.#scrollAfterSweep;
+
+    this.#scrollAfterSweep = null;
+
+    if (target === null || target.column >= this.hot.countCols()) {
+      return;
+    }
+
+    if (this.hot.isRenderSuspended()) {
+      this.#scrollAfterResumedRenderTo(target.column, target.snapping);
+
+      return;
+    }
+
+    this.hot.scrollViewportTo({
+      col: target.column,
+      horizontalSnap: target.snapping === 'auto' ? undefined : target.snapping,
+    });
+  }
 
   /**
    * Runs again the horizontal scroll made while rendering was suspended, now that the render drew the widths it
@@ -2289,6 +2372,7 @@ export class AutoColumnSize extends BasePlugin {
       this.#reMeasureOwed = true;
     }
 
+    this.#scrollAfterSweep = null;
     this.#finishSweep();
   }
 

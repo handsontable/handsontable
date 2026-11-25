@@ -1052,9 +1052,9 @@ class DataManager {
 
     const metaManager = this.hot._getMetaManager();
 
-    recordMetaRowsShift(this.hot, false, fromPhysicalRow, amount);
+    recordMetaRowsShift(this.hot, false, fromPhysicalRow, amount, true);
     metaManager.removeRow(fromPhysicalRow, amount);
-    recordMetaRowsShift(this.hot, true, toPhysicalRow, amount);
+    recordMetaRowsShift(this.hot, true, toPhysicalRow, amount, true);
     metaManager.createRow(toPhysicalRow, amount);
   }
 

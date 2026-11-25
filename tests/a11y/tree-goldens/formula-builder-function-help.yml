@@ -24,12 +24,11 @@
       - gridcell
       - gridcell "yes"
   - rowgroup:
-    - row "Select whole grid A B C":
-      - gridcell "Select whole grid"
+    - row "A B C":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -42,9 +41,8 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+    - row:
+      - gridcell
   - combobox "Formula editor": =SUM()
 # portal
 - status

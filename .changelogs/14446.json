@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed 18 language files that lacked the checkbox state, empty menu, and copy with headers phrases, so those texts showed in English.",
+  "type": "fixed",
+  "issueOrPR": 14446,
+  "breaking": false,
+  "framework": "none"
+}

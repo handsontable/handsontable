@@ -24,7 +24,7 @@
  *
  * Steps: `{ select: [row, col, row2?, col2?] }`, `{ api: 'colWidth' | 'rowHeight', index, size }` and
  * `{ api: 'empty', range: [row, col, row2, col2] }` go through the API; `hover`, `click` (with `button`,
- * `modifiers`), `dblclick`, `drag` (`from`, then `to`, `by: [dx, dy]` or both) and `touchDrag` drive a
+ * `modifiers`), `dblclick`, `drag` (`from`, then `to`, `by: [dx, dy]` or both), `touchTap` and `touchDrag` drive a
  * real pointer; `press` a key or a list of keys, `pressUntilFocused` a key until the selector has the
  * focus, `pressUntilHighlighted` a key until the open menu highlights the text; `focus` focuses a
  * selector; `visible` waits for one. A point is `{ cell: [row, col] }`, `{ colHeader }`, `{ rowHeader }`
@@ -67,6 +67,10 @@ export const DRAG_OPERATIONS = [
     fixture: 'manual-resize-contextmenu.html', expect: 'resizes',
     drag: [{ hover: { colHeader: 1 } }, { drag: { from: { selector: '.manualColumnResizer' }, by: [60, 0] } }],
     alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+R from a cell starts the resize, the arrow keys change the width and Enter keeps it',
+        steps: [{ select: [1, 1] }, { press: ['ControlOrMeta+Alt+r', 'ArrowRight', 'ArrowRight', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the handle, then a click on the grid, sets the width to the distance from the column to the click',
+        steps: [{ hover: { colHeader: 1 } }, { click: { selector: '.manualColumnResizer' } }, { click: { cell: [3, 4] } }] },
       { input: 'single-pointer', covers: 'partial', how: 'A double-click on the handle fits the column to its content, never to another width',
         prepare: [{ api: 'colWidth', index: 1, size: 200 }], steps: [{ hover: { colHeader: 1 } }, { dblclick: { selector: '.manualColumnResizer' } }] },
     ],
@@ -76,6 +80,10 @@ export const DRAG_OPERATIONS = [
     fixture: 'manual-resize-contextmenu.html', expect: 'resizes',
     drag: [{ hover: { rowHeader: 1 } }, { drag: { from: { selector: '.manualRowResizer' }, by: [0, 30] } }],
     alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+R from a selected row starts the resize, the arrow keys change the height and Enter keeps it',
+        steps: [{ click: { rowHeader: 1 } }, { press: ['ControlOrMeta+Alt+r', 'ArrowDown', 'ArrowDown', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the handle, then a click on the grid, sets the height to the distance from the row to the click',
+        steps: [{ hover: { rowHeader: 1 } }, { click: { selector: '.manualRowResizer' } }, { click: { cell: [4, 3] } }] },
       { input: 'single-pointer', covers: 'partial', how: 'A double-click on the handle fits the row to its content, never to another height',
         prepare: [{ api: 'rowHeight', index: 1, size: 80 }], steps: [{ hover: { rowHeader: 1 } }, { dblclick: { selector: '.manualRowResizer' } }] },
     ],
@@ -96,6 +104,8 @@ export const DRAG_OPERATIONS = [
     alternatives: [
       { input: 'keyboard', covers: 'full', how: 'F6 moves the focus to the bar\'s separator, and an arrow key freezes one column more',
         steps: [{ select: [1, 1] }, { pressUntilFocused: { key: 'F6', selector: '[data-ht-freeze-separator="start"]' } }, { press: 'ArrowRight' }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the bar, then a click on the last column to freeze, sets the count',
+        steps: [{ click: { selector: '.ht-freeze-bar--start:not(.ht-freeze-bar--segment)' } }, { click: { cell: [3, 3] } }] },
       { input: 'single-pointer', covers: 'partial', how: 'The context menu\'s Freeze column moves one selected column to the frozen ones, never sets the count',
         steps: [{ click: { colHeader: 3 } }, { click: { colHeader: 3 }, button: 'right' }, { click: { text: 'Freeze column', within: '.htContextMenu' } }] },
     ],
@@ -107,6 +117,8 @@ export const DRAG_OPERATIONS = [
     alternatives: [
       { input: 'keyboard', covers: 'full', how: 'F6 moves the focus to the bar\'s separator, and an arrow key freezes one row more',
         steps: [{ select: [1, 1] }, { pressUntilFocused: { key: 'F6', selector: '[data-ht-freeze-separator="top"]' } }, { press: 'ArrowDown' }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the bar, then a click on the last row to freeze, sets the count',
+        steps: [{ click: { selector: '.ht-freeze-bar--top:not(.ht-freeze-bar--segment)' } }, { click: { cell: [3, 3] } }] },
     ],
   },
   {
@@ -156,6 +168,8 @@ export const DRAG_OPERATIONS = [
         steps: [{ press: ['Shift+ArrowDown', 'Shift+ArrowDown'] }] },
       { input: 'pointer-modifier', covers: 'full', how: 'A Shift+click extends the selection to the clicked cell',
         steps: [{ click: { cell: [5, 3] }, modifiers: ['Shift'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the handle, then a click on the target cell, moves the edge there',
+        steps: [{ click: { selector: '.ht_master .wtSelectionHandle--bottom' } }, { click: { cell: [5, 2] } }] },
     ],
   },
   {
@@ -165,13 +179,20 @@ export const DRAG_OPERATIONS = [
     alternatives: [
       { input: 'keyboard', covers: 'full', how: 'Shift+arrows on a keyboard attached to the phone extend the selection',
         steps: [{ press: ['Shift+ArrowDown', 'Shift+ArrowDown'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A tap on the handle, then a tap on the target cell, moves the corner there',
+        steps: [{ touchTap: { selector: '.ht_master .htBorders .bottomSelectionHandle-HitArea' } }, { touchTap: { cell: [4, 1] } }] },
     ],
   },
   {
     id: 'comment-resize', plugin: 'comments', gesture: 'drag', operation: 'Resize the comment editor by dragging the grip in its corner',
     page: 'comments', expect: 'resizes',
     drag: [{ drag: { from: { selector: '.htCommentTextArea', at: 'corner-end' }, by: [60, 40] } }],
-    alternatives: [],
+    alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+R in the editor starts the resize, the arrow keys change the width and the height and Enter keeps them',
+        steps: [{ press: ['ControlOrMeta+Alt+r', 'ArrowRight', 'ArrowDown', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'A click on the grip, then a click on the grid, puts the corner of the editor there',
+        steps: [{ click: { selector: '.htCommentTextArea', at: 'corner-end' } }, { click: { cell: [7, 4] } }] },
+    ],
   },
   // Picking a reference into a formula: the catalog page opens C1 (=A1+B1) with Enter, and every path
   // types `+` first, so the caret sits after an operator and the pick is inserted there; without it a

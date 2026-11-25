@@ -11,11 +11,10 @@
       - gridcell
       - gridcell
   - rowgroup:
-    - row "Select whole grid A B":
-      - gridcell "Select whole grid"
+    - row "A B":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -24,9 +23,8 @@
     - row "3":
       - rowheader "3"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+    - row:
+      - gridcell
   - group "Select options":
     - textbox "Search options":
       - /placeholder: Search...

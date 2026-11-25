@@ -55,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zrušit sloučení buněk',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopírovat',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopírovat se záhlavím', 'Kopírovat se záhlavími'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Kopírovat se záhlavím skupiny',
+    'Kopírovat se záhlavími skupin',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopírovat pouze záhlaví', 'Kopírovat pouze záhlaví'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Vyjmout',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportovat',
@@ -142,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] přesunut na pozici [position] z [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
 
+  [C.CHECKBOX_CHECKED]: 'Zaškrtnuto',
+  [C.CHECKBOX_UNCHECKED]: 'Nezaškrtnuto',
+
   [C.LOADING_TITLE]: 'Načítání...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zavřít',
 
@@ -174,16 +183,49 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Ukotvené řádky dole',
   [C.FREEZE_BAR_COLUMNS_START]: 'Ukotvené sloupce na začátku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Ukotvené sloupce na konci',
+  [C.ARMED_PICK_STARTED]: 'Kliknutím nebo klepnutím na cíl akci dokončíte. Stisknutím klávesy Escape ji zrušíte.',
+  [C.ARMED_PICK_CANCELED]: 'Zrušeno.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Změna šířky sloupce. Šířku měníte šipkami doleva a doprava, Enter ji použije, Escape ji zruší.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Změna výšky řádku. Výšku měníte šipkami nahoru a dolů, Enter ji použije, Escape ji zruší.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Změna velikosti pole komentáře. Velikost měníte šipkami, Enter ji použije, Escape ji zruší.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Šířka: [size] pixelů',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Výška: [size] pixelů',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Úroveň [level], [position] z [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Úroveň [level], [position] z [setSize], rozbaleno',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Úroveň [level], [position] z [setSize], sbaleno',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Vzorec: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'jen pro čtení',
+  [C.CELL_DESCRIPTION_LINK]: 'odkaz',
+  [C.CELL_DESCRIPTION_MERGED]: 'sloučeno do řádku [row] sloupce [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Rozbalena skupina sloupců [label]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sbalena skupina sloupců [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Seřazeno podle [label], vzestupně',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Seřazeno podle [label], sestupně',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Řazení odebráno ze sloupce [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Seřazeno podle [label], vzestupně, priorita řazení [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Seřazeno podle [label], sestupně, priorita řazení [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Výběr od sloupce [startColumn], řádku [startRow] do sloupce [endColumn], řádku [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Všechny buňky vybrány',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Sloupec [column] vybrán',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Sloupce [startColumn] až [endColumn] vybrány',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Řádek [row] vybrán',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Řádky [startRow] až [endRow] vybrány',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Výběr přidán: [selection]. Počet výběrů: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'sloupec [column], řádek [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'od sloupce [startColumn], řádku [startRow] do sloupce [endColumn], řádku [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'všechny buňky',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'sloupec [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'sloupce [startColumn] až [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'řádek [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'řádky [startRow] až [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Editor vzorců',
   [C.FORMULA_BUILDER_INPUT]: 'Vstup vzorce',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Adresa buňky',

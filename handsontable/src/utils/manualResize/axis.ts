@@ -3,6 +3,7 @@ import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/
 import type { IndexMapper } from '../../translations';
 import { closest } from '../../helpers/dom/element';
 import { firstRowTopBorderOutsideHeight } from '../../3rdparty/walkontable/src/axisSizing/boxModel';
+import * as C from '../../i18n/constants';
 
 /**
  * The direction a resize drag moves the header edge in. A row is resized vertically, a column
@@ -102,6 +103,45 @@ export interface ResizeAxis {
    * Returns the size reported to the resize hooks.
    */
   getHookSize(hot: HotInstance, index: number, newSize: number | null): number | null;
+  /**
+   * The name of the group the keyboard shortcuts of this axis register under.
+   */
+  shortcutsGroup: string;
+  /**
+   * The i18n phrase announced when the keyboard resize starts.
+   */
+  keyboardStartedPhrase: string;
+  /**
+   * The i18n phrase announced with the size every key press sets. `[size]` stands for the pixels.
+   */
+  sizePhrase: string;
+  /**
+   * Returns the header cell of a visual index, or `null` when it is not rendered.
+   */
+  getHeaderCell(hot: HotInstance, visualIndex: number): HTMLElement | null;
+  /**
+   * Tells whether the keyboard resize of this axis answers for the current selection. A column is resized from a
+   * cell or a column header, a row from a row header or a selected row, so the two shortcuts never both claim one
+   * selection.
+   */
+  ownsSelection(hot: HotInstance): boolean;
+}
+
+/**
+ * Tells whether the selection is on a row: a focused row header, or a row selected whole.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @returns {boolean}
+ */
+function isRowSelection(hot: HotInstance): boolean {
+  const highlight = hot.getSelectedRangeLast()?.highlight;
+
+  if (!highlight || highlight.row === null || highlight.row < 0) {
+    return false;
+  }
+
+  return highlight.col === null || highlight.col < 0 ||
+    hot.selection.isSelectedByRowHeader() || hot.selection.isEntireRowSelected();
 }
 
 /**
@@ -127,6 +167,17 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
   afterResizeHook: 'afterRowResize',
   operationName: 'resize_row',
   operationSource: 'manualRowResize.resize_row',
+  shortcutsGroup: 'manualRowResize',
+  keyboardStartedPhrase: C.MANUAL_RESIZE_ROW_STARTED,
+  sizePhrase: C.MANUAL_RESIZE_HEIGHT,
+
+  getHeaderCell(hot, visualIndex) {
+    return hot.getCell(visualIndex, -1, true) ?? null;
+  },
+
+  ownsSelection(hot) {
+    return isRowSelection(hot);
+  },
 
   getIndexMapper(hot) {
     return hot.rowIndexMapper;
@@ -226,6 +277,19 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
   afterResizeHook: 'afterColumnResize',
   operationName: 'resize_column',
   operationSource: 'manualColumnResize.resize_column',
+  shortcutsGroup: 'manualColumnResize',
+  keyboardStartedPhrase: C.MANUAL_RESIZE_COLUMN_STARTED,
+  sizePhrase: C.MANUAL_RESIZE_WIDTH,
+
+  getHeaderCell(hot, visualIndex) {
+    return hot.getCell(-1, visualIndex, true) ?? null;
+  },
+
+  ownsSelection(hot) {
+    const highlight = hot.getSelectedRangeLast()?.highlight;
+
+    return !!highlight && highlight.col !== null && highlight.col >= 0 && !isRowSelection(hot);
+  },
 
   getIndexMapper(hot) {
     return hot.columnIndexMapper;

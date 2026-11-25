@@ -3,9 +3,9 @@ import { OrderView } from '../utils/orderView';
 import { setAttribute } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
-  A11Y_ROWGROUP,
   A11Y_ROWINDEX,
 } from '../../../../helpers/a11y';
+import { dropRowGroupRole, dropRowRole, giveRowGroupRole } from './ariaAttributes';
 
 /**
  * Column header rows renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to THEAD.
@@ -58,10 +58,15 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
   render() {
     const { columnHeadersCount } = this.table;
 
+    // As in the body (`RowsRenderer`): a head row is a `row` only while it holds a cell.
+    const rowsHoldCells = this.table.columnsToRender + this.table.rowHeadersCount > 0;
+
     if (this.table.isAriaEnabled()) {
-      setAttribute(this.rootNode, [
-        A11Y_ROWGROUP()
-      ]);
+      if (columnHeadersCount > 0 && rowsHoldCells) {
+        giveRowGroupRole(this.rootNode);
+      } else {
+        dropRowGroupRole(this.rootNode);
+      }
     }
 
     this.orderView
@@ -74,11 +79,14 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
 
       const TR = this.orderView.getCurrentNode();
 
-      if (TR && this.table.isAriaEnabled()) {
+      if (TR && this.table.isAriaEnabled() && rowsHoldCells) {
         setAttribute(TR, [
           A11Y_ROW(),
           A11Y_ROWINDEX(visibleRowIndex + 1),
         ]);
+
+      } else if (TR && this.table.isAriaEnabled()) {
+        dropRowRole(TR);
       }
     }
 

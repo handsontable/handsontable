@@ -41,6 +41,7 @@
  *     });
  *   }}
  * />
+ * ```
  * :::
  *
  * ::: only-for angular
@@ -119,6 +120,7 @@
  *     // function body - will only run for first instance
  *   }
  * });
+ * ```
  * :::
  * ...
  */
@@ -2280,7 +2282,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Core#suspendExecution} before it suspends the execution (the index cache updates).
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores or clears the column widths and
+   * row heights it measures, or recomputes the rows of a page with the `'auto'` page size on a render (for
+   * example, after the container is resized).
    *
    * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
    * Its return value cannot cancel the suspension, but a listener that throws stops it, and the error
@@ -2332,7 +2336,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Core#suspendExecution} after it suspends the execution (the index cache updates).
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores or clears the column widths and
+   * row heights it measures, or recomputes the rows of a page with the `'auto'` page size on a render (for
+   * example, after the container is resized).
    *
    * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
    * When a listener throws, the execution is resumed (the `beforeResumeExecution` and
@@ -2381,7 +2387,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Core#resumeExecution} before it resumes the execution and updates the index cache.
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores or clears the column widths and
+   * row heights it measures, or recomputes the rows of a page with the `'auto'` page size on a render (for
+   * example, after the container is resized).
    *
    * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced
    * nested call, and a call while the execution is not suspended fire nothing. It cannot cancel the resume.
@@ -2436,14 +2444,15 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Core#resumeExecution} after it resumes the execution and updates the index cache, so
    * the index changes made while the execution was suspended are already applied.
    * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
-   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * execution the same way. The hook does not fire when Handsontable stores or clears the column widths and
+   * row heights it measures, or recomputes the rows of a page with the `'auto'` page size on a render (for
+   * example, after the container is resized).
    * `batch()` resumes rendering after this hook.
    *
    * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced
    * nested call, and a call while the execution is not suspended fire nothing. It fires even when a
    * `beforeResumeExecution` listener or the index cache update throws. The hook does not fire while the
-   * instance is being destroyed. A listener that suspends the execution again, directly or through a render,
-   * starts a new cycle, which fires all four hooks again, this one included.
+   * instance is being destroyed. A listener that suspends the execution again starts a new cycle, which fires all four hooks again, this one included.
    *
    * @event Hooks#afterResumeExecution
    * @since 19.0.0
@@ -3644,7 +3653,8 @@ export const REGISTERED_HOOKS = [
    * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
    * @param {number} newCount The new number of frozen rows or columns on that edge.
    * @param {number} oldCount The current number of frozen rows or columns on that edge.
-   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change. A drag of a bar, and a click on a bar followed
+   * by a click on the grid, both report `drag`.
    * @returns {boolean|undefined} If `false` is returned, the change is canceled.
    */
   'beforeFreezeChange',

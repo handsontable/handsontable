@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annulla',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nessuna opzione disponibile',
   [C.CONTEXTMENU_LABEL]: 'Menu contestuale',
   [C.DROPDOWNMENU_LABEL]: 'Menu della colonna',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserisci riga sopra',
@@ -144,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Foglio [name] spostato in posizione [position] di [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Foglio',
 
+  [C.CHECKBOX_CHECKED]: 'Selezionato',
+  [C.CHECKBOX_UNCHECKED]: 'Deselezionato',
+
   [C.LOADING_TITLE]: 'Caricamento...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Chiudi',
 
@@ -176,16 +180,55 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Righe bloccate in basso',
   [C.FREEZE_BAR_COLUMNS_START]: 'Colonne bloccate all\'inizio',
   [C.FREEZE_BAR_COLUMNS_END]: 'Colonne bloccate alla fine',
+  [C.ARMED_PICK_STARTED]: 'Fai clic o tocca la destinazione per terminare. Premi Esc per annullare.',
+  [C.ARMED_PICK_CANCELED]: 'Annullato.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Ridimensionamento della colonna. Usa le frecce sinistra e destra per cambiare la larghezza, ' +
+    'Invio per applicare, ' +
+    'Esc per annullare.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Ridimensionamento della riga. Usa le frecce su e giù per cambiare l\'altezza, Invio per applicare, Esc per ' +
+    'annullare.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Ridimensionamento della casella di commento. Usa le frecce per cambiare la dimensione, Invio per applicare, Esc ' +
+    'per annullare.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Larghezza: [size] pixel',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Altezza: [size] pixel',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Livello [level], [position] di [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Livello [level], [position] di [setSize], espanso',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Livello [level], [position] di [setSize], compresso',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'sola lettura',
+  [C.CELL_DESCRIPTION_LINK]: 'collegamento',
+  [C.CELL_DESCRIPTION_MERGED]: 'unita fino alla riga [row] colonna [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Gruppo di colonne [label] espanso',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Gruppo di colonne [label] compresso',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Ordinato per [label], crescente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Ordinato per [label], decrescente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Ordinamento rimosso da [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Ordinato per [label], crescente, priorità di ordinamento [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Ordinato per [label], decrescente, priorità di ordinamento [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Selezione dalla colonna [startColumn], riga [startRow] alla colonna [endColumn], riga [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Tutte le celle selezionate',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Colonna [column] selezionata',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Colonne da [startColumn] a [endColumn] selezionate',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Riga [row] selezionata',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Righe da [startRow] a [endRow] selezionate',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Selezione aggiunta: [selection]. Selezioni: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'colonna [column], riga [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'dalla colonna [startColumn], riga [startRow] alla colonna [endColumn], riga [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'tutte le celle',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'colonna [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'colonne da [startColumn] a [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'riga [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'righe da [startRow] a [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Editor di formule',
   [C.FORMULA_BUILDER_INPUT]: 'Input formula',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Indirizzo cella',

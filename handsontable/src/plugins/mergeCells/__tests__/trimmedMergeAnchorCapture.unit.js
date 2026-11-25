@@ -197,14 +197,38 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
     const mergeCells = hot.getPlugin('mergeCells');
 
     // A move inside a batch leaves the row index cache behind the index sequence until the batch ends.
+    // `mergeRange()` reads that cache, unlike `merge()`, which reads the order the batch already made.
     hot.batch(() => {
       hot.getPlugin('manualRowMove').moveRow(5, 3);
-      mergeCells.merge(1, 0, 3, 1);
+      mergeCells.mergeRange(hot._createCellRange(
+        hot._createCellCoords(1, 0),
+        hot._createCellCoords(1, 0),
+        hot._createCellCoords(3, 1)
+      ));
     });
     hot.getPlugin('trimRows').untrimAll();
 
     // The merge keeps the three rows it covered and takes no visible row it did not cover.
     expect(mergeGeometry().map(([, , rowspan]) => rowspan)).toEqual([3]);
+  });
+
+  it('should take the same rows from merge() inside a batch after a move as outside it', () => {
+    createGrid({ trimRows: [2] });
+    hot.getPlugin('manualRowMove').moveRow(5, 3);
+    hot.getPlugin('mergeCells').merge(1, 0, 3, 1);
+    hot.getPlugin('trimRows').untrimAll();
+
+    const expected = mergeGeometry();
+
+    hot.destroy();
+    createGrid({ trimRows: [2] });
+    hot.batch(() => {
+      hot.getPlugin('manualRowMove').moveRow(5, 3);
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 1);
+    });
+    hot.getPlugin('trimRows').untrimAll();
+
+    expect(mergeGeometry()).toEqual(expected);
   });
 
   it('should take a trimmed row that a merge in another column owns', () => {

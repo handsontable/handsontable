@@ -13,6 +13,7 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuler',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Aucune option disponible',
   [C.CONTEXTMENU_LABEL]: 'Menu contextuel',
   [C.DROPDOWNMENU_LABEL]: 'Menu de la colonne',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insérer une ligne en haut',
@@ -54,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Séparer les cellules',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copier',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copier avec l\'en-tête', 'Copier avec les en-têtes'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Copier avec l\'en-tête de groupe',
+    'Copier avec les en-têtes de groupe',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copier uniquement l\'en-tête', 'Copier uniquement les en-têtes'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Couper',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exporter',
@@ -141,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Feuille [name] déplacée en position [position] sur [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Feuille',
 
+  [C.CHECKBOX_CHECKED]: 'Coché',
+  [C.CHECKBOX_UNCHECKED]: 'Décoché',
+
   [C.LOADING_TITLE]: 'Chargement...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fermer',
 
@@ -173,16 +183,53 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Lignes figées en bas',
   [C.FREEZE_BAR_COLUMNS_START]: 'Colonnes figées au début',
   [C.FREEZE_BAR_COLUMNS_END]: 'Colonnes figées à la fin',
+  [C.ARMED_PICK_STARTED]: 'Cliquez sur la cible ou touchez-la pour terminer. Appuyez sur Échap pour annuler.',
+  [C.ARMED_PICK_CANCELED]: 'Annulé.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Redimensionnement de la colonne. Utilisez les flèches gauche et droite pour changer la largeur, Entrée pour ' +
+    'appliquer, Échap pour annuler.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Redimensionnement de la ligne. Utilisez les flèches haut et bas pour changer la hauteur, Entrée pour appliquer, ' +
+    'Échap pour annuler.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Redimensionnement de la zone de commentaire. Utilisez les flèches pour changer la taille, ' +
+    'Entrée pour appliquer, ' +
+    'Échap pour annuler.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Largeur : [size] pixels',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Hauteur : [size] pixels',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] sur [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Niveau [level], [position] sur [setSize], développé',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Niveau [level], [position] sur [setSize], réduit',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formule : [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'lecture seule',
+  [C.CELL_DESCRIPTION_LINK]: 'lien',
+  [C.CELL_DESCRIPTION_MERGED]: 'fusionnée jusqu’à la ligne [row] colonne [column]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Groupe de colonnes [label] développé',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Groupe de colonnes [label] réduit',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Trié par [label], ordre croissant',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Trié par [label], ordre décroissant',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Tri supprimé pour [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Trié par [label], ordre croissant, priorité de tri [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Trié par [label], ordre décroissant, priorité de tri [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Sélection de la colonne [startColumn], ligne [startRow] à la colonne [endColumn], ligne [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Toutes les cellules sélectionnées',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Colonne [column] sélectionnée',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Colonnes [startColumn] à [endColumn] sélectionnées',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Ligne [row] sélectionnée',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Lignes [startRow] à [endRow] sélectionnées',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Sélection ajoutée : [selection]. Nombre de sélections : [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'colonne [column], ligne [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'de la colonne [startColumn], ligne [startRow] à la colonne [endColumn], ligne [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'toutes les cellules',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'colonne [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'colonnes [startColumn] à [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'ligne [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'lignes [startRow] à [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Éditeur de formules',
   [C.FORMULA_BUILDER_INPUT]: 'Saisie de formule',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Adresse de cellule',

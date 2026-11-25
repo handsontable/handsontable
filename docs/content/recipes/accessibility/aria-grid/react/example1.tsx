@@ -67,7 +67,7 @@ const ExampleComponent = () => {
         };
       }}
       afterGetColHeader={function(col: number, TH: HTMLTableCellElement): void {
-        if (!TH.hasAttribute('aria-sort')) {
+        if (col >= 0 && !TH.hasAttribute('aria-sort')) {
           TH.setAttribute('aria-sort', 'none');
         }
       }}

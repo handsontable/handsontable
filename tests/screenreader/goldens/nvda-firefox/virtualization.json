@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T10:53:59.887Z"
+    "at": "2026-11-24T11:08:08.534Z"
   },
   "steps": {
     "page-down": "a 4 alpha row 5 column 2",

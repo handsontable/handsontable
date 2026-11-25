@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AutoRowSize column sweep e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    AutoColumnSize measures the first `syncLimit` columns (51) and one more chunk of up to 51 before
+    `init` returns, and leaves the rest to idle tasks. AutoRowSize measures every row right after,
+    against the default width those columns still have, so a long text in one of them wraps and the
+    row is stored as tall as the wrapped text. The grid has 130 columns, so columns 103 and up are
+    measured in idle tasks. The long texts sit in columns 120 and 125, in a row on screen (row 5) and
+    in a row far below it (row 250), which no render measures.
+
+    The reference grid holds the same data and measures every column before `init` returns (a
+    `syncLimit` past the column count), so its row heights are the ones the grid under test must reach.
+  -->
+  <div id="grid" data-testid="grid"></div>
+  <div id="reference-grid" data-testid="reference-grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const referenceContainer = document.querySelector('[data-testid="reference-grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    referenceContainer.className = `ht-theme-${window.htTheme}`;
+
+    const COLUMNS = 130;
+    const ROWS = 300;
+    // Two lines once its column is measured, on every platform: the line break decides, not the font metrics,
+    // which leave a single line of this length one line on Linux and two on macOS. At the default column
+    // width each line wraps onto several.
+    const LONG_TEXT = 'A long text that wraps\nin a narrow column';
+
+    /**
+     * Builds a data set of short values with the long text in the given cells.
+     *
+     * @param {Array<[number, number]>} longCells The `[row, column]` pairs that hold the long text.
+     * @param {number} [rows] The number of rows.
+     * @returns {string[][]}
+     */
+    function buildData(longCells, rows = ROWS) {
+      const data = Array.from({ length: rows }, (_, row) => (
+        Array.from({ length: COLUMNS }, (__, column) => `${row}-${column}`)
+      ));
+
+      longCells.forEach(([row, column]) => {
+        data[row][column] = LONG_TEXT;
+      });
+
+      return data;
+    }
+
+    const settings = {
+      width: 800,
+      height: 400,
+      rowHeaders: true,
+      colHeaders: true,
+      autoRowSize: true,
+      licenseKey: window.htTestLicenseKey,
+    };
+    const hot = new Handsontable(container, {
+      ...settings,
+      data: buildData([[5, 120], [250, 120]]),
+    });
+    const referenceHot = new Handsontable(referenceContainer, {
+      ...settings,
+      data: buildData([[5, 120], [250, 120]]),
+      autoColumnSize: { syncLimit: COLUMNS },
+    });
+
+    window.hot = hot;
+    window.referenceHot = referenceHot;
+
+    /**
+     * Loads data with the long text in column 125, whose width the previous data measured from short
+     * values, so the column is narrow when AutoRowSize measures the rows after the load.
+     */
+    window.loadLongTextInAnotherColumn = function() {
+      hot.loadData(buildData([[250, 125]]));
+      referenceHot.loadData(buildData([[250, 125]]));
+    };
+
+    /**
+     * Loads 256 rows with the long text in column 125 of the last one. AutoRowSize measures rows in chunks
+     * of 51, and 255 is a multiple of it, so the last row is the first of a chunk.
+     */
+    /**
+     * Hides the grid under test from the render that starts AutoRowSize's measure owed to the column
+     * sweep, so that measure's idle tasks run on a hidden grid.
+     */
+    window.hideGridWhenOwedRowMeasureStarts = function() {
+      const autoRowSize = hot.getPlugin('autoRowSize');
+      const hide = function() {
+        if (autoRowSize.inProgress) {
+          hot.removeHook('afterRender', hide);
+          container.style.display = 'none';
+        }
+      };
+
+      hot.addHook('afterRender', hide);
+    };
+
+    /**
+     * Shows the grid under test again and renders it.
+     */
+    window.showGrid = function() {
+      container.style.display = '';
+      hot.render();
+    };
+
+    window.loadLongTextInLastRow = function() {
+      hot.loadData(buildData([[255, 125]], 256));
+      referenceHot.loadData(buildData([[255, 125]], 256));
+    };
+  </script>
+</body>
+</html>

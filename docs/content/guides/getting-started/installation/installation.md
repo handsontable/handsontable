@@ -129,6 +129,12 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
+::: tip
+
+Handsontable needs a license key. The `license` line is commented out, and a grid without a valid key opens locked. Uncomment it and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+
+:::
+
 To reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md) instead of calling `registerAllModules()`.
 
 ## Use the `HotTable` component
@@ -320,6 +326,12 @@ const hot = new Handsontable(container, {
 });
 ```
 
+::: tip
+
+Handsontable needs a license key. The `licenseKey` line is commented out, and a grid without a valid key opens locked. Uncomment it and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+
+:::
+
 ### Preview the result
 
 ::: example #example1 --js 1 --ts 2
@@ -421,6 +433,12 @@ To set Handsontable's [configuration options](@/guides/configuration/configurati
 
 :::
 
+::: tip
+
+Handsontable needs a license key. The `licenseKey` prop is commented out, and a grid without a valid key opens locked. Uncomment it and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+
+:::
+
 ### Preview the result
 
 ::: example #example1 :react --js 1 --ts 2
@@ -508,6 +526,12 @@ To set Handsontable's [configuration options](@/guides/configuration/configurati
   :auto-wrap-col="true"
 />
 ```
+
+::: tip
+
+Handsontable needs a license key. The `license-key` attribute sits in a comment above the tag, and a grid without a valid key opens locked. Move the attribute into the `<HotTable>` tag and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+
+:::
 
 ### Preview the result
 

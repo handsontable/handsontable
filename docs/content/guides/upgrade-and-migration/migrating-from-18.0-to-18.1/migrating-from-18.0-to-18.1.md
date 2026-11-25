@@ -100,8 +100,8 @@ const hot = new Handsontable(container, {
 
 :::
 
-For non-commercial or evaluation use, pass the non-commercial key. It is a valid key, so it does not
-block the grid:
+For non-commercial or evaluation use, pass the non-commercial key. In 18.1, it is a valid key, so it
+does not block the grid:
 
 ::: only-for javascript
 
@@ -134,6 +134,15 @@ const hot = new Handsontable(container, {
 ```html
 <hot-table :settings="{ licenseKey: 'non-commercial-and-evaluation' }"></hot-table>
 ```
+
+:::
+
+::: warning
+
+Handsontable 19.0 removes this key and its second form, `'ht68e-1f2b7-47158-70b05-0842f'`. Both read as invalid, and a lock screen covers the grid. If you
+plan to upgrade to 19.0, get a trial key or a sponsored license instead. See
+[The `non-commercial-and-evaluation` license key no longer works](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-non-commercial-and-evaluation-license-key-no-longer-works)
+in the 18.1 to 19.0 migration guide.
 
 :::
 
@@ -468,7 +477,7 @@ sanitizer sees every clipboard payload, which matters if it does more than filte
 
 | Change | Who is affected | Action required |
 | --- | --- | --- |
-| A missing or invalid license key blocks the grid with a modal that cannot be closed | Any instance running without a valid key, including local, CI, test, and demo environments | Pass a valid [`licenseKey`](@/api/options.md#licensekey), or `'non-commercial-and-evaluation'` for non-commercial use |
+| A missing or invalid license key blocks the grid with a modal that cannot be closed | Any instance running without a valid key, including local, CI, test, and demo environments | Pass a valid [`licenseKey`](@/api/options.md#licensekey), or `'non-commercial-and-evaluation'` for non-commercial use. Handsontable 19.0 removes that key: see [the 18.1 to 19.0 migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-non-commercial-and-evaluation-license-key-no-longer-works) |
 | Column sorting runs on mouse up, and only the header label and its sort indicator sort on click | Tests or scripts that dispatch `mousedown` on a header cell to sort | Dispatch `mousedown` and `mouseup` on the `.colHeader.sortAction` label, without moving the pointer |
 | `beforeColumnMove` and `afterColumnMove` no longer fire on a plain header click | Code using either hook to detect a header click | Use [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) or [`afterOnCellMouseUp`](@/api/hooks.md#afteroncellmouseup) instead |
 | Expired license keys are detected again | Instances running a key past its date | Nothing in code. Renew the license to remove the notice |

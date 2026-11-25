@@ -37,6 +37,8 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 ## Examples
 
+Each example has its license key line commented out, and a grid without a valid key opens locked. Uncomment the line and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+
 <div class="boxes-list gray">
 
 - [Angular](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version={{$currentVersion}})
@@ -99,7 +101,11 @@ You are welcome to join our GitHub community. Discuss new releases, propose feat
 
 ## Technical support
 
-Implementing Handsontable requires a certain level of front-end development skills. If you need help and your support plan is active, contact our [technical support](https://handsontable.com/contact?category=technical_support) or [report an issue on GitHub](https://github.com/handsontable/handsontable/issues/new/choose)
+Implementing Handsontable requires a certain level of front-end development skills.
+
+Every commercial license includes a support plan: Maintenance, Standard, or Premium. The plan decides which support channels you can use. To compare the plans, see the [Support](https://handsontable.com/support/) page.
+
+If your plan includes a support channel, contact our [technical support](https://handsontable.com/contact?category=technical_support). Every plan includes the community channels, such as the forum and GitHub, where you can [report an issue on GitHub](https://github.com/handsontable/handsontable/issues/new/choose).
 
 ## Stay in the loop
 

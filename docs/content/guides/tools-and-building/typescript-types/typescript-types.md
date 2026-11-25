@@ -200,7 +200,7 @@ function listHooks(hooks: HooksRegistry): string[] {
 
 ### Theme types
 
-These types are relevant when you use the [theming API](@/api/options.md#themeName) or build a custom theme.
+These types are relevant when you use the [theming API](@/api/options.md#themename) or build a custom theme.
 
 | Type | Description |
 | --- | --- |
@@ -217,6 +217,20 @@ These types are relevant when you use the [theming API](@/api/options.md#themeNa
 | `ThemeTokenValue` | A single design token value. |
 | `ThemeTokensConfig` | The full token map used inside a `ThemeConfig`. |
 | `BaseTheme` | The base theme object extended by all built-in themes. |
+
+#### Re-export a theme preset
+
+If you publish a theme library, you may re-export a preset from `handsontable/themes/static/variables` as is:
+
+```typescript
+import tokensMain from 'handsontable/themes/static/variables/tokens/main';
+
+export const tokens = tokensMain;
+```
+
+With `declaration: true`, TypeScript writes the type of `tokens` into your declaration file, so it has to name types such as `ThemeTokensConfig`, `TokenKey`, and `ThemeTokenValue`. Those types live in the `handsontable/themes/types` subpath. Before 19.0, that subpath wasn't importable, and the build failed with `TS2742` on TypeScript 5.1, or with `TS2883` on TypeScript 5.9 and later. From 19.0, the build works without a type annotation.
+
+You can import the same types from `handsontable/themes/types` when you annotate your own theme objects. `handsontable/themes` exports them too.
 
 ### Overlay type
 

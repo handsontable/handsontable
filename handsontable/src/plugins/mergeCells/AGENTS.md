@@ -309,13 +309,41 @@ hooks). Six rules keep it narrow:
   (`#clearCoveredFlagsOfCellsReleasedByStep()`): each captured merge carries its anchor rows and its
   `physicalColumns`, so the cells the other side covered and the restored side does not are known without
   reading a live merge's columns. Only the merges the step changed are walked, and a cell the restored side's
-  changed merges cover is skipped. A cell an unchanged merge covers is not looked at, so it may be cleaned and
+  changed merges cover is skipped, except the cell one of them is drawn from: a merge the undo puts back
+  inside a larger one it takes off (`mergeSelection()` over an older merge) is drawn from a cell the larger merge
+  covered, and `afterGetCellMeta` never writes `copyable` back on a top-left, so that cell loses `hidden` and
+  `copyable` and keeps its span keys. The redo of that step is the mirror: the cell the inner merge was drawn
+  from is covered by the outer one, and the hook never takes a span off a covered cell, so it loses its span
+  keys and keeps `hidden` and `copyable`. A cell an unchanged merge covers is not looked at, so it may be cleaned and
   `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
   merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
-  recorded sides already hold the answer. It does nothing
-  without a recorded other side (no `context.other`), for a merge captured with no `physicalColumns`, or when
-  the replay inserted or removed rows or columns (`context.reordered`): the recorded physical indexes are
-  numbered like the grid before that replay. A row move's redo was already clean, because dropping the live merge cleans it by the
+  recorded sides already hold the answer. **This path does not wait for an own `hidden` or `spanned`**, as the
+  move paths do: the merge stored both through `setCellMeta()`, so on the undo of a merge the UndoRedo journal,
+  replayed before `restoreState()`, has already taken them back, while the `copyable: false`, `rowspan` and
+  `colspan` the hook wrote are in no journal. Gated on the marks, the undo of a merge left them all on the cells,
+  and a copy of the area dropped the covered cells' values. So each released cell loses `hidden`/`spanned` where
+  they are still own, and `copyable`, `rowspan` and `colspan` unless recorded (the `wasInMerge` argument of
+  `#clearCoveredFlagsOfTopLeftCell` and `#clearSpanKeysOfCell`). Pinned by `__tests__/undoMergeMeta.unit.js` and
+  `tests/e2e/merge-cells-undo-copy.spec.ts`. The cleanup does nothing
+  without a recorded other side (no `context.other`) or for a merge captured with no `physicalColumns`.
+  **A step that also inserted or removed rows or columns (`context.reordered`) cannot use the recorded sides**:
+  UndoRedo replays that `alter()` first, so the recorded physical indexes are numbered like the grid before the
+  replay. UndoRedo therefore hands the restore `context.toRestoredIndex`, which maps a physical index of the
+  other side through the rows and columns the step inserted or removed (`toFinalIndex()` in
+  `../undoRedo/restoredCells.ts`). `#clearMergeKeysOfCellsReleasedByReplay()` maps every recorded merge's
+  anchor rows and `physicalColumns` with it (`mapRecordedMerge()`), leaves out the merges whose mapped cells
+  equal a restored merge's (`getFootprintKey()`, matched through a `Set` so the match stays linear in the
+  merge count: the step left them alone, and checking them would cost the area of every merge on every
+  structural undo). A recorded merge that lost a row or a column to the mapping never matches: it covered a
+  cell the restored grid lacks, and once that cell is dropped it can look like the merge the undo puts back
+  (an inserted row inside a merge that the step grew), which left that merge's top-left uncleaned. It runs the same per-cell rule
+  (`#clearMergeKeysOfReleasedCells()`) as the path above. **Never read the live merges here**: the replay runs
+  in the physical order and the column order is restored before `restoreState()`, so a live merge's visual
+  columns name other physical columns once a column was moved, and a column `alter()` in the replay
+  re-captures the anchors in the physical order too. A cleanup built from them missed the merge's cells and
+  cleaned cells no merge covered. Pinned by the `of a step that also inserts or removes rows or columns` block
+  of `__tests__/undoMergeMeta.unit.js` (the moved-column cases among them) and the insert-and-merge case of
+  `tests/e2e/merge-cells-undo-copy.spec.ts`. A row move's redo was already clean, because dropping the live merge cleans it by the
   anchor's physical rows. Pinned by the `after the undo and the redo` cases of
   `__tests__/reanchoredTopLeftMeta.unit.js` and `tests/e2e/merge-cells-column-move-redo.spec.ts`.
 - **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
@@ -359,7 +387,9 @@ hooks). Six rules keep it narrow:
     `#settleMergesAfterAxisMove` (only while a row is trimmed), and the top and bottom of `restoreState()`. UndoRedo replays the cell meta journal before it restores plugin states, so the cleanup is
     not overwritten by a replayed `spanned`.
   - **It cleans only where `#clearSpanKeysOfCell` does** (an own `spanned`), so a cell that was never a top-left
-    is untouched whatever ends up in the diff, and a stale recording mostly misses a cleanup.
+    is untouched whatever ends up in the diff, and a stale recording mostly misses a cleanup. The released cells of
+    an undo step are the one exception: `#clearCoveredFlagsOfCellsReleasedByStep` passes `wasInMerge`, because the
+    journal has already taken `spanned` back there.
   - **An intermediate diff can clean a cell the final state draws from, and the next read puts the keys back.**
     UndoRedo restores the index maps, which fires the mapper diff against the merges that are not restored yet,
     and a row move runs that diff before `translateAfterAxisMove` replaces the anchors. `afterGetCellMeta`
@@ -1144,6 +1174,98 @@ starting on its first column, is anchored in the clone and needs nothing.
 - Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (every case in LTR with `virtualized` on and off, and the
   crossing case in RTL with `virtualized` off) and `__tests__/overlayBounds.unit.ts`.
 
+## `merge()` and `unmerge()` wait for the batch to end after a reorder in it
+
+`hot.batch()` suspends the index mappers, so a move or a sort made earlier in the same batch changes the indexes
+sequence but not the translation caches: every `toPhysicalRow()` and `toPhysicalColumn()` still answers for the order
+from before the batch. `merge()` writes through those translations (`setCellMeta()` for `hidden` and `spanned`, the
+anchor capture in `afterMergeCells`, the value read and `populateFromArray()`), so the merge landed on the cells of the
+old order: `hidden`, `spanned` and `copyable` on the wrong cells, a copy that dropped values, and a merge one row or
+several rows off after a row move or a sort. Present since at least 18.1.3.
+
+**Do not write the merge in the live order.** The first fix ran `mergeRange()` inside `IndexMapper#runWithLiveCache()`
+(the caches rebuilt from the live sequence for the call). It fixed the cells and broke four sequences that the plugin's
+other listeners read through the old caches: a later move, the overlap check against older merges, the cleanup at the
+end of the batch (`#collectForeignDrawnRows` deleted a user's `copyable: false`), and a second column move. Until the
+batch ends the collection describes every merge in the order of the caches, and a merge written in the live order sits
+beside them in another coordinate system.
+
+So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) and the execution is suspended,
+`#runRangeOperation()` keeps only the physical corners of the range, read from the live order
+(`#translateRangeCorners()`), and `afterResumeExecution` runs the call on current caches
+(`#flushDeferredRangeOperations()`). Rules:
+
+- **The queue is ordered and shared by `merge()` and `unmerge()`.** Once one call waits, the later ones wait too, so a
+  merge and the unmerge that follows it run in the order they were called. A call whose corner has no physical index is
+  not queued and runs at once, as before.
+- **A call runs on the corners as rows and columns, not on the visual range it was given.** If a later move in the batch
+  separates them, the range is drawn between the corners' new places. A corner trimmed in the meantime drops the call.
+- **The merge is not in the collection until the batch ends.** `getCellMeta()` and `mergedCellsCollection` do not show it
+  inside the batch, and `beforeMergeCells` and `afterMergeCells` fire once, after the callback. The flush runs inside
+  the batch's operation, so the batch is still one undo step.
+- **The queue runs in order, and a call a listener makes while it runs waits behind it.** The flush takes entries off
+  the queue one at a time and sets `#isFlushingDeferredOperations`, so an `afterMergeCells` listener that calls
+  `merge()`, or a nested `batch()`, lands after the entries still waiting, not between them.
+- **A call held back before a row or column insert or removal is dropped with a warning.** The corners are physical
+  indexes, and `alter()` renumbers them. `#structureVersion` goes up in the row and column insert and remove hooks (not
+  for rows created with the `auto` source, which are appended and renumber nothing), each entry records it, and
+  `#runDeferredEntry()` drops an entry that finds it moved. An insert and a removal that cancel out are seen too, which
+  a comparison of row counts missed. Nothing re-bases a corner: shifting them instead of dropping is the open fix, and
+  it needs the mapper's `indexesInserted` and `indexesRemoved` hooks, because `alter()` in a batch computes its pivot
+  from the stale cache.
+- **A call whose corner is trimmed before the batch ends is dropped with a warning.** The corner has no visual index at
+  the flush, and the range cannot be drawn between corners that are not on screen.
+- **A corner with no physical index is not queued.** `merge(-1, 0, 1, 1)` runs at once, on the caches, and can jump
+  ahead of the queue.
+- **`mergeRange()`, `unmergeRange()` and `mergeSelection()` are not queued, so in the same batch they run before the
+  held calls.** They return values or read the selection, and the settings, undo and sheet-switch paths call them. A
+  `merge()` held back, then `selectCells()` and `mergeSelection()` in the batch, merge in the opposite order to the
+  unbatched calls. They read the caches, as they always did.
+- **Never refresh the cache mid-batch with `updateCache(true)`.** It fires `cacheUpdated`, which runs the selection
+  repair and the size-cache invalidation, and the `beforeCacheUpdate` listeners (this plugin's
+  `#onBeforeRowIndexCacheUpdate`, Selection's physical capture) would read the new order as the old one at the real
+  resume. Same rule as in `../columnSorting/AGENTS.md`.
+- **A trim or a hide made earlier in the same batch is not seen** by the live read of the corners: it filters the live
+  sequence through the trimming and hiding maps' cached merged values, the same limit as the ColumnSorting band read.
+- **A call outside `suspendExecution()`/`batch()` is never queued.** The queue ends with the execution, and a plugin
+  disable drops it (a destroyed plugin never flushes). Three edges: a raw `suspendExecution()` and `resumeExecution()` have no operation, so the
+  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data; and an
+  `afterResumeExecution` listener that throws before this plugin's skips the flush, which then runs at the next
+  `merge()` or `unmerge()` call outside the batch, on the corners it held.
+
+**Existing merges follow a column move or freeze in the batch on the live order.** The rows have a `cacheUpdated`
+re-anchor at the end of the batch, but no listener re-anchors the columns, so `#translateMergesAfterColumnReorder()`
+(the body of `afterColumnMove` and `afterColumnFreeze`) runs inside `columnIndexMapper.runWithLiveCache()`. Before, such
+a merge kept its old visual column for good, with two cells flagged `spanned` and two `td`s drawn with a `colspan`. The
+before hooks read the live order too (`#captureColumnsBeforeReorder()`), so a second move in the batch takes a merge's
+columns as they are and does not split it. The moved index itself still resolves through the stale cache, so a second
+move cannot match the unbatched result whatever the plugin does. The rows are not wrapped: a row-axis merge written in
+the live order would be read through the old cache by the cleanup at the end of the batch. **The row move hooks read the
+live column order**, though (`#onBeforeRowMove`, `#onAfterRowMove`): the merges' `col` was rewritten in it, and the anchor
+capture there took it for a column of the stale order and moved the merge one column too far after a column move and a
+row move in one batch. Any other code that turns a merge's `col` into a physical column inside a batch with a column
+reorder (an `alter()` of rows or columns, for example) still reads the stale cache.
+
+**The undo of a step that holds a reorder and a merge finds the merge by its anchor.** UndoRedo restores the row index
+maps before the plugin states, so the live merge has already been re-anchored to the restored order while the recorded
+entry still holds the visual coordinates of the order it was made in. `#restoreChangedMerges` matched the entry by those
+coordinates, found nothing, skipped the removal without the documented fallback to a full rebuild, and the merge stayed
+after a single undo (a row move or a sort in one `batch()` with a merge, in either order). An entry with an anchor is now
+matched by anchor, `rowspan` and `colspan`; an entry without one keeps the coordinates. The restore reads the live
+merge's own coordinates for the removal, so nothing else changes. A merge that a column move in a batch did not follow
+also left `copyable: false` on the wrong cells after the undo, because the recorded step named the wrong columns.
+
+**Known gap, not part of this:** a row move in a batch that splits an existing merge draws it over a row it does not own,
+because the re-anchor at the end of the batch moves a merge without splitting it (`it.todo` in the spec below).
+
+The timing is public behavior, so it is documented in the JSDoc of `merge()` and `unmerge()` and in the "Merge and
+unmerge cells programmatically" section of the merge-cells guide. Change them together with the code.
+
+Pinned by `__tests__/mergeInsideBatch.unit.js` (each reorder compared with the same calls outside the batch, with and
+without a merge that exists before it, a move after the merge, the overlap, the user's meta, two column moves, the order
+of a merge and an unmerge, the hooks, the freeze, and the undo and redo) and
+`../../translations/__tests__/indexMapperLiveCache.unit.ts`.
+
 ## `getSourceDataAtCell` takes a visual column
 
 `getSourceDataAtCell(row, column)` takes a **physical row** but a **visual column** — `core.ts`
@@ -1227,3 +1349,11 @@ Two writes of this plugin are invisible to the incremental render and are marked
 - **The neighbor height** (`renderer.ts`, `getHeightNextToMergedBlock`, `rowHeaders: false` only) is written on the cell right after a block that starts at column 0, and it is DERIVED from the merged collection inside that cell's own paint — never handed over from the origin's paint. A one-shot map filled by the origin broke under `renderMode: 'onChange'`: the neighbor repainted for its own reason while the origin was skipped, its style was wiped, and nothing re-created the entry. Deriving it needs no `markCellChanged`: a collection change repaints every cell, `rowHeights` goes through `updateSettings` (render epoch).
 
 The selection extra class (`afterDrawSelection`) is asked by Walkontable on every draw for every coordinate of the selection and diffed like any other class, so the plugin no longer registers `beforeRemoveCellClassNames` (the hook still exists for external code). The per-coordinate call matters: `getSelectedMergedCellClassName` answers only for a block's **first renderable** coordinate, so a scan that asked once per element would miss the block.
+
+- **The origin of a block is described as `merged through row [row] column [column]`** (an accessible description through `aria-describedby`, not part of the name). `renderer.ts` `after()` adds the part with
+  the block's last cell by its `aria-rowindex` and `aria-colindex`: the last renderable row and column plus the column header
+  rows and the row header columns, plus one (`lastMergedRowIndex + countColHeaders() + 1`). Hidden lines are skipped, so the
+  numbers agree with what a screen reader says for that cell, which a count of data rows from 1 did not (it was one header
+  row and one header column short). NVDA with Chromium reads the native `rowspan`/`colspan` and the other readers read
+  nothing. **Known limit, accepted:** NVDA with Chromium says the span twice, once from the description and once from the native `rowspan`; the numbers agree (screen reader proof run 45148360219, groups `structure` and `menus`: VoiceOver with WebKit speaks the part too). Only the origin gets the part; the covered cells are `display: none`. Rules:
+  `../../utils/cellDescription/AGENTS.md`.

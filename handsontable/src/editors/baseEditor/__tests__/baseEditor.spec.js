@@ -380,7 +380,7 @@ describe('BaseEditor', () => {
       const hot1 = handsontable({});
       const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`)
         .appendTo('body');
-      const hot2 = container2.handsontable().handsontable('getInstance');
+      const hot2 = container2.handsontable({ licenseKey: TEST_LICENSE_KEY }).handsontable('getInstance');
 
       $(hot1.getCell(1, 1)).simulate('mousedown');
       $(hot1.getCell(1, 1)).simulate('mouseover');

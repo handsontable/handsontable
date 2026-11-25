@@ -29,11 +29,10 @@
       - gridcell "B-2"
       - gridcell "B-2"
   - rowgroup:
-    - row "Select whole grid Name Copy":
-      - gridcell "Select whole grid"
+    - row "Name Copy":
+      - gridcell
       - columnheader "Name"
       - columnheader "Copy"
-  - rowgroup
   - rowgroup:
     - row "1" [level=1]:
       - rowheader "1" [expanded]
@@ -54,9 +53,8 @@
     - row "9" [level=2]:
       - rowheader "9"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+    - row:
+      - gridcell
 # portal
 - status
 - status

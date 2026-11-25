@@ -156,7 +156,7 @@ For more information, see our documentation for [rows](@/api/options.md#autorows
 
 - By default, the grid measures 51 columns before the first paint. When those columns hold more than 1,000,000 cells (from 19,608 rows), it measures only the columns on screen before the first paint, at initialization and on [`loadData()`](@/api/core.md#loaddata). It measures the other columns in the background, so their widths are final shortly after the grid appears.
 - Until then, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for those columns. A [`selectCell()`](@/api/core.md#selectcell) or [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made in that time measures the columns up to its target first.
-- A grid with [`autoRowSize`](@/api/options.md#autorowsize) on still measures all 51 columns first, so its rows never change height after the first paint.
+- A grid with [`autoRowSize`](@/api/options.md#autorowsize) on still measures the first 51 columns before the first paint, whatever the number of rows. A wider grid measures the other columns in the background and then measures its rows again, so a row with long text in one of those columns can get shorter shortly after the grid appears.
 - To keep a set number of columns measured before the first paint, set `syncLimit`, for example `autoColumnSize: { syncLimit: 10 }`. The grid then measures those columns before the first paint, whatever the number of rows.
 - To skip the measurement entirely, set `autoColumnSize: false` and give the columns fixed widths with [`colWidths`](@/api/options.md#colwidths).
 

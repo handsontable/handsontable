@@ -9,7 +9,6 @@ export const LICENSE: PluginLicense = Object.freeze({
   name: 'Auto column size',
   gate: 'enable',
   tiers: Object.freeze([
-    'standard',
     'professional',
   ]),
 });

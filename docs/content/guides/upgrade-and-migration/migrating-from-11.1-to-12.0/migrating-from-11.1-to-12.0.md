@@ -35,13 +35,13 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 | Resets configuration options to the initial state                 | Doesn't reset configuration options to the initial state              |
 | Resets index mapper information                                   | Doesn't reset index mapper information                                |
 
-#### Migrating to Handsontable 12.0
+### Migrating to Handsontable 12.0
 
 ::: only-for javascript
 
 If you need to reset your index mapper information and configuration options  along with updating your [`data`](@/api/options.md#data):
 
-- Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
+- Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loaddata) and provide the new dataset as its argument:
 
 ```js
 // Handsontable 12.0: this doesn't reset your configuration options
@@ -61,7 +61,7 @@ hotInstance.loadData(newDataset);
 
 Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/configuration/configuration-options/configuration-options.md).
 
-If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loadData) method, referencing the Handsontable instance from the component:
+If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loaddata) method, referencing the Handsontable instance from the component:
 
 ```jsx
 import { useRef } from 'react';
@@ -84,11 +84,11 @@ To learn more about referencing the Handsontable instance, see the [Instance met
 
 ::: only-for javascript
 
-#### Framework wrappers
+### Framework wrappers
 
 Updating your [`data`](@/api/options.md#data) through a component property no longer resets your index mapper information and configuration options.
 
-To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loadData) method (the same way as above), referencing the Handsontable instance from the component.
+To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loaddata) method (the same way as above), referencing the Handsontable instance from the component.
 
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/angular/guides/getting-started/angular-hot-instance/angular-hot-instance.md)
@@ -104,14 +104,14 @@ Handsontable 12.0.0 changes how the [`updatePlugin()`](@/api/autoColumnSize.md#u
 
 This change may affect your custom plugins.
 
-#### Before
+### Before
 
 Every [`updateSettings()`](@/api/core.md#updatesettings) call (even with an empty object passed as new settings) triggered
 the [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method for each enabled plugin.
 
 As a result, whenever you called [`updateSettings()`](@/api/core.md#updatesettings), all enabled plugins got updated.
 
-#### After
+### After
 
 A plugin's [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method gets triggered only when the object passed to [`updateSettings()`](@/api/core.md#updatesettings) contains at least one of the following:
 - The plugin's [`PLUGIN_KEY`](@/guides/tools-and-building/custom-plugins/custom-plugins.md#_2-extend-the-baseplugin) (the plugin's main alias)
@@ -119,7 +119,7 @@ A plugin's [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method gets 
 
 As a result, a plugin gets updated only if you update settings related to that particular plugin.
 
-#### Migrating to Handsontable 12.0
+### Migrating to Handsontable 12.0
 
 If you want your [custom plugin](@/guides/tools-and-building/custom-plugins/custom-plugins.md) to still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call, set your plugin's [`SETTING_KEYS`](@/api/basePlugin.md#setting-keys) to `true`:
 
@@ -135,7 +135,7 @@ However, in most cases, it's better to provide an explicit list of configuration
 
 Handsontable 12.0.0 changes how the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook works.
 
-#### Before
+### Before
 
 When you used a keyboard to navigate an internal Handsontable instance (e.g., a context menu), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook got fired on every key press.
 
@@ -149,7 +149,7 @@ afterDocumentKeyDown() {
 }
 ```
 
-#### After
+### After
 
 When you use a keyboard to navigate some internal instances of Handsontable (e.g., a context menu), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
 
@@ -167,7 +167,7 @@ This change may affect the following areas of Handsontable:
 - [Context menu](@/api/contextMenu.md)
 - [Dropdown menu](@/api/dropdownMenu.md)
 
-#### Migrating to Handsontable 12.0
+### Migrating to Handsontable 12.0
 
 You can't change this behavior by using any of Handsontable's APIs.
 
@@ -190,7 +190,7 @@ We took this opportunity to improve the behavior of Handsontable's default keybo
 - Improve the consistency of keyboard navigation
 - Create a more intuitive user experience
 
-#### <kbd>**Ctrl**</kbd> vs <kbd>⌘</kbd>
+### <kbd>**Ctrl**</kbd> vs <kbd>⌘</kbd>
 
 Handsontable 12.0 splits a cross-platform modifier key (<kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>) into two separate keys.
 Now, the <kbd>⌘</kbd> key triggers actions on macOS where the <kbd>**Ctrl**</kbd> key triggers actions on Windows.
@@ -208,7 +208,7 @@ The default keyboard shortcut for [merging cells](#keyboard-shortcuts-changes-ce
 
 :::
 
-#### Keyboard shortcuts changes: Navigation
+### Keyboard shortcuts changes: Navigation
 
 The table below summarizes default keyboard shortcuts changes related to navigation:
 
@@ -225,7 +225,7 @@ The table below summarizes default keyboard shortcuts changes related to navigat
 
 <sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md).
 
-#### Keyboard shortcuts changes: Selection
+### Keyboard shortcuts changes: Selection
 
 The table below summarizes default keyboard shortcuts changes related to selection:
 
@@ -243,7 +243,7 @@ The table below summarizes default keyboard shortcuts changes related to selecti
 
 <sup>**</sup> In case of multiple selection layers, only the last selection layer gets extended.
 
-#### Keyboard shortcuts changes: Edition
+### Keyboard shortcuts changes: Edition
 
 The table below summarizes default keyboard shortcuts changes related to edition:
 
@@ -258,7 +258,7 @@ The table below summarizes default keyboard shortcuts changes related to edition
 
 <sup>*</sup> This action depends on your layout direction.
 
-#### Keyboard shortcuts changes: Cell merging
+### Keyboard shortcuts changes: Cell merging
 
 The table below summarizes default keyboard shortcuts changes related to cell merging:
 
@@ -267,7 +267,7 @@ The table below summarizes default keyboard shortcuts changes related to cell me
 | Windows | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works <kbd>⌘</kbd>+<kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works                                                                                                   |
 | macOS   | <kbd>⌃</kbd>+<kbd>**M**</kbd> works <kbd>⌘</kbd>+<kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works<br>(<kbd>⌘</kbd>+<kbd>**M**</kbd> conflicted with macOS's shortcut for window minimizing) |
 
-#### Migrating to Handsontable 12.0
+### Migrating to Handsontable 12.0
 
 To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the new [`ShortcutManager`](@/api/shortcutManager.md) API to:
 - [Add a custom keyboard shortcut](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#add-a-custom-keyboard-shortcut)
@@ -285,7 +285,7 @@ To emphasize this, Handsontable 12.0 changes the following property name:
 | ------------------------------ | ------------------------------- |
 | `handsontableInstance.view.wt` | `handsontableInstance.view._wt` |
 
-#### Migrating to Handsontable 12.0
+### Migrating to Handsontable 12.0
 
 `_wt` has no public documentation and offers no guarantee against breaking changes.
 

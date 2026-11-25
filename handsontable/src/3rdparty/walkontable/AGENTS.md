@@ -1740,7 +1740,7 @@ Never guess a container from an empty style read, and never cache a layout decis
 - **Cancel `touchend` when a tap moved focus onto the cell, and when the gesture was not a tap on a cell that was not selected at `touchstart`.** A non-tap never runs the deferred mousedown, so the focus range does not include that cell. The cancel stops a compatibility mousedown inside the browser's tap slop from selecting it (#11659). A drift that ends on the already-selected cell is not cancelled (DEV-2687). `disableVisualSelection` of `true`, `'current'`, or an array containing `'current'` never commits a range (`Highlight#isEnabledFor` skips `add().commit()`), so a tap there is not cancelled. A hook that stops selection leaves the previous range where it was, so a tap is not cancelled either. A checkbox stays exempt. On iOS Chrome and iOS Firefox, `preventDefault` also runs for a non-interactive target whether or not a range was committed, because those engines drop the second tap otherwise. `A`, `BUTTON`, `INPUT`, and a label whose control is a file input stay exempt. Read the range, not the Handsontable setting.
 
 - **Drop only the first synthesized pair after a tap, gated veto → pending pair → ceiling.** `#isTouchSynthesizedMouseEvent()` gates both `mousedown` and `mouseup` in that order: an engine that reports the origin and says "not touch" wins first (Blink's `sourceCapabilities.firesTouchEvents === false` means a real mouse or pen click, always processed, even right after a tap); otherwise the event is synthesized only if a touch-driven `onMouseUp` just armed `#synthesizedPairPending` AND the `TOUCH_SYNTHESIZED_MOUSE_WINDOW` (500 ms) ceiling since `#lastTouchMouseUpAt` has not passed — a tap that drifted past the move threshold is classified as a scroll by the touch path (no `onMouseDown`/`onMouseUp`, no stamp, pair never armed) — a drift ending over the already-selected cell gets its compatibility pair processed on every engine alike (DEV-2687); a drift over an unselected cell is `preventDefault`-ed and synthesizes nothing — provided no tap armed the pair inside the ceiling; a scroll-classified gesture clears the flag at its `touchend`, before its own compatibility pair arrives. The `mouseup` half consumes the pair (`#synthesizedPairPending = false`), so any later real mouse event inside the ceiling is treated as real — a fill-handle grab, a drag-selection, or a right-click started with a mouse right after a tap works on engines that do not report the input origin (WebKit, Firefox), where the residual gap is only the FIRST synthesized pair itself. Dropping only `mouseup` (the original #12804 fix) fired `onCellMouseDown` twice per tap and re-armed the pairing slot and made iPad double-tap-to-edit nondeterministic. `TOUCH_SYNTHESIZED_MOUSE_WINDOW` lives in `helpers/dom/inputOrigin.ts`, alongside `getMouseEventTouchOrigin()`, and is shared with `tableView.ts` (its `#recentTouchEndTimeout` uses the same constant), so both layers use the same fallback window. `tableView.ts`'s own gate (`#isSyntheticMouseEvent()`) deliberately keeps its older `reported ?? #recentTouchEnd` policy instead of adopting `event.ts`'s consume-once order: a Blink-flagged pair (`firesTouchEvents === true`) must never be allowed to close the editor through the outside-click handler, so the two gates are not to be "harmonized".
-- **The long-press timer is the shared `LongPressDetector`** (`helpers/dom/longPress.ts`: `LONG_PRESS_DELAY` 500 ms, `LONG_PRESS_MOVE_THRESHOLD` 10 px). `event.ts` keeps what a long press does on a cell (`#onLongPress`: the mouse-down, the double-click reset, the synthetic `contextmenu`); the detector only times the press. The sheets bar's tabs use the same detector, so a change to the delay or the drift changes both surfaces, which is the point: one touch rule across the grid's UI.
+- **The long-press timer is the shared `LongPressDetector`** (`helpers/dom/longPress.ts`: `LONG_PRESS_DELAY` 500 ms, `LONG_PRESS_MOVE_THRESHOLD` 10 px). `event.ts` keeps what a long press does on a cell (`#onLongPress`: the mouse-down, the double-click reset, the synthetic `contextmenu`); the detector only times the press. The sheets bar's tabs use the same detector, so a change to the delay or the drift changes both surfaces, which is the point: one touch rule across the grid's UI. `#onLongPress` replays the press through `onMouseDown` while the finger is still down and marks that event with `markLongPressReplay()`: a control that acts on the release of a press (the header and row checkboxes, the collapse indicator and button) reads `isLongPressReplay(event)` and skips its action, because a tap is replayed at `touchend` and a long press has no release behind it yet.
 - **Touch double-taps are paired independently of the mouse double-click slots.** `#handleTouchTap()` tracks `#lastTapCoords`/`#lastTapAt` and fires the double-click callbacks when a second tap lands on the same coordinates within `TOUCH_DBLTAP_TIMEOUT` (1000 ms); a long-press, a tap outside the cells, or a tap on different coordinates resets the detector. Coordinates, not the resolved TD, because Walkontable recycles TD elements across scrolls and re-renders (DEV-2687 review). Touch taps never arm `#dblClickOrigin` — only a mouse `mousedown` with `button === 0` does — so a real mouse click right after a tap cannot complete a double-click by pairing with it. Mouse double-click timing (`DBLCLICK_MOUSEDOWN_TIMEOUT` 1000 ms / `DBLCLICK_MOUSEUP_TIMEOUT` 500 ms) is unchanged. `touchcancel` resets the per-gesture state (`onTouchCancel`) — `touchApplied`, the mouse-down flag, the long-press timer, and the pending synthesized pair — so a cancelled gesture cannot leave `touchApplied` stuck and route real mouse events into the tap detector, leave drag-selection armed with no `mouseup` coming, or leave an earlier tap's pending flag dropping the next real mouse pair inside the ceiling.
 - **Before 18.1, a tap on an already-selected cell opened the editor** on these devices (the unsuppressed synthesized pair completed a second double-click match). A first tap that commits a focus range is `preventDefault`-ed and synthesizes nothing. A first tap that does not commit a range (visual selection off, or a hook that blocks selection) is not cancelled, except on iOS Chrome and iOS Firefox, where a non-interactive target still is. The pre-18.1 editor-on-first-tap behavior was a side effect. Do not restore it.
 - Test it in Playwright with `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` (`tests/e2e/touch-tap-to-edit.spec.ts`); Chromium synthesizes the same mouse sequence after `locator.tap()`. Use `page.clock` to drive the pairing timers. Script-dispatched `MouseEvent`s have `sourceCapabilities === null` and exercise the WebKit fallback.
@@ -1999,6 +1999,13 @@ The proxies carry `tabindex="-1"` (an empty scroll container is a tab stop in Ch
 added element `aria-hidden="true"`: the holder's own scroll range and the keyboard already cover what
 they do.
 
+Safari 18 (WebKit 18.2, the Safari and iOS floor in `browser-targets.js`) has no `scrollbar-color`:
+`getComputedStyle(holder).scrollbarColor` is `undefined` there. The proxy copies the color only when the
+engine returns a string, so the proxy keeps the default color on such an engine. Do not pass the computed
+value to `resolveProxyScrollbarColor()` without that check: it reads `.length`, and the throw inside the
+draw destroyed every grid with a header or a frozen band next to a scrolling edge. CI's WebKit supports
+the property, so only the unit test (a computed style without `scrollbarColor`) catches it.
+
 Testing traps:
 
 - **Playwright launches Chromium with `--hide-scrollbars`**, which makes every gutter 0, so no proxy is
@@ -2134,12 +2141,85 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   before.
 - Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
   renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
+- **A table section is a `rowgroup` only while it holds rows** (`giveRowGroupRole` and `dropRowGroupRole` in
+  `render/ariaAttributes.ts`, called by `render/rows.ts` for the TBODY and `render/columnHeaderRows.ts` for
+  the THEAD). Every clone has both sections and most leave one empty: the top clone's body without frozen top
+  rows, a top corner's body without frozen top rows, a bottom clone's head. A `rowgroup` with no `row` is an
+  invalid structure, read as an empty group and reported by axe as "needs review" (DEV-3652). The sections are
+  reused across draws, so the role is removed when a section is drawn with no rows, and only a `rowgroup` role
+  is removed: a role another module wrote on such a section stays. "Holds rows" means rows with a cell. A side
+  clone that is turned off (`rowHeaders: false`, `fixedColumnsStart` or `fixedColumnsEnd` back to 0) is drawn
+  one last time with the master's rows and none of its columns, and is never drawn again, so its rows stayed
+  in the tree as rows with nothing in them; both renderers therefore key the section's role and each row's
+  `row` role and `aria-rowindex` (`dropRowRole`) on `columnsToRender + rowHeadersCount > 0`. Pinned by
+  `test/unit/renderer/rowGroupRole.unit.ts` and `tests/e2e/rowgroup-roles.spec.ts`.
 
-Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
+**The strip had a side effect a screen reader depended on, and it is now asked for on purpose (DEV-4151).**
+Removing and re-adding a cell's `role` makes the browser build a new accessibility object for it. That is what
+made VoiceOver with WebKit and NVDA with Firefox read a focused cell again when it changed in place, or read a
+cell the focus jumped to as a move, with its column and row. An attribute that keeps its value does neither: the
+reader keeps the object of the cell the recycled element showed before and says nothing (checkbox toggles, async
+values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
+`rebuildAccessibilityObject()` (`helpers/a11y.ts`), asked for in three places, each for the cells that need it:
+
+- **A focus move onto a data cell** (`FocusGridManager#announceCellFocus`, `focusManager/grid.ts`): the cell's
+  `role` is rebuilt right before `focus()`, unless the cell holds the focus already, and the cell's state is
+  recorded (`rememberAnnouncedCell()`). A column header only gets the record. This is the case the old strip
+  covered for the cell about to take the focus. The rebuild runs for the root grid only: the lists and menus the
+  editors build are grids of their own, a reader reaches their options through the editor that keeps the focus,
+  and a rebuilt option lost the speech of the list (autocomplete and dropdown arrow keys, the intl date editor).
+  Those grids still record the cell, so a checkbox toggled in a menu list is read again.
+- **The focused cell or header changes in place, or the grid draws the selected cell into it**
+  (`FocusGridManager#announceChangeInPlace`, `focusManager/grid.ts`, on `afterRender`): when the element that holds
+  the focus is the cell the selection points at (`getCell()` of the highlight, not the `current` class, which a grid
+  with `disableVisualSelection` never gets), `hasCellChangedSinceAnnounced()` compares it with the record. The record holds
+  what the cell showed and where it was (`readCellAnnouncementSignature()`: markup, form control state, `aria-*`
+  attributes) when it took the focus, not what it showed before this draw, because the browser can change the
+  state before the draw (a checkbox flipped by Space). A different signature, row or column rebuilds it. The
+  selection check is what keeps a scroll quiet: a wheel scroll with the selection fixed recycles the focused
+  element for rows the user is not on, and the old paint-time check rebuilt it for each of them. A jump to a row the
+  grid renders only then (`Ctrl+ArrowDown`) draws the selected cell into the element that keeps the focus, so the
+  row in the record is what tells it from a repeated paint, and the readers read the cell as a move. The coordinates are the
+  selection's highlight, never `getCoords()`: looking an element up fires the public `modifyGetCoordsElement` hook,
+  which a legacy spec counts. Only the one focused element is looked at. An element whose markup changes on every paint (a
+  generated id, an animated bar) reads as changed on every draw, so such a cell is read again each time.
+- **The offsets that position the cells change** (`#hasPositionOffsetChanged` in `render/cells.ts`, and the same
+  question for the column header count in `render/rows.ts`): when the number of row headers or column headers
+  changes, every painted cell, and every row for a change of the column headers, is rebuilt once, so a reader that
+  learned the old positions counts again (NVDA with Firefox read the first rows of a grid that got column headers
+  one row too low, and the cells alone were not enough: a row keeps the position the reader cached for it). A grid
+  with `renderMode: 'onChange'` is covered by the same test.
+
+Do not make any of these unconditional: the cost of the strip was the reason it went. The rebuild does not reach
+NVDA or VoiceOver with Chromium, which were silent on these steps before DEV-4105 too (DEV-4004 and DEV-4011).
+The readers' speech is not testable in Chromium: the specs pin the mechanism (a `MutationObserver` on `role`), and
+the `Screen reader nightly` lanes (`vo-webkit`, `nvda-firefox`) show whether the reader says it.
+
+Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `test/unit/renderer/cellsAnnounce.unit.ts` (the header counts), `helpers/__tests__/a11y.unit.ts`,
+`focusManager/__tests__/grid.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
-from the same attributes on a new and a recycled element, and a redraw plus a vertical scroll write no
+from the same attributes on a new and a recycled element, a redraw plus a vertical scroll write no
 accessibility attribute on an element that already holds it (a `MutationObserver`, with a horizontal scroll
-as the positive control).
+as the positive control), and the three rebuilds above happen once, for the cell that needs them.
+
+## The corner header is a plain `gridcell` with no name of its own
+
+The column header row's cells above the row headers (one per row-header column, in every overlay that draws
+them) get `role="gridcell"`, `aria-colindex` and `tabindex` from `getCornerAriaAttributes` in
+`render/columnHeaders.ts`, and nothing else: no `aria-label`, no `scope`, no `id`. They are not column headers
+(a `columnheader` there would be counted as one), and they have no action of their own to name.
+
+- **A control rendered into the corner names itself.** RowSelection puts its "select all" checkbox there, with
+  its own translated `aria-label` and `aria-checked`. A label on the cell would replace the name the cell takes
+  from that content, so a screen reader would announce the cell's label instead of the checkbox. The cell
+  used to carry `role="gridcell button"` and an English `aria-label="Select whole grid"`, which did exactly that.
+- **A recycled header needs no extra removal.** `syncAriaAttributes` clears every `aria-*` and `role` attribute
+  the kept set does not hold before it writes, so a TH that was a corner with a label, or a column header, sheds
+  what it carried on the next draw. `scope` and `id` are not in that clearing pass and are removed explicitly
+  (`writeColumnHeaderAriaAttributes`).
+
+Pinned by `tests/e2e/corner-header-role.spec.ts` (every overlay's copy, the RowSelection checkbox as the cell's
+name, `ariaTags: false`, and row selection toggled on and off) and `src/__tests__/a11y/headers.spec.js`.
 
 ## A data cell names its column header through `aria-describedby`, and the owner is per column
 
@@ -2152,6 +2232,12 @@ scroll and pooled-node reuse. The id-prefix builder, the ownership predicate, an
 test live together on `TableRenderer` (`getAriaColumnHeaderIdPrefix`, `ownsAriaColumnHeaderId`,
 `hasColumnHeaders`); the prefix is draw-constant and both renderers hoist it out of their per-element
 loop, appending the column index per element.
+
+A cell may also point at a description element (`utils/cellDescription/AGENTS.md`): the cell painter appends a reference that starts
+with `CELL_DESCRIPTION_ID_PREFIX` after this one, once the renderer ran. `prepareCellAriaAttributes` keeps such a value
+(`isKeptDescribedBy()` in `render/ariaAttributes.ts`: the cell's own header reference, then only description references) instead of
+resetting it to the header, which cost two writes per described cell per paint. A value with any other reference, or the header of
+another column, is reset as before.
 
 Four things are load-bearing, and each was a bug first:
 
