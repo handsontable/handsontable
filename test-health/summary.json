@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-25T12:47:19.126Z",
+  "generatedAt": "2026-11-25T12:58:26.966Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -197,7 +197,7 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 493,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
-      "count7": 6,
+      "count7": 5,
       "count30": 6,
       "countAll": 6,
       "runs30": 5,
@@ -2093,7 +2093,7 @@
       "file": "e2e/manual-row-move-zoom-after-build.spec.ts",
       "line": 86,
       "title": "row move guideline after a zoom made while the grid was hidden › the grid is measured once it is shown, not while it renders no row",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
