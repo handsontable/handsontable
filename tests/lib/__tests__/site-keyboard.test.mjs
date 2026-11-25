@@ -285,6 +285,16 @@ test('2.4.7: a ring the focus drew on another part counts; a color, a popup or a
   assert.deepEqual(changedRings([part(none, 'rgba(0, 0, 0, 0.08) 0px 24px 60px 0px', { ...box, height: 120 })],
     [part(none, 'none', { ...box, height: 0 })]), [], 'a popup that opens with the focus is not a ring');
   assert.deepEqual(changedRings([null, part(ring)], [null, part(none)]), [part(ring)], 'a part not rendered is skipped');
+
+  const lifted = part(none, 'rgb(26, 66, 232) 0px 0px 0px 6px', { ...box, y: box.y - 2 });
+
+  assert.deepEqual(changedRings([lifted], [part(none)]), [lifted], 'a card that lifts 2 px as it is ringed is still ringed');
+  assert.deepEqual(changedRings([part(none, 'rgba(0, 0, 0, 0.08) 0px 24px 60px 0px', { ...box, height: box.height + 200 })],
+    [part(none)]), [], 'a wrapper that grows by a popup opening inside it is not a ring');
+
+  const overlay = { ...part(ring, 'none', { x: 17, y: 401, width: 804, height: 393 }), pseudo: {} };
+
+  assert.deepEqual(changedRings([overlay], [null]), [overlay], 'an overlay drawn only with the focus is the ring itself');
 });
 
 test('2.4.7: an absolutely placed pseudo-element is placed from its containing block', () => {

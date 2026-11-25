@@ -179,16 +179,23 @@ export function focusExtent(element, rings = []) {
   };
 }
 
+// How far a part may move or grow on a side with the focus and still be the same part ringed (a card that lifts as
+// it is ringed); a popup that opens inside a wrapper grows it by far more.
+const RING_DRIFT = 8;
+
 /**
  * The rings the focus drew around a control on something other than the control itself: the ancestors and
  * pseudo-elements whose ring differs between the focused read and the read at rest. A part counts only when its
- * focused read draws a ring (an outline that shows, or a box shadow) that the read at rest does not draw the same,
- * and its box did not move: a text color a wrapper takes through `:focus-within` draws no ring, and a box that
- * appears or moves with the focus is a popup the focus opened, not the indicator. Both are left out, so neither
- * pulls a whole wrapper into the capture, where its change would pass a control that draws nothing of its own.
+ * focused read draws a ring (an outline that shows, or a box shadow) that the read at rest does not draw the same: a
+ * text color a wrapper takes through `:focus-within` draws no ring. A part may move or grow a few pixels with the
+ * focus (a card that lifts as it is ringed), but an ancestor that was not drawn at rest, or that grows by more than
+ * `RING_DRIFT` on a side, opened with the focus: it is a popup, not the indicator, and in the capture its change would
+ * pass a control that draws nothing of its own. A pseudo-element that is drawn only with the focus is the ring itself
+ * (an overlay ringed on focus), so it counts.
  *
- * @param {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number, color?: string}, shadow?: string}|null>} focused
- *   Each part read while the control had the focus (`null`: the part was not rendered then).
+ * @param {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number, color?: string}, shadow?: string, pseudo?: object}|null>} focused
+ *   Each part read while the control had the focus (`null`: the part was not rendered then); a pseudo-element's
+ *   carries `pseudo`.
  * @param {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number, color?: string}, shadow?: string}|null>} rest
  *   The same parts read at rest, in the same order.
  * @returns {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number}, shadow?: string}>} The rings, as read while focused.
@@ -201,12 +208,21 @@ export function changedRings(focused, rest) {
     return `${outline} | ${part.shadow && part.shadow !== 'none' ? part.shadow : 'none'}`;
   };
   const draws = part => ring(part) !== 'none | none';
-  const sameBox = (one, other) => ['x', 'y', 'width', 'height'].every(key => Math.abs(one.box[key] - other.box[key]) < 1);
+  const drawn = part => part !== null && part.box.width > 0 && part.box.height > 0;
+  const opened = (part, before) => !drawn(before) || [
+    before.box.x - part.box.x, before.box.y - part.box.y,
+    (part.box.x + part.box.width) - (before.box.x + before.box.width),
+    (part.box.y + part.box.height) - (before.box.y + before.box.height),
+  ].some(growth => growth > RING_DRIFT);
 
   return focused.flatMap((part, index) => {
-    const before = rest[index];
+    const before = rest[index] ?? null;
 
-    if (!part || !draws(part) || (before && (ring(before) === ring(part) || !sameBox(part, before)))) {
+    if (!part || !draws(part) || (drawn(before) && ring(before) === ring(part))) {
+      return [];
+    }
+    // A part the caller read from a `::before` or `::after` carries `pseudo`; any other is an ancestor.
+    if (!part.pseudo && opened(part, before)) {
       return [];
     }
 

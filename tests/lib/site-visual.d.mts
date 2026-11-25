@@ -15,7 +15,7 @@ export function isFieldShape(shape: string): boolean;
 export function isFieldStop(stop: { shape: string; role: string }): boolean;
 type Box = { x: number; y: number; width: number; height: number };
 type Outline = { style: string; width: number; offset: number; color?: string };
-type Ring = { box: Box; outline: Outline; shadow?: string };
+type Ring = { box: Box; outline: Outline; shadow?: string; pseudo?: object };
 
 export function outlineReach(outline: Outline): number;
 export function shadowReach(shadow: string | undefined): number;

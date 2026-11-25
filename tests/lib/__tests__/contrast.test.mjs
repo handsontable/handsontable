@@ -324,15 +324,51 @@ test('an indicator drawn wholly inside the element is judged against the unchang
   assert.equal('outside' in indicatorChange(before, before, 2), false, 'without a box the change has no count of it');
 });
 
-test('a recolored edge inside a field is judged against the field\'s fill, never against the color it replaced', () => {
+test('a recolored edge inside a field is judged against the field\'s fill, not against the page around the field', () => {
+  // A white field on a dark blue band: its gray edge turns brand blue with the focus. Against the band the blue is
+  // under 3:1, which the margin read reported; beside it, inside the field, is the white fill, at 7:1.
+  const band = [40, 60, 150];
   const gray = [118, 118, 118];
   const blue = [26, 66, 232];
-  const inner = { x: 0, y: 0, width: 12, height: 12 };
-  const edge = color => Array.from({ length: 12 }, (_, x) => [[x, 0, color], [x, 11, color]]).flat();
-  const change = indicatorChange(image(12, 12, WHITE, edge(gray)), image(12, 12, WHITE, edge(blue)), 2, inner);
+  const inner = { x: 2, y: 2, width: 12, height: 12 };
+  const field = [];
+  const edge = color => Array.from({ length: 12 }, (_, x) => [[x + 2, 2, color], [x + 2, 13, color]]).flat();
+
+  for (let x = 2; x < 14; x++) {
+    for (let y = 2; y < 14; y++) {
+      field.push([x, y, WHITE]);
+    }
+  }
+
+  const before = image(16, 16, band, [...field, ...edge(gray)]);
+  const after = image(16, 16, band, [...field, ...edge(blue)]);
+  const change = indicatorChange(before, after, 2, inner);
+
+  assert.deepEqual(focusFindings({ selector: 'input.input', step: 'Tab', change }), [], 'the blue edge passes beside the fill');
+  assert.equal(change.outside, 0);
+  assert.deepEqual(change.adjacent, WHITE, 'the edge sits on the white fill');
+  assert.equal(focusFindings({ selector: 'input.input', step: 'Tab', change: indicatorChange(before, after, 2) })[0].kind,
+    'focus-indicator-contrast', 'read against the band, the same edge failed');
+});
+
+test('a focus that recolors the element\'s background is a fill, judged against the page around it', () => {
+  // A text link whose only focus cue is a pale background: the box changes everywhere but on its glyphs, so the
+  // unchanged pixels inside are the text. Judged against the text it would pass; against the page it does not.
+  const linkBlue = [0, 0, 238];
+  const pale = [240, 240, 240];
+  const inner = { x: 2, y: 2, width: 12, height: 6 };
+  const glyphs = Array.from({ length: 10 }, (_, x) => [[x + 3, 4, linkBlue], [x + 3, 5, linkBlue]]).flat();
+  const filled = [];
+
+  for (let x = 2; x < 14; x++) {
+    for (let y = 2; y < 8; y++) {
+      filled.push([x, y, pale]);
+    }
+  }
+
+  const change = indicatorChange(image(16, 10, WHITE, glyphs), image(16, 10, WHITE, [...filled, ...glyphs]), 2, inner);
 
   assert.equal(change.outside, 0);
-  assert.ok(change.ratio < 3, 'blue against the gray it replaced is under 3:1');
-  assert.deepEqual(focusFindings({ selector: 'input.input', step: 'Tab', change }), [],
-    'against the white fill beside it the blue edge stands 7:1, which is what 1.4.11 asks');
+  assert.deepEqual(change.adjacent, WHITE, 'a fill is read against the page, as before, not against its text');
+  assert.equal(focusFindings({ selector: 'a.link', step: 'Tab', change })[0].kind, 'focus-indicator-contrast');
 });

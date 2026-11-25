@@ -196,8 +196,8 @@ export function partContrast(image, box, { band, mark = false } = {}) {
  * pixels outside that box. An indicator drawn wholly inside the element (a ring inset in its fill, a recolored
  * border) has nothing changed outside it, and its `adjacent` colors are then the unchanged pixels inside the box:
  * a white ring inset in a black fill is judged against the fill it sits on (18:1), not against the white page
- * around the control (1:1). A change that repaints the whole box leaves no unchanged pixel inside, and reads the
- * margin as before.
+ * around the control (1:1). Only a ring: a change that repaints half the box or more is a fill (a background the
+ * focus recolors), whose unchanged pixels inside are the text on it, so it reads the margin as before.
  *
  * @param {{width?: number, height?: number, data: number[]}} before The capture before.
  * @param {{width?: number, height?: number, data: number[]}} after The capture after, the same size.
@@ -251,7 +251,11 @@ export function indicatorChange(before, after, margin = 0, inner = null) {
   const core = percentile([...changes].sort((a, b) => a.ratio - b.ratio));
   let adjacent = null;
 
-  if (inner && outside === 0 && insideUnchanged.data.length > 0) {
+  // A ring inside the element changes a band of it; a fill (a background the focus recolors) changes most of it, and
+  // what it leaves unchanged inside is the text on it, not what the indicator sits on.
+  const ring = inner !== null && changes.length < inner.width * inner.height / 2;
+
+  if (ring && outside === 0 && insideUnchanged.data.length > 0) {
     adjacent = dominantColor(insideUnchanged);
   } else if (around.data.length > 0) {
     adjacent = dominantColor(around);
