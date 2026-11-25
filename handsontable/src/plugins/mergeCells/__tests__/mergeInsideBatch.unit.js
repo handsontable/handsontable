@@ -218,6 +218,124 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
     expect(expected.merges).toEqual([{ row: 1, col: 2, rowspan: 2, colspan: 2 }]);
   });
 
+  /**
+   * Runs the steps outside a batch and inside one, on two fresh grids, and returns what each run left.
+   *
+   * @param {Function} steps The calls to make, given the instance.
+   * @param {Function} [prepare] Calls made on each grid before the steps, outside any batch.
+   * @returns {{ batched: object, unbatched: object }} The observable state of each run.
+   */
+  function runBothWays(steps, prepare = () => {}) {
+    createGrid();
+    prepare(hot);
+    steps(hot);
+
+    const unbatched = readState();
+
+    hot.destroy();
+    container.remove();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+
+    createGrid();
+    prepare(hot);
+    hot.batch(() => steps(hot));
+
+    return { batched: readState(), unbatched };
+  }
+
+  describe('a call after the merge, or a merge next to older ones', () => {
+    it('should keep a merge in place when a row move after it leaves its rows alone', () => {
+      const { batched, unbatched } = runBothWays((instance) => {
+        instance.getPlugin('manualRowMove').moveRow(5, 0);
+        instance.getPlugin('mergeCells').merge(1, 1, 2, 2);
+        instance.getPlugin('manualRowMove').moveRow(7, 6);
+      });
+
+      expect(unbatched.merges).toEqual([{ row: 1, col: 1, rowspan: 2, colspan: 2 }]);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should keep a merge in place when a column move after it leaves its columns alone', () => {
+      const { batched, unbatched } = runBothWays((instance) => {
+        instance.getPlugin('manualColumnMove').moveColumn(5, 0);
+        instance.getPlugin('mergeCells').merge(1, 1, 2, 2);
+        instance.getPlugin('manualColumnMove').moveColumn(7, 6);
+      });
+
+      expect(unbatched.merges).toEqual([{ row: 1, col: 1, rowspan: 2, colspan: 2 }]);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should refuse a merge that overlaps an older one after a row move, as outside the batch', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        const { batched, unbatched } = runBothWays((instance) => {
+          instance.getPlugin('manualRowMove').moveRow(5, 0);
+          instance.getPlugin('mergeCells').merge(2, 0, 3, 0);
+        }, instance => instance.getPlugin('mergeCells').merge(0, 0, 1, 0));
+
+        expect(unbatched.merges).toHaveLength(1);
+        expect(batched).toEqual(unbatched);
+        // One refusal in each run.
+        expect(warn).toHaveBeenCalledTimes(2);
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('should keep the cell meta a user set next to the merge', () => {
+      const { batched, unbatched } = runBothWays((instance) => {
+        instance.getPlugin('manualRowMove').moveRow(5, 0);
+        instance.getPlugin('mergeCells').merge(0, 0, 1, 0);
+      }, instance => instance.setCellMeta(1, 0, 'copyable', false));
+
+      expect(hot.getCellMeta(hot.toVisualRow(1), 0).copyable).toBe(false);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should keep an older merge whole through two column moves', () => {
+      const { batched, unbatched } = runBothWays((instance) => {
+        instance.getPlugin('manualColumnMove').moveColumn(0, 3);
+        instance.getPlugin('manualColumnMove').moveColumn(5, 4);
+      }, instance => instance.getPlugin('mergeCells').merge(0, 1, 1, 2));
+
+      expect(unbatched.merges).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 2 }]);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should apply a merge and the unmerge that follows it in the order they were called', () => {
+      const { batched, unbatched } = runBothWays((instance) => {
+        instance.getPlugin('manualRowMove').moveRow(5, 0);
+        instance.getPlugin('mergeCells').merge(1, 1, 2, 2);
+        instance.getPlugin('mergeCells').unmerge(1, 1, 2, 2);
+      });
+
+      expect(unbatched.merges).toEqual([]);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should fire the merge hooks once, at the end of the batch', () => {
+      createGrid();
+
+      const events = [];
+
+      hot.addHook('afterMergeCells', () => events.push('afterMergeCells'));
+      hot.batch(() => {
+        hot.getPlugin('manualRowMove').moveRow(5, 0);
+        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+        events.push('callback end');
+      });
+
+      expect(events).toEqual(['callback end', 'afterMergeCells']);
+    });
+
+    // A row move in a batch that splits a merge draws it over a row it does not own: the re-anchor at the end of
+    // the batch moves the merge without splitting it.
+    it.todo('should split a merge that a row move in a batch breaks, as the same call outside the batch does');
+  });
+
   it('should not change a merge made in a batch without a reorder', () => {
     createGrid();
     hot.batch(() => {

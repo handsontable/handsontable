@@ -304,9 +304,11 @@ export class IndexMapper {
    *
    * While the operations are suspended, a change of the indexes sequence (a move, a sort) leaves the
    * caches on the previous order, so every translation inside a `batch()` answers for the order from
-   * before the batch. A caller that has to write by the order the batch already made reads through this
+   * before the batch. A caller that has to read the order the batch already made reads through this
    * method. The caches are restored on exit, so no `cacheUpdated` or `beforeCacheUpdate` hook fires, no
    * change flag moves, and the update at the end of the batch still sees the previous order as the old one.
+   * What the callback stores is not in that order for the listeners that read the caches, so a caller
+   * stores only what every reader of the axis reads the same way.
    *
    * It does nothing while the operations are not suspended or when the sequence did not change. The
    * trimming and hiding maps are read from their cached merged values, so a trim or a hide made earlier
