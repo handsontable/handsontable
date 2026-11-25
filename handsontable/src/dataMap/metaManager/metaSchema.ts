@@ -3914,6 +3914,7 @@ export default (): Record<string, unknown> => {
      *
      * // keep the selected items in the dropdown
      * filterSelectedItems: false,
+     * ```
      */
     filterSelectedItems: true,
 

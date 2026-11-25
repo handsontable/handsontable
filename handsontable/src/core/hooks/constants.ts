@@ -41,6 +41,7 @@
  *     });
  *   }}
  * />
+ * ```
  * :::
  *
  * ::: only-for angular
@@ -119,6 +120,7 @@
  *     // function body - will only run for first instance
  *   }
  * });
+ * ```
  * :::
  * ...
  */

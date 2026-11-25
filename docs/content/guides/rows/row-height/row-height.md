@@ -362,7 +362,7 @@ When the [`AutoRowSize`](@/api/autoRowSize.md) plugin is enabled and you change 
 
 - [autoRowSize](@/api/options.md#autorowsize)
 - [manualRowResize](@/api/options.md#manualrowresize)
-- [minRowHeights](@/api/options.md#minRowHeights)
+- [minRowHeights](@/api/options.md#minrowheights)
 - [textEllipsis](@/api/options.md#textellipsis)
 - [wordWrap](@/api/options.md#wordwrap)
 
