@@ -4663,14 +4663,14 @@ export class MergeCells extends BasePlugin {
 
     // A move that permutes only rows no merge touches moves no merge and changes no row under one, so there is
     // nothing to translate. Skipping it spares the live caches of a batch, which cost a pass over every row per
-    // move. Three cases take the full path: a move outside a batch, which has no cache to spare; a grid with a
-    // trimmed row, where the move also puts the anchors a sort scattered into visual order, merges outside the
-    // window included; and a move after a move of this plugin has rewritten the merges in the live order, because
-    // the rows a move names are in the order the merges are in only before that.
+    // move. Three cases take the full path: a move outside a batch, which has no cache to spare; a move after a
+    // move of this plugin has rewritten the merges in the live order, because the rows a move names are in the order
+    // the merges are in only before that; and, while a row is trimmed, a grid where a merge carries an anchor that
+    // is not in visual order, because the move also puts such an anchor into it, a merge outside the window included.
     if (this.hot.rowIndexMapper.isBatched
         && !this.#areMergesAheadOfRowCache
-        && !this.#isRowTrimmingActive()
-        && this.#isMoveOutsideMerges(moveWindow)) {
+        && this.#isMoveOutsideMerges(moveWindow)
+        && (!this.#isRowTrimmingActive() || this.#areAnchorsInVisualOrder())) {
       this.#rowMoveSnapshot = null;
       this.#drawnFromBeforeMove = null;
       this.#coveredBeforeMove = null;
@@ -4684,6 +4684,39 @@ export class MergeCells extends BasePlugin {
       this.#recordForeignRowsBeforeBatchMove();
     }, this.#areMergesAheadOfRowCache);
   };
+
+  /**
+   * Tells whether every merge's anchor lists its physical rows in the order they have on screen, so that putting it
+   * into visual order, which a row move does while a row is trimmed, changes nothing. A sort scatters them. A trimmed
+   * row has no visual index and does not count.
+   *
+   * @returns {boolean}
+   */
+  #areAnchorsInVisualOrder(): boolean {
+    return this.mergedCellsCollection.mergedCells.every((merge) => {
+      const anchor = this.#mergeAnchors.get(merge);
+
+      if (!anchor) {
+        return false;
+      }
+
+      let previousVisualRow = -1;
+
+      return anchor.physicalRows.every((physicalRow) => {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+
+        if (visualRow === null) {
+          return true;
+        }
+
+        const isInOrder = visualRow > previousVisualRow;
+
+        previousVisualRow = visualRow;
+
+        return isInOrder;
+      });
+    });
+  }
 
   /**
    * Tells whether a move permutes only rows that no merge covers. A merge without a row in the window keeps its

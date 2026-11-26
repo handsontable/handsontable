@@ -636,13 +636,29 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       expect(readState()).toEqual(expected);
     });
 
-    it('should translate the merges of a move away from them when a row of the grid is trimmed', () => {
+    it('should not rebuild the live row caches for a move away from the merges when a row is trimmed', () => {
       createGrid({ trimRows: [4] });
       hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
 
       const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
 
       hot.batch(() => hot.getPlugin('manualRowMove').moveRow(5, 6));
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should translate the merges of a move away from them when a row is trimmed and a sort scattered a merge', () => {
+      createGrid({
+        data: [6, 1, 3, 2, 0, 4, 5, 7].map((key, row) => [`A${row}`, `B${row}`, key]),
+        trimRows: [7],
+      });
+      hot.getPlugin('mergeCells').merge(0, 0, 1, 1);
+      hot.getPlugin('mergeCells').merge(2, 0, 3, 1);
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
+
+      hot.batch(() => hot.getPlugin('manualRowMove').moveRow(4, 5));
 
       expect(spy).toHaveBeenCalled();
     });
