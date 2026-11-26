@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 188,
+  "total": 191,
   "counts": {
-    "grid": 113,
+    "grid": 116,
     "grid columns cells cell": 65,
     "grid columns": 9,
     "columns": 1
@@ -103,6 +103,33 @@
         "columns"
       ],
       "since": "19.0.0",
+      "note": null
+    },
+    {
+      "name": "ariaDescribedby",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.1.0",
+      "note": null
+    },
+    {
+      "name": "ariaLabel",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.1.0",
+      "note": null
+    },
+    {
+      "name": "ariaLabelledby",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.1.0",
       "note": null
     },
     {
