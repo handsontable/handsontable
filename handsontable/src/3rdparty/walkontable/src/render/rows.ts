@@ -360,6 +360,17 @@ export class RowsRenderer extends BaseRenderer {
     const rotated = delta > 0 ?
       delta :
       Math.min(shift, Math.max(0, (this.#lastOffset + lastSize) - (nextOffset + nextSize)));
+    const probeRow = focusedInBand ? this.#rowOf(focusedElement as HTMLElement) : null;
+    const probeIndex = probeRow === null ? -1 : Array.prototype.indexOf.call(rootNode.children, probeRow);
+    const probeLeaves = probeIndex >= 0 && (delta > 0 ? probeIndex < rotated : probeIndex >= lastSize - rotated);
+
+    if (probeLeaves) {
+      rootNode.replaceChild(this.nodesPool!.obtain() as HTMLElement, probeRow!);
+      this.#rotateRowsThroughFragment(delta, rotated);
+
+      return null;
+    }
+
     const movesInPlace = focusedInBand && canMoveWithoutDetaching(rootNode);
 
     if (movesInPlace) {
