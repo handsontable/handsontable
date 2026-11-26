@@ -159,6 +159,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'إعادة تعيين المرشحات',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'جارٍ تحميل البيانات',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'يرجى الانتظار.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'تم تحميل البيانات',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'تعذر تحميل البيانات',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'تعذر إنشاء الصفوف',

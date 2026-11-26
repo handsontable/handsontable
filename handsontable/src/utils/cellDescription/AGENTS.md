@@ -1,7 +1,7 @@
 # Cell description – what a cell holds beyond its text
 
 This is **not a plugin**. It is the one mechanism that tells assistive technology what a data cell holds beyond its
-value: that it is read only, holds a link, is a merged block. The focus stays on the cell, so a screen reader reads the
+value: that its value is loading, is read only, holds a link, is a merged block. The focus stays on the cell, so a screen reader reads the
 cell's text and nothing the cell merely carries. Read this before you add a part, and before you reach for an `::after`,
 an `aria-label` or a hidden child to describe a cell.
 
@@ -27,6 +27,7 @@ and `#describeCell()` after the last `afterRenderer` listener. In between, a plu
 
 | Rank | Part | Fed by |
 |---|---|---|
+| `PENDING` (5) | `Loading:title` ("Loading...") | `plugins/asyncValues/decoration.ts`, `decorateCell()`, for a cell whose async value is pending (the AsyncValues plugin's `afterRenderer`) |
 | `READ_ONLY` (10) | `CellDescription:readOnly` | the painter itself, from `cellProperties.readOnly` |
 | `LINK` (20) | `CellDescription:link` | `describeLink()` (`utils/cellLinks/describeLink.ts`), called by AutoLink when `linkifyCell()` made an anchor and by the Formulas `HYPERLINK` pass right after it wraps the cell |
 | `MERGED` (30) | `CellDescription:merged` with `[row]`/`[column]` | `mergeCells/renderer.ts`, for the origin of a block: the block's last cell by its `aria-rowindex` and `aria-colindex` (header rows and row header columns counted, hidden lines skipped), so the numbers agree with what the screen reader says for that cell |

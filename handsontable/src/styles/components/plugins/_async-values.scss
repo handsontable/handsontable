@@ -19,7 +19,9 @@
       border-radius: 50%;
       pointer-events: none;
       // Four turns, then it rests: motion that starts on its own and runs past five seconds needs a way
-      // to pause it (WCAG 2.2.2). The ring stays drawn for as long as the request is pending.
+      // to pause it (WCAG 2.2.2). The ring stays drawn for as long as the request is pending. A repaint
+      // resumes the turns through a negative inline `animation-delay` (`decoration.ts`), so they count
+      // from the start of the request, not from the paint.
       animation: ht-async-values-spin 1s linear 4;
 
       @media (prefers-reduced-motion: reduce) {
@@ -53,8 +55,7 @@
       pointer-events: none;
     }
 
-    .htAsyncErrorMessage,
-    .htAsyncPendingMessage {
+    .htAsyncErrorMessage {
       position: absolute;
       width: 1px;
       height: 1px;

@@ -12,6 +12,7 @@ export { CELL_DESCRIPTION_ID_PREFIX };
  * The position of each part in the description. A part with a lower rank is read first.
  */
 export const CELL_DESCRIPTION_RANK = {
+  PENDING: 5,
   READ_ONLY: 10,
   LINK: 20,
   MERGED: 30,

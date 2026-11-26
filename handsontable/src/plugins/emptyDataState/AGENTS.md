@@ -79,26 +79,35 @@ so two grids on a page never share one; the reference to a part the message lack
 message is the same element, so it keeps the role next to `aria-busy`. Pinned by
 `tests/e2e/empty-data-state-focus-role.spec.ts` and `__tests__/ui.unit.js`.
 
-## A fetch that starts is announced, politely, in a grid that listens (DEV-4011)
+## A slow fetch is announced, politely, when it starts and when it loads (DEV-4011)
 
-`#setLoadingActive()` ends with `#announceLoading()`: the loading title, through `htmlToPlainText()`, to the
-polite region of `utils/a11yAnnouncer.ts`. The overlay appears without a focus move (a sheet switch that
+`#setLoadingActive()` schedules the announcement (`#scheduleLoadingAnnouncement()`,
+`LOADING_ANNOUNCEMENT_DELAY`, 500 ms, through `_registerTimeout`): the loading title, through
+`htmlToPlainText()`, to the polite region of `utils/a11yAnnouncer.ts`. The overlay appears without a focus move (a sheet switch that
 starts a fetch leaves the focus on the sheet tab), and the message group is not a live region, so no reader
-said the grid was loading. Three conditions:
+said the grid was loading. Four conditions, read when the timer fires:
 
+- **The same fetch still loads.** `#loadingStarts` counts the starts, and a timer runs only for the latest
+  one while `#loadingActive` is set, so a fetch that ended before the delay, and the timer of a fetch that
+  ended when the next one started, say nothing. A fast poll is quiet.
 - **The overlay is visible.** `#toggleEmptyDataState()` can leave it hidden.
 - **`ariaTags` is on.**
 - **The grid listens** (`hot.isListening()`). A grid that loads while the user is elsewhere on the page
   stays quiet, and so does the first load of a page.
 
-Every loading start announces, so an application that calls `fetchData()` on a timer while the user works
-in the grid gets "Loading data" on every poll, and each announcement makes core's selection announcer stand
-aside for the selection made just before it. A fetch made with `skipLoading: true` shows no overlay and
-announces nothing: DataProvider's own sort and save refetches use it, and a polling application should too.
+The delay is what keeps a polling application from announcing on every poll, and from making core's
+selection announcer stand aside (an announcement drops the message of a selection made just before it). A
+fetch made with `skipLoading: true` shows no overlay and announces nothing: DataProvider's own sort and save
+refetches use it.
 
-The end of a load is not announced: the rows arrive, and the reader reads the cell the focus is on.
-`#getMessage(SOURCE.LOADING)` runs once more per loading start, so a `message` function is called one more
-time there. Pinned by `__tests__/loadingAnnouncement.unit.js` and the keyboard case in
+**The end is announced when the start was** (`#isLoadingAnnounced`), with `EMPTY_DATA_STATE_LOADED` ("Data
+loaded"), from `#clearLoadingActive(…, true)`, which only `afterDataProviderFetch` passes. A sheet switch that
+starts a fetch leaves the focus on the sheet tab, so no cell is read when the rows arrive. A failed fetch, an
+abort, and a view change end the loading without it: the error has its own notification. `updatePlugin()`
+keeps `#isLoadingAnnounced` with the loading flag.
+
+The announcement reads the title `#update()` kept (`#loadingTitle`), so a `message` function is not called
+again for it. Pinned by `__tests__/loadingAnnouncement.unit.js` and the keyboard case in
 `tests/e2e/data-provider-sheets-bar.spec.ts`. Not proven locally: what each screen reader says, which
 only the screen reader run shows.
 

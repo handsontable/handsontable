@@ -20,16 +20,22 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
 
     await expect(indicator).toBeVisible();
     await expect(asyncPage.cell(0, 1)).toHaveAttribute('aria-busy', 'true');
-    // The old value stays, next to the visually hidden loading text.
-    await expect(asyncPage.cell(0, 1)).toHaveText('Old A Loading...');
-    // The space is in the DOM text and the stylesheet keeps it, so a screen reader that reads the cell
-    // as one run of text does not join the value and the status into one word.
-    expect(await asyncPage.cell(0, 1).evaluate(cell => cell.textContent)).toBe('Old A Loading...');
-    await expect(asyncPage.cell(0, 1).locator('.htAsyncPendingMessage')).toHaveCSS('white-space', 'pre');
+    // The old value stays, and the loading text is the cell's description: the cell's own text, its
+    // accessible name and what is copied stay the value.
+    await expect(asyncPage.cell(0, 1)).toHaveText('Old A');
+    await expect(asyncPage.cell(0, 1)).toHaveAccessibleName('Old A');
+    await expect(asyncPage.cell(0, 1)).toHaveAccessibleDescription(/Loading\.\.\./);
     await expect(indicator).toHaveCSS('animation-name', 'ht-async-values-spin');
     // The ring turns four times, a second each, and then rests: it never moves past five seconds.
     await expect(indicator).toHaveCSS('animation-iteration-count', '4');
     await expect(indicator).toHaveCSS('animation-duration', '1s');
+    // A repaint builds a new indicator, and it resumes the turns from the start of the request
+    // instead of starting them again, so a grid that keeps rendering does not keep the ring turning.
+    await expect.poll(() => page.evaluate(() => {
+      (window as any).hot.render();
+
+      return (window as any).hot.getCell(0, 1).querySelector('.htAsyncIndicator').style.animationDelay;
+    })).toMatch(/^-\d+ms$/);
 
     const cellBox = (await asyncPage.cell(0, 1).boundingBox())!;
     const indicatorBox = (await indicator.boundingBox())!;
@@ -104,21 +110,26 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
     expect(number.indicator.right).toBeLessThan(number.cell.left + (number.cell.width / 2));
   });
 
-  test('a pending cell carries hidden loading text, and a failed one an error bar', async({ page, theme, bundle }) => {
+  test('a pending cell is described as loading, and a failed one carries hidden error text and an error bar', async({ page, theme, bundle }) => {
     const asyncPage = new AsyncValuesPage(page, theme, bundle);
 
     await asyncPage.goto();
     await asyncPage.setThemeVariables({ '--ht-async-error-marker-color': 'rgb(13, 14, 15)' });
     await asyncPage.start(0, 1);
 
-    const loading = asyncPage.cell(0, 1).locator('.htAsyncPendingMessage');
-
-    await expect(loading).toHaveText('Loading...');
-    expect((await loading.boundingBox())!.width).toBeLessThanOrEqual(1);
+    await expect(asyncPage.cell(0, 1)).toHaveAccessibleDescription(/Loading\.\.\./);
 
     await asyncPage.reject(await asyncPage.start(2, 1), 'Product not found');
 
     await expect(asyncPage.cell(2, 1)).toHaveClass(/htAsyncError/);
+
+    const message = asyncPage.cell(2, 1).locator('.htAsyncErrorMessage');
+
+    // The message differs per cell, so it stays hidden text in the cell. It starts with a space the
+    // stylesheet keeps, so a screen reader that reads the cell as one run does not join it to the value.
+    await expect(message).toHaveCSS('white-space', 'pre');
+    expect(await message.evaluate(element => element.textContent)).toBe(' Product not found');
+    expect((await message.boundingBox())!.width).toBeLessThanOrEqual(1);
     expect(await asyncPage.errorMarker(2, 1)).toEqual({ width: '3px', color: 'rgb(13, 14, 15)' });
   });
 

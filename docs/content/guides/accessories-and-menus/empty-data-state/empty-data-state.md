@@ -31,7 +31,7 @@ Use the `EmptyDataState` plugin to display a contextual overlay when the grid ha
 
 The Empty Data State plugin provides a user-friendly overlay system for Handsontable DataGrid when there's no data to display. It automatically detects when your table is empty or when all data is hidden by filters, and displays an appropriate message with optional action buttons. It automatically integrates with the [Filters](@/api/filters.md) plugin to provide context-aware messages and actions.
 
-When the [`DataProvider`](@/api/dataProvider.md) plugin starts a fetch that shows the loading message, a screen reader announces the message's title. The announcement is made only in the grid you work in, and it follows the [`ariaTags`](@/api/options.md#ariatags) option.
+When a [`DataProvider`](@/api/dataProvider.md) fetch shows the loading message for more than half a second, a screen reader announces the message's title. When that fetch loads, the screen reader announces that the data loaded. A fetch that ends sooner is not announced, so a grid that polls the server stays quiet. The announcement is made only in the grid you work in, and it follows the [`ariaTags`](@/api/options.md#ariatags) option.
 
 ## Basic configuration
 

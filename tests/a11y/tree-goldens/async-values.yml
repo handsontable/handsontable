@@ -1,9 +1,9 @@
 # grid
 - treegrid:
   - rowgroup:
-    - row "A-100 Old A Loading... 30":
+    - row "A-100 Old A 30":
       - gridcell "A-100"
-      - gridcell "Old A Loading..."
+      - gridcell "Old A"
       - gridcell "30"
     - row "B-200 Old B 10":
       - gridcell "B-200"

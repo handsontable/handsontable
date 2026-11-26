@@ -58,7 +58,7 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
       await grid.goto();
     });
 
-    test('a switch to a sheet whose rows come from the server announces that the grid is loading', async({ page }) => {
+    test('a switch to a sheet whose rows come from the server announces that the grid is loading, and that it loaded', async({ page }) => {
       const politeRegion = page.locator('[role="status"][aria-live="polite"]');
 
       // Customers (index 2) fetches its rows. The switch leaves the focus on the sheet tab, and the
@@ -73,6 +73,9 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
 
       await grid.release('CUS');
       await expect(grid.cell(0, 0)).toHaveText('CUS-01');
+      // The focus is still on the sheet tab, so no cell is read when the rows arrive: the end of the
+      // load is announced too.
+      await expect(politeRegion).toHaveText('Data loaded');
     });
 
     test('first visit to a server sheet fetches it', async() => {

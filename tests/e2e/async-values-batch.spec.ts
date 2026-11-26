@@ -42,8 +42,9 @@ test.describe('async cell values in batches', () => {
     await batchPage.resolveBatch(3, ['Kitchen', 'Office']);
 
     await expect(batchPage.cell(0, 1)).toHaveText('Kitchen');
-    // Still empty: only the visually hidden loading text is in the cell.
-    await expect(batchPage.cell(2, 1)).toHaveText('Loading...');
+    // Still empty and still pending: the loading text is the cell's description, not its text.
+    await expect(batchPage.cell(2, 1)).toHaveText('');
+    await expect(batchPage.cell(2, 1)).toHaveAccessibleDescription(/Loading\.\.\./);
     await expect(batchPage.cell(2, 1).locator('.htAsyncIndicator')).toBeVisible();
   });
 });

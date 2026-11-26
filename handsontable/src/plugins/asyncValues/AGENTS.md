@@ -326,14 +326,19 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   whenever the cell has `aria-describedby`, which Walkontable sets to the column header on every cell. So the
   message is also visually hidden text (`span.htAsyncErrorMessage`, `user-select: none`) read with the cell's
   content, and a rejection on the active cell is announced while the grid listens and `ariaTags` is on
-  (`utils/a11yAnnouncer.ts`, the message itself, so no i18n string). A pending cell carries visually hidden
-  "Loading..." text (`span.htAsyncPendingMessage`, the existing `LOADING_TITLE` phrase, so every language pack
-  already has it) because no common screen reader announces `aria-busy` on a grid cell, and a failed cell a
-  bar at its inline start (`span.htAsyncErrorMarker`), drawn as a border so it survives forced-colors mode. The
-  hidden text is part of `TD.textContent` (E2E text assertions include it). **Both hidden texts start with a
-  space** (`createElement()` in `decoration.ts`), and `_async-values.scss` sets `white-space: pre` on them so
-  the space survives at the start of the box. The element follows the value with nothing in between, and
-  VoiceOver with WebKit read `Old BLoading...` as one word (DEV-4011). Do not trim the text, and do not go
+  (`utils/a11yAnnouncer.ts`, the message itself, so no i18n string). A failed cell also gets a bar at its
+  inline start (`span.htAsyncErrorMarker`), drawn as a border so it survives forced-colors mode. The hidden
+  error text is part of `TD.textContent` (E2E text assertions include it). **It starts with a space**
+  (`createElement()` in `decoration.ts`), and `_async-values.scss` sets `white-space: pre` on it so the space
+  survives at the start of the box. The element follows the value with nothing in between, and VoiceOver with
+  WebKit read a value and a status with no space as one word (DEV-4011).
+- **A pending cell is described as loading, through `utils/cellDescription/`** (rank `PENDING`, read before
+  `read only`), with the existing `LOADING_TITLE` phrase, so every language pack already has it. No common screen
+  reader announces `aria-busy` on a grid cell, so the cell needs words. The phrase is the same for every pending
+  cell, which is what that channel is for, so the cell's own text, its accessible name and what is copied stay
+  the value (DEV-4011 review; it was a hidden `span.htAsyncPendingMessage` child before 19.0 shipped). The
+  part is added only with `ariaTags` on, like every description part. The error message stays a hidden child,
+  because it differs per cell, and that channel holds one element per distinct text. Do not trim the text, and do not go
   back to `white-space: nowrap`, which collapses that space. Known leaks of that text: AutoLink reads
   `TD.textContent`, so when it is enabled AFTER this plugin its `afterRenderer` runs later and links a URL in
   the message; Formulas `showFormulas` repaints the content and drops the span (the `title` stays).
@@ -352,8 +357,9 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `infinite`: motion that starts on its own and runs past five seconds needs a way to pause it (WCAG 2.2.2),
   and the audit's `forced-colors-motion` check reports an animation that repeats without end or lasts five
   seconds or more. The ring stays drawn while the request is pending. A repaint of the cell builds a new
-  indicator element, so the turns start again: a grid that keeps rendering keeps the ring moving. That is not
-  fixed. `prefers-reduced-motion: reduce` still sets `animation: none`.
+  indicator element, whose animation would start again, so `decorateCell()` gives it a negative inline
+  `animation-delay` of the time the request has been pending (`entry.startedAt`, `Date.now()`). The turns
+  count from the start of the request, and past four seconds the ring rests on every repaint. `prefers-reduced-motion: reduce` still sets `animation: none`.
 - **The indicator is a real element, not a pseudo-element.** `td::after` is taken by the Comments indicator
   and `td.area::before` by the selection fill; a cell can be commented, selected and pending at once. It covers
   the end of a long value (it moves next to a dropdown arrow, and to the left in a `htRight` cell); padding the cell instead would rewrap text and change the row
