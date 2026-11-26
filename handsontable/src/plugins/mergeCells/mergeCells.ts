@@ -67,16 +67,6 @@ interface DeferredRangeOperation {
 }
 
 /**
- * A call held back in the queue, with the structure version of the grid when it was held back. The corners are
- * physical indexes, which a row or column insert or removal renumbers, so a call held back before one is dropped
- * instead of run on other cells.
- */
-interface DeferredRangeEntry {
-  operation: DeferredRangeOperation;
-  structure: number;
-}
-
-/**
  * The visual indexes along one axis that a move permutes. A merge outside it covers the same cells before and
  * after the move.
  */
@@ -413,11 +403,13 @@ export class MergeCells extends BasePlugin {
   /**
    * The `merge()` and `unmerge()` calls made in a batch while an index cache was behind the indexes sequence.
    * Each holds the corners of its range as physical indexes, read from the live order, and runs when the
-   * execution resumes and the caches are current (see `#deferRangeOperation()`).
+   * execution resumes and the caches are current (see `#deferRangeOperation()`). A row or column insert or
+   * removal renumbers the physical indexes, so the mapper's `indexesInserted` and `indexesRemoved` hooks
+   * re-base the corners (see `#rebaseDeferredCorners()`).
    *
    * @type {Array<object>}
    */
-  #deferredRangeOperations: DeferredRangeEntry[] = [];
+  #deferredRangeOperations: DeferredRangeOperation[] = [];
   /**
    * `true` while the held back calls run, so a call a listener makes meanwhile waits behind the ones still
    * queued.
@@ -425,13 +417,6 @@ export class MergeCells extends BasePlugin {
    * @type {boolean}
    */
   #isFlushingDeferredOperations = false;
-  /**
-   * Counts the row and column inserts and removals. A held back call that finds it moved was held back before
-   * one, so its physical corners are renumbered (see `DeferredRangeEntry`).
-   *
-   * @type {number}
-   */
-  #structureVersion = 0;
   /**
    * Snapshot of physical row indexes per merge, captured before a row move.
    *
@@ -656,6 +641,11 @@ export class MergeCells extends BasePlugin {
     // merge whose anchor row gets hidden is re-anchored onto the still-visible rows.
     this.hot.rowIndexMapper.addLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    // The corners of a call held back in a batch are physical indexes, which an insert or a removal renumbers.
+    this.hot.rowIndexMapper.addLocalHook('indexesInserted', this.#onRowIndexesInserted);
+    this.hot.rowIndexMapper.addLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
+    this.hot.columnIndexMapper.addLocalHook('indexesInserted', this.#onColumnIndexesInserted);
+    this.hot.columnIndexMapper.addLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     this.hot.selection.setCellBlockProvider(this.#cellBlockProvider);
 
     this.#settingsPassOwed = true;
@@ -670,6 +660,10 @@ export class MergeCells extends BasePlugin {
     this.hot.selection.setCellBlockProvider(null);
     this.hot.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot.rowIndexMapper.removeLocalHook('indexesInserted', this.#onRowIndexesInserted);
+    this.hot.rowIndexMapper.removeLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
+    this.hot.columnIndexMapper.removeLocalHook('indexesInserted', this.#onColumnIndexesInserted);
+    this.hot.columnIndexMapper.removeLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
@@ -697,6 +691,10 @@ export class MergeCells extends BasePlugin {
     this.hot?.selection?.setCellBlockProvider(null);
     this.hot?.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot?.rowIndexMapper.removeLocalHook('indexesInserted', this.#onRowIndexesInserted);
+    this.hot?.rowIndexMapper.removeLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
+    this.hot?.columnIndexMapper.removeLocalHook('indexesInserted', this.#onColumnIndexesInserted);
+    this.hot?.columnIndexMapper.removeLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
@@ -2437,8 +2435,9 @@ export class MergeCells extends BasePlugin {
    * Inside a [`batch()`](@/api/core.md#batch) that holds a column move, a row move, or a sort made before this
    * call, the merge takes effect when the batch ends, and `beforeMergeCells` and `afterMergeCells` fire then.
    * The range is the one you see after that move or sort. `mergeSelection()` and `mergeRange()` do not wait, so in
-   * the same batch they run first. A call held back is dropped with a warning when rows or columns are added or
-   * removed, or when a row or column of its range is trimmed, before the batch ends.
+   * the same batch they run first. A call held back follows the rows and columns that are added or removed
+   * before the batch ends. It is dropped with a warning when a row or column at a corner of its range is removed,
+   * or when a row or column of its range is trimmed, before the batch ends.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -2455,7 +2454,9 @@ export class MergeCells extends BasePlugin {
    * Unmerges the merged cell in the provided range.
    *
    * Like `merge()`, the call waits for the end of a [`batch()`](@/api/core.md#batch) that holds a column move,
-   * a row move, or a sort made before it, and it keeps its order with the `merge()` calls around it.
+   * a row move, or a sort made before it, and it keeps its order with the `merge()` calls around it. A call held
+   * back follows the rows and columns that are added or removed before the batch ends. It is dropped with a
+   * warning when a row or column at a corner of its range is removed, and the merge stays.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -2516,10 +2517,7 @@ export class MergeCells extends BasePlugin {
       return false;
     }
 
-    this.#deferredRangeOperations.push({
-      operation: physical,
-      structure: this.#structureVersion,
-    });
+    this.#deferredRangeOperations.push(physical);
 
     return true;
   }
@@ -2588,9 +2586,8 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Runs the calls `#runRangeOperation()` held back, in order, on the caches of the order the batch made.
-   * A call whose corners no longer have a visual index (their rows or columns were trimmed) is dropped, and so
-   * is one held back before a row or column insert or removal, because its physical corners were renumbered.
-   * Both come with a warning. Every call runs, and the first error is thrown after the last one.
+   * A call whose corners no longer have a visual index (their rows or columns were trimmed) is dropped with a
+   * warning. Every call runs, and the first error is thrown after the last one.
    */
   #flushDeferredRangeOperations() {
     if (this.#isFlushingDeferredOperations || this.#deferredRangeOperations.length === 0 ||
@@ -2605,7 +2602,7 @@ export class MergeCells extends BasePlugin {
     try {
       while (this.#deferredRangeOperations.length > 0) {
         try {
-          this.#runDeferredEntry(this.#deferredRangeOperations.shift() as DeferredRangeEntry);
+          this.#runDeferredOperation(this.#deferredRangeOperations.shift() as DeferredRangeOperation);
         } catch (error) {
           failure = failure ?? { error };
         }
@@ -2622,16 +2619,9 @@ export class MergeCells extends BasePlugin {
   /**
    * Runs one held back call on the caches of the order the batch made.
    *
-   * @param {object} entry The held back call, with the structure version when it was held back.
+   * @param {object} operation The held back call: its kind and the corners of its range as physical indexes.
    */
-  #runDeferredEntry({ operation, structure }: DeferredRangeEntry) {
-    if (structure !== this.#structureVersion) {
-      warn(`A ${operation.kind}() call made in a batch was dropped, because rows or columns were added or ` +
-        'removed before the batch ended.');
-
-      return;
-    }
-
+  #runDeferredOperation(operation: DeferredRangeOperation) {
     const visual = this.#translateRangeCorners(operation, 'visual');
 
     if (visual === null) {
@@ -2650,6 +2640,117 @@ export class MergeCells extends BasePlugin {
   #onAfterResumeExecution = () => {
     this.#flushDeferredRangeOperations();
   };
+
+  /**
+   * Row index mapper `indexesInserted` callback.
+   *
+   * @param {number[]} insertedIndexes The physical indexes the mapper gave the new rows.
+   * @param {'start'|'end'} [mode] Whether the new rows take the slot of the first index (`start`) or the one after it.
+   */
+  #onRowIndexesInserted = (insertedIndexes: number[], mode?: 'start' | 'end') => {
+    this.#shiftDeferredCornersAfterInsert('row', insertedIndexes, mode);
+  };
+
+  /**
+   * Row index mapper `indexesRemoved` callback.
+   *
+   * @param {number[]} removedIndexes The physical indexes of the removed rows.
+   */
+  #onRowIndexesRemoved = (removedIndexes: number[]) => {
+    this.#shiftDeferredCornersAfterRemove('row', removedIndexes);
+  };
+
+  /**
+   * Column index mapper `indexesInserted` callback.
+   *
+   * @param {number[]} insertedIndexes The physical indexes the mapper gave the new columns.
+   * @param {'start'|'end'} [mode] Whether the new columns take the slot of the first index (`start`) or the one after it.
+   */
+  #onColumnIndexesInserted = (insertedIndexes: number[], mode?: 'start' | 'end') => {
+    this.#shiftDeferredCornersAfterInsert('column', insertedIndexes, mode);
+  };
+
+  /**
+   * Column index mapper `indexesRemoved` callback.
+   *
+   * @param {number[]} removedIndexes The physical indexes of the removed columns.
+   */
+  #onColumnIndexesRemoved = (removedIndexes: number[]) => {
+    this.#shiftDeferredCornersAfterRemove('column', removedIndexes);
+  };
+
+  /**
+   * Moves the corners of the held back calls after an insert, the way the mapper renumbers: the new rows or
+   * columns take the physical index at the insertion point (one after it for `end`, where the data is spliced
+   * in below), and every index at or after it moves up by their count. An insert inside a range grows it
+   * over the new rows or columns, and one at its first row or column moves it, as for a merge that exists.
+   *
+   * @param {'row'|'column'} axis The axis of the insert.
+   * @param {number[]} insertedIndexes The physical indexes the mapper gave the new rows or columns.
+   * @param {'start'|'end'} [mode] Where the new ones sit relative to the first index.
+   */
+  #shiftDeferredCornersAfterInsert(axis: 'row' | 'column', insertedIndexes: number[], mode?: 'start' | 'end') {
+    if (this.#deferredRangeOperations.length === 0 || insertedIndexes.length === 0) {
+      return;
+    }
+
+    const firstInserted = insertedIndexes[0] + (mode === 'end' ? 1 : 0);
+    const count = insertedIndexes.length;
+
+    this.#rebaseDeferredCorners(axis, index => (index >= firstInserted ? index + count : index));
+  }
+
+  /**
+   * Moves the corners of the held back calls after a removal: the survivors are renumbered down by the number
+   * of removed indexes below them. A call with a corner on a removed row or column is dropped with a warning.
+   * Moving the corner to a neighbor instead would pair rows that a move or a sort in the batch made visual
+   * strangers, and an `unmerge()` could then dissolve a merge it did not name.
+   *
+   * @param {'row'|'column'} axis The axis of the removal.
+   * @param {number[]} removedIndexes The physical indexes of the removed rows or columns.
+   */
+  #shiftDeferredCornersAfterRemove(axis: 'row' | 'column', removedIndexes: number[]) {
+    if (this.#deferredRangeOperations.length === 0 || removedIndexes.length === 0) {
+      return;
+    }
+
+    const removed = new Set(removedIndexes);
+    // The order the mapper reports the removed indexes in is not promised, hence the sorted copy.
+    const ascending = [...removedIndexes].sort((indexA, indexB) => indexA - indexB);
+
+    this.#rebaseDeferredCorners(axis, index => (removed.has(index) ? null : index - countBelow(ascending, index)));
+  }
+
+  /**
+   * Applies a remapping to the corners of the held back calls along one axis. A call whose corner maps to
+   * `null` is dropped with a warning.
+   *
+   * @param {'row'|'column'} axis The axis the corners are remapped along.
+   * @param {function(number): (number|null)} remap Maps a physical index to its new one, or to `null` when gone.
+   */
+  #rebaseDeferredCorners(axis: 'row' | 'column', remap: (index: number) => number | null) {
+    this.#deferredRangeOperations = this.#deferredRangeOperations.flatMap((operation) => {
+      const from = axis === 'row' ? operation.startRow : operation.startColumn;
+      const to = axis === 'row' ? operation.endRow : operation.endColumn;
+      const start = remap(from);
+      const end = remap(to);
+
+      if (start === null || end === null) {
+        warn(`A ${operation.kind}() call made in a batch was dropped, because a ${axis} at a corner of its ` +
+          'range was removed before the batch ended.');
+
+        return [];
+      }
+
+      if (start === from && end === to) {
+        return [operation];
+      }
+
+      return [axis === 'row' ?
+        { ...operation, startRow: start, endRow: end } :
+        { ...operation, startColumn: start, endColumn: end }];
+    });
+  }
 
   /**
    * `afterMergeCells` hook callback. Captures the physical anchor of the just-created merge so it can
@@ -4315,8 +4416,6 @@ export class MergeCells extends BasePlugin {
    * @param {number} count Number of created columns.
    */
   #onAfterCreateCol = (column: number, count: number) => {
-    this.#structureVersion += 1;
-
     this.mergedCellsCollection.shiftCollections('right', column, count);
     this.#captureMergeAnchors();
     // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
@@ -4331,8 +4430,6 @@ export class MergeCells extends BasePlugin {
    * @param {number} count Number of removed columns.
    */
   #onAfterRemoveCol = (column: number, count: number) => {
-    this.#structureVersion += 1;
-
     this.mergedCellsCollection.shiftCollections('left', column, count);
     this.#captureMergeAnchors();
     // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
@@ -4351,8 +4448,6 @@ export class MergeCells extends BasePlugin {
     if (source === 'auto') {
       return;
     }
-
-    this.#structureVersion += 1;
 
     // Inserting renumbers physical rows at/after the insertion point up by `count`; mirror that onto
     // the anchors, which stay the authoritative description of the merge. The remap has to run before
@@ -4383,8 +4478,6 @@ export class MergeCells extends BasePlugin {
    * @param {number[]} physicalRows Physical indexes of the removed rows.
    */
   #onAfterRemoveRow = (row: number, count: number, physicalRows: number[]) => {
-    this.#structureVersion += 1;
-
     // Removing renumbers each surviving physical row down by how many removed rows sat above it;
     // mirror that onto the anchors, which stay the authoritative description of the merge. The remap
     // runs before the shift so the anchors, not the shift, decide which merges are gone: while rows

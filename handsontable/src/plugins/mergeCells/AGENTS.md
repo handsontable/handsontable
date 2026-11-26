@@ -1206,13 +1206,28 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
 - **The queue runs in order, and a call a listener makes while it runs waits behind it.** The flush takes entries off
   the queue one at a time and sets `#isFlushingDeferredOperations`, so an `afterMergeCells` listener that calls
   `merge()`, or a nested `batch()`, lands after the entries still waiting, not between them.
-- **A call held back before a row or column insert or removal is dropped with a warning.** The corners are physical
-  indexes, and `alter()` renumbers them. `#structureVersion` goes up in the row and column insert and remove hooks (not
-  for rows created with the `auto` source, which are appended and renumber nothing), each entry records it, and
-  `#runDeferredEntry()` drops an entry that finds it moved. An insert and a removal that cancel out are seen too, which
-  a comparison of row counts missed. Nothing re-bases a corner: shifting them instead of dropping is the open fix, and
-  it needs the mapper's `indexesInserted` and `indexesRemoved` hooks, because `alter()` in a batch computes its pivot
-  from the stale cache.
+- **A held call follows a row or column insert or removal: the mapper's `indexesInserted` and `indexesRemoved` local
+  hooks re-base its physical corners (DEV-4220).** The corners are physical indexes, and `alter()` renumbers them. The
+  four listeners (`#onRowIndexesInserted` and its three siblings, added in `enablePlugin()`, removed in
+  `disablePlugin()` and `destroy()`) end in `#rebaseDeferredCorners()`. An insert gives the new indexes the slot at the
+  insertion point and moves every index at or after it up by the count, so an insert inside the range grows it and one
+  at its first row or column moves it, as for a merge that exists. `mode: 'end'` (`insert_row_below`, `insert_col_end`)
+  puts the new ones one index after the first reported one, because `DataMap` splices the data in below. A removal
+  renumbers the survivors down (`countBelow()`). **A `merge()` with a corner on a removed row or column is dropped with a
+  warning**, not one with only a middle row removed (that shrinks the range). A removed corner is not equivalent to the
+  unbatched call, which shrinks a merge that exists onto the surviving rows; the ticket asked for the drop, and a clamp
+  of a `merge()` onto the next physical survivor would pair rows that a sort has made visual strangers. **A held `unmerge()` is dropped
+  too, and its merge stays**: a clamp of the removed corner onto the nearest physical survivor was tried and reverted
+  (review of PR 14477), because after a move in the batch that neighbor is a visual stranger, and the call then
+  dissolved a merge it did not name, with no warning. A merge left in place with a warning is the safer miss. The numbering follows the mapper, not the data, so a caller whose inserts hand the
+  mapper a position that is not the row's physical index (NestedRows, `core.ts` `_alignInsertedRowSizes()`) re-bases in
+  the mapper's numbering. **Do not read the pivot from `afterCreateRow` with `toPhysicalRow(row)`:**
+  `alter()` in a batch computes its pivot from the stale cache after a row move, so the hook reports a visual row that
+  names another record. The mapper hooks carry physical indexes, so the move does not matter. The aim is "the rows the
+  user meant", not the unbatched sequence: `moveRow(5, 0)` then `insert_row_above 0` orders the rows `6,0,1,2,…` in the
+  batch and `5,6,0,1,…` outside it. An `auto` append reports indexes past every corner, so it shifts nothing. A
+  `fitToLength()` that shrinks the axis (an `updateData()` in the batch) removes indexes through the same hook, so a call
+  with a corner past the new length is dropped with the removal warning.
 - **A call whose corner is trimmed before the batch ends is dropped with a warning.** The corner has no visual index at
   the flush, and the range cannot be drawn between corners that are not on screen.
 - **A corner with no physical index is not queued.** `merge(-1, 0, 1, 1)` runs at once, on the caches, and can jump
@@ -1229,7 +1244,7 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
   sequence through the trimming and hiding maps' cached merged values, the same limit as the ColumnSorting band read.
 - **A call outside `suspendExecution()`/`batch()` is never queued.** The queue ends with the execution, and a plugin
   disable drops it (a destroyed plugin never flushes). Three edges: a raw `suspendExecution()` and `resumeExecution()` have no operation, so the
-  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data; and an
+  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data, shifted by the earlier inserts and removals of the batch (it resets no queue, and fires no mapper hook that would re-base it); and an
   `afterResumeExecution` listener that throws before this plugin's skips the flush, which then runs at the next
   `merge()` or `unmerge()` call outside the batch, on the corners it held.
 
