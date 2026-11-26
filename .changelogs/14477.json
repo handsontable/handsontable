@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `merge()` and `unmerge()` calls made in a `batch()` after a move or sort being dropped when rows or columns were added or removed in the same batch.",
+  "type": "fixed",
+  "issueOrPR": 14477,
+  "breaking": false,
+  "framework": "none"
+}
