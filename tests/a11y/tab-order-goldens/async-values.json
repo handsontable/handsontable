@@ -19,7 +19,7 @@
       {
         "region": "grid",
         "role": "gridcell",
-        "name": "Old A Loading...",
+        "name": "Old A",
         "cell": [
           0,
           1
@@ -54,7 +54,7 @@
       {
         "region": "grid",
         "role": "gridcell",
-        "name": "Old A Loading...",
+        "name": "Old A",
         "cell": [
           0,
           1

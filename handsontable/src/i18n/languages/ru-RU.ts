@@ -161,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Сбросить фильтры',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Загрузка данных',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Подождите.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Данные загружены',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Не удалось загрузить данные',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Не удалось создать строки',

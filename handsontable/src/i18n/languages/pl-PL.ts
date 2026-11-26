@@ -161,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtry',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Wczytywanie danych',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Proszę czekać.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Dane wczytane',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nie udało się wczytać danych',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nie udało się utworzyć wierszy',

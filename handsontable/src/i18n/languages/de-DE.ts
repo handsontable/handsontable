@@ -161,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filter zurücksetzen',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Daten werden geladen',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Bitte warten.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Daten geladen',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Daten konnten nicht geladen werden',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Zeilen konnten nicht erstellt werden',
