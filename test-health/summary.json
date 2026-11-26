@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T10:57:15.269Z",
+  "generatedAt": "2026-11-26T11:37:09.733Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1926,7 +1926,7 @@
       "file": "e2e/sort-value-getter-guard.spec.ts",
       "line": 47,
       "title": "the sort read path keeps every `valueGetter` on it › keeps a `valueGetter` a `cells()` function puts on the rendered rows",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
