@@ -430,3 +430,25 @@ parent opens its submenu from the tap's `mouseover`. Ending every tap broke both
 the filter search took no focus, checkboxes and OK did nothing, and no submenu opened. A tap on a link or a form control that an item renderer puts in a row (`TAP_ACTIVATED_CONTROLS`: `a[href]`, `button`, `input`, `select`, `textarea`, `label`) is left alone too: the browser follows the link or toggles the control from the tap's `click`. A test that counts
 `click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
 pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`, which also taps the Filters controls and a submenu parent.
+
+## Forced colors: the highlight is an outline, and a mask icon opts out (DEV-4003)
+
+Forced colors (a Windows contrast theme) paints every `background-color` with a system color and drops
+`box-shadow`. Two parts of a menu were built from exactly those:
+
+- **The highlighted item** is marked with an inset `box-shadow` (`_dropdown-menu.scss`). In forced colors
+  the same rule adds `outline: 2px solid Highlight; outline-offset: -2px`, inside
+  `@media (forced-colors: active)`. An outline survives there. Do not move the mark to a background: the
+  browser repaints it with the canvas color.
+- **A mask icon** (`.ht-icon`, `_icon.scss`) is a masked `background-color: currentColor`, so it took the
+  canvas color and vanished: the column menu button in a header, a submenu arrow, a check mark. In forced
+  colors `.ht-icon:not(.ht-icon--external)` sets `forced-color-adjust: none` and `color: CanvasText
+  !important`. The `!important` is needed: the per-control icon colors are more specific, and a theme color
+  on a forced canvas can have no contrast. An external icon is text or inline SVG, which the browser
+  recolors itself. Every mask icon in the grid follows this rule, not only the menus'.
+
+Both rules apply in forced colors only, so the three themes look as before outside it. Pinned by
+`tests/e2e/forced-colors-icons-menu.spec.ts`, which compares captures: the computed style keeps the
+author's value in forced colors and cannot show the defect. Known limit: an icon on a disabled control is
+drawn in `CanvasText`, not `GrayText`.
+

@@ -202,6 +202,13 @@
 
           &.current:not([aria-expanded="true"]) {
             box-shadow: inset 0 0 0 1px var(--ht-accent-color);
+
+            // Forced colors drops `box-shadow` and paints every background with the canvas color, so
+            // the highlighted item looked like the others. An outline is drawn there.
+            @media (forced-colors: active) {
+              outline: 2px solid Highlight;
+              outline-offset: -2px;
+            }
           }
         }
 
