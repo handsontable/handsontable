@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [19.0.0-rc11] - 2026-11-26
+## [19.0.0-rc12] - 2026-11-26
 
 ### Added
 - **Breaking change**: Added treegrid accessibility to the NestedRows plugin: tree attributes on rows, Ctrl/Cmd+arrow keys on a row header to expand, collapse, or move to the parent row, and screen reader announcements. On a row header, Ctrl/Cmd+arrow keys no longer jump to the edge of the row, and Enter no longer toggles while an overlay covers the grid. [#13759](https://github.com/handsontable/handsontable/pull/13759)
