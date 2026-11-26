@@ -182,6 +182,96 @@ function removeDuplicatedSeparators(items: MenuItemLike[], separator: string) {
   return result;
 }
 
+interface MenuItemPositions {
+  /**
+   * The 1-based position of each visual row, `0` for a row that is not an item.
+   */
+  positions: number[];
+  /**
+   * The number of items the menu draws.
+   */
+  setSize: number;
+}
+
+/**
+ * The positions of each menu grid's items, counted once per render. Dropped on the menu grid's
+ * `beforeRender`, which runs before every render that can change the rows or hide some of them.
+ */
+const itemPositionsCache = new WeakMap<HotInstance, MenuItemPositions>();
+/**
+ * The menu grids that already drop their cached positions on `beforeRender`, so the hook is added
+ * once per grid.
+ */
+const gridsDroppingPositions = new WeakSet<HotInstance>();
+
+/**
+ * Counts the position of every item a menu grid draws, in one walk over its rows.
+ *
+ * @param {Core} menuHot The menu's own Handsontable instance.
+ * @returns {MenuItemPositions}
+ */
+function countMenuItemPositions(menuHot: HotInstance): MenuItemPositions {
+  const rowCount = menuHot.countRows();
+  const positions = new Array<number>(rowCount).fill(0);
+  let setSize = 0;
+
+  for (let row = 0; row < rowCount; row++) {
+    const physicalRow = menuHot.toPhysicalRow(row);
+
+    if (physicalRow === null || menuHot.rowIndexMapper.isHidden(physicalRow)) {
+      continue;
+    }
+
+    const item = menuHot.getSourceDataAtRow(physicalRow) as MenuItemLike | undefined;
+
+    if (!item || isItemSeparator(item)) {
+      continue;
+    }
+
+    setSize += 1;
+    positions[row] = setSize;
+  }
+
+  return { positions, setSize };
+}
+
+/**
+ * Where a menu row sits among the items its menu draws, as `aria-posinset` and `aria-setsize` give it.
+ *
+ * Both count the rows a user can reach: a separator is not an item, and a row the menu grid hides
+ * (the Filters plugin hides its second condition and the operators while the first condition is
+ * "None") is not drawn. A disabled item still counts. Without both attributes each browser derived
+ * the position from the table markup its own way, so screen readers disagreed on it (DEV-4172).
+ *
+ * The renderer asks for every cell, so the whole menu is counted once, on the first call of a render,
+ * and the result is kept until the menu grid's next `beforeRender`.
+ *
+ * @param {Core} menuHot The menu's own Handsontable instance.
+ * @param {number} visualRow The visual index of the row.
+ * @returns {{position: number, setSize: number} | null} The 1-based position and the item count, or
+ * `null` for a row that is not an item (a separator, a hidden row).
+ */
+export function getMenuItemPosition(
+  menuHot: HotInstance,
+  visualRow: number,
+): { position: number; setSize: number } | null {
+  let cached = itemPositionsCache.get(menuHot);
+
+  if (!cached) {
+    cached = countMenuItemPositions(menuHot);
+    itemPositionsCache.set(menuHot, cached);
+
+    if (!gridsDroppingPositions.has(menuHot)) {
+      gridsDroppingPositions.add(menuHot);
+      menuHot.addHook('beforeRender', () => itemPositionsCache.delete(menuHot));
+    }
+  }
+
+  const position = cached.positions[visualRow] ?? 0;
+
+  return position > 0 ? { position, setSize: cached.setSize } : null;
+}
+
 /**
  * Removes menu separators from the context menu items collection.
  *

@@ -6,19 +6,19 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T11:18:10.884Z"
+    "at": "2026-11-25T11:25:03.139Z"
   },
   "steps": {
-    "open-menu": "clear column menu item group 1 of 1",
-    "tab-to-condition": "none list item menu column menu",
-    "open-conditions": "none menu item group 1 of 14 menu",
-    "arrow-down-is-empty": "is empty menu item group 3 of 14",
-    "arrow-down-is-not-empty": "is not empty menu item group 4 of 14",
-    "arrow-down-is-equal-to": "is equal to menu item group 6 of 14",
+    "open-menu": "",
+    "tab-to-condition": "none list item menu column menu 9 items",
+    "open-conditions": "none menu item group 1 of 10 menu 10 items",
+    "arrow-down-is-empty": "is empty menu item group 2 of 10",
+    "arrow-down-is-not-empty": "is not empty menu item group 3 of 10",
+    "arrow-down-is-equal-to": "is equal to menu item group 4 of 10",
     "choose-condition": "value edit text",
     "type-value": "0 1890 value",
     "shift-tab-to-select": "is equal to list item value",
-    "shift-tab-to-menu": "clear column menu item group 6 of 17",
+    "shift-tab-to-menu": "clear column menu item group 4 of 11",
     "shift-tab-to-cancel": "cancel button",
     "shift-tab-to-ok": "ok button",
     "apply-filter": "price 1890 table 5 columns"

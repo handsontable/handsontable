@@ -13,7 +13,7 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["insert column left"], ["menu"]],
-      "note": "Shift+Alt+ArrowDown on B2 of the right-to-left grid opens its column's menu with the first item highlighted. Required: the item and the menu role. Finding: NVDA with Chromium reads the item and its position (`1 of 6`) without the word menu, as in grid-core; VoiceOver with Chromium says nothing when the menu opens, as in the dropdown-menu scenario, and nothing on any later step of this one. Finding (the grid's): the readers disagree on the item's position, as grid-core records: `1 of 6` with NVDA and Chromium, `1 of 2` with NVDA and Firefox, `1 of 11` with VoiceOver and WebKit. The items carry no `aria-posinset` or `aria-setsize`, so each browser counts them its own way."
+      "note": "Shift+Alt+ArrowDown on B2 of the right-to-left grid opens its column's menu with the first item highlighted. Required: the item and the menu role. Finding: NVDA with Chromium reads the item and its position (`1 of 6`) without the word menu, as in grid-core; VoiceOver with Chromium says nothing when the menu opens, as in the dropdown-menu scenario, and nothing on any later step of this one. The items carry `aria-posinset` and `aria-setsize`, so the readers that name a position agree, as grid-core records: `1 of 6` with NVDA on both browsers and with VoiceOver and WebKit."
     },
     {
       "id": "end-to-alignment",

@@ -34,6 +34,12 @@ export class MenuSeparatorRolePage {
   readonly bundle: string;
   readonly grid: Locator;
 
+  /**
+   * The fixture file name in `tests/fixtures/demo/`, without the extension. Subclasses that need
+   * another grid setup override it.
+   */
+  protected readonly fixture: string = 'menu-separator-role';
+
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
@@ -47,7 +53,7 @@ export class MenuSeparatorRolePage {
    * @param {boolean} [ariaTags] The `ariaTags` setting.
    */
   async goto(ariaTags = true): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/menu-separator-role.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await this.page.goto(`/tests/fixtures/demo/${this.fixture}.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
     await this.page.evaluate((value) => {
       (window as unknown as { buildGrid: (ariaTags: boolean) => void }).buildGrid(value);

@@ -6,13 +6,13 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T11:15:59.438Z"
+    "at": "2026-11-25T11:22:58.297Z"
   },
   "steps": {
-    "down-to-alignment": "alignment collapsed menu item group 15 of 27",
-    "open-submenu": "alignment expanded menu item group 15 of 27",
-    "down-to-center": "center menu item group 2 of 9",
-    "close-submenu": "alignment collapsed menu item group 15 of 27",
+    "down-to-alignment": "alignment collapsed menu item group 10 of 17",
+    "open-submenu": "alignment expanded menu item group 10 of 17",
+    "down-to-center": "center menu item group 2 of 7",
+    "close-submenu": "alignment collapsed menu item group 10 of 17",
     "close-menu": "a a1 table 6 columns"
   }
 }

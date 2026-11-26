@@ -6,13 +6,13 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T11:00:11.810Z"
+    "at": "2026-11-25T11:17:47.037Z"
   },
   "steps": {
-    "down-to-alignment": "alignment collapsed 1 of 1",
-    "open-submenu": "left 1 of 4 alignment menu",
-    "down-to-center": "center 2 of 4",
-    "close-submenu": "alignment collapsed 1 of 1",
+    "down-to-alignment": "alignment collapsed 10 of 17",
+    "open-submenu": "left 1 of 7 alignment menu",
+    "down-to-center": "center 2 of 7",
+    "close-submenu": "alignment collapsed 10 of 17",
     "close-menu": "table a 1 a row 2 column 2"
   }
 }

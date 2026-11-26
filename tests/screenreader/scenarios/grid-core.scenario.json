@@ -209,7 +209,7 @@
           "menu"
         ]
       ],
-      "note": "Shift+F10 opens the context menu with its first item highlighted. NVDA with Firefox says the item and then `context menu, menu`; VoiceOver says `menu item` on both browsers. Finding: NVDA with Chromium reads the item and its position (`1 of 12`) without the word menu. Finding (the grid's): the readers disagree on the item's position: NVDA with Chromium says `1 of 12`, NVDA with Firefox `1 of 2`, counting within a group between separators, and VoiceOver with WebKit `1 of 19`, counting the separators; VoiceOver with Chromium names none. The items carry no `aria-posinset` or `aria-setsize`, so each browser counts them its own way."
+      "note": "Shift+F10 opens the context menu with its first item highlighted. NVDA with Firefox says the item and then `context menu, menu`; VoiceOver says `menu item` on both browsers. Finding: NVDA with Chromium reads the item and its position (`1 of 12`) without the word menu. Every item carries `aria-posinset` and `aria-setsize`, counted over the menu's items and not its separators, so the readers that name a position agree: `1 of 12` with NVDA on both browsers and with VoiceOver and WebKit, which also says the menu's size (`12 items`). Finding: VoiceOver with Chromium names no position."
     },
     {
       "id": "menu-arrow-down",

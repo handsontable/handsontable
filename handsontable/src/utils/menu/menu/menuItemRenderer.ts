@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import type { MenuItemLike } from './utils';
 import {
+  getMenuItemPosition,
   isItemSubMenu,
   isItemDisabled,
   isItemSelectionDisabled,
@@ -26,7 +27,9 @@ import {
   A11Y_PRESENTATION,
   A11Y_TABINDEX,
   A11Y_CHECKED,
+  A11Y_POSINSET,
   A11Y_SEPARATOR,
+  A11Y_SETSIZE,
 } from '../../../helpers/a11y';
 import { getSanitizer } from '../../../utils/sanitizer';
 import { createIcon } from '../../../themes/engine/icons';
@@ -48,7 +51,9 @@ const MIXED_MARK = String.fromCharCode(8211);
  * The item attributes a separator must not carry. The menu grid reuses its cells, so a cell that
  * showed an item before keeps that item's name, tab stop and states until they are removed.
  */
-const SEPARATOR_DROPPED_ATTRIBUTES = ['aria-label', 'tabindex', 'aria-disabled', 'aria-expanded', 'aria-checked'];
+const SEPARATOR_DROPPED_ATTRIBUTES = [
+  'aria-label', 'tabindex', 'aria-disabled', 'aria-expanded', 'aria-checked', 'aria-posinset', 'aria-setsize',
+];
 
 /**
  * Creates the menu renderer function.
@@ -108,8 +113,12 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
       const isFocusable = !isDisabled &&
         !isItemSelectionDisabled(item) &&
         !isItemSeparator(item);
+      // Written explicitly so every browser says the same position: without them, NVDA with Firefox
+      // restarted the count after each separator and VoiceOver with WebKit counted the separators.
+      const itemPosition = getMenuItemPosition(menuHot, row);
 
       setAttribute(TD, [
+        ...(itemPosition ? [A11Y_POSINSET(itemPosition.position), A11Y_SETSIZE(itemPosition.setSize)] : []),
         ...(isItemCheckable(item) ? [
           item.radio === true ? A11Y_MENU_ITEM_RADIO() : A11Y_MENU_ITEM_CHECKBOX(),
           A11Y_LABEL(ariaLabel ?? itemValue),
