@@ -450,6 +450,7 @@ When you use the parent-child row structure, the following Handsontable features
 - [Data source as an array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
 - [Manual row moving via `moveRows()`](@/api/manualRowMove.md#moverows) - use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead
+- [Moving rows with the keyboard or the menu](@/guides/rows/row-moving/row-moving.md#move-rows-with-the-keyboard-or-the-menu) - drag the row headers instead
 
 When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows()`](@/api/manualRowMove.md#moverows) method has no effect and logs a console warning. To move rows programmatically, use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead.
 
