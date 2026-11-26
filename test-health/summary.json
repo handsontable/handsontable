@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T09:29:12.629Z",
+  "generatedAt": "2026-11-26T10:36:20.066Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -53,7 +53,7 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 493,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
-      "count7": 7,
+      "count7": 6,
       "count30": 8,
       "countAll": 8,
       "runs30": 6,
