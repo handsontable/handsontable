@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T09:01:13.704Z",
+  "generatedAt": "2026-11-26T09:29:12.629Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 469,
     "needsTicket": 7,
     "quarantined": 1,
-    "entries": 2373
+    "entries": 2374
   },
   "rows": [
     {
@@ -1435,6 +1435,39 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/comments-editor-resize-alternatives.spec.ts|Comment editor resizing without a drag › the size is saved to the comment like the size of a drag",
+      "tier": "playwright",
+      "file": "e2e/comments-editor-resize-alternatives.spec.ts",
+      "line": 80,
+      "title": "Comment editor resizing without a drag › the size is saved to the comment like the size of a drag",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-26T09:28:21Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45781713740/attempts/2",
+        "branch": "feature/DEV-4011_Async-values-loading-announcements",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › the `width` option sizes the whole component, side panels included › hugs the start edge with an end panel only under RTL",
       "tier": "playwright",
       "file": "e2e/side-layout-slots.spec.ts",
@@ -1603,39 +1636,6 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to equal <textarea data-hot-input tabindex=\"-1\" class=\"handsontableInput\" style=\"width: 50px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif; resize: none; min-w...",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/comments-editor-resize-alternatives.spec.ts|Comment editor resizing without a drag › the size is saved to the comment like the size of a drag",
-      "tier": "playwright",
-      "file": "e2e/comments-editor-resize-alternatives.spec.ts",
-      "line": 80,
-      "title": "Comment editor resizing without a drag › the size is saved to the comment like the size of a drag",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-classic"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-26T09:00:19Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45781713740",
-        "branch": "feature/DEV-4011_Async-values-loading-announcements",
-        "leg": "e2e-classic",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false

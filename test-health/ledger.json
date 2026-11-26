@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-26T09:01:13.704Z",
+  "updatedAt": "2026-11-26T09:29:12.629Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-classic",
+      "file": "e2e/comments-editor-resize-alternatives.spec.ts",
+      "line": 80,
+      "title": "Comment editor resizing without a drag › the size is saved to the comment like the size of a drag",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "45781713740",
+      "runAttempt": 2,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45781713740/attempts/2",
+      "workflow": "Tests",
+      "branch": "feature/DEV-4011_Async-values-loading-announcements",
+      "headSha": "126ee546aa29fa9ed64cd39b48b2e5af353bd5b4",
+      "event": "pull_request",
+      "seenAt": "2026-11-26T09:28:21Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-classic",
