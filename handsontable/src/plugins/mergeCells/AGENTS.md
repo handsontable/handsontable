@@ -1248,11 +1248,14 @@ of the stale cache, and a sort made earlier in the batch has not touched them, s
 (a sort and a row move in one batch drew the merge over rows it does not own). The moved index itself still resolves
 through the stale cache, so a second move cannot match the unbatched result whatever the plugin does.
 
-**A move that permutes no row of a merge does no work.** `#onBeforeRowMove` skips the snapshot when the rows the move
-permutes (`#getMoveWindow()`) hold no merge, and only while the merges are not ahead of the cache, because the rows a
-move names are in the order the merges are in only before a move of this plugin has rewritten them. The live caches
-cost a pass over every row per move (9 ms at 100k rows), and a batch that reorders many rows away from the merges
-paid it for nothing. A grid with no merge keeps its path.
+**A batched move that permutes no row of a merge does no work.** `#onBeforeRowMove` skips the snapshot when the rows the
+move permutes (`#getMoveWindow()`) hold no merge. The live caches cost a pass over every row per move (9 ms at 100k
+rows), and a batch that reorders many rows away from the merges paid it for nothing. Three cases keep the full path,
+each for a reason. A move outside a batch has no cache to spare. A grid with a trimmed row needs the after hook even for
+a merge outside the window: it puts the anchors a sort scattered into visual order (the legacy spec "should not
+re-anchor a merge whose rows a sort scattered when a row is moved" failed in CI when the skip covered that case). And
+once a move of this plugin has written the merges in the live order (`#areMergesAheadOfRowCache`), the rows a move names
+are no longer in the order the merges are in. A grid with no merge keeps its path.
 
 **Wrap both axes in every move hook, never one.** A merge the row move wrote in the live order has its `row` in that
 order, and the column hooks read it through the row cache when they capture anchors (`#captureMergeAnchors()`), which

@@ -4663,9 +4663,14 @@ export class MergeCells extends BasePlugin {
 
     // A move that permutes only rows no merge touches moves no merge and changes no row under one, so there is
     // nothing to translate. Skipping it spares the live caches of a batch, which cost a pass over every row per
-    // move. The rows a move names are in the order the merges are in only before a move of this plugin has
-    // rewritten the merges in the live one, so that case takes the full path.
-    if (!this.#areMergesAheadOfRowCache && this.#isMoveOutsideMerges(moveWindow)) {
+    // move. Three cases take the full path: a move outside a batch, which has no cache to spare; a grid with a
+    // trimmed row, where the move also puts the anchors a sort scattered into visual order, merges outside the
+    // window included; and a move after a move of this plugin has rewritten the merges in the live order, because
+    // the rows a move names are in the order the merges are in only before that.
+    if (this.hot.rowIndexMapper.isBatched
+        && !this.#areMergesAheadOfRowCache
+        && !this.#isRowTrimmingActive()
+        && this.#isMoveOutsideMerges(moveWindow)) {
       this.#rowMoveSnapshot = null;
       this.#drawnFromBeforeMove = null;
       this.#coveredBeforeMove = null;
