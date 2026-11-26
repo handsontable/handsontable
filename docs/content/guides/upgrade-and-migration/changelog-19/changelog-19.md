@@ -34,7 +34,7 @@ link is not parsed and the @/ path is not resolved per framework. -->
 
 ## 19.0.0
 
-Released on November 27th, 2026
+Released on November 26th, 2026
 
 For more information about this release, see:
 
