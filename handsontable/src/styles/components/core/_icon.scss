@@ -36,7 +36,7 @@
 
   // Forced colors (Windows contrast themes) paints every `background-color` with a system color, and a
   // mask icon is nothing but a masked `background-color: currentColor`: it took the canvas color and
-  // vanished. The icon opts out of the forced palette and takes the system text color itself, so it is
+  // vanished. The icon opts out of the forced palette and takes a system text color itself, so it is
   // drawn in every contrast theme. `!important`, because the rules that color an icon per control
   // (`.changeType .ht-icon`, a menu item's icon) are more specific, and a theme color on a forced canvas
   // can have no contrast at all. An external icon (`--external`) is text or an inline SVG, which the
@@ -45,6 +45,22 @@
     .ht-icon:not(.ht-icon--external) {
       forced-color-adjust: none;
       color: CanvasText !important;
+    }
+
+    // A button paints its own face, so its icon takes the button's text color, and the disabled one.
+    button .ht-icon:not(.ht-icon--external) {
+      color: ButtonText !important;
+    }
+
+    button:disabled .ht-icon:not(.ht-icon--external) {
+      color: GrayText !important;
+    }
+
+    // The mark of a checkbox or a radio button is always in the DOM, and the themes hide it in the off
+    // state with a transparent color only. The rules above would draw it on every box, so an unchecked
+    // box read as checked. It stays hidden until the input is checked or indeterminate.
+    input:not(:checked, :indeterminate) + .ht-icon:not(.ht-icon--external) {
+      color: transparent !important;
     }
   }
 

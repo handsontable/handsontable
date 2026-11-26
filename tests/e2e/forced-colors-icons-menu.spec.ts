@@ -71,5 +71,53 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     // The mark is an outline, which forced colors keeps, in a system color.
     await expect(target).toHaveCSS('outline-style', 'solid');
     await expect(target).toHaveCSS('outline-width', '2px');
+    await expect(target).toHaveCSS('outline-offset', '-2px');
+  });
+  test('draw the mark of a checked checkbox, and none on an unchecked one', async({ page }) => {
+    // The first checkbox cell the grid draws, found by its input: the column's place is the fixture's.
+    const coords = await page.evaluate(() => {
+      const input = document.querySelector('[data-testid="grid"] .ht_master td input[type="checkbox"]');
+      const cell = input?.closest('td');
+      const hot = (document.querySelector('.ht-root-wrapper') as unknown as {
+        __hotInstance: { getCoords: (element: Element) => { row: number, col: number } },
+      }).__hotInstance;
+      const found = cell ? hot.getCoords(cell) : null;
+
+      return found ? [found.row, found.col] : null;
+    });
+
+    expect(coords, 'the fixture draws a checkbox cell').not.toBeNull();
+
+    const [row, column] = coords as [number, number];
+    const cell = grid.cell(row, column);
+    const input = cell.locator('input[type="checkbox"]');
+    const HIDE_MARK = '[data-testid="grid"] td input[type="checkbox"] + .ht-icon { visibility: hidden !important; }';
+
+    // Unchecked: the mark is in the DOM, and the themes hide it with a transparent color only. A capture
+    // with the mark taken out must equal the one with it in.
+    await grid.setDataAt(row, column, false);
+    await expect(input).not.toBeChecked();
+    await expect(cell.locator('.ht-icon')).toHaveCount(1);
+
+    const unchecked = await cell.screenshot();
+    const hideForUnchecked = await page.addStyleTag({ content: HIDE_MARK });
+
+    await expect(cell.locator('.ht-icon')).toHaveCSS('visibility', 'hidden');
+    expect((await cell.screenshot()).equals(unchecked), 'an unchecked box shows no mark').toBe(true);
+
+    await hideForUnchecked.evaluate(style => style.remove());
+
+    // Checked: the mark is drawn, so taking it out changes the capture.
+    await grid.setDataAt(row, column, true);
+    await expect(input).toBeChecked();
+    await expect(cell.locator('.ht-icon')).toHaveCSS('visibility', 'visible');
+
+    const checked = await cell.screenshot();
+
+    await page.addStyleTag({ content: HIDE_MARK });
+    await expect(cell.locator('.ht-icon')).toHaveCSS('visibility', 'hidden');
+
+    expect((await cell.screenshot()).equals(checked), 'a checked box shows its mark').toBe(false);
+    expect(checked.equals(unchecked), 'a checked box looks different from an unchecked one').toBe(false);
   });
 });

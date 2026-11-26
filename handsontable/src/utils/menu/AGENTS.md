@@ -441,14 +441,24 @@ Forced colors (a Windows contrast theme) paints every `background-color` with a 
   `@media (forced-colors: active)`. An outline survives there. Do not move the mark to a background: the
   browser repaints it with the canvas color.
 - **A mask icon** (`.ht-icon`, `_icon.scss`) is a masked `background-color: currentColor`, so it took the
-  canvas color and vanished: the column menu button in a header, a submenu arrow, a check mark. In forced
-  colors `.ht-icon:not(.ht-icon--external)` sets `forced-color-adjust: none` and `color: CanvasText
+  canvas color and vanished: the column menu button in a header, a submenu arrow, a checked box's mark. In
+  forced colors `.ht-icon:not(.ht-icon--external)` sets `forced-color-adjust: none` and `color: CanvasText
   !important`. The `!important` is needed: the per-control icon colors are more specific, and a theme color
   on a forced canvas can have no contrast. An external icon is text or inline SVG, which the browser
-  recolors itself. Every mask icon in the grid follows this rule, not only the menus'.
+  recolors itself. Every mask icon in the grid follows this rule, not only the menus'. Three rules ride
+  along in the same block:
+  - An icon inside a `button` takes `ButtonText`, and `GrayText` in a disabled one.
+  - **The mark of an unchecked checkbox or radio stays transparent**
+    (`input:not(:checked, :indeterminate) + .ht-icon`). That mark is always in the DOM, and the themes hide
+    it in the off state with a transparent color token only, so the rule above drew it on every box and an
+    unchecked box read as checked. A new control that hides an icon by color alone needs the same care:
+    hide it with `visibility` or add its off state here.
+
+Not covered: the highlighted row of the dropdown and autocomplete editor's list (`_dropdown-editor.scss`)
+and of the sheets bar's all-sheets menu (`_sheets-bar.scss`) are box shadows of their own and get no
+outline yet.
 
 Both rules apply in forced colors only, so the three themes look as before outside it. Pinned by
 `tests/e2e/forced-colors-icons-menu.spec.ts`, which compares captures: the computed style keeps the
-author's value in forced colors and cannot show the defect. Known limit: an icon on a disabled control is
-drawn in `CanvasText`, not `GrayText`.
+author's value in forced colors and cannot show the defect.
 
