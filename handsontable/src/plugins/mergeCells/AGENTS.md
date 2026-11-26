@@ -1250,12 +1250,14 @@ through the stale cache, so a second move cannot match the unbatched result what
 
 **A batched move that permutes no row of a merge does no work.** `#onBeforeRowMove` skips the snapshot when the rows the
 move permutes (`#getMoveWindow()`) hold no merge. The live caches cost a pass over every row per move (9 ms at 100k
-rows), and a batch that reorders many rows away from the merges paid it for nothing. Three cases keep the full path,
-each for a reason. A move outside a batch has no cache to spare. A grid with a trimmed row needs the after hook even for
-a merge outside the window: it puts the anchors a sort scattered into visual order (the legacy spec "should not
-re-anchor a merge whose rows a sort scattered when a row is moved" failed in CI when the skip covered that case). And
-once a move of this plugin has written the merges in the live order (`#areMergesAheadOfRowCache`), the rows a move names
-are no longer in the order the merges are in. A grid with no merge keeps its path.
+rows), and a batch that reorders many rows away from the merges paid it for nothing. Two cases keep the full path, each
+for a reason. A move outside a batch has no cache to spare. And once a move of this plugin has written the merges in the
+live order (`#areMergesAheadOfRowCache`), the rows a move names are no longer in the order the merges are in. While a row
+is trimmed, the skip also needs every merge's anchor in visual order (`#areAnchorsInVisualOrder()`): the after hook puts
+an anchor a sort scattered into visual order, a merge outside the window included, and the legacy spec "should not
+re-anchor a merge whose rows a sort scattered when a row is moved" failed in CI when the skip covered a scattered merge.
+A full path for every trimmed grid cost 8 ms per move at 100k rows, which is why the check looks at the anchors. A grid
+with no merge keeps its path.
 
 **Wrap both axes in every move hook, never one.** A merge the row move wrote in the live order has its `row` in that
 order, and the column hooks read it through the row cache when they capture anchors (`#captureMergeAnchors()`), which
