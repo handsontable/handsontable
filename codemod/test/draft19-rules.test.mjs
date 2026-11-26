@@ -231,7 +231,7 @@ const detached = { name: 'Detached', callback() {}, checked: true };
     const [first] = await runs('a.js', source, [RULE]);
 
     // Line 7 holds the submenu item too, and one entry per line is reported.
-    assert.deepEqual(lines(first, RULE), ['manual:5', 'manual:6', 'manual:7', 'manual:10', 'manual:12']);
+    assert.deepEqual(lines(first, RULE), ['review:5', 'review:6', 'review:7', 'review:10', 'review:12']);
   });
 
   it('reports a menu defined in JSX and in an items array', async() => {
@@ -246,7 +246,7 @@ export const A = () => (
 `;
     const [first] = await runs('a.tsx', source, [RULE]);
 
-    assert.deepEqual(lines(first, RULE), ['manual:5', 'manual:6']);
+    assert.deepEqual(lines(first, RULE), ['review:5', 'review:6']);
   });
 
   it('is silent for a checked key of an object that is no menu item, in a file that has a menu', async() => {
@@ -298,7 +298,7 @@ const settings = { licenseKey: 'k' };
 `;
     const results = await runs('A.vue', source, [RULE]);
 
-    assert.deepEqual(lines(results[0], RULE), ['manual:3']);
+    assert.deepEqual(lines(results[0], RULE), ['review:3']);
     assertStable(results, RULE);
   });
 
@@ -308,7 +308,7 @@ const settings = { licenseKey: 'k' };
     const dropdown = page('dropdown');
     const none = page('text');
 
-    assert.deepEqual(lines((await runs('a.html', dropdown, [RULE]))[0], RULE), ['manual:3']);
+    assert.deepEqual(lines((await runs('a.html', dropdown, [RULE]))[0], RULE), ['review:3']);
     assert.deepEqual(lines((await runs('a.html', none, [RULE]))[0], RULE), []);
   });
 });

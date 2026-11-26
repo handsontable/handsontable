@@ -41,7 +41,7 @@
       "id": "18.1.0/column-move-hooks",
       "kind": "detect",
       "safe": false,
-      "severity": "manual",
+      "severity": "review",
       "todo": false,
       "files": ["js"],
       "requires": "hot-file",
@@ -87,6 +87,7 @@
       "id": "18.1.0/sanitizer-source",
       "kind": "custom",
       "safe": false,
+      "severity": "review",
       "module": "custom/sanitizer-source.mjs",
       "mode": "source",
       "guide": "update-a-sanitizer-that-branches-on-its-source-argument"
@@ -95,6 +96,7 @@
       "id": "18.1.0/sanitizer-new-sources",
       "kind": "custom",
       "safe": false,
+      "severity": "review",
       "module": "custom/sanitizer-source.mjs",
       "mode": "new-sources",
       "guide": "expect-your-sanitizer-to-see-two-surfaces-it-never-saw-before"

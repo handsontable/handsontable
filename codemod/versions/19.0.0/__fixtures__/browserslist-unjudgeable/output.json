@@ -1,0 +1,7 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "handsontable": "^19.0.0"
+  },
+  "browserslist": "defaults, last 2 versions, > 0.5%, not dead, chrome >= 130, extends @company/browsers"
+}

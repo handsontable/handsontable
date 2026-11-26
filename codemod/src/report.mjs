@@ -29,7 +29,7 @@ const VERSIONED_ID = /^(\d+)\.(\d+)\.(\d+)\//;
  * @param {string} b Rule id.
  * @returns {number} Negative when `a` goes first.
  */
-function compareRuleIds(a, b) {
+export function compareRuleIds(a, b) {
   const va = VERSIONED_ID.exec(a);
   const vb = VERSIONED_ID.exec(b);
 
@@ -118,16 +118,19 @@ export class Report {
 
   /**
    * Count entries per severity. An entry that applies to a whole run counts once, and so does a skipped file.
-   * `marked` is how many of the `manual` entries have a TODO marker in the code.
+   * `marked` is how many of the `manual` entries have a TODO marker in the code, and `markedReview` how many of the
+   * `review` entries have one.
    *
-   * @returns {{changed: number, manual: number, warning: number, marked: number}} The counts.
+   * @returns {{changed: number, manual: number, review: number, warning: number, marked: number,
+   * markedReview: number}} The counts.
    */
   counts() {
-    const counts = { changed: 0, manual: 0, warning: 0, marked: 0 };
+    const counts = { changed: 0, manual: 0, review: 0, warning: 0, marked: 0, markedReview: 0 };
 
     this.entries.forEach((entry) => {
       counts[entry.severity] += 1;
       counts.marked += entry.severity === 'manual' && entry.marked === true ? 1 : 0;
+      counts.markedReview += entry.severity === 'review' && entry.marked === true ? 1 : 0;
     });
 
     return counts;
@@ -168,18 +171,21 @@ export class Report {
    * Entries are sorted by file and line. Entries that apply to a whole run and skipped files are not in a group:
    * see `once()` and `skipped()`.
    *
+   * @param {(entry: import('./types.mjs').ReportEntry) => boolean} [select] Keeps the entries the groups are made of.
+   * The console and Markdown reports ask for the `review` entries apart from the others.
    * @returns {Array<{ruleId: string, guideUrl: string|null, entries: import('./types.mjs').ReportEntry[]}>} Groups.
    */
-  byRule() {
+  byRule(select = () => true) {
     const groups = new Map();
 
-    this.entries.filter(entry => entry.scope !== 'run' && entry.ruleId !== SKIPPED_RULE_ID).forEach((entry) => {
-      if (!groups.has(entry.ruleId)) {
-        groups.set(entry.ruleId, { ruleId: entry.ruleId, guideUrl: entry.guideUrl, entries: [] });
-      }
+    this.entries.filter(entry => entry.scope !== 'run' && entry.ruleId !== SKIPPED_RULE_ID && select(entry))
+      .forEach((entry) => {
+        if (!groups.has(entry.ruleId)) {
+          groups.set(entry.ruleId, { ruleId: entry.ruleId, guideUrl: entry.guideUrl, entries: [] });
+        }
 
-      groups.get(entry.ruleId).entries.push(entry);
-    });
+        groups.get(entry.ruleId).entries.push(entry);
+      });
 
     groups.forEach((group) => {
       group.entries.sort((a, b) => a.file.localeCompare(b.file) || (a.line ?? 0) - (b.line ?? 0));
@@ -198,6 +204,13 @@ export class Report {
 function location(entry) {
   return plainName(entry.line === null ? entry.file : `${entry.file}:${entry.line}`);
 }
+
+/**
+ * The sentence that opens the group of `review` entries in both reports. A `review` entry is not work the tool knows
+ * is needed: the behavior changed, and the code may already be right.
+ */
+export const REVIEW_NOTE = 'The behavior changed at these spots, and your code may already be right. Check each one '
+  + 'and change it only if it needs it.';
 
 /**
  * Most locations of one rule that the console report lists before it says `+N more`.
@@ -304,7 +317,8 @@ export function clusterByMessage(entries) {
  * @param {object} [options] Options.
  * @param {number} [options.filesChanged] Files the run changed, or would change.
  * @param {boolean} [options.dryRun] Whether nothing was written.
- * @returns {string} For example `Summary: 3 files changed, 12 rewrites applied, 5 manual steps, 2 warnings.`
+ * @returns {string} For example `Summary: 3 files changed, 12 rewrites applied, 5 manual steps, 4 to review, 2
+ * warnings.`
  */
 export function summaryLine(report, { filesChanged = 0, dryRun = false } = {}) {
   const counts = report.counts();
@@ -312,7 +326,7 @@ export function summaryLine(report, { filesChanged = 0, dryRun = false } = {}) {
 
   return `Summary: ${plural(filesChanged, 'file')} ${dryRun ? 'would change' : 'changed'}, `
     + `${plural(counts.changed, 'rewrite')} ${applied}, ${plural(counts.manual, 'manual step')}, `
-    + `${plural(counts.warning, 'warning')}.`;
+    + `${counts.review} to review, ${plural(counts.warning, 'warning')}.`;
 }
 
 /**
@@ -367,39 +381,52 @@ export function renderConsole(report, {
 
   report.notes.forEach(note => lines.push(note, ''));
 
-  report.byRule().forEach((group) => {
-    const counts = {};
+  const printGroups = (groups) => {
+    groups.forEach((group) => {
+      const counts = {};
 
-    group.entries.forEach((entry) => {
-      counts[entry.severity] = (counts[entry.severity] ?? 0) + 1;
-    });
+      group.entries.forEach((entry) => {
+        counts[entry.severity] = (counts[entry.severity] ?? 0) + 1;
+      });
 
-    lines.push(`${group.ruleId} (${Object.entries(counts).map(([name, count]) => `${count} ${name}`).join(', ')})`);
-    clusterByMessage(group.entries.slice(0, limit)).forEach((cluster) => {
-      if (cluster.message === null) {
-        const [entry] = cluster.entries;
+      lines.push(`${group.ruleId} (${Object.entries(counts).map(([name, count]) => `${count} ${name}`).join(', ')})`);
+      clusterByMessage(group.entries.slice(0, limit)).forEach((cluster) => {
+        if (cluster.message === null) {
+          const [entry] = cluster.entries;
 
-        lines.push(`  [${entry.severity}] ${location(entry)}  ${messageOf(entry)}`);
+          lines.push(`  [${entry.severity}] ${location(entry)}  ${messageOf(entry)}`);
 
-        return;
+          return;
+        }
+
+        lines.push(`  ${cluster.message}`);
+        cluster.entries.forEach((entry) => {
+          lines.push(`    [${entry.severity}] ${location(entry)}${linesOf(entry) ? `  ${linesOf(entry)}` : ''}`);
+        });
+      });
+
+      if (group.entries.length > limit) {
+        lines.push(`  +${group.entries.length - limit} more ${rest}`);
       }
 
-      lines.push(`  ${cluster.message}`);
-      cluster.entries.forEach((entry) => {
-        lines.push(`    [${entry.severity}] ${location(entry)}${linesOf(entry) ? `  ${linesOf(entry)}` : ''}`);
-      });
+      if (group.guideUrl) {
+        lines.push(`  Guide: ${group.guideUrl}`);
+      }
+
+      lines.push('');
     });
+  };
 
-    if (group.entries.length > limit) {
-      lines.push(`  +${group.entries.length - limit} more ${rest}`);
-    }
+  printGroups(report.byRule(entry => entry.severity !== 'review'));
 
-    if (group.guideUrl) {
-      lines.push(`  Guide: ${group.guideUrl}`);
-    }
+  const reviewGroups = report.byRule(entry => entry.severity === 'review');
 
-    lines.push('');
-  });
+  if (reviewGroups.length > 0) {
+    const total = reviewGroups.reduce((sum, group) => sum + group.entries.length, 0);
+
+    lines.push(`To review (${total}). ${REVIEW_NOTE}`, '');
+    printGroups(reviewGroups);
+  }
 
   const once = report.once();
 
@@ -465,38 +492,49 @@ export function renderMarkdown(report, {
     lines.push('Nothing to report.', '');
   }
 
-  report.byRule().forEach((group) => {
-    lines.push(`## ${group.ruleId}`, '');
+  const printGroups = (groups, level) => {
+    groups.forEach((group) => {
+      lines.push(`${level} ${group.ruleId}`, '');
 
-    if (group.guideUrl) {
-      lines.push(`Guide: ${group.guideUrl}`, '');
-    }
+      if (group.guideUrl) {
+        lines.push(`Guide: ${group.guideUrl}`, '');
+      }
 
-    clusterByMessage(group.entries).forEach((cluster) => {
-      if (cluster.message !== null) {
-        // A paragraph straight after a list item would read as a continuation of that item.
-        if (lines[lines.length - 1] !== '') {
-          lines.push('');
+      clusterByMessage(group.entries).forEach((cluster) => {
+        if (cluster.message !== null) {
+          // A paragraph straight after a list item would read as a continuation of that item.
+          if (lines[lines.length - 1] !== '') {
+            lines.push('');
+          }
+
+          lines.push(markdownText(cluster.message, cluster.entries[0].quoted), '');
         }
 
-        lines.push(markdownText(cluster.message, cluster.entries[0].quoted), '');
-      }
+        cluster.entries.forEach((entry) => {
+          const mark = entry.severity === 'changed' ? 'x' : ' ';
+          const tag = entry.severity === 'warning' ? '(warning) ' : '';
+          const text = cluster.message === null ? markdownText(messageOf(entry), entry.quoted) : linesOf(entry);
 
-      cluster.entries.forEach((entry) => {
-        const mark = entry.severity === 'changed' ? 'x' : ' ';
-        const tag = entry.severity === 'warning' ? '(warning) ' : '';
-        const text = cluster.message === null ? markdownText(messageOf(entry), entry.quoted) : linesOf(entry);
+          lines.push(`- [${mark}] ${codeSpan(location(entry))}${text || tag ? ` ${tag}${text}` : ''}`.trimEnd());
+        });
 
-        lines.push(`- [${mark}] ${codeSpan(location(entry))}${text || tag ? ` ${tag}${text}` : ''}`.trimEnd());
+        if (cluster.message !== null) {
+          lines.push('');
+        }
       });
 
-      if (cluster.message !== null) {
-        lines.push('');
-      }
+      lines.push('');
     });
+  };
 
-    lines.push('');
-  });
+  printGroups(report.byRule(entry => entry.severity !== 'review'), '##');
+
+  const reviewGroups = report.byRule(entry => entry.severity === 'review');
+
+  if (reviewGroups.length > 0) {
+    lines.push('## To review', '', REVIEW_NOTE, '');
+    printGroups(reviewGroups, '###');
+  }
 
   const once = report.once();
 

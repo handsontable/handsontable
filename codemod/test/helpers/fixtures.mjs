@@ -88,7 +88,8 @@ export function parseReport(text) {
  *
  * `options.json` may set `aggressive`, `only` (an array of rule ids), `phase` (1 or 2, default 1), and `facts`
  * (fact keys present before the run, for example `["uses-formulas@."]`; see `src/lib/facts.mjs`). A `package.json`
- * fixture needs `"phase": 2`.
+ * fixture needs `"phase": 2`. A file named `browserslistrc` in the fixture directory is the `.browserslistrc` next to the
+ * `package.json`, as the runner would read it.
  *
  * @param {Fixture} fixture The fixture.
  * @param {string} [versionsDir] Directory with the manifests.
@@ -107,6 +108,8 @@ export async function runFixture(fixture, versionsDir = VERSIONS_DIR) {
   const transformOptions = { aggressive: Boolean(options.aggressive) };
   const phase = options.phase ?? 1;
   const facts = new Set(options.facts ?? []);
+  const rcText = await readOptional(join(fixture.dir, 'browserslistrc'));
+  const browserslistrc = rcText === null ? null : { file: '.browserslistrc', text: rcText };
   const first = await transformFile({
     filePath: fixture.inputName,
     source: input,
@@ -114,6 +117,7 @@ export async function runFixture(fixture, versionsDir = VERSIONS_DIR) {
     options: transformOptions,
     facts,
     phase,
+    browserslistrc,
   });
   const second = await transformFile({
     filePath: fixture.outputName,
@@ -122,6 +126,7 @@ export async function runFixture(fixture, versionsDir = VERSIONS_DIR) {
     options: transformOptions,
     facts,
     phase,
+    browserslistrc,
   });
 
   return {

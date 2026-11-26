@@ -1,0 +1,6 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "19.0.0/height-auto", "severity": "review", "line": 2 }
+  ]
+}

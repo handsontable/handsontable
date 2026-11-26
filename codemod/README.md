@@ -11,7 +11,10 @@ one of two ways:
 - **Rewrite.** When the change is certain, the tool edits the file. It renames an option, moves an import, or raises
   a version range in `package.json`.
 - **Report.** When the change needs a decision, the tool leaves the code alone. It adds a line to the report, and in
-  some cases a `TODO(handsontable-codemod <rule id>)` comment next to the code.
+  some cases a `TODO(handsontable-codemod <rule id>)` comment next to the code. The report tells two kinds of work
+  apart. A **manual step** is code that stops working, throws, is removed, or is deprecated: you must change it. A spot
+  **to review** is code whose behavior changed in the new version: it may already be right, so you look at it and
+  change it only if it needs it.
 
 The tool never guesses. It has no type information, so a spot it cannot confirm is reported, not rewritten. A
 JavaScript file needs a Handsontable import or global before the tool edits it. The one exception is a file that names
@@ -149,6 +152,8 @@ at the top of the report.
 | `--report <file>` | Also write the full report to `<file>` as a Markdown checklist. The git check ignores an untracked file at this path and no other. File names, source lines, and the tags the tool names (`<style lang="less">`) are written as code, so they render as text. |
 | `--only <ruleId>` | Run only this rule. Repeat the flag for several rules. A trailing `*` matches a prefix, for example `--only "18.0.0/type-*"`. |
 | `--list` | List the rules in the version range and exit. `rewrite` rules edit code, `report` rules only report. |
+| `--json` | Print one JSON document on standard output and nothing else: no diff, no summary, no `Next:` lines. It works with a run, `--dry-run`, `--list`, and `--report`, and for a usage error or a refusal. The exit codes do not change. See "JSON output". |
+| `--fail-on-manual` | Exit with code 3 when the run leaves at least one manual step. A spot to review and a warning never cause it. Without the flag the exit codes are the ones in "Exit codes". See "Exit codes". |
 | `--aggressive` | Also rewrite settings objects found with medium confidence. |
 | `--no-todo` | Leave no `TODO(handsontable-codemod ...)` comments in the code, not for a manual step and not where an option was deleted. The report is then the only record of the manual steps. |
 | `--include-draft` | Run migrations that are still drafts. Without `--to`, the run goes up to the newest draft. |
@@ -167,7 +172,16 @@ A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17
 | 0 | Done. A run that finds no file to read is also 0, with "No files to migrate." and the reason. |
 | 1 | A file could not be read, parsed, transformed, or written, or the report file could not be written. The other files are still migrated. |
 | 2 | Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to migrate, unknown rule id, a `--report` path that cannot be written. |
+| 3 | Only with `--fail-on-manual`: the run finished, no file failed, and at least one manual step is left. |
 | 130 | Stopped with Ctrl-C (SIGINT). See "Stopping a run". |
+
+Without `--fail-on-manual` the code is never 3, and a run that leaves manual steps exits with 0. With it, the codes
+rank as follows: 2 and 130 end the run before the check, and 1 (a file that could not be read, parsed, transformed, or
+written, or a report file that could not be written) wins over 3. Only a run that would exit with 0 can exit with 3. A
+dry run counts, so a CI job can ask the question without writing a file. A manual step is an entry the report lists
+under a rule and not under "To review", and it counts once whether or not it has a marker in the code. A spot to review,
+a warning, and a note that holds for the whole run never cause code 3. `--list` does not run a migration, so the flag
+has no effect on it.
 
 ### Stopping a run
 
@@ -186,10 +200,14 @@ output, finishes the run, and exits with the code of the run.
 The console report groups the entries by rule, ordered by version and then by rule id. A message that several
 locations share is printed once, and the locations follow it. Each rule lists up to 10 locations as `file:line`, then
 the number of the others. A rule that matched many times in one file lists every line number in its one entry. Notes
-about the run itself, such as a `--to` above every known migration, come first. Two more sections follow the rules:
+about the run itself, such as a `--to` above every known migration, come first. The rules that need a manual step come
+first, and then the group "To review", which opens with the line "The behavior changed at these spots, and your code
+may already be right." and lists the rules whose entries you look at and may leave as they are. Two more sections follow
+the rules:
 
 - **Read once.** A note that holds for every file, such as "CellValue is now `unknown`", appears one time with the
-  files it applies to, not once per file.
+  files it applies to, not once per file. The note of a type rename that changes the shape of the type is one of them,
+  and it is a spot to review: the rename is applied.
 - **Skipped files.** Files and blocks the tool did not analyze: Less, Stylus, Sass, and PostCSS (`.pcss`, `.postcss`)
   files, Svelte, Astro, and MDX files, Vue `<style>` blocks in those languages or with `src=`, HTML pages with inline
   scripts that use Handsontable, files that are not valid UTF-8 (the tool reads and writes UTF-8 only, so it leaves
@@ -200,9 +218,11 @@ A package whose `handsontable` range is below `--from` is not raised, because th
 selected. The tool warns once for that `package.json` (also on standard error, with exit code 0) and names the `--from`
 to use on the package. Source files under it still get the selected rules.
 
-The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file from `--report`
-has a title with the versions and the date, then the same line, every location, one checkbox per entry, and a link to
-the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link or sits below
+The last line sums up the run: files changed, rewrites applied, manual steps, spots to review, and warnings. The file
+from `--report` has a title with the versions and the date, then the same line, every location, one checkbox per entry,
+and a link to the migration guide section of each rule. The entries to review are in their own section, "To review",
+after the manual steps. The report file and the `TODO(handsontable-codemod <rule>)` markers in the code do not tell the
+two kinds of work apart: the marker of a spot to review reads like any other, and the report says which kind it is. The tool refuses a `--report` path that is a symbolic link or sits below
 one inside the project directory, one that is spelled outside the project and reaches it through a link, a file git
 tracks, a file it migrates (found by what the file system says, so another letter case or a hard link
 does not get past the check), an existing file of a type the tool migrates, a path inside a `.git` directory, a
@@ -217,6 +237,49 @@ the console, the report file, and the `--dry-run` diff, so a dependency spec wit
 A diff line that holds such a URL is therefore for reading, not for `git apply`. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
 and how many are in the report only. On a terminal, a long run prints a progress line to the
 standard error stream every two seconds.
+
+### JSON output
+
+`--json` makes standard output one JSON document, indented with two spaces, with one line break at the end, and nothing
+else: no diff, no summary, no `Next:` line. Everything meant for a person that goes to standard error without the flag
+(the notes, the warnings, the error text, the "Report written" line) stays there. The exit codes do not change.
+
+The flag works with a run, with `--dry-run`, with `--list`, and with `--report <file>` (the Markdown file is still
+written). A usage error or a refusal prints a document too, with the `error` and the `exitCode`, and with every other
+field empty, so a reader can always look up `counts`. The tool reads `--json` from the raw arguments, so a mistake that
+stops it before it has read the other flags (an unknown flag, a flag with no value, a missing command) still gets a
+document. The exact word `--json` counts, in any position before `--`: `--json=1` is an unknown flag. `--help` and
+`--version` print their own text and ignore the flag. A string in the document is safe to print: the user information
+of a URL is hidden and a control character is written as `\x1b`, as in every other output of the tool.
+
+A run (`mode: "run"`) prints these fields. A field never changes its meaning inside `schemaVersion` 1, and a new field
+is not a new version.
+
+| Field | Meaning |
+|---|---|
+| `schemaVersion` | `1`. |
+| `tool` | `{ name, version }` of the codemod. |
+| `mode` | `"run"`. |
+| `from`, `to` | The version the run started from, and the newest version it migrated to. `null` when the run did not get that far. |
+| `dryRun` | `true` when the run wrote no project file. |
+| `exitCode` | The exit code of the command, `--fail-on-manual` included. |
+| `interrupted` | `true` when Ctrl-C stopped the run. The entries then describe a part of the project. |
+| `counts` | `changed`, `manual`, `review`, and `warning`: the number of entries of each severity, as the summary line counts them (a skipped file is a warning, a note for the whole run counts once). `marked` and `markedReview`: how many manual entries and how many entries to review have a marker in the code (in a dry run, a marker that the diff shows). `filesChanged`: the number of files the run changed, or would change. |
+| `changedFiles` | The files the run changed, or would change, relative to the project, with forward slashes, sorted. |
+| `entries` | Every report entry, ordered by rule, file, and line. Fields: `ruleId`; `severity` (`changed`, `manual`, `review`, or `warning`); `file` (`null` for a note for the whole run); `line` (`null` when the entry has none); `lines` (every line of an entry that stands for several matches, else `[]`); `message`; `guideUrl` (`null` when the rule has no guide link); `marker` (`true` when the code has, or after this run would have, a `TODO(handsontable-codemod ...)` comment for the entry). A note for the whole run has `scope: "run"` and `files`, the files it applies to. |
+| `notAutomated` | The changes of the guides in the range that no rule covers: `version`, `guide` (the anchor, or `null`), `title` (for a change with no section, else `null`), `guideUrl`, `reason`. |
+| `skipped` | The files the run did not analyze: `file` and `reason`. They are warnings in `entries` too. |
+| `notes` | The notes about the run, the same lines the tool prints on standard error. |
+| `changes` | With `--dry-run`: `{ file, diff }` for each changed file, the unified diff as text. Empty otherwise. |
+| `error` | The message of the refusal or the error, or `null`. |
+
+`--list --json` (`mode: "list"`) prints `schemaVersion`, `tool`, `mode`, `from`, `to`, `exitCode`, `notes`, `error`, and
+`notAutomated` as above, and:
+
+| Field | Meaning |
+|---|---|
+| `rules` | One object per rule in the range, in run order: `id`, `version`, `kind`, `action` (`"rewrite"` or `"report"`), `severity` (the class of what a report rule produces, `"manual"` or `"review"`, and `null` for a rule that rewrites), `guideUrl`, and `implemented` (`false` for a kind with no transform). |
+| `counts` | `rules` (all), `rewrite`, `report`, `notImplemented`, and `notAutomated`, the numbers of the last line of `--list`. |
 
 ## Supported migrations
 
@@ -245,7 +308,7 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 | `cssVariable` | 1 | 2 | CSS custom properties that were renamed or removed. |
 | `themeToken` | 1 | 2 | Theme tokens that were renamed or removed. |
 | `detect` | 0 | 14 | Code that needs a decision. It only reports. |
-| `dependency` | 3 | 3 | `package.json` ranges, packages to add, and packages to replace or drop. |
+| `dependency` | 3 | 3 | `package.json` ranges, packages to add, packages to replace or drop, and the browsers a project targets (a draft migration). |
 | `custom` | 0 | 2 | Checks that a rule file implements in code. Both report. |
 
 ### Draft migrations
@@ -331,6 +394,35 @@ grid with no `licenseKey`, sanitizer functions
 that test the source against `'innerHTML'`, synthetic header events, column move hooks, loading markup, and Pikaday
 styles that are left in a theme, in a stylesheet, or in the inline `<style>` of an HTML page. A file that mentions
 `pikaday` (a `<link>` to its stylesheet, say) is left alone, because it loads Pikaday itself.
+
+### Browser targets
+
+Handsontable 19.0 raised the minimum browsers to Chrome 130, Edge 130, Firefox 132, Safari 18.2, and iOS Safari 18.2. The
+rule `19.0.0/browserslist-targets` of the 19.0 draft compares them with the Browserslist configuration of your project.
+The minimums are data in the manifest of the migration, not code. The tool reads:
+
+- the `browserslist` key of every `package.json` the run reads that declares `handsontable` or a wrapper, as a string, a
+  list, or an object of environments, and
+- the `.browserslistrc` next to it (a link is not followed). The file takes a comment after `#`, a `[section]` line,
+  one query per line, and several queries on a line separated by `,` or `or`. The queries of every section count.
+
+It judges the queries that name a browser and a version: `chrome >= 110`, `Safari 14.1`, `ios_saf 15`, `firefox > 100`,
+`chrome 109`, `chrome 100-110` (from its low end), and `ios_saf 15.2-15.3`. The names `ios`, `ff`, and `fx` count as
+`ios_saf` and `firefox`. A version at or above the minimum is fine. `> n` counts as the first release above `n`, so
+`chrome > 129` is fine and `chrome > 128` is not. `<` and `<=` always take in older versions. A query for a browser the
+guide gives no minimum for (`ie 11`, `samsung 12`, `node 18`) and a query with `not`, which only removes browsers, are
+not checked and not listed.
+
+For each configuration file the tool reports:
+
+- **a manual step** that names the queries below the minimum and the minimums of 19.0, once per file, and
+- **a spot to review** for the queries it cannot judge without the data of Browserslist: `defaults`, `last 2 versions`,
+  `> 0.5%`, `cover 99.5%`, `since 2020`, `extends <config>`, and a query with `and`. The entry lists them and says to
+  run `npx browserslist` to see which browsers they select.
+
+A project with no Browserslist configuration gets no entry. The tool never edits a configuration, and it does not read
+a bundler target (`target` in a Vite or webpack configuration). A `package.json` of a monorepo root that names neither
+`handsontable` nor a wrapper is not checked, and a file the run does not read is not either.
 
 ## How confidence works
 
@@ -440,7 +532,7 @@ rules only, as a `.css` file does. In a JavaScript file with no other sign of Ha
    git grep -n "TODO(handsontable-codemod"
    ```
 
-   Every manual step in a script, a TypeScript file, a Vue `<script>`, or a stylesheet gets a marker at its line (for code
+   Every manual step and every spot to review in a script, a TypeScript file, a Vue `<script>`, or a stylesheet gets a marker at its line (for code
    in a one-line block `{ a(); hot.undo(); }` that stands among statements, before the first statement of that line),
    except
    the notes that hold for the whole run, a grid with no `licenseKey`, and test code that dispatches a synthetic header

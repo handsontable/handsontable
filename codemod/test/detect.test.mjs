@@ -947,7 +947,7 @@ describe('sanitizer custom rules', () => {
       const tests = result.entries.filter(entry => entry.ruleId === SOURCE && /innerHTML/.test(entry.message));
 
       assert.equal(result.changed, false, sanitizer);
-      assert.ok(tests.some(entry => entry.severity === 'manual'), sanitizer);
+      assert.ok(tests.some(entry => entry.severity === 'review'), sanitizer);
       assert.equal(tests.some(entry => /already handles/.test(entry.message)), false, sanitizer);
     }
   });

@@ -56,8 +56,16 @@ export const COMMON_FIELDS = {
     message: 'string',
     advice: 'string',
     twins: 'strings',
+    severity: 'string',
   },
 };
+
+/**
+ * The classes of work a report entry of a rule can belong to, in the field `severity` of a rule that only reports:
+ * `manual` (the default) for code that stops working, throws, is removed, or is deprecated, and `review` for a spot
+ * where the behavior changed and the code may already be right. A `detect` rule may also say `warning`.
+ */
+export const REPORT_CLASSES = Object.freeze(['manual', 'review']);
 
 /**
  * The rule kinds and the fields each one requires on top of the common ones.
@@ -133,6 +141,7 @@ export const RULE_KINDS = {
       reportMissing: 'objects',
       reportPresent: 'objects',
       facts: 'objects',
+      browserslist: 'object',
     },
   },
   detect: {
@@ -248,6 +257,15 @@ export function validateRule(rule, version) {
 
   if (typeof rule.id === 'string' && rule.id.startsWith(`${version}/`) && rule.id.length === version.length + 1) {
     problems.push('id has no slug after the version prefix');
+  }
+
+  if (kindSpec && rule.kind !== 'detect' && typeof rule.severity === 'string') {
+    if (!REPORT_CLASSES.includes(rule.severity)) {
+      problems.push(`"severity" must be one of ${REPORT_CLASSES.join(', ')}`);
+    } else if (rule.safe === true && requiresSafe(rule.kind)) {
+      problems.push('"severity" names the class of what a rule only reports, and a rule with "safe": true rewrites: '
+        + 'its entries are the work it could not do, which is always "manual"');
+    }
   }
 
   if ('minConfidence' in rule && typeof rule.minConfidence === 'string' && !CONFIDENCES.includes(rule.minConfidence)) {
@@ -601,8 +619,11 @@ export function buildPlan(manifests, only = []) {
   }
 
   const inlineScriptChecks = [...new Set(manifests.flatMap(manifest => manifest.inlineScriptChecks ?? []))];
-  const notAutomated = manifests.flatMap(manifest => (manifest.notAutomated ?? [])
-    .map(item => ({ ...item, version: manifest.version })));
+  const notAutomated = manifests.flatMap(manifest => (manifest.notAutomated ?? []).map(item => ({
+    ...item,
+    version: manifest.version,
+    guideUrl: manifest.guide ? `${manifest.guide.url}${item.guide ? `#${item.guide}` : ''}` : null,
+  })));
 
   return { versions, rulesById, inlineScriptChecks, notAutomated };
 }

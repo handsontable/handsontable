@@ -35,6 +35,11 @@ The codemod reads the files of your project and finds the places an upgrade chan
 - **Rewrite.** When the change is certain, the codemod edits the file. For example, it renames an option, moves an import, or raises a version range in `package.json`.
 - **Report.** When the change needs a decision, the codemod leaves the code alone. It adds a line to the report. In some cases it also adds a `TODO(handsontable-codemod <rule>)` comment next to the code.
 
+The report tells two kinds of work apart:
+
+- **Manual step.** The code stops working, throws, is removed, or is deprecated. You must change it.
+- **To review.** The behavior changed in the new version. Your code may already be right, so you look at the spot and change it only if it needs it.
+
 The codemod has no type information. It reports a spot it cannot confirm instead of rewriting it. A JavaScript file needs a Handsontable import or global before the codemod edits it. The one exception is a file that names a `--ht-` CSS variable. Those names belong to Handsontable, so the CSS variable rules also edit such a file, for example a `'--ht-wrapper-border-radius'` string.
 
 ### What the codemod does not do
@@ -99,12 +104,22 @@ Keep the report file out of the git tree, or delete it when you are done.
 
 ### Read the report
 
-The console report groups the entries by rule and lists each location as `file:line`. The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The report also contains these sections:
+The console report groups the entries by rule and lists each location as `file:line`. The manual steps come first. The group "To review" follows, with a line that says the code may already be right. The last line sums up the run: files changed, rewrites applied, manual steps, spots to review, and warnings. The report also contains these sections:
 
 - **Read once.** Notes that hold for every file appear one time, with the files they apply to.
 - **Skipped files.** Files and blocks the codemod did not analyze, such as Less, Stylus, Sass, PostCSS, Svelte, Astro, and MDX files, and files with a very long line. Check them by hand.
 
-The file from `--report` is a Markdown checklist with one checkbox per manual step.
+The file from `--report` is a Markdown checklist with one checkbox per entry. The spots to review are in their own section, "To review".
+
+### Use the codemod in a script
+
+Pass `--json` to print one JSON document on standard output and nothing else. It holds the counts, the changed files, every report entry, the changes the guides list that no rule covers, and, with `--dry-run`, the diff of each file. The notes and warnings stay on standard error. The exit codes do not change.
+
+```bash
+npx @handsontable/codemod migrate --from 17.1 --to 18.1 --dry-run --json > codemod.json
+```
+
+To fail a CI job when manual steps are left, add `--fail-on-manual`. The run then exits with code 3 when at least one manual step remains. A spot to review and a warning never cause it. The [codemod README](https://github.com/handsontable/handsontable/tree/develop/codemod) lists every field of the document.
 
 ## What the codemod rewrites
 
@@ -170,6 +185,8 @@ To run the migration again, for example after a `git reset`, pass `--from` with 
 | `--report <file>` | Write the full report to `<file>` as a Markdown checklist. |
 | `--only <ruleId>` | Run only this rule. Repeat the flag for several rules. A trailing `*` matches a prefix. |
 | `--list` | List the rules in the version range and exit. |
+| `--json` | Print one JSON document on standard output and nothing else. |
+| `--fail-on-manual` | Exit with code 3 when the run leaves at least one manual step. |
 | `--aggressive` | Also rewrite settings objects the codemod found with medium confidence. |
 | `--no-todo` | Leave no `TODO(handsontable-codemod ...)` comments in the code. |
 | `--allow-dirty` | Run even when the git tree has uncommitted changes. |
@@ -196,3 +213,4 @@ Pass `--help` to see the full list.
 | `0` | Done. |
 | `1` | A file could not be read, parsed, or transformed. The codemod still migrates the other files. |
 | `2` | Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to migrate, or unknown rule id. |
+| `3` | Only with `--fail-on-manual`: the run finished and at least one manual step is left. Code `1` wins over it. |

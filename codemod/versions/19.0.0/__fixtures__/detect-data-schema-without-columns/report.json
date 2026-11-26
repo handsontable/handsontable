@@ -3,7 +3,7 @@
   "entries": [
     {
       "ruleId": "19.0.0/data-schema-without-columns",
-      "severity": "manual",
+      "severity": "review",
       "line": 3
     }
   ]

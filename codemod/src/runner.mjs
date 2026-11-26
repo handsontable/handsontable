@@ -9,6 +9,7 @@ import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/
 import { StaleFileError, writeFileSafely } from './lib/safe-write.mjs';
 import { redact } from './lib/redact.mjs';
 import { GitError, GitNotFoundError, dirtyPaths, hiddenPaths, isGitRepo, isTracked } from './git.mjs';
+import { findBrowserslistrc } from './lib/browserslist.mjs';
 import { packageFilesAbove, registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
 import { NotUtf8Error, readUtf8, stripBom } from './lib/text-file.mjs';
@@ -36,7 +37,7 @@ import {
   uncoveredSteps,
 } from './versions.mjs';
 
-const SEVERITIES = new Set(['changed', 'manual', 'warning']);
+const SEVERITIES = new Set(['changed', 'manual', 'review', 'warning']);
 
 /**
  * Largest file, in bytes, the run reads. A bigger file is skipped with a warning in the report. `--max-file-size`
@@ -346,16 +347,18 @@ function cssScopeOf(part) {
 }
 
 /**
- * Whether a `manual` entry gets a TODO marker in the code. The default is yes, in a part that holds comments (js and
- * css). A run-wide note, an entry that says `todo: false`, and a rule that says `todo: false` have none, and neither
- * has an entry the tool cannot place on a line.
+ * Whether an entry of work left to the user (`manual`, or `review`) gets a TODO marker in the code. The default is
+ * yes, in a part that holds comments (js and css). A run-wide note, an entry that says `todo: false`, and a rule that
+ * says `todo: false` have none, and neither has an entry the tool cannot place on a line. The marker reads the same
+ * for both classes: the report tells them apart.
  *
- * @param {import('./types.mjs').ReportInput} entry The entry as the transform reported it.
+ * @param {import('./types.mjs').ReportInput} entry The entry as the transform reported it, with its final severity.
  * @param {import('./types.mjs').Rule|undefined} owner The rule that reported it.
  * @returns {boolean} `true` when a marker belongs with the entry.
  */
 function wantsMarker(entry, owner) {
-  return entry.severity === 'manual' && entry.scope !== 'run' && entry.todo !== false && Boolean(owner)
+  return (entry.severity === 'manual' || entry.severity === 'review') && entry.scope !== 'run'
+    && entry.todo !== false && Boolean(owner)
     && owner.todo !== false && (Number.isInteger(entry.line) || (entry.lines ?? []).some(Number.isInteger));
 }
 
@@ -371,10 +374,11 @@ function wantsMarker(entry, owner) {
  * @param {{aggressive: boolean, dryRun: boolean, todo: boolean}} args.options Run options.
  * @param {import('./types.mjs').CatalogInfo|null} args.catalog The pnpm catalogs of a `package.json`, or `null`.
  * @param {import('./types.mjs').AncestorManifest[]} args.ancestors The `package.json` files above this one.
+ * @param {{file: string, text: string}|null} args.browserslistrc The `.browserslistrc` next to a `package.json`, or `null`.
  * @returns {{ctx: import('./types.mjs').Ctx, marks: Mark[]}} The context, and the markers its `manual` entries ask
  * for. `applyMarkers()` places them once every transform has run.
  */
-function createContext({ filePath, part, plan, entries, facts, options, catalog, ancestors }) {
+function createContext({ filePath, part, plan, entries, facts, options, catalog, ancestors, browserslistrc }) {
   const merged = new Map();
   const marks = [];
   const twinTargets = new Set([...plan.rulesById.values()].flatMap(rule => rule.twins ?? []));
@@ -391,7 +395,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
   // gets the message of the later twin, and so does the marker, as long as it is not placed yet or is a comment this
   // run wrote. A comment of an earlier run stays as it was.
   const adopt = (existing, ruleId, commentText, message) => {
-    if (existing.severity !== 'manual' || existing.ruleId === ruleId) {
+    if ((existing.severity !== 'manual' && existing.severity !== 'review') || existing.ruleId === ruleId) {
       return;
     }
 
@@ -410,6 +414,10 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     }
 
     const owner = plan.rulesById.get(entry.ruleId);
+    // A rule that only reports says in its manifest which class its entries belong to (`severity: "review"`): the
+    // transforms say `manual` for work left to the user, and the rule turns it into a spot to look at.
+    const severity = entry.severity === 'manual' && owner && !rewrites(owner) && owner.severity === 'review'
+      ? 'review' : entry.severity;
     const key = entry.mergeKey ?? twinKeyOf(owner, entry.line);
     const policy = entry.mergeKey === undefined && key ? 'earliest' : entry.merge;
 
@@ -419,12 +427,13 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
 
     const stored = {
       ruleId: entry.ruleId,
-      severity: entry.severity,
-      file: filePath,
+      severity,
+      file: entry.file ?? filePath,
       line: Number.isInteger(entry.line) ? entry.line + part.lineOffset : null,
       message: entry.message,
       guideUrl: plan.rulesById.get(entry.ruleId)?.guideUrl ?? null,
       ...(entry.scope === 'run' ? { scope: 'run' } : {}),
+      ...(Array.isArray(entry.quoted) ? { quoted: entry.quoted } : {}),
       ...(Array.isArray(entry.lines) ? { lines: entry.lines.map(line => line + part.lineOffset) } : {}),
     };
 
@@ -452,7 +461,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
 
     const markersOn = options.todo !== false && options.markers !== false;
 
-    if (mark && annotatable && markersOn && wantsMarker(entry, owner)) {
+    if (mark && annotatable && markersOn && wantsMarker({ ...entry, severity }, owner)) {
       const found = [{ line: entry.markLine ?? entry.line, column: entry.markColumn },
         ...(entry.lines ?? []).map((line, index) => ({ line, column: entry.markColumns?.[index] }))];
       const sites = [];
@@ -612,6 +621,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     options,
     catalog,
     ancestors,
+    browserslistrc,
     markChanged,
   };
 
@@ -717,6 +727,8 @@ function applyMarkers(part, marks, plan) {
  * @param {import('./types.mjs').CatalogInfo|null} [args.catalog] The pnpm catalogs that apply to a `package.json`.
  * @param {import('./types.mjs').AncestorManifest[]} [args.ancestors] The `package.json` files above this one, nearest
  * first, parsed. A fixture has none.
+ * @param {{file: string, text: string}|null} [args.browserslistrc] The `.browserslistrc` next to a `package.json`, read by
+ * the caller, for the rule that checks the browsers a project targets.
  * @param {object} [args.hooks] Injection point for tests. `afterCommit(part)` runs for each part once its carriers
  * committed and before it is printed, so a test can break a sentinel and watch the file stay as it was. It exists for
  * nothing else.
@@ -734,6 +746,7 @@ export async function transformFile({
   projectFiles,
   catalog = null,
   ancestors = [],
+  browserslistrc = null,
   hooks = {},
 }) {
   const unchanged = skipped => ({ output: source, changed: false, entries: [], skipped });
@@ -803,7 +816,7 @@ export async function transformFile({
   try {
     for (const part of handle.parts) {
       const { ctx, marks } = createContext({
-        filePath, part, plan, entries, facts, options: fullOptions, catalog, ancestors,
+        filePath, part, plan, entries, facts, options: fullOptions, catalog, ancestors, browserslistrc,
       });
 
       for (const step of steps) {
@@ -1322,12 +1335,28 @@ function nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts
 }
 
 /**
+ * The class of what a rule produces: `null` for a rule that rewrites, else `review` or `manual` (the default).
+ *
+ * @param {import('./types.mjs').Rule} rule A loaded rule.
+ * @returns {'manual'|'review'|null} The class.
+ */
+function reportClassOf(rule) {
+  if (rewrites(rule)) {
+    return null;
+  }
+
+  return rule.severity === 'review' ? 'review' : 'manual';
+}
+
+/**
  * Describe each rule of a plan and whether a transform exists for its kind.
  *
  * @param {import('./types.mjs').Plan} plan The plan.
  * @param {import('./transforms/index.mjs').Registry} [registry] Transform registry.
  * @returns {Array<{id: string, kind: string, version: string, safe: boolean, mode: 'rewrite'|'report',
- * implemented: boolean}>} Rows in run order. `mode` is what the rule does when it runs (see `lib/safety.mjs`).
+ * severity: 'manual'|'review'|null, guideUrl: string|null, implemented: boolean}>} Rows in run order. `mode` is what
+ * the rule does when it runs (see `lib/safety.mjs`). `severity` is the class of what a report rule produces, `null`
+ * for a rule that rewrites.
  */
 export function describeRules(plan, registry = defaultRegistry) {
   return plan.versions.flatMap(({ rules }) => [...rules]
@@ -1338,6 +1367,8 @@ export function describeRules(plan, registry = defaultRegistry) {
       version: rule.version,
       safe: rewrites(rule),
       mode: modeOf(rule),
+      severity: reportClassOf(rule),
+      guideUrl: rule.guideUrl ?? null,
       implemented: registry.byKind.has(rule.kind),
     })));
 }
@@ -1382,13 +1413,14 @@ export function describeRules(plan, registry = defaultRegistry) {
  * `beforeRename(file)` runs after the temporary file of a write is complete, before it replaces the original.
  * @returns {Promise<{changedFiles: string[], report: Report, diffs: Array<{file: string, diff: string}>,
  * exitCode: number, notes: string[], error: string|null, from: string, to: string, usedDraft: boolean,
- * draftRangeVersion: string|null, interrupted: boolean, inGit: boolean}>} The outcome.
+ * draftRangeVersion: string|null, interrupted: boolean, inGit: boolean, notAutomated: object[]}>} The outcome.
  * `exitCode` is 0 on success, 1 when a file could not be parsed, read, or transformed, and 2 for a usage error or a
  * refused dirty tree. `usedDraft` is `true` when a draft migration was in the run. `draftRangeVersion` is the newest
  * unpublished draft version in the run whose `dependency` rules bump or add a package, so it writes a range that no
  * published version satisfies, or `null`. `interrupted` is `true` when
  * `signal` stopped the run before every file was visited, and `inGit` says whether the project is in a git repository,
- * which decides how the caller tells the user to undo what an interrupted run wrote.
+ * which decides how the caller tells the user to undo what an interrupted run wrote. `notAutomated` lists the guide
+ * changes of the migrations in the run that no rule covers (`version`, `guide` or `title`, `reason`, `guideUrl`).
  */
 export async function run({
   cwd = process.cwd(),
@@ -1427,6 +1459,7 @@ export async function run({
     draftRangeVersion: null,
     interrupted: false,
     inGit: false,
+    notAutomated: [],
   };
   let files;
   let resolved;
@@ -1434,6 +1467,7 @@ export async function run({
   try {
     resolved = await resolvePlan({ cwd, paths, from, to, only, includeDraft, versionsDir, allowUncovered });
     result.notes = resolved.notes;
+    result.notAutomated = resolved.plan.notAutomated;
     result.from = resolved.fromText;
     result.to = resolved.selected[resolved.selected.length - 1].version;
     result.usedDraft = resolved.selected.some(manifest => manifest.status === 'draft');
@@ -1577,6 +1611,9 @@ export async function run({
     return found;
   };
 
+  // A `.browserslistrc` is no file the run discovers, so it is read only for a rule that checks the browsers.
+  const checksBrowsers = resolved.plan.versions.some(({ rules }) => rules.some(rule => rule.browserslist));
+
   const visit = async(file, phase) => {
     let source;
 
@@ -1636,6 +1673,7 @@ export async function run({
       projectFiles,
       catalog: phase === 2 && source.includes('catalog:') ? await findCatalog(cwd, file) : null,
       ancestors: phase === 2 ? await ancestorsOf(file) : [],
+      browserslistrc: phase === 2 && checksBrowsers ? await findBrowserslistrc(cwd, file, maxFileSize) : null,
     });
 
     if (!outcome.changed) {

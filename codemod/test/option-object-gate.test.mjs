@@ -55,6 +55,14 @@ const SAMPLES = {
     positive: 'new Handsontable(el, { rowHeights: 30 });',
     negative: 'export const card = { rowHeights: 30 };',
   },
+  '19.0.0/height-auto': {
+    positive: 'new Handsontable(el, { height: \'auto\' });',
+    negative: 'export const card = { height: \'auto\' };',
+  },
+  '19.0.0/sizes-physical-index': {
+    positive: 'new Handsontable(el, { colWidths: [100, 120] });',
+    negative: 'export const card = { colWidths: [100, 120] };',
+  },
   '19.0.0/hook-set-to-null': {
     positive: 'new Handsontable(el, { afterChange: null });',
     negative: 'export const callbacks = { afterChange: null };',

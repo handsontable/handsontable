@@ -101,6 +101,10 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "Ids of the rules of earlier migrations that report the same spot. When one of them already marked a node, this rule leaves no second marker, and in a run that holds both it reports the spot once, under the earliest."
+        },
+        "severity": {
+          "enum": ["manual", "review"],
+          "description": "The class of the entries a rule that only reports produces. manual (the default): code that stops working, throws, is removed, or is deprecated, so the user must change it. review: the behavior changed and the code may already be right, so the user must look and may change nothing. Not allowed with safe: true. A detect rule may also say warning."
         }
       },
       "additionalProperties": true,
@@ -339,6 +343,18 @@
                 "type": "array",
                 "description": "Facts to collect from js parts in phase 1. Each item: name and when, one of { import }, { property, withKey? }.",
                 "items": { "type": "object", "required": ["name", "when"] }
+              },
+              "browserslist": {
+                "type": "object",
+                "required": ["minimums", "release", "onlyIfDependsOn"],
+                "description": "Minimum browsers of a release. The tool reports a Browserslist configuration (the browserslist key of a package.json that declares one of onlyIfDependsOn, and the .browserslistrc next to it) that targets an older version of a browser in minimums, and never edits it. minimums: Browserslist name of a browser to the lowest version, such as { \"chrome\": \"130\", \"safari\": \"18.2\" }. release: the name of the release, such as \"Handsontable 19.0\". onlyIfDependsOn: a package name or a list of names. names: display name of each browser. aliases: another Browserslist name of a browser in minimums, such as { \"ios\": \"ios_saf\" }.",
+                "properties": {
+                  "minimums": { "type": "object", "additionalProperties": { "type": "string" } },
+                  "release": { "type": "string" },
+                  "onlyIfDependsOn": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] },
+                  "names": { "type": "object", "additionalProperties": { "type": "string" } },
+                  "aliases": { "type": "object", "additionalProperties": { "type": "string" } }
+                }
               }
             }
           }
@@ -350,7 +366,7 @@
             "properties": {
               "match": { "type": "object", "description": "One matcher object (import, property, call, hook, string, selector, regex, missingOption) with its modifiers, or { anyOf: [...] } or { allOf: [first, ...gates] }. See the detect transform." },
               "files": { "type": "array", "items": { "enum": ["js", "css", "template"] }, "description": "Part kinds the rule reads. The js-only matchers need [\"js\"]." },
-              "severity": { "enum": ["manual", "warning"], "description": "Defaults to manual." },
+              "severity": { "enum": ["manual", "review", "warning"], "description": "Defaults to manual. review: the behavior changed and the code may already be right." },
               "requires": { "enum": ["hot-file", "option-object", "none"], "description": "Defaults to hot-file." },
               "emitsFact": { "type": "string", "description": "Fact name added when the rule matches in a part." },
               "unlessFileMatches": { "type": "string", "description": "Regular expression on the text of the part. The rule skips a part that matches it." },

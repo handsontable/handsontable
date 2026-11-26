@@ -36,6 +36,17 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   `receiver: "grid"` call matcher of `19.0.0/update-settings-data-provider`.
 - The `test` script lists its files literally. `test/test-list.test.mjs` fails until the list and the `test/`
   directory name the same `*.test.mjs` files, so a new test file must be added to the script.
+- `test/json-output.test.mjs` pins `--json`: standard output is the one document and nothing else for a run, a dry run, a
+  write, `--list`, `--report`, the executable, and every exit path (a usage error, a refusal, a parse error, an unknown
+  rule id, a missing command, Ctrl-C), the counts equal the summary line of the text report, `cleanDeep()` hides a
+  credential and spells out a control character in every string, and `--help` and `--version` ignore the flag.
+  `test/review-class.test.mjs` pins the classification table of the report rules (`REVIEW`: every id in it and no other
+  report rule is `review`, in both directions, drafts included), the `severity` field of a rule, a `review` entry from a
+  rule that only reports, the lines after a run, and the exit code of `--fail-on-manual` (0 with only entries to review, 3
+  with a manual step, and not with a warning or a note, 1 and 2 and 130 win, `--list` ignores it).
+  `test/browserslist.test.mjs` pins `judgeQueries()` (every form, `>` as one step, `<` always, `not`, other browsers,
+  `and`), the readers of both configuration files, `findBrowserslistrc()` (a link, a size, a byte order mark), the
+  validation of the `browserslist` field, the `onlyIfDependsOn` gate, and a monorepo run.
 - Smoke test: `node codemod/bin/handsontable-codemod.mjs migrate --list --from 17 --to 18.1`. The last line counts the
   rules that rewrite and the rules that only report.
 - `test/cli.e2e.test.mjs` spawns the real bin on a temp git project built by `test/helpers/sample-project.mjs`
@@ -244,7 +255,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
 | `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
 | `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportMissing`, `reportPresent`, `replaced`, and `facts` (item fields in "Rule fields by kind"). `matchesWhen(j, root, when)` is the fact matcher. |
-| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`, `BELOW_FROM_RULE_ID`, and `counts().marked`. |
+| `src/json-output.mjs` | `--json`: `wantsJson()` (the exact token in the raw arguments, so a `parseArgs` error honors it), `runDocument()`, `listDocument()`, `errorDocument()` (one shape per mode, nothing found for an error), `cleanDeep()` and `serialize()` (every string through `redact()` and `plainText()`, then `JSON.stringify`). Fields are documented in the README. |
+| `src/lib/browserslist.mjs` | The `browserslist` check of `dependencies.mjs`: `queriesOfRc()`, `queriesOfPackage()`, `splitQueries()`, `judgeQueries()`, and `findBrowserslistrc()` (the runner's read of the file next to a `package.json`, no link followed). |
+| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`, `BELOW_FROM_RULE_ID`, `REVIEW_NOTE`, `compareRuleIds()`, and `counts()` (`changed`, `manual`, `review`, `warning`, `marked`, `markedReview`). `byRule(select)` makes the groups of the console and Markdown reports: the entries that are not `review` first, then a group "To review". |
 | `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. `git.mjs` resolves git once per `PATH` through `gitExecutable()`, lists the dirty paths with `--untracked-files=all`, and answers `isIgnored()`. |
 | `src/lib/find-executable.mjs` | `findExecutable(name, { env, platform, isFile })`: the first match in the absolute entries of `PATH` (an empty or relative entry and the current directory are never searched; on Windows only `.exe` and `.com`, `Path` in any case). |
 | `src/lib/safe-write.mjs` | `writeFileSafely(path, expected, output)`: temporary file, a last read of the target against `expected`, `rename`, the mode kept. `StaleFileError`. |
@@ -380,6 +393,14 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    a closed pipe never turns the exit code of a finished run into 1. `main()` stays free of both: it never calls
    `process.exit` and tests inject the writers.
 
+7. Output and exit code, in `cli.mjs`. `run()` returns `exitCode` 0, 1, or 2, and `main()` adds the rest: 130 for an interrupted
+   run, and 3 for `--fail-on-manual`. The flag turns a code 0 into 3 when `counts().manual` is above 0 (after the report
+   file was written, because a write that fails sets 1), so the precedence is 2 and 130 (they return before the check), then
+   1, then 3. A dry run counts. `review` entries, warnings, and `scope: 'run'` notes never count. With `--json`, `main()`
+   writes the document last, through `emit()`, once per command: the console report, the diff, the summary, and the
+   `Next:` lines are not printed, and the `Report written` line goes to standard error. A document is written for every
+   way out of `main()` except `--help` and `--version`.
+
 A transform may export `rescue(rules, source)`: the rules that may still run on a file the adapter's `precheck` rejected.
 The runner calls it only for such a file and then runs the module with the returned rules alone, so every other rule
 keeps the guard. `detect` is the only user (see the `precheck` field).
@@ -416,7 +437,7 @@ of its earliest kind in `KIND_ORDER`.
 | `parser` | `ts`, `tsx`, or `babylon` for a `js` part, `null` for any other kind. |
 | `j` | jscodeshift API bound to the right parser. `null` unless `fileKind` is `js`. |
 | `root` | Parsed form, edited in place. `js`: a jscodeshift Collection. `css`: a postcss Root. `json`: the parsed value. |
-| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. `markLine` is the line the generic marker is placed from when `line` names a spot inside a literal that cannot hold a comment (a line of a multi-line template literal, a key of a Sass map): the report keeps `line`. |
+| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'review' or 'warning', line?, message, lines?, scope?, mergeKey?, file?, quoted? }`. `manual` entries of a rule whose manifest says `severity: "review"` become `review` in the runner (see Traps, "Two classes of work left to the user"); a transform can also say `review` for one entry of a rule that reports both (the browser check). `file` names a file other than the part's (the `.browserslistrc` of a `package.json`); the runner adds `lineOffset` to `line` as before. `quoted` is kept on the entry, for the Markdown report. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. `markLine` is the line the generic marker is placed from when `line` names a spot inside a literal that cannot hold a comment (a line of a multi-line template literal, a key of a Sass map): the report keeps `line`. |
 | `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
 | `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
 | `removeStatement(path)` | Remove the expression statement, or the import declaration that `removeNamedImport()` emptied (its `cut` option), at a NodePath of a statement list, and return `true`. The statement is cut out of the printed text, so the statements around it keep their layout (see "TODO comments"). It returns `false` and does nothing for a statement that is not an expression statement of the parsed text, that a rule gave a comment, or that is not an item of a list: the caller then removes it from the tree and moves its comments. `false` for a part that is not `js`. |
@@ -424,6 +445,7 @@ of its earliest kind in `KIND_ORDER`.
 | `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
 | `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
 | `catalog` | For a `package.json` in phase 2 that holds a `catalog:` spec: `{ file, catalogs }` of the nearest `pnpm-workspace.yaml` (`catalogs` maps a catalog name, `''` for the default, to package ranges), else `null`. The runner reads it, so a transform stays free of file reads. |
+| `browserslistrc` | For a `package.json` in phase 2 of a run whose plan has a rule with a `browserslist` field: `{ file, text }` of the `.browserslistrc` next to it (the runner reads it, no link followed, none above the size limit or outside UTF-8), else `null`. A fixture supplies it with a file named `browserslistrc` in its directory. |
 | `ancestors` | For a `package.json` in phase 2: the `package.json` files of the project above it, nearest first, parsed (`[{ file, manifest }]`, `manifest` is `null` for a file that cannot be read as JSON). A fixture has none. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun, todo }`. `todo: false` (`--no-todo`) makes `todo()` and `comment()` write nothing and switches the generic markers off. `markers: false` (tests use it) switches off only the generic markers. Never write to disk from a transform. |
@@ -444,7 +466,7 @@ Rules for transforms:
 ## Rule kinds and manifest fields
 
 `RULE_KINDS` in `src/manifest.mjs` is the validator's table: required and optional fields per kind, on top of
-the common fields (`id`, `kind`, optional `guide`, `safe`, `minConfidence`, `message`, `advice`, `twins`). `safe` is
+the common fields (`id`, `kind`, optional `guide`, `safe`, `minConfidence`, `message`, `advice`, `twins`, `severity`). `safe` is
 required for every kind except `detect` and `exportRemoved` (see "The `safe` contract"). The field sets
 are provisional. The author of a kind's transform owns its row: add the fields the transform reads and mirror the
 change in `src/manifest.schema.json`. Extra properties on a rule are allowed. `test/manifest.test.mjs` pins the
@@ -482,7 +504,7 @@ across kinds. Every kind also takes the common fields, and `safe` is required ex
 | `methodMove` | `methods*` (old to new name), `via*` (`{ method, args }`), `receiver*` (`"instance"` or `{ plugin }`), `properties` |
 | `callUnwrap` | `callee*` (dotted path), `arg` |
 | `cssVariable`, `themeToken` | `from*`, then `to` or `removed` + `advice`; `themeToken` also `callees` |
-| `dependency` | `bump`, `replaced`, `add`, `reportMissing`, `reportPresent`, `facts` (item fields below) |
+| `dependency` | `bump`, `replaced`, `add`, `reportMissing`, `reportPresent`, `facts`, `browserslist` (item fields below) |
 | `detect` | `match*`, `files`, `message`, `severity`, `requires`, `precheck` (regex source, tested without case, only with `requires: "none"`: a file the adapter's precheck rejects still runs this rule when it matches), `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the earliest one wins), `todo` (`false` leaves no marker for the rule) |
 | `custom` | `module*`, plus whatever the module reads (`mode`) |
 
@@ -493,7 +515,7 @@ is the one that holds the first of them), `whenFact`. `reportMissing` items (the
 is not declared) take `name*`, `whenFact`, `onlyIfDependsOn`, `message`. `reportPresent` items (the package is
 declared) take `name*`, `message*`, `whenFact`, `onlyIfDependsOn`. `whenFact` names a fact that phase 1 found for the
 project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `{ import: "<module>" }` or
-`{ property: "<key>", withKey?: "<key>" }`, and phase 1 adds the fact when a js part matches.
+`{ property: "<key>", withKey?: "<key>" }`, and phase 1 adds the fact when a js part matches. `browserslist` is one object, not a list: `minimums*` (Browserslist name of a browser to its lowest version), `release*` (the name a message uses, `Handsontable 19.0`), `onlyIfDependsOn*` (a package name or a list: a `package.json` that declares none of them is not checked), `names` (display name per browser), and `aliases` (other Browserslist names of a browser in `minimums`: `ios`, `ff`, `fx`). `assertBrowserslist()` checks it when the manifest loads. The rule that holds it is `safe: false` and never edits.
 
 ## How to add a version
 
@@ -574,8 +596,9 @@ The 19.0 scope is frozen, so a new change in the guide is a fix and not new scop
   because the helper returned its input unchanged. In a chained run from 17.x the 18.0 rule has already left the
   call, because 17.x sanitized, and a rewriting 19.0 rule would delete it.
 - **`notAutomated`:** the sections with no pattern (a behavior change, a compiler error, a default). A reason says what
-  is true of the tool: `the-minimum-browser-versions-are-higher` says the tool reads no `browserslist` key, no
-  `.browserslistrc`, and no bundler target. Drop an entry when a rule starts to cover its section.
+  is true of the tool. Drop an entry when a rule starts to cover its section: `19.0.0/browserslist-targets` covers the
+  minimum browsers (the tool still reads no bundler target), and `19.0.0/sizes-physical-index` covers the physical-index
+  sizes.
 
 Traps of this draft:
 
@@ -624,6 +647,18 @@ Traps of this draft:
   in js, so a template with a dropdown column reports the bound `strict=false` of any column in it.
 - Every fixture of this draft has `options.json` with `only`, so a rule that matches a common input (the license
   regex, `rowHeights`) cannot change the exact `report.json` of another rule's fixture.
+- `19.0.0/sr-sp-language-code` reports and does not rewrite, on purpose. `sr-SP` still works in 19.x with one console
+  warning, so no code stops working. The replacement file `languages/sr-Latn-RS` is not in 18.x (18.1.3 ships only
+  `sr-SP`), the tool installs nothing, and a run that does not raise the range (a `catalog:` or peer spec, a remote
+  source, a range below `--from`, `--only`) would leave an import that cannot resolve. A rename of `srSP` to `srLatnRS` also
+  reaches every use of the dictionary in other files.
+- A wrapper whose major differs from `handsontable`'s has no rule of its own. The `dependency` bump raises
+  `handsontable` and the wrappers of one `package.json` to `^19.0.0` together, and each spot it skips (a catalog, a peer
+  range, a remote source, a range below `--from`) already has its own entry that says what to set. A check on the majors
+  before the run would flag an open range (`>=17 <20`) that admits both.
+- `19.0.0/height-auto`, `19.0.0/sizes-physical-index`, and `19.0.0/get-copyable-source-data` are `review` rules: the guide
+  says to do nothing for the common case, so a spot is reported for a look. `sizes-physical-index` reads an array or a
+  function written in the option (`valueIs`), never a variable that holds one.
 - `19.0.0/helper-sanitize` has no `namespaceType` rule for `Handsontable.helper.sanitize`. `type-rules.test.mjs`
   counts a `callUnwrap` rule whose `callee` equals the removed member as its cover.
 
@@ -1572,3 +1607,34 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   with `type: 'date'` or `'time'` and no format key needs its data checked.
 - Detect negative fixtures must pass the adapter precheck, or they prove nothing: put the word Handsontable in a
   comment. `report.json` is matched as a subset, so `test/detect.test.mjs` asserts the empty reports.
+
+- **Two classes of work left to the user: `manual` and `review`.** `manual` is code that stops working, throws, is
+  removed, or is deprecated, so the user must change it. `review` is a spot where the behavior changed and the code may
+  already be right, so the user must look and may change nothing. When in doubt a rule is `manual`: a wrong `review` hides a
+  step from `--fail-on-manual`. The class is the field `severity` of a rule that only reports (`"review"`; `manual` is the
+  default), and `store()` in `createContext()` is the one place that applies it: a `manual` entry of a rule that does not
+  rewrite and says `review` becomes `review`, so every transform keeps saying `manual` and the field is the whole
+  decision. `validateRule()` refuses a `severity` on a rule with `safe: true` (its entries are the work it could not do) and
+  any value but `manual` or `review` (a `detect` rule also takes `warning`). The TODO marker reads the same for both
+  classes (`hasEarlierRuleTodo()` and the twin check key on `TODO(handsontable-codemod <id>)`, and projects that already ran
+  carry that text), so only the report tells them apart. A twin pair and rules that share a `mergeKey` must be one class:
+  `adopt()` keeps the earliest entry, and `review-class.test.mjs` checks it. The note of a type rename that changes the
+  shape (`scope: 'run'`, from `importSource`, `exportRename`, and `namespaceType`) is `review` by its transform, because the
+  rename is applied. `REVIEW` in `review-class.test.mjs` is the classification table: a new report rule is `manual` unless
+  the table says otherwise, and the table must list every `review` rule.
+- **`--json` strings go through `cleanDeep()`, and the finished text bypasses the `stdout` wrapper.** `plainText()` writes
+  a bidirectional override or a C1 character as `\x..` text, and `JSON.stringify` leaves those characters raw, so running
+  the serialized document through the wrapper would break it. The strings are made safe one by one, then stringified, and
+  written with the raw writer. A new field with text from the project must go through the same function (it does, as
+  `serialize()` cleans the whole document). `wantsJson()` reads the raw arguments, because `parseArgs` throws before any
+  value exists, and `main()` reads `packageInfo()` only when `--json` is on.
+- **The `browserslist` check keeps what it can judge small, and the minimums are data.** `judgeQueries()` reads one
+  form: a browser name, an optional comparison, a version or a range. `>` counts as the first release above the number
+  (one step of its last part), `<` and `<=` always take in older versions, a range counts from its low end, `not ...` and
+  a browser with no minimum are left out, and anything else is `unchecked` (a `review` entry, never a guess), a query with
+  `and` included. A word that is no browser (`since 2020`, `last`, `cover`) must stay `unchecked`: `OTHER_BROWSERS` names the
+  browsers Browserslist knows that the minimums do not cover. The JSON adapter's precheck is `/handsontable/i`, so a
+  `package.json` that never says it is not read, and `onlyIfDependsOn` then keeps a package that only mentions it out.
+  The runner reads the `.browserslistrc` (a transform reads no file) and only when a rule of the plan has the
+  `browserslist` field. Its entries carry `file` (store() uses it over the part's) and no marker (`todo: false`), because
+  the configuration is no code the tool can comment.

@@ -3,7 +3,7 @@
   "entries": [
     {
       "ruleId": "19.0.0/after-render-engine-write",
-      "severity": "manual",
+      "severity": "review",
       "line": 8
     }
   ]

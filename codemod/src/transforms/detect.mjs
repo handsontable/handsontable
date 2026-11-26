@@ -37,7 +37,7 @@ import { blankCodeComments, blankToolComments } from '../lib/tool-comments.mjs';
 export const COLLAPSE_AFTER = 5;
 
 const FILE_KINDS = ['js', 'css', 'template'];
-const SEVERITIES = ['manual', 'warning'];
+const SEVERITIES = ['manual', 'review', 'warning'];
 const REQUIRES = ['hot-file', 'option-object', 'none'];
 const JS_ONLY_MATCHERS = ['import', 'property', 'call', 'hook', 'string', 'missingOption', 'namespaceMember',
   'annotatedObject', 'pluginRegistration'];
@@ -2163,7 +2163,7 @@ function applyRule(env, rule) {
  * a file.
  *
  * Rule fields: `match`, `files` (`js`, `css`, `template`), `message`, optional `severity` (`manual` by default,
- * or `warning`), `requires` (`hot-file` by default: a js part must import or use Handsontable; `option-object`:
+ * `review` for a spot where the behavior changed and the code may already be right, or `warning`), `requires` (`hot-file` by default: a js part must import or use Handsontable; `option-object`:
  * `property` and `hook` matchers must sit in an option object or on a `<HotTable>` or `<HotColumn>` element;
  * `none`), and `emitsFact` (a fact name added when the rule matches).
  *

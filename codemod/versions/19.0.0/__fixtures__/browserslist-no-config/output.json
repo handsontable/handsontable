@@ -1,0 +1,9 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "handsontable": "^19.0.0"
+  },
+  "scripts": {
+    "build": "vite build"
+  }
+}

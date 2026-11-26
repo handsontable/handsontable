@@ -222,7 +222,8 @@ describe('a rule that is not safe never edits code', () => {
       assert.equal(result.entries.some(item => item.ruleId === 'transform-error'), false,
         result.entries.map(item => item.message).join('\n'));
       assert.equal(severities.has('changed'), false, 'a rule that is not safe reported a change');
-      assert.equal(severities.has('manual'), true, 'it should still say what is left to do');
+      assert.equal(severities.has('manual') || severities.has('review'), true,
+        'it should still say what is left to do');
       assert.equal(codeOf(result.output, file), codeOf(input, file));
     });
   }

@@ -47,7 +47,7 @@
       "id": "18.0.0/date-default-format",
       "kind": "detect",
       "safe": false,
-      "severity": "manual",
+      "severity": "review",
       "files": ["js"],
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
@@ -58,7 +58,7 @@
       "id": "18.0.0/time-default-format",
       "kind": "detect",
       "safe": false,
-      "severity": "manual",
+      "severity": "review",
       "files": ["js"],
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
@@ -102,7 +102,12 @@
       "requires": "hot-file",
       "guide": "update-css-selectors-and-dom-queries-for-the-new-wrapper-structure",
       "match": {
-        "selector": "\\.ht-grid(?![\\w-])\\s*>(?!\\s*\\.ht-grid-content)|\\.ht-root-wrapper(?![\\w-])\\s*>\\s*\\*?:(?:first|last|only|nth|nth-last)-(?:child|of-type)|\\.ht-grid(?![\\w-]):(?:first|last|only|nth|nth-last)-(?:child|of-type)"
+        "anyOf": [
+          {
+            "selector": "\\.ht-grid(?![\\w-])\\s*>(?!\\s*\\.ht-grid-content)|\\.ht-root-wrapper(?![\\w-])\\s*>\\s*\\*?:(?:first|last|only|nth|nth-last)-(?:child|of-type)|\\.ht-grid(?![\\w-]):(?:first|last|only|nth|nth-last)-(?:child|of-type)"
+          },
+          { "regex": "['\"]\\.ht-grid['\"]\\s*\\)\\s*\\.\\s*(?:firstElementChild|firstChild|children)\\b", "code": true }
+        ]
       },
       "message": "Select by class instead, for example .ht-grid-content > .handsontable or .ht-wrapper.handsontable. This selector depends on the old structure: Handsontable 18.0 wraps the grid root in a new .ht-grid-content element and adds the .ht-slot-top, .ht-slot-bottom, and .ht-overlay siblings of .ht-grid."
     },

@@ -90,10 +90,6 @@
       "reason": "The TypeScript compiler reports it, and a hook passed to HotColumn never ran, so only code that passes one is affected."
     },
     {
-      "guide": "colwidths-rowheights-and-minrowheights-address-columns-and-rows-by-physical-index",
-      "reason": "It applies when columns or rows can move, sort, filter, trim, or collapse, or you insert or remove them, which depends on how users and code treat the grid at run time."
-    },
-    {
       "guide": "an-auto-sized-column-is-no-longer-capped-at-the-width-of-the-grid",
       "reason": "It changes how wide an autosized column gets, which depends on the text in the column."
     },
@@ -124,10 +120,6 @@
     {
       "guide": "the-react-and-angular-wrappers-pass-only-the-settings-that-changed",
       "reason": "It changes which settings the React and Angular wrappers pass on a render, and no pattern in your code marks a reliance on the old reset."
-    },
-    {
-      "guide": "the-minimum-browser-versions-are-higher",
-      "reason": "It concerns the browsers your app supports, and the tool does not compare them with the new minimum: it reads no browserslist key of a package.json, no .browserslistrc file, and no bundler target."
     },
     {
       "guide": "turning-loading-off-turns-the-dialog-plugin-off",

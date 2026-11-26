@@ -5,7 +5,7 @@
   { "ruleId": "18.0.0/ns-celltype", "severity": "changed", "line": 6 },
   { "ruleId": "18.0.0/ns-comments-commentobject", "severity": "changed", "line": 7 },
   { "ruleId": "18.0.0/ns-multicolumnsorting-config", "severity": "changed", "line": 8 },
-  { "ruleId": "18.0.0/ns-multicolumnsorting-config", "severity": "manual", "line": 8 },
+  { "ruleId": "18.0.0/ns-multicolumnsorting-config", "severity": "review", "line": 8 },
   { "ruleId": "18.0.0/ns-exportfile-settings", "severity": "changed", "line": 9 },
   { "ruleId": "18.0.0/ns-dataprovider-types", "severity": "changed", "line": 10 },
   { "ruleId": "18.0.0/ns-dataprovider-types", "severity": "changed", "line": 11 },

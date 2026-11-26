@@ -3,7 +3,7 @@
   "entries": [
     {
       "ruleId": "19.0.0/editor-false",
-      "severity": "manual",
+      "severity": "review",
       "line": 9
     }
   ]

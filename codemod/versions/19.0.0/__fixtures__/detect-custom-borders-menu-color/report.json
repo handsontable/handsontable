@@ -3,12 +3,12 @@
   "entries": [
     {
       "ruleId": "19.0.0/custom-borders-menu-color",
-      "severity": "manual",
+      "severity": "review",
       "line": 6
     },
     {
       "ruleId": "19.0.0/custom-borders-menu-color",
-      "severity": "manual",
+      "severity": "review",
       "line": 7
     }
   ]

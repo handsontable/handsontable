@@ -446,7 +446,9 @@ describe('every module a type rule sends a name to is one the new package export
 
 describe('notes of type rules', () => {
   /**
-   * The `manual` entries a run of the real rules reports for a snippet, with their `scope`.
+   * The `review` entries a run of the real rules reports for a snippet, with their `scope`. The note of a type rename
+   * says what changed in the shape of the type, and the rename is already applied: the user looks and may change
+   * nothing, so it is `review` and not `manual`.
    *
    * @param {string} source File text.
    * @returns {Promise<Array<{ruleId: string, scope: string|undefined}>>} The note entries.
@@ -454,7 +456,7 @@ describe('notes of type rules', () => {
   async function notesOf(source) {
     const result = await run('a.ts', source);
 
-    return result.entries.filter(entry => entry.severity === 'manual').map(entry => ({
+    return result.entries.filter(entry => entry.severity === 'review').map(entry => ({
       ruleId: entry.ruleId,
       scope: entry.scope,
     }));

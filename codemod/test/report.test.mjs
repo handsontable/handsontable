@@ -45,7 +45,7 @@ describe('Report', () => {
 
     assert.equal(report.entries.at(-1).line, null);
     assert.equal(report.entries.at(-1).guideUrl, null);
-    assert.deepEqual(report.counts(), { changed: 2, manual: 1, warning: 1, marked: 0 });
+    assert.deepEqual(report.counts(), { changed: 2, manual: 1, review: 0, warning: 1, marked: 0, markedReview: 0 });
     assert.ok(report.has('parse-error'));
     assert.ok(!report.has('nope'));
   });
@@ -78,7 +78,7 @@ describe('Report', () => {
 
     assert.equal(report.entries.length, 1);
     assert.deepEqual(report.entries[0].files, ['src/b.ts', 'src/a.ts']);
-    assert.deepEqual(report.counts(), { changed: 0, manual: 1, warning: 0, marked: 0 });
+    assert.deepEqual(report.counts(), { changed: 0, manual: 1, review: 0, warning: 0, marked: 0, markedReview: 0 });
     assert.deepEqual(report.byRule(), []);
     assert.equal(report.once().length, 1);
   });
@@ -98,7 +98,7 @@ describe('renderConsole', () => {
   it('prints only the summary for an empty report', () => {
     assert.equal(
       renderConsole(new Report()),
-      'Summary: 0 files changed, 0 rewrites applied, 0 manual steps, 0 warnings.\n'
+      'Summary: 0 files changed, 0 rewrites applied, 0 manual steps, 0 to review, 0 warnings.\n'
     );
   });
 
@@ -110,12 +110,12 @@ describe('renderConsole', () => {
     assert.match(text, /^18\.0\.0\/a \(2 changed\)$/m);
     assert.match(text, /^ {2}Guide: https:\/\/example\.com\/g#a$/m);
     assert.match(text, /\[warning\] src\/bad\.ts {2}Could not parse\./);
-    assert.match(text, /Summary: 2 files changed, 2 rewrites applied, 1 manual step, 1 warning\.\n$/);
+    assert.match(text, /Summary: 2 files changed, 2 rewrites applied, 1 manual step, 0 to review, 1 warning\.\n$/);
   });
 
   it('says would for a dry run', () => {
     assert.match(renderConsole(sampleReport(), { filesChanged: 1, dryRun: true }),
-      /Summary: 1 file would change, 2 rewrites would be applied, 1 manual step, 1 warning\.\n$/);
+      /Summary: 1 file would change, 2 rewrites would be applied, 1 manual step, 0 to review, 1 warning\.\n$/);
   });
 
   it('lists ten locations of a rule, then the number of the others, and the markdown lists all', () => {
@@ -203,7 +203,8 @@ describe('Read once and Skipped files sections', () => {
     const report = fill();
     const line = summaryLine(report, { filesChanged: 2, dryRun: true });
 
-    assert.equal(line, 'Summary: 2 files would change, 0 rewrites would be applied, 1 manual step, 1 warning.');
+    assert.equal(line, 'Summary: 2 files would change, 0 rewrites would be applied, 1 manual step, 0 to review, '
+      + '1 warning.');
     assert.ok(renderConsole(report, { filesChanged: 2, dryRun: true }).endsWith(`${line}\n`));
     assert.ok(renderMarkdown(report, { filesChanged: 2, dryRun: true }).includes(`\n${line}\n`));
   });
@@ -252,6 +253,63 @@ describe('renderMarkdown', () => {
       assert.equal(text.match(/Different advice\./g).length, 1);
       assert.ok(text.includes('a.ts:3') && text.includes('b.ts:3') && text.includes('c.ts:3'));
     }
+  });
+});
+
+describe('entries to review', () => {
+  const reviewReport = () => {
+    const report = new Report();
+
+    report.add({
+      ruleId: '19.0.0/b',
+      severity: 'review',
+      file: 'src/b.ts',
+      line: 7,
+      message: 'Check the result.',
+      marked: true,
+    });
+    report.add({ ruleId: '19.0.0/a', severity: 'manual', file: 'src/a.ts', line: 2, message: 'Replace the call.' });
+    report.add({ ruleId: '19.0.0/c', severity: 'review', file: 'src/c.ts', line: 1, message: 'Check the order.' });
+
+    return report;
+  };
+
+  it('counts them apart from the manual steps, and the ones with a marker apart', () => {
+    assert.deepEqual(reviewReport().counts(),
+      { changed: 0, manual: 1, review: 2, warning: 0, marked: 0, markedReview: 1 });
+  });
+
+  it('names them in the summary line', () => {
+    assert.equal(summaryLine(reviewReport(), { filesChanged: 1 }),
+      'Summary: 1 file changed, 0 rewrites applied, 1 manual step, 2 to review, 0 warnings.');
+  });
+
+  it('prints them in a group of their own after the manual steps, with a heading that says the code is fine', () => {
+    const text = renderConsole(reviewReport());
+    const heading = text.indexOf('To review (2). The behavior changed at these spots, and your code may already be '
+      + 'right.');
+
+    assert.ok(heading > text.indexOf('19.0.0/a (1 manual)'), text);
+    assert.ok(text.indexOf('19.0.0/b (1 review)') > heading, text);
+    assert.ok(text.indexOf('[review] src/b.ts:7  Check the result.') > heading, text);
+    assert.ok(text.indexOf('19.0.0/c (1 review)') > text.indexOf('19.0.0/b (1 review)'), text);
+    assert.ok(!text.slice(0, heading).includes('review]'), 'no review entry before the heading');
+  });
+
+  it('prints them in a section of their own in the Markdown checklist, as work still to look at', () => {
+    const text = renderMarkdown(reviewReport());
+    const section = text.indexOf('## To review\n');
+
+    assert.ok(section > text.indexOf('## 19.0.0/a\n'), text);
+    assert.ok(text.includes('The behavior changed at these spots, and your code may already be right.'), text);
+    assert.ok(text.indexOf('### 19.0.0/b\n') > section, text);
+    assert.ok(text.includes('- [ ] `src/b.ts:7` Check the result.'), text);
+    assert.ok(!text.slice(0, section).includes('src/b.ts'), 'no review entry before the section');
+  });
+
+  it('prints no heading when no entry is to review', () => {
+    assert.ok(!renderConsole(sampleReport()).includes('To review'));
+    assert.ok(!renderMarkdown(sampleReport()).includes('## To review'));
   });
 });
 

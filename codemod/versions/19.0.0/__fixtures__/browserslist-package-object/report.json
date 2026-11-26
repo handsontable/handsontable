@@ -1,0 +1,7 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "19.0.0/browserslist-targets", "severity": "manual", "line": 7 },
+    { "ruleId": "19.0.0/browserslist-targets", "severity": "review", "line": 7 }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "19.0.0/get-copyable-source-data", "severity": "review", "line": 5 }
+  ]
+}

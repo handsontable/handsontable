@@ -1,8 +1,8 @@
 {
   "exact": true,
   "entries": [
-    { "ruleId": "19.0.0/hook-set-to-null", "severity": "manual", "line": 5 },
-    { "ruleId": "19.0.0/hook-set-to-null", "severity": "manual", "line": 6 },
-    { "ruleId": "19.0.0/hook-set-to-null", "severity": "manual", "line": 7 }
+    { "ruleId": "19.0.0/hook-set-to-null", "severity": "review", "line": 5 },
+    { "ruleId": "19.0.0/hook-set-to-null", "severity": "review", "line": 6 },
+    { "ruleId": "19.0.0/hook-set-to-null", "severity": "review", "line": 7 }
   ]
 }

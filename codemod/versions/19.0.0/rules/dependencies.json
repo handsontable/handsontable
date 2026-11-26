@@ -10,6 +10,40 @@
         "@handsontable/angular-wrapper": "19.0.0",
         "@handsontable/vue3": "19.0.0"
       }
+    },
+    {
+      "id": "19.0.0/browserslist-targets",
+      "kind": "dependency",
+      "safe": false,
+      "guide": "the-minimum-browser-versions-are-higher",
+      "browserslist": {
+        "release": "Handsontable 19.0",
+        "onlyIfDependsOn": [
+          "handsontable",
+          "@handsontable/react-wrapper",
+          "@handsontable/angular-wrapper",
+          "@handsontable/vue3"
+        ],
+        "minimums": {
+          "chrome": "130",
+          "edge": "130",
+          "firefox": "132",
+          "safari": "18.2",
+          "ios_saf": "18.2"
+        },
+        "names": {
+          "chrome": "Chrome",
+          "edge": "Edge",
+          "firefox": "Firefox",
+          "safari": "Safari",
+          "ios_saf": "iOS Safari"
+        },
+        "aliases": {
+          "ios": "ios_saf",
+          "ff": "firefox",
+          "fx": "firefox"
+        }
+      }
     }
   ]
 }

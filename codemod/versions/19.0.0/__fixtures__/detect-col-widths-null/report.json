@@ -3,7 +3,7 @@
   "entries": [
     {
       "ruleId": "19.0.0/col-widths-null",
-      "severity": "manual",
+      "severity": "review",
       "line": 3
     }
   ]

@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { posix, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
+import { errorDocument, listDocument, runDocument, serialize, wantsJson } from './json-output.mjs';
 import { plainText } from './lib/markdown.mjs';
 import { redact } from './lib/redact.mjs';
 import { BELOW_FROM_RULE_ID, plural, renderConsole, renderMarkdown } from './report.mjs';
@@ -39,6 +40,12 @@ Options:
                         for example --only "18.0.0/type-*".
   --list                List the rules in the version range and exit. "rewrite" rules edit code, "report"
                         rules only report.
+  --json                Print one JSON document on standard output and nothing else: no diff, no summary,
+                        no "Next:" lines. It works with --dry-run, --list, and --report, and also for a usage
+                        error or a refusal. Notes and warnings stay on standard error. The exit codes do not
+                        change. --help and --version print their text.
+  --fail-on-manual      Exit with code 3 when a run leaves at least one manual step. A spot to review and a
+                        warning never cause it. Without the flag a run that finds manual steps exits with 0.
   --aggressive          Also rewrite settings objects found with medium confidence.
   --no-todo             Leave no TODO comments in the code. By default a manual step gets a TODO(handsontable-codemod
                         <rule>) comment at its line. With this flag the report is the only record of them.
@@ -54,6 +61,7 @@ Exit codes:
   1  A file could not be read, parsed, or transformed. The other files are still migrated.
   2  Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to
      migrate, unknown rule id.
+  3  The run finished and left manual steps, and --fail-on-manual was given. Codes 1 and 2 win over it.
   130  Stopped with Ctrl-C (SIGINT).
 `;
 
@@ -65,6 +73,8 @@ const OPTIONS = {
   report: { type: 'string' },
   only: { type: 'string', multiple: true },
   list: { type: 'boolean' },
+  json: { type: 'boolean' },
+  'fail-on-manual': { type: 'boolean' },
   aggressive: { type: 'boolean' },
   'no-todo': { type: 'boolean' },
   'include-draft': { type: 'boolean' },
@@ -100,9 +110,18 @@ function describeUsageError(error) {
  * @returns {Promise<string>} The version text.
  */
 async function packageVersion() {
-  const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  return (await packageInfo()).version;
+}
 
-  return manifest.version;
+/**
+ * The name and version in the `package.json` of the tool.
+ *
+ * @returns {Promise<{name: string, version: string}>} The tool.
+ */
+async function packageInfo() {
+  const { name, version } = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+
+  return { name, version };
 }
 
 /**
@@ -150,7 +169,7 @@ function renderList(rows, notAutomated = []) {
  * @returns {void}
  */
 export function nextSteps(result, stdout) {
-  const { manual, marked } = result.report.counts();
+  const { manual, marked, review, markedReview } = result.report.counts();
 
   if (result.changedFiles.some(file => posix.basename(file) === 'package.json')) {
     stdout('Next: install the new package ranges with your package manager. The tool does not install anything.\n');
@@ -168,21 +187,32 @@ export function nextSteps(result, stdout) {
       + 'Next: run tsc and your tests.\n');
   }
 
-  if (manual === 0) {
-    return;
+  /**
+   * Say where the entries of one class are: all in the code, none, or some.
+   *
+   * @param {number} count How many entries.
+   * @param {number} inCode How many of them have a marker.
+   * @returns {string} The sentence.
+   */
+  const whereOf = (count, inCode) => {
+    if (inCode === 0) {
+      return 'They are listed in the report only.';
+    }
+
+    return inCode === count ? 'All of them are marked in the code.'
+      : `${inCode} of ${count} are marked in the code; the rest are listed in the report only.`;
+  };
+
+  if (manual > 0) {
+    stdout(`Next: work through the ${plural(manual, 'manual step')} in the report. ${whereOf(manual, marked)}\n`);
   }
 
-  let where = `${marked} of ${manual} are marked in the code; the rest are listed in the report only.`;
-
-  if (marked === 0) {
-    where = 'They are listed in the report only.';
-  } else if (marked === manual) {
-    where = 'All of them are marked in the code.';
+  if (review > 0) {
+    stdout(`Next: look at the ${plural(review, 'spot')} to review in the report. The behavior changed there, and `
+      + `your code may already be right. ${whereOf(review, markedReview)}\n`);
   }
 
-  stdout(`Next: work through the ${plural(manual, 'manual step')} in the report. ${where}\n`);
-
-  if (marked > 0) {
+  if (marked + markedReview > 0) {
     stdout('Next: find the markers with: git grep "TODO(handsontable-codemod"\n');
   }
 }
@@ -225,6 +255,9 @@ export function interruptedLine({ changedFiles, inGit }, { dryRun, allowDirty })
 /**
  * Run the CLI. It never calls `process.exit`: the caller sets `process.exitCode` from the return value.
  *
+ * With `--json` the standard output holds one JSON document and nothing else (see `json-output.mjs`). The notes, the
+ * warnings, and the errors stay on standard error, as without the flag.
+ *
  * @param {string[]} argv Arguments after the node binary and script path.
  * @param {object} [io] Injection points for tests.
  * @param {string} [io.cwd] Working directory.
@@ -237,8 +270,8 @@ export function interruptedLine({ changedFiles, inGit }, { dryRun, allowDirty })
  * @param {AbortSignal} [io.signal] Asks a migration to stop. The executable aborts it on the first SIGINT. The run
  * finishes the file it is on, the CLI prints one line (how many files were written, how to undo them), and the exit
  * code is 130.
- * @returns {Promise<number>} The exit code: 0 done, 1 runtime or parse errors, 2 usage error or refusal, 130 stopped
- * by `signal`.
+ * @returns {Promise<number>} The exit code: 0 done, 1 runtime or parse errors, 2 usage error or refusal, 3 manual
+ * steps left with `--fail-on-manual`, 130 stopped by `signal`.
  */
 export async function main(argv, {
   cwd = process.cwd(),
@@ -253,14 +286,35 @@ export async function main(argv, {
   // name or a source line (an escape sequence that rewrites the screen) is printed as text.
   const stdout = text => writeOut(plainText(redact(text)));
   const stderr = text => writeErr(plainText(redact(text)));
+  // `--json` is read from the raw arguments, so a usage error that `parseArgs` throws can honor it too.
+  const json = wantsJson(argv);
+  const tool = json ? await packageInfo() : null;
+  // The document goes out once, as the last thing a command writes. Its strings are made safe one by one, and the
+  // text as a whole bypasses `stdout`, which would turn an escape that JSON needs into text.
+  const emit = (code, build) => {
+    if (json) {
+      writeOut(serialize(build()));
+    }
+
+    return code;
+  };
+  const failure = (code, error, mode = 'run', notes = []) => emit(code, () => errorDocument({
+    tool,
+    mode,
+    exitCode: code,
+    error,
+    notes,
+  }));
   let parsed;
 
   try {
     parsed = parseArgs({ args: argv, options: OPTIONS, allowPositionals: true, strict: true });
   } catch (error) {
-    stderr(`${describeUsageError(error)}\n${USAGE_LINE}\nRun with --help for all options.\n`);
+    const problem = describeUsageError(error);
 
-    return 2;
+    stderr(`${problem}\n${USAGE_LINE}\nRun with --help for all options.\n`);
+
+    return failure(2, problem);
   }
 
   const { values, positionals } = parsed;
@@ -278,28 +332,33 @@ export async function main(argv, {
   }
 
   const [command, ...paths] = positionals;
+  const mode = values.list ? 'list' : 'run';
 
   if (command !== 'migrate') {
     const problem = command ? `Unknown command "${command}".` : 'Missing command.';
 
     stderr(`${problem} Use: handsontable-codemod migrate\n${USAGE_LINE}\nRun with --help for all options.\n`);
 
-    return 2;
+    return failure(2, problem, mode);
   }
 
   const maxFileSize = values['max-file-size'] === undefined ? undefined : Number(values['max-file-size']);
 
   if (maxFileSize !== undefined && (!Number.isInteger(maxFileSize) || maxFileSize <= 0)) {
-    stderr(`--max-file-size needs a whole number of bytes above 0, not "${values['max-file-size']}".\n`);
+    const problem = `--max-file-size needs a whole number of bytes above 0, not "${values['max-file-size']}".`;
 
-    return 2;
+    stderr(`${problem}\n`);
+
+    return failure(2, problem, mode);
   }
 
   for (const flag of ['from', 'to']) {
     if (values[flag] === '') {
-      stderr(`Option "--${flag}" needs a value.\n${USAGE_LINE}\nRun with --help for all options.\n`);
+      const problem = `Option "--${flag}" needs a value.`;
 
-      return 2;
+      stderr(`${problem}\n${USAGE_LINE}\nRun with --help for all options.\n`);
+
+      return failure(2, problem, mode);
     }
   }
 
@@ -312,18 +371,29 @@ export async function main(argv, {
     includeDraft: Boolean(values['include-draft']),
     allowUncovered: Boolean(values['allow-uncovered']),
   };
+  const dryRun = Boolean(values['dry-run']);
 
   try {
     if (values.list) {
-      const { plan, notes } = await resolvePlan({ ...range, lenientFrom: true });
+      const { plan, notes, selected, fromText } = await resolvePlan({ ...range, lenientFrom: true });
+      const rows = describeRules(plan);
 
       notes.forEach(note => stderr(`${note}\n`));
-      stdout(renderList(describeRules(plan), plan.notAutomated));
+
+      if (json) {
+        return emit(0, () => listDocument({ tool,
+          rows,
+          notAutomated: plan.notAutomated,
+          notes,
+          from: fromText,
+          to: selected[selected.length - 1]?.version }));
+      }
+
+      stdout(renderList(rows, plan.notAutomated));
 
       return 0;
     }
 
-    const dryRun = Boolean(values['dry-run']);
     const result = await run({
       ...range,
       paths,
@@ -345,23 +415,26 @@ export async function main(argv, {
     if (result.error) {
       stderr(`${result.error}\n`);
 
-      return result.exitCode;
+      return emit(result.exitCode, () => runDocument({ tool, result, dryRun, exitCode: result.exitCode }));
     }
 
     if (result.interrupted) {
-      // The report would describe a part of the project, so the one line is the whole output.
+      // The report would describe a part of the project, so the one line is the whole output. The document says
+      // `interrupted`, so a reader knows that its entries are a part.
       stderr(`${interruptedLine(result, { dryRun, allowDirty: Boolean(values['allow-dirty']) })}\n`);
 
-      return 130;
+      return emit(130, () => runDocument({ tool, result, dryRun, exitCode: 130 }));
     }
 
-    if (dryRun) {
+    if (dryRun && !json) {
       result.diffs.forEach(({ diff }) => stdout(diff));
     }
 
     const summary = { filesChanged: result.changedFiles.length, dryRun };
 
-    stdout(renderConsole(result.report, { ...summary, reportFile: values.report }));
+    if (!json) {
+      stdout(renderConsole(result.report, { ...summary, reportFile: values.report }));
+    }
 
     if (values.report) {
       const date = new Date().toISOString().slice(0, 10);
@@ -373,7 +446,7 @@ export async function main(argv, {
           to: result.to,
           date,
         }));
-        stdout(`Report written to ${values.report}.\n`);
+        (json ? stderr : stdout)(`Report written to ${values.report}.\n`);
       } catch (error) {
         // The files are migrated and the summary is printed. A report that cannot be written must not hide the rest.
         stderr(`Could not write the report to ${values.report}: ${error.message}\n`);
@@ -381,7 +454,7 @@ export async function main(argv, {
       }
     }
 
-    if (!dryRun) {
+    if (!dryRun && !json) {
       nextSteps(result, stdout);
     }
 
@@ -395,16 +468,25 @@ export async function main(argv, {
       stderr(`${plural(unread.size, 'file')} could not be read. See the warnings above.\n`);
     }
 
-    return result.exitCode;
+    // The code of a run that could not finish its work (1) stays what it is. Only a run that would exit 0 can exit 3,
+    // and a dry run counts: that is how a CI job asks the question without writing a file.
+    const manual = result.report.counts().manual;
+
+    if (values['fail-on-manual'] && result.exitCode === 0 && manual > 0) {
+      stderr(`${plural(manual, 'manual step')} left, so the exit code is 3 (--fail-on-manual).\n`);
+      result.exitCode = 3;
+    }
+
+    return emit(result.exitCode, () => runDocument({ tool, result, dryRun, exitCode: result.exitCode }));
   } catch (error) {
     if (error instanceof UsageError) {
       stderr(`${error.message}\n`);
 
-      return 2;
+      return failure(2, error.message, mode);
     }
 
     stderr(`${error.stack ?? error.message}\n`);
 
-    return 1;
+    return failure(1, error.message, mode);
   }
 }

@@ -3,7 +3,7 @@
   "entries": [
     {
       "ruleId": "19.0.0/get-copyable-data",
-      "severity": "manual",
+      "severity": "review",
       "line": 5
     }
   ]

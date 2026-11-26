@@ -3,7 +3,7 @@
   "entries": [
     {
       "ruleId": "19.0.0/before-init-option",
-      "severity": "manual",
+      "severity": "review",
       "line": 7
     }
   ]

@@ -158,8 +158,8 @@ describe('cli', () => {
   it('documents every flag and every exit code in the help', async() => {
     const { out } = await cli(['--help']);
 
-    for (const flag of ['from', 'to', 'dry-run', 'allow-dirty', 'report', 'only', 'list', 'aggressive',
-      'include-draft', 'allow-uncovered', 'version']) {
+    for (const flag of ['from', 'to', 'dry-run', 'allow-dirty', 'report', 'only', 'list', 'json', 'fail-on-manual',
+      'aggressive', 'include-draft', 'allow-uncovered', 'version']) {
       assert.match(out, new RegExp(`^ {2}--${flag}\\b`, 'm'), flag);
     }
 
@@ -169,6 +169,7 @@ describe('cli', () => {
     assert.match(out, /^ {2}0 {2}Done\./m);
     assert.match(out, /^ {2}1 {2}A file could not be read/m);
     assert.match(out, /^ {2}2 {2}Usage error or refusal/m);
+    assert.match(out, /^ {2}3 {2}The run finished and left manual steps, and --fail-on-manual was given\./m);
   });
 
   it('prints the usage on stderr for an unknown flag, with exit code 2', async() => {

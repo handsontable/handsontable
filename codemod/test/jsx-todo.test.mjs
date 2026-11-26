@@ -227,7 +227,7 @@ describe('every flagged JSX child on a line of its own gets a marker of its own'
 
   it('says marked for each entry, as each has its own marker', async() => {
     const { entries } = await stable(source);
-    const manual = entries.filter(entry => entry.severity === 'manual');
+    const manual = entries.filter(entry => entry.severity === 'review');
 
     assert.equal(manual.length, 3);
     assert.deepEqual(manual.map(entry => entry.marked), [true, true, true]);
@@ -281,7 +281,7 @@ describe('every flagged JSX child of one line gets a marker of its own', () => {
 
     assert.equal(todosIn(output), 2, output);
     assert.ok(row, output);
-    assert.ok(entries.filter(entry => entry.severity === 'manual').every(entry => entry.marked === true));
+    assert.ok(entries.filter(entry => entry.severity === 'review').every(entry => entry.marked === true));
   });
 
   it('puts a marker in front of a sibling and of a conditional child on one line', async() => {
@@ -310,7 +310,7 @@ describe('every flagged JSX child of one line gets a marker of its own', () => {
     const { output, entries } = await stable(wrap(flagged.repeat(7)));
 
     assert.equal(todosIn(output), 7, output);
-    assert.equal(entries.filter(entry => entry.severity === 'manual').length, 1);
+    assert.equal(entries.filter(entry => entry.severity === 'review').length, 1);
   });
 
   it('marks the first one of siblings that sit in a fragment with a text between them', async() => {

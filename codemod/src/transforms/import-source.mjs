@@ -157,7 +157,7 @@ function applyRule(ctx, rule) {
 
       if (entry.note && !noted.has(binding.imported)) {
         noted.add(binding.imported);
-        ctx.report({ ruleId: rule.id, severity: 'manual', line, message: entry.note, scope: 'run' });
+        ctx.report({ ruleId: rule.id, severity: 'review', line, message: entry.note, scope: 'run' });
       }
     } else if (result.reason === 'collision') {
       ctx.report({

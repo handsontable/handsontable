@@ -16,6 +16,30 @@ How versions are chosen:
 
 ### Added
 
+- `--json` prints one JSON document on standard output and nothing else, for a run, `--dry-run`, `--list`, and a usage
+  error or a refusal (`schemaVersion` 1). The document holds the counts, the changed files, every report entry, the
+  changes of the guides that no rule covers, the skipped files, the notes, and, in a dry run, the diff of each file. The
+  notes and warnings stay on standard error, and the exit codes do not change.
+- A fourth severity, `review`, next to `changed`, `manual`, and `warning`. A `manual` entry is code that stops working,
+  throws, is removed, or is deprecated. A `review` entry is a spot where the behavior changed and the code may already be
+  right. The console report lists them in a group of their own, "To review", after the manual steps. The Markdown report
+  has a section of its own for them, the summary line says "N to review", and `Next:` has a line for them. A rule that
+  only reports sets `severity` to `review` in its manifest entry (`detect` rules already had the field). 28 rules of the
+  18.0, 18.1, and 19.0 manifests are `review`, and the notes of the type renames that change the shape of a type are
+  `review` as well. The marker in the code reads the same for both.
+- `--fail-on-manual` ends a run with exit code 3 when at least one manual step is left. A spot to review and a warning
+  never cause it, and code 1 wins over it.
+- `19.0.0/browserslist-targets`, a `dependency` rule with a `browserslist` field that holds the minimum browsers of the
+  release in the manifest. It reports the `browserslist` key of a `package.json` that declares Handsontable or a wrapper,
+  and the `.browserslistrc` next to it, when a query targets a version below the minimum, and lists the queries it cannot
+  judge (`defaults`, `last 2 versions`, `> 0.5%`, `extends`) as a spot to review. It never edits a configuration. The
+  change is no longer in the `notAutomated` list.
+- Three rules of the 19.0 draft: `19.0.0/height-auto`, `19.0.0/sizes-physical-index` (an array or a function as
+  `colWidths`, `rowHeights`, or `minRowHeights`), and `19.0.0/get-copyable-source-data`. All three are `review`. The
+  physical-index change is no longer in the `notAutomated` list.
+- `18.0.0/wrapper-dom-selectors` also reports a position-based walk of the old structure
+  (`querySelector('.ht-grid').firstElementChild`, `.firstChild`, and `.children`).
+
 - A manifest of a draft migration may leave out `guide` until its guide page exists, and a draft with no rules is
   valid. A released manifest still needs `guide`, and a rule or a `notAutomated` item of a manifest with no `guide`
   cannot name a guide anchor (the loader says so). `--list` and a run say "has no rules yet" for a selected migration
@@ -61,6 +85,10 @@ How versions are chosen:
 
 ### Changed
 
+- The note of a type rename that changes the shape of the type (`SummaryEndpoint`, `CellValue`, and the others that
+  say it in a `note`) is a `review` entry now. The rename is applied, and the note asks you to look at the shape. With
+  `--fail-on-manual` it does not cause exit code 3.
+- The summary line of the console and Markdown reports ends with "N to review" before the warnings.
 - The 19.0 draft follows the released Handsontable 19.0.0. The `guide` anchors of its rules and the `notAutomated`
   entries follow the released migration guide (changes grouped under six headings, with numbered `###` changes), the
   entries for the merged sections are merged (`HTML output changes for TrustedHTML paste, toHTML() headers, and

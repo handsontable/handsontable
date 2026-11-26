@@ -19,7 +19,7 @@
  */
 
 /**
- * @typedef {'changed'|'manual'|'warning'} Severity
+ * @typedef {'changed'|'manual'|'review'|'warning'} Severity
  */
 
 /**
@@ -27,8 +27,9 @@
  *
  * @typedef {object} ReportEntry
  * @property {string} ruleId Rule id, or `parse-error` or `transform-error` for tool failures.
- * @property {Severity} severity `changed` for a rewrite, `manual` for work left to the user, `warning` for a
- * tool problem or a doubtful spot.
+ * @property {Severity} severity `changed` for a rewrite, `manual` for work left to the user (code that stops
+ * working, throws, is removed, or is deprecated), `review` for a spot where the behavior changed and the code may
+ * already be right, `warning` for a tool problem or a doubtful spot.
  * @property {string} file Project-relative path with forward slashes.
  * @property {number|null} line One-based line in the file, or `null`.
  * @property {string} message What happened or what to do.
@@ -47,6 +48,8 @@
  * @typedef {object} ReportInput
  * @property {string} ruleId Id of the rule that produced the entry.
  * @property {Severity} severity Entry severity.
+ * @property {string} [file] A project-relative file other than the one being transformed, for a rule that reads a file
+ * next to it (the `.browserslistrc` of a `package.json`). Defaults to the file of the part.
  * @property {number} [line] One-based line inside the part's own source.
  * @property {number[]} [lines] Every line of a collapsed group of matches, inside the part's own source.
  * @property {string[]} [quoted] Fragments of `message` that are text from the user's files (a source line, say). The
@@ -188,6 +191,9 @@
  * @property {CatalogInfo|null} catalog The pnpm catalogs that apply to this `package.json`, read in phase 2 for a file
  * that holds a `catalog:` spec. `null` for any other part and when no `pnpm-workspace.yaml` lies between the file and
  * the project directory.
+ * @property {{file: string, text: string}|null} browserslistrc The `.browserslistrc` next to this `package.json`
+ * (`file` is project-relative with forward slashes), read in phase 2 for a run with a rule that checks the browsers.
+ * `null` for any other part, when the file is absent, a link, too large, or not UTF-8, and in a fixture without one.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally
  * `name:value`. Use `addFact()` and `hasFactFor()` from `src/lib/facts.mjs`: they also record the directory

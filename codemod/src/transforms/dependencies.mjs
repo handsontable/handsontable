@@ -1,7 +1,8 @@
 import { attributeName, findOf, propertyName } from '../lib/ast.mjs';
+import { judgeQueries, queriesOfPackage, queriesOfRc } from '../lib/browserslist.mjs';
 import { isRemoteSource, parseCatalogSpec, planRange, rangeAdmits } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, factSite, hasFactFor } from '../lib/facts.mjs';
-import { memberPosition } from '../lib/json-edit.mjs';
+import { memberPosition, scanJson } from '../lib/json-edit.mjs';
 import { redact } from '../lib/redact.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { problemsOf } from '../lib/validate.mjs';
@@ -825,6 +826,116 @@ function reportPresent(ctx, rule) {
 }
 
 /**
+ * Join names for a sentence: `A`, `A and B`, `A, B, and C`.
+ *
+ * @param {string[]} items The names.
+ * @returns {string} The text.
+ */
+function listOf(items) {
+  if (items.length <= 2) {
+    return items.join(' and ');
+  }
+
+  return `${items.slice(0, -1).join(', ')}, and ${items.at(-1)}`;
+}
+
+/**
+ * The one-based line of a top-level key of a `package.json`, or `undefined` when the text cannot be scanned.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {string} key The key.
+ * @returns {number|undefined} The line.
+ */
+function lineOfKey(ctx, key) {
+  try {
+    const member = scanJson(ctx.json?.text ?? '')?.members.find(item => item.key === key);
+
+    return member ? ctx.json.text.slice(0, member.keyStart).split('\n').length : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Report one Browserslist configuration against the minimum browsers of a release: a `manual` entry that names the
+ * queries below the minimum, and a `review` entry that names the queries the tool cannot judge. Nothing is edited.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule The rule that holds the minimums.
+ * @param {object} found What the configuration holds.
+ * @param {string} found.file The file the configuration is in.
+ * @param {Array<{query: string, line?: number}>} found.queries Its queries, with their lines when it has them.
+ * @param {number} [found.line] The line of the configuration, for a `package.json`.
+ * @returns {void}
+ */
+function reportConfig(ctx, rule, { file, queries, line }) {
+  const spec = rule.browserslist;
+  const names = spec.names ?? {};
+  const minimums = listOf(Object.entries(spec.minimums).map(([key, version]) => `${names[key] ?? key} ${version}`));
+  const { below, unchecked } = judgeQueries(queries.map(item => item.query), spec);
+  const lineOf = list => line ?? queries.find(item => item.query === list[0])?.line;
+
+  if (below.length > 0) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      file,
+      line: lineOf(below),
+      todo: false,
+      quoted: below,
+      message: `Raise the Browserslist targets in ${file} to the ${spec.release} minimums: ${minimums}. `
+        + `${listOf(below)} ${below.length === 1 ? 'targets' : 'target'} an older version, and ${spec.release} does `
+        + 'not support it. The tool never edits a Browserslist configuration.',
+    });
+  }
+
+  if (unchecked.length > 0) {
+    const those = unchecked.length === 1 ? 'that query' : 'those queries';
+
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'review',
+      file,
+      line: lineOf(unchecked),
+      todo: false,
+      quoted: unchecked,
+      message: `Check what ${listOf(unchecked)} in ${file} select, because the tool cannot judge ${those} without the `
+        + `data of Browserslist. They are fine when no browser below the ${spec.release} minimums (${minimums}) is in `
+        + 'the result: run npx browserslist in the project to see it.',
+    });
+  }
+}
+
+/**
+ * Report the Browserslist configuration of a package against the minimum browsers a rule names: the `browserslist` key
+ * of the `package.json`, and the `.browserslistrc` next to it (read by the runner). A package that does not declare one
+ * of the packages in `onlyIfDependsOn` is not checked, and a package with no configuration says nothing.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `browserslist` object.
+ * @returns {void}
+ */
+function reportBrowserslist(ctx, rule) {
+  const spec = rule.browserslist;
+
+  if (!isObject(spec) || !dependsOnAny(ctx.root, spec.onlyIfDependsOn)) {
+    return;
+  }
+
+  if ('browserslist' in ctx.root) {
+    reportConfig(ctx, rule, {
+      file: ctx.filePath,
+      queries: queriesOfPackage(ctx.root.browserslist).map(query => ({ query })),
+      line: lineOfKey(ctx, 'browserslist'),
+    });
+  }
+
+  if (ctx.browserslistrc) {
+    reportConfig(ctx, rule, { file: ctx.browserslistrc.file, queries: queriesOfRc(ctx.browserslistrc.text) });
+  }
+}
+
+/**
  * Check the items of a rule's `add`, `reportMissing`, and `reportPresent` lists.
  *
  * @param {import('../types.mjs').Rule} rule A `dependency` rule.
@@ -858,6 +969,53 @@ function assertItems(rule) {
   if ('reportOnly' in rule) {
     throw new Error(`Rule ${rule.id}: "reportOnly" is now "reportMissing".`);
   }
+
+  if ('browserslist' in rule) {
+    assertBrowserslist(rule);
+  }
+}
+
+/**
+ * Check the `browserslist` object of a rule: the minimum version of each browser, the name of the release, and the
+ * packages that make a `package.json` worth checking.
+ *
+ * @param {import('../types.mjs').Rule} rule A `dependency` rule with a `browserslist` field.
+ * @returns {void}
+ * @throws {Error} When a field is missing or has the wrong shape.
+ */
+function assertBrowserslist(rule) {
+  const spec = rule.browserslist;
+  const fail = (text) => {
+    throw new Error(`Rule ${rule.id}: "browserslist" ${text}`);
+  };
+  const isText = value => typeof value === 'string' && value !== '';
+  const isVersion = value => typeof value === 'string' && /^\d+(?:\.\d+)*$/.test(value);
+  const mapOf = (field, test, what) => {
+    if (spec[field] !== undefined && (!isObject(spec[field]) || !Object.values(spec[field]).every(test))) {
+      fail(`"${field}" must map a name to ${what}.`);
+    }
+  };
+
+  if (!isObject(spec)) {
+    fail('must be an object.');
+  }
+
+  if (!isObject(spec.minimums) || Object.keys(spec.minimums).length === 0
+    || !Object.values(spec.minimums).every(isVersion)) {
+    fail('"minimums" must map the Browserslist name of a browser to a version such as "130" or "18.2".');
+  }
+
+  if (!isText(spec.release)) {
+    fail('"release" must name the release the minimums belong to, such as "Handsontable 19.0".');
+  }
+
+  if (!isText(spec.onlyIfDependsOn) && !(Array.isArray(spec.onlyIfDependsOn) && spec.onlyIfDependsOn.length > 0
+    && spec.onlyIfDependsOn.every(isText))) {
+    fail('"onlyIfDependsOn" must be a package name or a non-empty list of package names.');
+  }
+
+  mapOf('names', isText, 'a display name');
+  mapOf('aliases', value => isText(value) && value in spec.minimums, 'the name of a browser in "minimums"');
 }
 
 /**
@@ -945,6 +1103,7 @@ const dependencies = {
       addPackages(ctx, rule);
       reportMissing(ctx, rule);
       reportPresent(ctx, rule);
+      reportBrowserslist(ctx, rule);
     }
   },
 };
