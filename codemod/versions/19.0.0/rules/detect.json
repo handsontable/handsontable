@@ -108,6 +108,11 @@
       "severity": "manual",
       "files": ["css", "js", "template"],
       "requires": "hot-file",
+      "precheck": "\\.(?:changeType|collapsibleIndicator|columnSorting\\.sortAction)(?![\\w-])",
+      "unmarked": {
+        "severity": "review",
+        "message": "Check that this selector targets the Handsontable grid. If it does, replace this pseudo-element selector with the matching .ht-icon-<name> class. The stylesheet names nothing else of Handsontable, and these class names are common words. Handsontable 19.0 renders every built-in icon as an <i class=\"ht-icon ht-icon-<name>\"> element, so a ::before or ::after rule on the old host paints nothing. The migration guide lists each old selector with its replacement."
+      },
       "guide": "icons-are-rendered-as-i-elements",
       "match": {
         "selector": "^(?=[\\s\\S]*::?(?:before|after)(?![\\w-]))(?=[\\s\\S]*(?:\\.(?:changeType|htAutocompleteArrow|htUISelectCaption|ht-page-first|ht-page-prev|ht-page-next|ht-page-last|ht-page-size-section__select-wrapper|ht-multi-select-chip-remove|ht-notification__close|htCheckboxRendererInput|htUIRadio|ht-multi-select-editor-item-selected|collapsibleIndicator|ht_nestingButton)|\\.columnSorting\\.sortAction|\\.htItemWrapper\\s+span\\.selected|\\.htSubmenu\\s+\\.htItemWrapper|\\b(?:before|after)Hidden(?:Column|Row))(?![\\w-]))"
@@ -256,11 +261,35 @@
       "match": {
         "anyOf": [
           { "property": "language", "valueMatches": "^sr-SP$", "flags": "i" },
-          { "import": "handsontable/i18n/languages/sr-SP" },
+          {
+            "import": [
+              "handsontable/i18n/languages/sr-SP",
+              "handsontable/i18n/languages/sr-SP.js",
+              "handsontable/i18n/languages/sr-SP.mjs",
+              "handsontable/languages/sr-SP",
+              "handsontable/languages/sr-SP.js",
+              "handsontable/languages/sr-SP.mjs",
+              "handsontable/dist/languages/sr-SP.js",
+              "handsontable/dist/languages/sr-SP.min.js"
+            ]
+          },
           { "regex": "\\bsrSP\\b", "code": true }
         ]
       },
       "message": "Replace the sr-SP language code with sr-Latn-RS. Handsontable 19.0 deprecates sr-SP, because IANA deprecated the SP region subtag, and 20.0 removes it. The phrases are the same. The new code is the sr-Latn-RS language file and the srLatnRS export, and you register and select it like any other language."
+    },
+    {
+      "id": "19.0.0/sr-sp-language-script",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "guide": "the-sr-sp-language-code-is-deprecated",
+      "files": ["template"],
+      "match": {
+        "regex": "(?:^|[/@])handsontable(?:@[^/\"']*)?/(?:i18n/|dist/)?languages/sr-SP(?:\\.min)?(?:\\.m?js)?$",
+        "in": "strings"
+      },
+      "message": "Replace this sr-SP language file with the sr-Latn-RS one. Handsontable 19.0 deprecates the sr-SP language code, because IANA deprecated the SP region subtag, and 20.0 removes it. The file languages/sr-Latn-RS (or dist/languages/sr-Latn-RS.js) ships from 19.0, so load it once the page loads Handsontable 19.0, and select the language with sr-Latn-RS."
     },
     {
       "id": "19.0.0/checked-menu-item-property",

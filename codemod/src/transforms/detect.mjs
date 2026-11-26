@@ -28,6 +28,7 @@ import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
 import { lookup } from '../lib/scope.mjs';
 import { blankCodeComments, blankToolComments } from '../lib/tool-comments.mjs';
+import { CSS_PRECHECK } from '../adapters/css.mjs';
 
 /**
  * A rule reports its matches one by one up to this number per part. A part with more matches gets one entry, at
@@ -298,6 +299,43 @@ function validateMatch(spec, files, where) {
 }
 
 /**
+ * Check the `unmarked` field of a rule: what the rule reports in a stylesheet with no Handsontable marker.
+ *
+ * @param {object} rule A `detect` rule that has `unmarked`.
+ * @param {string[]} files The `files` of the rule.
+ * @returns {string[]} Problem descriptions, empty when the field is valid.
+ */
+function validateUnmarked(rule, files) {
+  const { unmarked } = rule;
+
+  if (typeof unmarked !== 'object' || unmarked === null || Array.isArray(unmarked)) {
+    return ['"unmarked" must be an object with a "severity" and a "message"'];
+  }
+
+  const problems = Object.keys(unmarked)
+    .filter(field => field !== 'severity' && field !== 'message')
+    .map(field => `"unmarked" has unknown field "${field}"`);
+
+  if (!['review', 'warning'].includes(unmarked.severity)) {
+    problems.push('"unmarked.severity" must be review or warning');
+  }
+
+  if (typeof unmarked.message !== 'string' || unmarked.message === '') {
+    problems.push('"unmarked.message" is required');
+  }
+
+  if ((rule.requires ?? 'hot-file') !== 'hot-file' || !files.includes('css')) {
+    problems.push('"unmarked" goes with "requires": "hot-file" and a "files" list that has css');
+  }
+
+  if (typeof rule.precheck !== 'string') {
+    problems.push('"unmarked" needs a "precheck": the cheap test that lets a stylesheet with no marker be read');
+  }
+
+  return problems;
+}
+
+/**
  * Check the fields of one `detect` rule that the manifest validator does not check, and return the problems
  * found. The shipped rules are pinned against it by `test/detect.test.mjs`.
  *
@@ -337,8 +375,9 @@ export function validateDetectRule(rule) {
   }
 
   if (rule.precheck !== undefined) {
-    if (typeof rule.precheck !== 'string' || rule.requires !== 'none') {
-      problems.push('"precheck" must be a regular expression source, and goes with "requires": "none"');
+    if (typeof rule.precheck !== 'string' || (rule.requires !== 'none' && rule.unmarked === undefined)) {
+      problems.push('"precheck" must be a regular expression source, and goes with "requires": "none" or with '
+        + '"unmarked"');
     } else {
       try {
         regexOf(rule.precheck, 'i');
@@ -346,6 +385,10 @@ export function validateDetectRule(rule) {
         problems.push(`"precheck" is not a valid regular expression: ${error.message}`);
       }
     }
+  }
+
+  if (rule.unmarked !== undefined) {
+    problems.push(...validateUnmarked(rule, files));
   }
 
   if (rule.mergeKey !== undefined && (typeof rule.mergeKey !== 'string' || rule.mergeKey === '')) {
@@ -424,7 +467,7 @@ const compiledRules = new WeakMap();
  *
  * @param {import('../types.mjs').Rule} rule A `detect` rule.
  * @returns {{tree: Compiled, files: string[], requires: string, severity: string, unlessFile: RegExp|null,
- * precheck: RegExp|null}} The compiled rule.
+ * precheck: RegExp|null, unmarked: {severity: string, message: string}|null}} The compiled rule.
  * @throws {Error} When the rule is invalid.
  */
 function compileRule(rule) {
@@ -442,6 +485,7 @@ function compileRule(rule) {
       severity: rule.severity ?? 'manual',
       unlessFile: regexOf(rule.unlessFileMatches),
       precheck: regexOf(rule.precheck, 'i'),
+      unmarked: rule.unmarked ?? null,
     });
   }
 
@@ -2128,6 +2172,13 @@ function applyRule(env, rule) {
     return;
   }
 
+  // A stylesheet with no Handsontable marker of its own: the rule reports what a reader has to check.
+  const unmarked = ctx.fileKind === 'css' && compiled.unmarked !== null && !CSS_PRECHECK.test(env.clean())
+    ? compiled.unmarked : null;
+  const shown = unmarked
+    ? { ...rule, message: unmarked.message, variableMessage: undefined, unresolvedMessage: undefined } : rule;
+  const severity = unmarked ? unmarked.severity : compiled.severity;
+
   if (typeof rule.emitsFact === 'string') {
     addFact(ctx, rule.emitsFact);
   }
@@ -2135,10 +2186,10 @@ function applyRule(env, rule) {
   if (matches.length <= COLLAPSE_AFTER) {
     matches.forEach(match => ctx.report({
       ruleId: rule.id,
-      severity: compiled.severity,
+      severity,
       line: match.line,
       ...(match.column !== undefined ? { markColumn: match.column } : {}),
-      message: messageOf(rule, match),
+      message: messageOf(shown, match),
       ...(rule.mergeKey && match.line !== undefined
         ? { mergeKey: `${rule.mergeKey}:${match.line}`, merge: 'earliest' } : {}),
     }));
@@ -2148,11 +2199,12 @@ function applyRule(env, rule) {
 
   ctx.report({
     ruleId: rule.id,
-    severity: compiled.severity,
+    severity,
     line: matches[0].line,
     lines: matches.map(match => match.line),
     ...(matches.some(match => match.column !== undefined) ? { markColumns: matches.map(match => match.column) } : {}),
-    message: `${rule.variableMessage && matches.every(match => match.variable) ? rule.variableMessage : rule.message} `
+    message: `${shown.variableMessage && matches.every(match => match.variable)
+      ? shown.variableMessage : shown.message} `
       + `This part has ${matches.length} matches.`,
   });
 }
@@ -2220,16 +2272,19 @@ const detect = {
 
   /**
    * The rules that may still run on a file the adapter's precheck rejected (it never says Handsontable): the ones with
-   * `requires: "none"` and a `precheck` of their own that the file matches. Every other rule keeps the guard.
+   * a `precheck` of their own that the file matches and `requires: "none"`, or `unmarked` when the adapter reads a
+   * stylesheet. Every other rule keeps the guard.
    *
    * @param {import('../types.mjs').Rule[]} rules `detect` rules.
    * @param {string} source Text of the file.
+   * @param {string[]} [fileKinds] The part kinds of the adapter that rejected the file.
    * @returns {import('../types.mjs').Rule[]} The rules to run.
    */
-  rescue(rules, source) {
+  rescue(rules, source, fileKinds = []) {
     const text = blankToolComments(source);
 
-    return rules.filter(rule => rule.requires === 'none' && typeof rule.precheck === 'string'
+    return rules.filter(rule => typeof rule.precheck === 'string'
+      && (rule.requires === 'none' || (rule.unmarked !== undefined && fileKinds.includes('css')))
       && compileRule(rule).precheck.test(text));
   },
 

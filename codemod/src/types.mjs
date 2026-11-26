@@ -223,8 +223,8 @@
  * validator cannot express, and return the problems (an empty list for a valid rule). The manifest loader calls it,
  * so a malformed rule fails `--list` and the manifest tests with the rule id and the field, and never surfaces as a
  * per-file `transform-error`.
- * @property {(rules: Rule[], source: string) => Rule[]} [rescue] The rules that may run on a file the adapter's
- * precheck rejected. The runner calls it only for a file that fails the precheck, and runs the module with the
+ * @property {(rules: Rule[], source: string, fileKinds: FileKind[]) => Rule[]} [rescue] The rules that may run on a file
+ * the adapter's precheck rejected (`fileKinds` are the part kinds of that adapter). The runner calls it only for a file that fails the precheck, and runs the module with the
  * returned rules alone, so every other rule keeps the guard.
  * @property {{fileKinds: FileKind[], precheck?: RegExp}} [scan] Only for a module whose kinds run in phase 2.
  * In phase 1 the runner also calls `apply`, with the module's rules, on parts of the listed `fileKinds`, so the

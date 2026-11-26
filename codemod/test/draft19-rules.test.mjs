@@ -497,3 +497,164 @@ describe('19.0.0/auto-row-size-use-headers says when the read still answers', ()
     assert.match(entry.message, /returns undefined, unless you set it in the autoRowSize option\./);
   });
 });
+
+describe('19.0.0/icon-pseudo-element-selectors in a stylesheet with no other mark of Handsontable', () => {
+  const RULE = '19.0.0/icon-pseudo-element-selectors';
+  const GENERIC = ['changeType', 'collapsibleIndicator', 'columnSorting.sortAction'];
+  const UNIQUE = ['htAutocompleteArrow', 'htUISelectCaption', 'ht-page-first', 'ht-page-prev', 'ht-page-next',
+    'ht-page-last', 'ht-page-size-section__select-wrapper', 'ht-multi-select-chip-remove', 'ht-notification__close',
+    'htCheckboxRendererInput', 'htUIRadio', 'ht-multi-select-editor-item-selected', 'ht_nestingButton',
+    'htDropdownMenu .htItemWrapper span.selected', 'htSubmenu .htItemWrapper', 'th.beforeHiddenColumn',
+    'th.afterHiddenColumn', 'th.beforeHiddenRow', 'th.afterHiddenRow'];
+
+  /**
+   * The `severity:line` texts that the rule reports in a file.
+   *
+   * @param {string} filePath File name.
+   * @param {string} source File text.
+   * @returns {Promise<string[]>} The entries.
+   */
+  async function reported(filePath, source) {
+    const results = await runs(filePath, source, [RULE]);
+
+    // A marker the first run wrote is not a mark of Handsontable: the next runs report the same classes, each one
+    // line lower (the marker is a line of its own).
+    const classes = result => lines(result, RULE).map(item => item.split(':')[0]);
+
+    assert.deepEqual(classes(results[1]), classes(results[0]));
+    assert.deepEqual(classes(results[2]), classes(results[0]));
+    assert.equal(results[1].changed, false);
+
+    return lines(results[0], RULE);
+  }
+
+  it('reads a class of Handsontable alone as a Handsontable stylesheet (manual), also with no other mark', async() => {
+    for (const name of UNIQUE) {
+      assert.deepEqual(await reported('a.css', `.${name}::before { content: ''; }\n`), ['manual:1'], name);
+    }
+  });
+
+  it('reports a common name as review in a stylesheet that names nothing else, and keeps the other class silent', async() => {
+    const source = '.changeType::before { color: red; }\n.my-card::before { content: ""; }\n'
+      + '.changeType { color: red; }\n';
+
+    assert.deepEqual(await reported('a.css', source), ['review:1']);
+    assert.deepEqual(await reported('a.scss', source), ['review:1']);
+
+    for (const name of GENERIC) {
+      assert.deepEqual(await reported('a.css', `.${name}::after { color: red; }\n`), ['review:1'], name);
+    }
+
+    assert.deepEqual(await reported('a.css', '.my-card::before { content: ""; }\n'), []);
+  });
+
+  it('reports a common name as manual once the stylesheet has a mark of Handsontable of its own', async() => {
+    const marks = ['a { color: var(--ht-foreground-color); }', '.htCore { margin: 0; }',
+      '.ht-theme-main { margin: 0; }',
+      '.ht_master { margin: 0; }', '/* The Handsontable grid. */', '.pika-single { margin: 0; }'];
+
+    for (const mark of marks) {
+      assert.deepEqual(await reported('a.css', `${mark}\n.changeType::before { color: red; }\n`), ['manual:2'], mark);
+    }
+  });
+
+  it('does not count its own comment as a mark of Handsontable', async() => {
+    const [first] = await runs('a.css', '.changeType::before { color: red; }\n', [RULE]);
+
+    assert.ok(first.output.includes(TODO), 'the review entry is marked in the code');
+    assert.deepEqual(lines(first, RULE), ['review:1']);
+    assert.deepEqual(lines(await transformFile({ filePath: 'a.css',
+      source: first.output,
+      plan: buildPlan(manifests, [RULE]) }), RULE), ['review:2']);
+  });
+
+  it('reads a common name in a script as before: only in a file that uses Handsontable', async() => {
+    assert.deepEqual(await reported('a.js', 'const css = ".changeType::before { color: red; }";\n'), []);
+    assert.deepEqual(await reported('a.js', `${HOT}const css = ".changeType::before { color: red; }";\n`),
+      ['manual:2']);
+  });
+
+  it('is checked on load: unmarked needs a css file, hot-file, a precheck, and a review or warning message', async() => {
+    const { validateDetectRule } = await import('../src/transforms/detect.mjs');
+    const base = {
+      id: 'x/r',
+      kind: 'detect',
+      files: ['css'],
+      message: 'm',
+      match: { selector: 'a' },
+      precheck: 'a',
+      unmarked: { severity: 'review', message: 'n' },
+    };
+
+    assert.deepEqual(validateDetectRule(base), []);
+    assert.deepEqual(validateDetectRule({ ...base,
+      requires: 'hot-file',
+      unmarked: { severity: 'warning', message: 'n' } }), []);
+    assert.match(validateDetectRule({ ...base, unmarked: 'review' })[0], /must be an object/);
+    assert.match(validateDetectRule({ ...base, unmarked: { severity: 'manual', message: 'n' } })[0],
+      /severity" must be review or warning/);
+    assert.match(validateDetectRule({ ...base, unmarked: { severity: 'review' } })[0], /message" is required/);
+    assert.match(validateDetectRule({ ...base, unmarked: { severity: 'review', message: 'n', extra: 1 } })[0],
+      /unknown field "extra"/);
+    assert.match(validateDetectRule({ ...base, files: ['js'] })[0],
+      /goes with "requires": "hot-file" and a "files" list/);
+    assert.match(validateDetectRule({ ...base, requires: 'none' })[0], /goes with "requires": "hot-file"/);
+    assert.match(validateDetectRule({ ...base, precheck: undefined })[0], /needs a "precheck"/);
+  });
+});
+
+describe('19.0.0/sr-sp-language-code and the files of the language', () => {
+  const RULE = '19.0.0/sr-sp-language-code';
+  const SCRIPT = '19.0.0/sr-sp-language-script';
+  const PUBLISHED = ['handsontable/i18n/languages/sr-SP', 'handsontable/i18n/languages/sr-SP.js',
+    'handsontable/i18n/languages/sr-SP.mjs', 'handsontable/languages/sr-SP', 'handsontable/languages/sr-SP.js',
+    'handsontable/languages/sr-SP.mjs', 'handsontable/dist/languages/sr-SP.js',
+    'handsontable/dist/languages/sr-SP.min.js'];
+
+  it('reports every published path of the file as a side-effect import, a default import, require(), and import()', async() => {
+    const plan = buildPlan(manifests, [RULE]);
+
+    for (const path of PUBLISHED) {
+      for (const text of [`import '${path}';\n`, `import serbian from '${path}';\n`,
+        `const serbian = require('${path}');\n`,
+        `const serbian = await import('${path}');\n`]) {
+        const result = await transformFile({ filePath: 'a.js', source: text, plan });
+
+        assert.deepEqual(result.entries.map(entry => entry.line), [1], text);
+      }
+    }
+  });
+
+  it('does not report the new file, a longer name, or a path of another package', async() => {
+    const plan = buildPlan(manifests, [RULE]);
+    const names = ['handsontable/languages/sr-Latn-RS.js', 'handsontable/i18n/languages/sr-Latn-RS',
+      'handsontable/dist/languages/sr-Latn-RS.min.js', 'handsontable/languages/sr-SPA.js',
+      'handsontable/languages/sr-SP.json', 'other/languages/sr-SP.js', './languages/sr-SP.js'];
+
+    for (const name of names) {
+      const result = await transformFile({ filePath: 'a.js', source: `${HOT}import '${name}';\n`, plan });
+
+      assert.deepEqual(result.entries, [], name);
+    }
+  });
+
+  it('reports the script tag of a page for the published files, and nothing else', async() => {
+    const plan = buildPlan(manifests, [SCRIPT]);
+    const report = async(src, tag = 'script') => (await transformFile({
+      filePath: 'a.html', source: `<${tag} src="${src}"></${tag}>\n`, plan,
+    })).entries.map(entry => entry.line);
+
+    for (const src of ['https://cdn.jsdelivr.net/npm/handsontable/dist/languages/sr-SP.min.js',
+      'https://cdn.jsdelivr.net/npm/handsontable@18.1.3/dist/languages/sr-SP.js',
+      'https://unpkg.com/handsontable/dist/languages/sr-SP.js', '/node_modules/handsontable/languages/sr-SP.mjs',
+      'node_modules/handsontable/i18n/languages/sr-SP.js']) {
+      assert.deepEqual(await report(src), [1], src);
+    }
+
+    for (const src of ['https://cdn.jsdelivr.net/npm/handsontable/dist/languages/sr-Latn-RS.min.js',
+      './languages/sr-SP.js', 'https://cdn.jsdelivr.net/npm/handsontable/dist/languages/sr-SP.min.js.map',
+      'https://example.com/handsontable/dist/handsontable.js']) {
+      assert.deepEqual(await report(src), [], src);
+    }
+  });
+});

@@ -155,6 +155,7 @@ export const RULE_KINDS = {
       mergeKey: 'string',
       variableMessage: 'string',
       unresolvedMessage: 'string',
+      unmarked: 'object',
       todo: 'boolean',
     },
   },

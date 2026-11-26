@@ -6,9 +6,13 @@ import { CssDocument } from '../lib/css-edit.mjs';
 /**
  * Cheap test on raw stylesheet text: does it mention a Handsontable class, a theme variable, or a
  * Handsontable-related name. It deliberately does not require the word "handsontable", because a stylesheet
- * rarely says it.
+ * rarely says it. `ht_` is the old spelling of the structural classes (`ht_master`, `ht_nestingButton`), and
+ * `beforeHiddenColumn` and its three siblings mark the hidden rows and columns: both belong to Handsontable only.
+ * A stylesheet that passes is a Handsontable stylesheet for the rules that read the difference (`unmarked` of a
+ * `detect` rule).
  */
-export const CSS_PRECHECK = /--ht-|\bht-|\bht[A-Z]|[Hh]andsontable|\.pika-/;
+export const CSS_PRECHECK = new RegExp('--ht-|\\bht-|\\bht[A-Z]|\\bht_|\\b(?:before|after)Hidden(?:Column|Row)\\b'
+  + '|[Hh]andsontable|\\.pika-');
 
 /**
  * Parse stylesheet text into a `css` part.

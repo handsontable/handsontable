@@ -1,0 +1,22 @@
+/* A stylesheet of the project. Nothing in it is a name of the grid. */
+.changeType::before {
+  background-color: blue;
+}
+
+.collapsibleIndicator::after {
+  content: '+';
+}
+
+.columnSorting.sortAction::before {
+  color: red;
+}
+
+/* The same names without a pseudo-element are not reported. */
+.changeType {
+  color: blue;
+}
+
+/* Another stylesheet's pseudo-element is not reported. */
+.my-card::before {
+  content: '';
+}

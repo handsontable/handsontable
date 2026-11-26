@@ -776,7 +776,7 @@ export async function transformFile({
     }
 
     // A module may keep a few rules alive on a file the precheck rejects, and only those rules then run.
-    const rescued = step.transform.rescue?.(step.rules, source) ?? [];
+    const rescued = step.transform.rescue?.(step.rules, source, adapter.fileKinds) ?? [];
 
     return rescued.length > 0 ? [{ ...step, rules: rescued }] : [];
   });

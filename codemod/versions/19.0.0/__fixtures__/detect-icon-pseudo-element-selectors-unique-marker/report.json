@@ -1,0 +1,20 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 2
+    },
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 6
+    },
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 10
+    }
+  ]
+}

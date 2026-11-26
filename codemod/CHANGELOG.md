@@ -16,6 +16,11 @@ How versions are chosen:
 
 ### Added
 
+- `19.0.0/sr-sp-language-script` reports the `<script src>` of a page that loads a published `sr-SP` language file (the
+  `dist` file from a CDN or `node_modules`, with or without `.min`).
+- `unmarked` on a `detect` rule: what the rule reports, and with which severity, in a stylesheet that has no mark of
+  Handsontable. The manifest loader checks it.
+
 - `--json` prints one JSON document on standard output and nothing else, for a run, `--dry-run`, `--list`, and a usage
   error or a refusal (`schemaVersion` 1). The document holds the counts, the changed files, every report entry, the
   changes of the guides that no rule covers, the skipped files, the notes, and, in a dry run, the diff of each file. The
@@ -124,6 +129,17 @@ How versions are chosen:
   the options in it are reported and not rewritten. A grid cast or declared as a type of the project is not an instance.
 
 ### Fixed
+
+- `19.0.0/icon-pseudo-element-selectors` reads a stylesheet that names nothing else of Handsontable. A `::before` or
+  `::after` rule on a common class name (`.changeType`, `.collapsibleIndicator`, `.columnSorting.sortAction`) was never
+  looked at there. It is now a spot to review (the entry says to check that the selector targets the grid), and stays a
+  manual step in a stylesheet that has another mark of Handsontable. A class that only the grid uses (`.ht_nestingButton`,
+  `.beforeHiddenColumn`, and the other hidden row and column classes) now makes the stylesheet a Handsontable one on its
+  own, so those rules are reported as manual steps wherever they stand. `ht_` and the four hidden indicators join the
+  words that let a stylesheet through the first check.
+- `19.0.0/sr-sp-language-code` reports an import of every published file of the `sr-SP` language: the paths with `.js`
+  and `.mjs`, `handsontable/languages/sr-SP`, and `handsontable/dist/languages/sr-SP.js` and `.min.js`, as an `import`, a
+  side-effect import, `require()`, and `import()`. Before, only `handsontable/i18n/languages/sr-SP` without an extension.
 
 - A TODO on a statement that stands on one line and that no rule changed (`if (ready) call();`, a `for`, a `while`, a
   label, a declaration, an `export`) goes on the line above, and the statement keeps its line, byte for byte. Before, the

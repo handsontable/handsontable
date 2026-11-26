@@ -401,7 +401,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    `Next:` lines are not printed, and the `Report written` line goes to standard error. A document is written for every
    way out of `main()` except `--help` and `--version`.
 
-A transform may export `rescue(rules, source)`: the rules that may still run on a file the adapter's `precheck` rejected.
+A transform may export `rescue(rules, source, fileKinds)`: the rules that may still run on a file the adapter's `precheck` rejected (`fileKinds` are the part kinds of that adapter).
 The runner calls it only for such a file and then runs the module with the returned rules alone, so every other rule
 keeps the guard. `detect` is the only user (see the `precheck` field).
 
@@ -505,7 +505,7 @@ across kinds. Every kind also takes the common fields, and `safe` is required ex
 | `callUnwrap` | `callee*` (dotted path), `arg` |
 | `cssVariable`, `themeToken` | `from*`, then `to` or `removed` + `advice`; `themeToken` also `callees` |
 | `dependency` | `bump`, `replaced`, `add`, `reportMissing`, `reportPresent`, `facts`, `browserslist` (item fields below) |
-| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `precheck` (regex source, tested without case, only with `requires: "none"`: a file the adapter's precheck rejects still runs this rule when it matches), `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the earliest one wins), `todo` (`false` leaves no marker for the rule) |
+| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `precheck` (regex source, tested without case, only with `requires: "none"` or with `unmarked`: a file the adapter's precheck rejects still runs this rule when it matches), `unmarked` (`{ severity: "review" | "warning", message }`, a stylesheet only: see the traps of the 19.0 draft), `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the earliest one wins), `todo` (`false` leaves no marker for the rule) |
 | `custom` | `module*`, plus whatever the module reads (`mode`) |
 
 `dependency` item fields: `bump` maps a package name to a target version. `replaced` maps a package name to the
@@ -647,6 +647,28 @@ Traps of this draft:
   in js, so a template with a dropdown column reports the bound `strict=false` of any column in it.
 - Every fixture of this draft has `options.json` with `only`, so a rule that matches a common input (the license
   regex, `rowHeights`) cannot change the exact `report.json` of another rule's fixture.
+- **A stylesheet is "hot" when `CSS_PRECHECK` matches its text (`adapters/css.mjs`).** `requires: "hot-file"` gates a js
+  part only (`isHotFile`). A css or template part has no such gate in `applyRule()`, so what keeps a rule off a stylesheet
+  is the adapter's precheck, which rejects the file before the rule is read. `CSS_PRECHECK` holds `--ht-`, `ht-`, `htX`,
+  `ht_`, the four hidden row and column indicators, the word, and `.pika-`. A rule whose selector is only a common word
+  (`.changeType`, `.collapsibleIndicator`, `.columnSorting.sortAction`) can say `unmarked: { severity, message }`, with
+  `requires: "hot-file"`, `css` in `files`, and a `precheck` that lets such a stylesheet through (`rescue()` keeps the rule
+  alive for an adapter that reads css). In a stylesheet whose text, read without the comments of the tool, has no
+  `CSS_PRECHECK` match, the rule reports with that severity and message (`19.0.0/icon-pseudo-element-selectors`: `review`,
+  "check that this selector targets the grid"); in any other stylesheet it reports as it always did (`manual`). The comments
+  of the tool must not count as a mark, or the marker of the first run would turn a `review` entry into a `manual` one in
+  the second (`env.clean()`), and `loadManifest()` checks the field (`validateUnmarked()`). A class that only the grid uses
+  must stay in `CSS_PRECHECK`: it is what makes a stylesheet hot, and the rule has no `unmarked` text for it. A Vue `<style>`
+  block still goes through its own `CSS_PRECHECK` test, so a block with only a common name is not read, and the rules of
+  the 18.0 and 18.1 manifests (`.ht-grid`, `htDatepickerHolder`, `pika-`) name a mark in their own selector and never had
+  the gap.
+- `19.0.0/sr-sp-language-code` matches the file of the language by the exact module names the 18.1.3 and 19.0.0 packages
+  publish: `handsontable/i18n/languages/sr-SP`, `handsontable/languages/sr-SP`, each also with `.js` and `.mjs`, and
+  `handsontable/dist/languages/sr-SP.js` and `.min.js`. The `import` matcher compares the module name as written, equal to a
+  listed name or below it (`name/...`), and does no extension handling, so every spelling is a name of the list. The
+  matcher is js only, so the `<script src>` of a page is its own rule, `19.0.0/sr-sp-language-script` (`files: ["template"]`,
+  a `regex` over quoted values that names `handsontable`, the optional `i18n/` or `dist/`, `languages/sr-SP`, `.min`, and
+  `.js` or `.mjs`, anchored at the end).
 - `19.0.0/sr-sp-language-code` reports and does not rewrite, on purpose. `sr-SP` still works in 19.x with one console
   warning, so no code stops working. The replacement file `languages/sr-Latn-RS` is not in 18.x (18.1.3 ships only
   `sr-SP`), the tool installs nothing, and a run that does not raise the range (a `catalog:` or peer spec, a remote
