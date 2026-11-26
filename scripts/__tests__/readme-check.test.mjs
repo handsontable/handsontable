@@ -4,7 +4,33 @@ import { existsSync } from 'node:fs';
 import {
   extractLinks, isInternal, extractFeatures, featureDrift, findStaleVersions,
   findWrongDocsPrefix, findUnprefixedDocsLinks, isAbsolute, absolute, DOCS_PREFIX, READMES,
+  docsPageSlug, isUnpublishedDocsPage,
 } from '../readme-check.mjs';
+
+test('docsPageSlug reads the page slug with or without a framework prefix', () => {
+  assert.equal(docsPageSlug('https://handsontable.com/docs/react-data-grid/sheets-bar/'), '/sheets-bar');
+  assert.equal(docsPageSlug('https://handsontable.com/docs/vue-data-grid/sheets-bar'), '/sheets-bar');
+  assert.equal(docsPageSlug('https://handsontable.com/docs/sheets-bar/'), '/sheets-bar');
+  assert.equal(docsPageSlug('https://handsontable.com/docs/sheets-bar/#anchor'), '/sheets-bar');
+});
+
+test('docsPageSlug returns null for anything that is not a single guide page', () => {
+  assert.equal(docsPageSlug('https://handsontable.com/docs'), null);
+  assert.equal(docsPageSlug('https://handsontable.com/docs/react-data-grid/'), null);
+  assert.equal(docsPageSlug('https://handsontable.com/docs/api/core/'), null);
+  assert.equal(docsPageSlug('https://example.com/docs/sheets-bar/'), null);
+});
+
+test('isUnpublishedDocsPage accepts a page in the docs source and rejects a typo', () => {
+  const permalinks = new Set(['/sheets-bar', '/view-state']);
+
+  const docs = 'https://handsontable.com/docs';
+
+  assert.equal(isUnpublishedDocsPage(`${docs}/react-data-grid/sheets-bar/`, permalinks), true);
+  assert.equal(isUnpublishedDocsPage(`${docs}/javascript-data-grid/sheet-bar/`, permalinks), false);
+  assert.equal(isUnpublishedDocsPage('https://handsontable.com/docs/api/core/', permalinks), false);
+  assert.equal(isUnpublishedDocsPage('https://handsontable.com/docs/sheets-bar/', new Set()), false);
+});
 
 test('extractLinks finds markdown links, HTML attributes and srcset URLs', () => {
   const md = [
