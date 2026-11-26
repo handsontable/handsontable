@@ -164,10 +164,12 @@ back. Six rules, pinned in `__tests__/safariMouseLeave.unit.ts`:
 - **A kept element that is no longer the highlighted cell loses the workaround on the next draw**
   (`getCell(highlight) !== element`, or no highlight). The grid reuses its elements: after a scroll the
   kept `TD` draws a cell of another row (row 205 in a WebKit probe), which stayed `contenteditable`
-  without `aria-hidden`. The draw removes `contenteditable`, the class and the marker attribute, and keeps
-  the selection of the document (`removeContentEditableFromElementAndDeselect(element, true, false)`): a
-  draw cannot tell whether that selection is still the workaround's. Until the next `mouseleave` Safari's
-  own Copy command has no selection to copy for that cell.
+  without `aria-hidden`. The draw removes `contenteditable`, the class and the marker attribute, and
+  removes the selection of the document only while its anchor or focus still lies in the element
+  (`#isSelectionInside()`). The reused `TD` keeps its text node (`fastInnerText` rewrites it in place), so
+  the workaround's selection covers the new cell's text, and without the marker it shows. A selection
+  the user made elsewhere on the page is kept. Until the next `mouseleave` Safari's own Copy command has
+  no selection to copy for that cell.
 - **Taking the workaround off cleans the kept element, not only the highlighted cell.**
   `afterSelection` runs after the highlight moved, so the lookup finds the new cell. The old one stayed
   editable, and the next draw exposed it.

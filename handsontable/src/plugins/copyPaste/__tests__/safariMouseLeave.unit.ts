@@ -331,8 +331,38 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
       expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
       expect(cell?.classList.contains('invisibleSelection')).toBe(false);
       expect(hot.getCell(0, 0)?.hasAttribute('aria-hidden')).toBe(false);
-      // A draw must not clear a selection the user may have made elsewhere on the page.
-      expect(window.getSelection()?.toString()).toBe('B2');
+      // The marker no longer paints the workaround's selection transparent, so it must go as well.
+      expect(window.getSelection()?.toString()).toBe('');
+      expect(window.getSelection()?.rangeCount).toBe(0);
+    });
+
+    it('should keep a selection made outside the kept element when the draw takes the workaround off', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+      const outsideText = document.createElement('p');
+
+      outsideText.textContent = 'Outside the grid';
+      document.body.appendChild(outsideText);
+
+      hot.unlisten();
+      hot.selectCell(0, 0, 0, 0, false, false);
+
+      const range = document.createRange();
+
+      range.selectNodeContents(outsideText);
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
+
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      // A draw must not clear a selection the user made elsewhere on the page.
+      expect(window.getSelection()?.toString()).toBe('Outside the grid');
+
+      outsideText.remove();
     });
 
     it('should take the workaround off the kept element when no cell is highlighted any more', () => {

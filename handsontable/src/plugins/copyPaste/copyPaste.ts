@@ -1027,8 +1027,9 @@ export class CopyPaste extends BasePlugin {
    *
    * An element that is no longer the highlighted cell loses the workaround. The grid reuses its
    * elements, so after a scroll the kept one can draw another cell, which would stay editable and
-   * exposed. The selection of the document is kept: a draw cannot tell whether it is still the one
-   * the workaround made.
+   * exposed. The selection of the document goes with it while it still lies in that element, because
+   * without the marker attribute the workaround's selection would show. A selection made elsewhere is
+   * kept.
    */
   #restoreAriaHiddenOnEditableCell() {
     const element = this.#safariEditableElement;
@@ -1046,7 +1047,7 @@ export class CopyPaste extends BasePlugin {
 
     if (this.#getHighlightedElement() !== element) {
       this.#safariEditableElement = null;
-      removeContentEditableFromElementAndDeselect(element, true, false);
+      removeContentEditableFromElementAndDeselect(element, true, this.#isSelectionInside(element));
 
       return;
     }
@@ -1054,6 +1055,24 @@ export class CopyPaste extends BasePlugin {
     if (!element.hasAttribute('aria-hidden')) {
       setAttribute(element, [A11Y_HIDDEN()]);
     }
+  }
+
+  /**
+   * Checks whether the selection of the document starts or ends inside the provided element. The
+   * Safari `mouseleave` workaround selects the element's contents, and a draw that reuses the element
+   * for another cell keeps that selection on the new contents.
+   *
+   * @param {HTMLElement} element The element to check.
+   * @returns {boolean}
+   */
+  #isSelectionInside(element: HTMLElement): boolean {
+    const selection = element.ownerDocument.defaultView?.getSelection();
+
+    if (!selection || selection.rangeCount === 0) {
+      return false;
+    }
+
+    return element.contains(selection.anchorNode) || element.contains(selection.focusNode);
   }
 
   /**

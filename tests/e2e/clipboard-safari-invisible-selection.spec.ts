@@ -151,6 +151,9 @@ test.describe('the Safari copy selection', { tag: CROSS_BROWSER_TAG }, () => {
     // `aria-hidden`, a screen reader reads that cell as an editable region.
     await expect(editableCells).toHaveCount(0);
     expect(await grid.selected()).toEqual([[0, 1, 0, 1]]);
+    // The reused element keeps its text node, so the workaround's selection would cover the new value,
+    // and without the marker attribute it would show.
+    expect(await page.evaluate(() => window.getSelection()?.toString())).toBe('');
   });
 
   test('keeps a highlighted column header hidden from assistive technology across a render', async({ browserName }) => {
