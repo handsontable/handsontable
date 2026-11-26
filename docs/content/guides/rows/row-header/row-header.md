@@ -396,7 +396,7 @@ Possible values:
 
 ## Keyboard navigation
 
-By default, the arrow keys move focus between cells only. To let users move focus onto the row headers, set [`navigableHeaders`](@/api/options.md#navigableheaders) to `true`. Then press <kbd>**←**</kbd> in the first column to focus a row header, and <kbd>**→**</kbd> to go back to the cells.
+By default, the arrow keys move focus between cells only. To let users move focus onto the row headers, set [`navigableHeaders`](@/api/options.md#navigableheaders) to `true`. Then press <kbd>**←**</kbd> in the first column to focus a row header, and <kbd>**→**</kbd> to go back to the cells. In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the row headers are on the right, so the two keys swap.
 
 The example in [Row headers as an array](#row-headers-as-an-array) sets `navigableHeaders` to `true`.
 
