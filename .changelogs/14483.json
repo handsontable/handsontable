@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a keyboard move (Ctrl/Cmd+Alt+G, then the arrow keys) and the \"Move column left/right\" and \"Move row up/down\" menu items, which move columns and rows without dragging. The items join the default context menu, and the column items the default column menu, while the ManualColumnMove or ManualRowMove plugin is enabled.",
+  "type": "added",
+  "issueOrPR": 14483,
+  "breaking": true,
+  "framework": "none"
+}
