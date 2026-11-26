@@ -290,7 +290,7 @@ hot.getPlugin('mergeCells').unmerge(startRow, startColumn, endRow, endColumn);
 
 This clears the underlying data the same way as merging through the UI or the [`mergeCells`](@/api/options.md#mergecells) configuration option. See [Effect on the underlying data](#effect-on-the-underlying-data).
 
-Inside a [`batch()`](@/api/core.md#batch), `merge()` and `unmerge()` wait for the end of the batch when you call them after a move or sort made earlier in the same batch. A call made before the move runs at once. The range you pass is the range you see after that move or sort. The merge takes effect, and the `beforeMergeCells` and `afterMergeCells` hooks fire, when the batch ends. If rows or columns are added or removed, or a row or column of the range is trimmed, before the batch ends, the plugin drops the call and prints a warning. To merge at once, call `merge()` after the batch.
+Inside a [`batch()`](@/api/core.md#batch), `merge()` and `unmerge()` wait for the end of the batch when you call them after a move or sort made earlier in the same batch. A call made before the move runs at once. The range you pass is the range you see after that move or sort. The merge takes effect, and the `beforeMergeCells` and `afterMergeCells` hooks fire, when the batch ends. If rows or columns are added or removed before the batch ends, the range follows them. The plugin drops the call and prints a warning when a row or column at a corner of the range is removed, or when a row or column of the range is trimmed. To merge at once, call `merge()` after the batch.
 
 The example below merges and unmerges a footnote row that spans every column, using buttons instead of a manual selection.
 
