@@ -507,7 +507,7 @@ To change the text, override the `CollapsibleColumns:announcement.expanded` and 
 
 ## Related keyboard shortcuts
 
-The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> shortcut works from a data cell or a focused column header, with or without `navigableHeaders`. The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> shortcut works from a data cell or a focused column header, with or without `navigableHeaders`. The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys, as the examples in [Nested column headers](#nested-column-headers) and [Collapsible headers](#collapsible-headers) do. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows                                     | macOS                                        | Action                                                  |  Excel  | Sheets  |
 | ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------- | :-----: | :-----: |

@@ -20,6 +20,7 @@ const ExampleComponent = () => {
       data={data}
       colHeaders={['Revenue', 'Expenses', 'Profit']}
       rowHeaders={['January', 'February', 'March', 'April', 'May', 'June']}
+      navigableHeaders={true}
       rowHeaderWidth={80}
       height="auto"
       autoWrapRow={true}

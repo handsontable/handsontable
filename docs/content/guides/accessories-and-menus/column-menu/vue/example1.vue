@@ -14,6 +14,7 @@ const hotSettings = ref<GridSettings>({
     ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
   ],
   colHeaders: true,
+  navigableHeaders: true,
   dropdownMenu: true,
   height: 'auto',
   autoWrapRow: true,
