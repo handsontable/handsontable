@@ -538,6 +538,17 @@ export class MergeCells extends BasePlugin {
   } | null = null;
 
   /**
+   * Whether a row move made inside a batch has written the merges in the live row order while the row
+   * index cache still holds the order from before the batch. The recording of
+   * {@link MergeCells#foreignRowsBeforeCacheUpdate} would then read those rows through the stale cache, take
+   * rows the merge does not draw over for foreign ones, and strip the user's `hidden` and `copyable` from them,
+   * so the recording is skipped for that one cache update.
+   *
+   * @type {boolean}
+   */
+  #areMergesAheadOfRowCache: boolean = false;
+
+  /**
    * The physical cells the merges were drawn from, recorded right before a trim or a filter changes in the
    * row index mapper. `afterGetCellMeta` stores the span keys on the cell a merge is drawn from, and a trim or a
    * filter moves the merge to another cell. `#clearSpanKeysOfCellsNoLongerDrawnFrom()` clears the keys from the
@@ -2530,10 +2541,20 @@ export class MergeCells extends BasePlugin {
    * @returns {boolean}
    */
   #isIndexSequenceBehind(): boolean {
-    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { columnIndexMapper } = this.hot;
 
-    return (rowIndexMapper.isBatched && rowIndexMapper.indexesSequenceChanged) ||
-      (columnIndexMapper.isBatched && columnIndexMapper.indexesSequenceChanged);
+    return this.#isRowSequenceBehind() || (columnIndexMapper.isBatched && columnIndexMapper.indexesSequenceChanged);
+  }
+
+  /**
+   * Tells whether a move or a sort made while the operations are suspended has not reached the row cache yet.
+   *
+   * @returns {boolean}
+   */
+  #isRowSequenceBehind(): boolean {
+    const { rowIndexMapper } = this.hot;
+
+    return rowIndexMapper.isBatched && rowIndexMapper.indexesSequenceChanged;
   }
 
   /**
@@ -2732,6 +2753,9 @@ export class MergeCells extends BasePlugin {
    * @param {{ trimmedIndexesChanged: boolean }} changes Cache flags.
    */
   #onBeforeRowIndexCacheUpdate = ({ trimmedIndexesChanged }: { trimmedIndexesChanged: boolean }) => {
+    const areMergesAhead = this.#areMergesAheadOfRowCache;
+
+    this.#areMergesAheadOfRowCache = false;
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#drawnFromBeforeCacheUpdate = null;
 
@@ -2743,6 +2767,10 @@ export class MergeCells extends BasePlugin {
     // the first visible row of every anchor where it was.
     if (trimmedIndexesChanged) {
       this.#drawnFromBeforeCacheUpdate = this.#snapshotDrawnFromCells();
+    }
+
+    if (areMergesAhead) {
+      return;
     }
 
     const merges = this.#collectForeignDrawnRows();
@@ -4438,7 +4466,7 @@ export class MergeCells extends BasePlugin {
    * @param {object|null} window The visual columns the move permutes, or `null` for a freeze.
    */
   #captureColumnsBeforeReorder(window: MoveWindow | null = null) {
-    this.hot.columnIndexMapper.runWithLiveCache(() => {
+    this.#runOnLiveIndexOrder(() => {
       this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
       this.#captureDrawnFromBeforeMove(window);
     });
@@ -4518,7 +4546,7 @@ export class MergeCells extends BasePlugin {
    * @param {Map} snapshot The merges with their physical columns before the reorder.
    */
   #translateMergesAfterColumnReorder(snapshot: Map<MergedCellCoords, number[]>) {
-    this.hot.columnIndexMapper.runWithLiveCache(() => {
+    this.#runOnLiveIndexOrder(() => {
       const replacements = this.mergedCellsCollection.translateAfterAxisMove(
         'column', snapshot, this.#planColumnMoveRetention(snapshot));
 
@@ -4559,11 +4587,32 @@ export class MergeCells extends BasePlugin {
     //
     // The merges' columns are read on the live column order: a column move earlier in the same batch has
     // rewritten them in it (`#translateMergesAfterColumnReorder()`).
-    this.hot.columnIndexMapper.runWithLiveCache(() => {
+    //
+    // The merges' rows are read on the live row order too: a row move earlier in the same batch has rewritten
+    // them in it, and the stale cache would take them for rows of the order from before the batch.
+    this.#runOnLiveIndexOrder(() => {
       this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
       this.#captureDrawnFromBeforeMove(this.#getMoveWindow('row', rows, finalIndex));
     });
   };
+
+  /**
+   * Runs `callback` with the row and the column index caches rebuilt from the live sequences. Inside `batch()`
+   * the caches keep the order from before the batch, so a translation that must see a move made earlier in the
+   * batch reads them through this.
+   *
+   * @param {Function} callback The function to run.
+   */
+  #runOnLiveIndexOrder(callback: () => void) {
+    // The live caches cost one pass over every row, and there is nothing to translate without a merge.
+    if (this.mergedCellsCollection.mergedCells.length === 0) {
+      callback();
+
+      return;
+    }
+
+    this.hot.rowIndexMapper.runWithLiveCache(() => this.hot.columnIndexMapper.runWithLiveCache(callback));
+  }
 
   /**
    * `afterRowMove` hook callback. Translates merges using the pre-move snapshot
@@ -4598,9 +4647,9 @@ export class MergeCells extends BasePlugin {
     // Skipping it leaves the split on the path it took before, which is the right answer when no row
     // is trimmed: a fragment then draws exactly the rows it owns.
     //
-    // The merges' columns are read on the live column order: a column move earlier in the same batch has
-    // rewritten them in it, and the anchor capture below would take them for columns of the stale order.
-    this.hot.columnIndexMapper.runWithLiveCache(() => {
+    // The merges are read on the live row and column order: a move earlier in the same batch has rewritten them
+    // in it, and the anchor capture below would take them for indexes of the stale order.
+    this.#runOnLiveIndexOrder(() => {
       const plan = this.mergedCellsCollection.mergedCells.length > 0 && this.#isRowTrimmingActive()
         ? this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions())
         : null;
@@ -4612,6 +4661,8 @@ export class MergeCells extends BasePlugin {
 
       this.#settleMergesAfterAxisMove(replacements, snapshot, 'row');
     });
+
+    this.#areMergesAheadOfRowCache = this.#isRowSequenceBehind();
 
     this.hot.render();
   };

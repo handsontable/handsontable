@@ -517,10 +517,144 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
 
       expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row, col }) => [row, col])).toEqual([[1, 1]]);
     });
+  });
 
-    // A row move in a batch that splits a merge draws it over a row it does not own: the re-anchor at the end of
-    // the batch moves the merge without splitting it.
-    it.todo('should split a merge that a row move in a batch breaks, as the same call outside the batch does');
+  describe('a row move that splits a merge that exists before the batch', () => {
+    const MOVES = {
+      'one row': () => hot.getPlugin('manualRowMove').moveRow(2, 6),
+      'two rows': () => hot.getPlugin('manualRowMove').moveRows([2, 3], 6),
+      'the first row of the merge': () => hot.getPlugin('manualRowMove').moveRows([1], 6),
+    };
+
+    /**
+     * Runs the scenario on a fresh grid, in a batch or outside it, and reads what a user can observe.
+     *
+     * @param {Function} scenario Called after the merge was made.
+     * @param {boolean} isBatched Whether the scenario runs in `hot.batch()`.
+     * @param {object} [settings] Settings merged over the grid defaults.
+     * @returns {object} The observable state.
+     */
+    function run(scenario, isBatched, settings = {}) {
+      createGrid(settings);
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+      if (isBatched) {
+        hot.batch(scenario);
+      } else {
+        scenario();
+      }
+
+      const state = readState();
+
+      hot.destroy();
+      hot = null;
+      container.remove();
+      container = document.createElement('div');
+      document.body.appendChild(container);
+
+      return state;
+    }
+
+    Object.entries(MOVES).forEach(([name, move]) => {
+      it(`should split the merge when ${name} move(s) out of it, as the same call outside the batch does`, () => {
+        const expected = run(move, false);
+
+        expect(run(move, true)).toEqual(expected);
+      });
+    });
+
+    it('should not draw the merge over a row it does not own', () => {
+      createGrid();
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+      hot.batch(() => hot.getPlugin('manualRowMove').moveRow(2, 6));
+
+      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
+        .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan])).toEqual([[1, 0, 2, 1]]);
+      expect(hot.getCopyableText(1, 0, 6, 0)).toBe('A2\n\nA5\nA6\nA7\n');
+    });
+
+    it('should keep a merge that a row move in a batch does not break whole', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(6, 5);
+      const expected = run(move, false);
+
+      expect(run(move, true)).toEqual(expected);
+    });
+
+    it('should keep the cell meta a user set next to the merge when a row move in a batch shifts it', () => {
+      const { batched, unbatched } = runBothWays(
+        instance => instance.getPlugin('manualRowMove').moveRow(0, 7),
+        (instance) => {
+          instance.getPlugin('mergeCells').merge(4, 0, 5, 0);
+          instance.setCellMeta(3, 0, 'copyable', false);
+        }
+      );
+
+      expect(unbatched.flags.find(cell => cell.row === 2 && cell.column === 0)?.copyable).toBe(false);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should split the merge as outside the batch when a row of the grid is trimmed', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(2, 6);
+      const settings = { trimRows: [4] };
+      const expected = run(move, false, settings);
+
+      expect(run(move, true, settings)).toEqual(expected);
+    });
+
+    it('should split the merge as outside the batch when a row inside the merge is trimmed', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(3, 6);
+      const settings = { trimRows: [2] };
+      const expected = run(move, false, settings);
+
+      expect(run(move, true, settings)).toEqual(expected);
+    });
+
+    it('should split the merge when a column move and a row move are made in one batch', () => {
+      const scenario = () => {
+        hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+        hot.getPlugin('manualRowMove').moveRow(2, 6);
+      };
+      const expected = run(scenario, false);
+
+      expect(run(scenario, true)).toEqual(expected);
+    });
+
+    it('should undo and redo the split with the same state as outside the batch', () => {
+      const state = {};
+
+      [false, true].forEach((isBatched) => {
+        createGrid();
+        hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+        const initial = readState();
+
+        if (isBatched) {
+          hot.batch(MOVES['one row']);
+        } else {
+          MOVES['one row']();
+        }
+
+        const moved = readState();
+
+        hot.getPlugin('undoRedo').undo();
+
+        const undone = readState();
+
+        hot.getPlugin('undoRedo').redo();
+
+        state[isBatched] = { initial, moved, undone, redone: readState() };
+
+        hot.destroy();
+        hot = null;
+        container.remove();
+        container = document.createElement('div');
+        document.body.appendChild(container);
+      });
+
+      expect(state.true).toEqual(state.false);
+      expect(state.true.undone).toEqual(state.true.initial);
+      expect(state.true.redone).toEqual(state.true.moved);
+    });
   });
 
   it('should not change a merge made in a batch without a reorder', () => {
