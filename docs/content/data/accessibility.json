@@ -146,12 +146,6 @@
       "reportRef": null
     },
     {
-      "id": "focus-not-returned",
-      "text": "When Escape closes a cell editor, a menu, or the comment editor, the focus does not return to the cell, so a screen reader does not announce where the focus is.",
-      "criteria": ["2.4.3"],
-      "reportRef": null
-    },
-    {
       "id": "list-options-not-announced",
       "text": "The autocomplete and dropdown editors do not announce the option that the arrow keys reach.",
       "criteria": ["4.1.2"],

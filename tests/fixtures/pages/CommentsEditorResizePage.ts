@@ -18,10 +18,24 @@ const GRAB_INSET = 4;
 type CommentsFixtureWindow = Window & {
   hot: {
     getCellMetaTransient: (row: number, col: number) => { comment?: { value?: string } },
+    selectCell: (row: number, col: number) => boolean,
+    getSelectedRangeActive: () => { highlight: { row: number, col: number } } | undefined,
     getPlugin: (name: 'comments') => {
       showAtCell: (row: number, col: number) => boolean,
       hide: () => void,
       getCommentAtCell: (row: number, col: number) => string | undefined,
+    },
+  },
+};
+
+/**
+ * The part of the UndoRedo plugin the undo helpers below call through the fixture's `hot`.
+ */
+type UndoFixtureWindow = Window & {
+  hot: {
+    getPlugin: (name: 'undoRedo') => {
+      undo: () => void,
+      isUndoAvailable: () => boolean,
     },
   },
 };
@@ -286,6 +300,67 @@ export class CommentsEditorResizePage {
   async hideEditor(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as CommentsFixtureWindow)
       .hot.getPlugin('comments').hide());
+  }
+
+  /**
+   * Selects a cell through the API, which also makes the grid listen to the keyboard. A real click
+   * on a commented cell would rest the pointer on it and arm the hover show.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as CommentsFixtureWindow).hot.selectCell(r, c);
+    }, [row, col]);
+  }
+
+  /**
+   * Adds a text field below the grid, for a spec that needs the focus outside the grid.
+   *
+   * @returns {Promise<Locator>}
+   */
+  async addOutsideField(): Promise<Locator> {
+    await this.page.evaluate(() => {
+      const field = document.createElement('input');
+
+      field.setAttribute('data-testid', 'outside-field');
+      field.setAttribute('aria-label', 'Outside field');
+      document.body.appendChild(field);
+    });
+
+    return this.page.getByTestId('outside-field');
+  }
+
+  /**
+   * The highlighted cell of the active selection, or null when nothing is selected.
+   *
+   * @returns {Promise<[number, number] | null>}
+   */
+  async highlightedCell(): Promise<[number, number] | null> {
+    return this.page.evaluate(() => {
+      const highlight = (window as unknown as CommentsFixtureWindow).hot.getSelectedRangeActive()?.highlight;
+
+      return highlight ? [highlight.row, highlight.col] as [number, number] : null;
+    });
+  }
+
+  /**
+   * Whether the grid holds an undo step.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async undoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as UndoFixtureWindow)
+      .hot.getPlugin('undoRedo').isUndoAvailable());
+  }
+
+  /**
+   * Undoes the last step through the API.
+   */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as UndoFixtureWindow)
+      .hot.getPlugin('undoRedo').undo());
   }
 
   /**
