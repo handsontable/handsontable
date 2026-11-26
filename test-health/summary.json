@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T10:36:20.066Z",
+  "generatedAt": "2026-11-26T10:44:33.522Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2195,13 +2195,13 @@
       "line": null,
       "title": "Formulas general Multiple Handsontable setup with separate HF instances should render only related sheets when the dependent cells are updated",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "UMD (theme: main)"
       ],
