@@ -117,6 +117,15 @@
   min-height: 353px;
 }
 
+/* Narrow screens: 28px cells (minesweeper-404.ts), so the game fits at 320px (WCAG 1.4.10). */
+@media (max-width: 24.5rem) {
+  .minesweeper-grid {
+    width: 282px;
+    height: 281px;
+    min-height: 281px;
+  }
+}
+
 /* Reset HOT border-radius */
 .minesweeper-grid .handsontable,
 .minesweeper-grid .handsontable.ht-wrapper,

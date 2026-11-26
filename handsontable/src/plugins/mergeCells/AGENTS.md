@@ -1206,13 +1206,28 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
 - **The queue runs in order, and a call a listener makes while it runs waits behind it.** The flush takes entries off
   the queue one at a time and sets `#isFlushingDeferredOperations`, so an `afterMergeCells` listener that calls
   `merge()`, or a nested `batch()`, lands after the entries still waiting, not between them.
-- **A call held back before a row or column insert or removal is dropped with a warning.** The corners are physical
-  indexes, and `alter()` renumbers them. `#structureVersion` goes up in the row and column insert and remove hooks (not
-  for rows created with the `auto` source, which are appended and renumber nothing), each entry records it, and
-  `#runDeferredEntry()` drops an entry that finds it moved. An insert and a removal that cancel out are seen too, which
-  a comparison of row counts missed. Nothing re-bases a corner: shifting them instead of dropping is the open fix, and
-  it needs the mapper's `indexesInserted` and `indexesRemoved` hooks, because `alter()` in a batch computes its pivot
-  from the stale cache.
+- **A held call follows a row or column insert or removal: the mapper's `indexesInserted` and `indexesRemoved` local
+  hooks re-base its physical corners (DEV-4220).** The corners are physical indexes, and `alter()` renumbers them. The
+  four listeners (`#onRowIndexesInserted` and its three siblings, added in `enablePlugin()`, removed in
+  `disablePlugin()` and `destroy()`) end in `#rebaseDeferredCorners()`. An insert gives the new indexes the slot at the
+  insertion point and moves every index at or after it up by the count, so an insert inside the range grows it and one
+  at its first row or column moves it, as for a merge that exists. `mode: 'end'` (`insert_row_below`, `insert_col_end`)
+  puts the new ones one index after the first reported one, because `DataMap` splices the data in below. A removal
+  renumbers the survivors down (`countBelow()`). **A `merge()` with a corner on a removed row or column is dropped with a
+  warning**, not one with only a middle row removed (that shrinks the range). A removed corner is not equivalent to the
+  unbatched call, which shrinks a merge that exists onto the surviving rows; the ticket asked for the drop, and a clamp
+  of a `merge()` onto the next physical survivor would pair rows that a sort has made visual strangers. **A held `unmerge()` is dropped
+  too, and its merge stays**: a clamp of the removed corner onto the nearest physical survivor was tried and reverted
+  (review of PR 14477), because after a move in the batch that neighbor is a visual stranger, and the call then
+  dissolved a merge it did not name, with no warning. A merge left in place with a warning is the safer miss. The numbering follows the mapper, not the data, so a caller whose inserts hand the
+  mapper a position that is not the row's physical index (NestedRows, `core.ts` `_alignInsertedRowSizes()`) re-bases in
+  the mapper's numbering. **Do not read the pivot from `afterCreateRow` with `toPhysicalRow(row)`:**
+  `alter()` in a batch computes its pivot from the stale cache after a row move, so the hook reports a visual row that
+  names another record. The mapper hooks carry physical indexes, so the move does not matter. The aim is "the rows the
+  user meant", not the unbatched sequence: `moveRow(5, 0)` then `insert_row_above 0` orders the rows `6,0,1,2,…` in the
+  batch and `5,6,0,1,…` outside it. An `auto` append reports indexes past every corner, so it shifts nothing. A
+  `fitToLength()` that shrinks the axis (an `updateData()` in the batch) removes indexes through the same hook, so a call
+  with a corner past the new length is dropped with the removal warning.
 - **A call whose corner is trimmed before the batch ends is dropped with a warning.** The corner has no visual index at
   the flush, and the range cannot be drawn between corners that are not on screen.
 - **A corner with no physical index is not queued.** `merge(-1, 0, 1, 1)` runs at once, on the caches, and can jump
@@ -1229,22 +1244,57 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
   sequence through the trimming and hiding maps' cached merged values, the same limit as the ColumnSorting band read.
 - **A call outside `suspendExecution()`/`batch()` is never queued.** The queue ends with the execution, and a plugin
   disable drops it (a destroyed plugin never flushes). Three edges: a raw `suspendExecution()` and `resumeExecution()` have no operation, so the
-  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data; and an
+  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data, shifted by the earlier inserts and removals of the batch (it resets no queue, and fires no mapper hook that would re-base it); and an
   `afterResumeExecution` listener that throws before this plugin's skips the flush, which then runs at the next
   `merge()` or `unmerge()` call outside the batch, on the corners it held.
 
-**Existing merges follow a column move or freeze in the batch on the live order.** The rows have a `cacheUpdated`
-re-anchor at the end of the batch, but no listener re-anchors the columns, so `#translateMergesAfterColumnReorder()`
-(the body of `afterColumnMove` and `afterColumnFreeze`) runs inside `columnIndexMapper.runWithLiveCache()`. Before, such
-a merge kept its old visual column for good, with two cells flagged `spanned` and two `td`s drawn with a `colspan`. The
-before hooks read the live order too (`#captureColumnsBeforeReorder()`), so a second move in the batch takes a merge's
-columns as they are and does not split it. The moved index itself still resolves through the stale cache, so a second
-move cannot match the unbatched result whatever the plugin does. The rows are not wrapped: a row-axis merge written in
-the live order would be read through the old cache by the cleanup at the end of the batch. **The row move hooks read the
-live column order**, though (`#onBeforeRowMove`, `#onAfterRowMove`): the merges' `col` was rewritten in it, and the anchor
-capture there took it for a column of the stale order and moved the merge one column too far after a column move and a
-row move in one batch. Any other code that turns a merge's `col` into a physical column inside a batch with a column
-reorder (an `alter()` of rows or columns, for example) still reads the stale cache.
+**Existing merges follow a row move, a column move or a freeze in the batch on the live order.** The rows have a
+`cacheUpdated` re-anchor at the end of the batch, but it only moves a merge: it never splits one, and no listener
+re-anchors the columns. So the bodies of the four move hooks (`#onBeforeRowMove`, `#onAfterRowMove`, and
+`#captureColumnsBeforeReorder()` / `#translateMergesAfterColumnReorder()` for the column move and the freeze) run
+inside `#runOnLiveIndexOrder()`, which rebuilds BOTH index caches from the live sequences for the call. Before, a
+column move left such a merge on its old visual column for good, with two cells flagged `spanned` and two `td`s drawn
+with a `colspan`; and a row move that should split a merge (`merge(1, 0, 3, 0)`, then `moveRow(2, 6)`) read the rows of
+the stale cache as contiguous, kept the merge whole, and the end-of-batch re-anchor drew it over a row it does not own
+(DEV-4219). The after hooks always read the live order, because the move has just made it. The before hooks read it
+only once a row move of this plugin has written the merges in it (`#areMergesAheadOfRowCache`), so a second move in the
+batch takes a merge's rows and columns as they are and does not split it. Before that, the merges are still in the order
+of the stale cache, and a sort made earlier in the batch has not touched them, so the live order would read them wrong
+(a sort and a row move in one batch drew the merge over rows it does not own). The moved index itself still resolves
+through the stale cache, so a second move cannot match the unbatched result whatever the plugin does.
+
+**A batched move that permutes no row of a merge does no work.** `#onBeforeRowMove` skips the snapshot when the rows the
+move permutes (`#getMoveWindow()`) hold no merge. The live caches cost a pass over every row per move (9 ms at 100k
+rows), and a batch that reorders many rows away from the merges paid it for nothing. Two cases keep the full path, each
+for a reason. A move outside a batch has no cache to spare. And once a move of this plugin has written the merges in the
+live order (`#areMergesAheadOfRowCache`), the rows a move names are no longer in the order the merges are in. While a row
+is trimmed, the skip also needs every merge's anchor in visual order (`#areAnchorsInVisualOrder()`): the after hook puts
+an anchor a sort scattered into visual order, a merge outside the window included, and the legacy spec "should not
+re-anchor a merge whose rows a sort scattered when a row is moved" failed in CI when the skip covered a scattered merge.
+A full path for every trimmed grid cost 8 ms per move at 100k rows, which is why the check looks at the anchors. A grid
+with no merge keeps its path.
+
+**Wrap both axes in every move hook, never one.** A merge the row move wrote in the live order has its `row` in that
+order, and the column hooks read it through the row cache when they capture anchors (`#captureMergeAnchors()`), which
+takes a live row for a row of the stale order and moves the merge one row too far (a row move and a column move in one
+batch). The column hooks therefore read the rows live while `#areMergesAheadOfRowCache` holds, and on the stale cache
+otherwise (the same sort trap as above). The column move has the mirror problem: its merges' `col` is live, so the row
+hooks read the live column order as well. Only the second half of the end-of-batch cleanup is safe with live-written
+merges: `#onRowIndexCacheUpdated` and `#clearRowsLeftBehind` run after the caches are rebuilt, when the live order
+equals them. The first half, `#onBeforeRowIndexCacheUpdate` (`#collectForeignDrawnRows`), runs while the row cache
+still holds the order from before the batch, so it would take rows the merge does not draw over for foreign ones and
+strip the user's `hidden` and `copyable` from them (a `copyable: false` set next to a merge, then an unrelated batched
+row move). `#onAfterRowMove` therefore sets `#areMergesAheadOfRowCache` when the row sequence is ahead of the cache, and
+the recording skips that one cache update. Skipping alone left a wrong flag: a merge that drew over a row of another
+record before the move (after a sort) keeps `hidden` and `copyable: false` on that row once it no longer does. The
+record is taken where it is right instead: `#onBeforeRowMove` records the foreign cells while the merges and the
+caches it reads describe one order (`#foreignRowsBeforeBatchMove`, by physical row and column, because a move replaces
+the merges it splits), and `#onRowIndexCacheUpdated` clears the ones no merge draws over any more
+(`#clearForeignRowsOfBatchMove()`). Any other code that turns a merge's `row` or `col` into a physical index inside a
+batch with a reorder (an `alter()` of rows or columns, for example) still reads the stale cache. **A second row move in
+the same batch, and a move after a sort in the same batch, cannot match the unbatched result**, because the moved index
+itself resolves through the stale cache, so the move names another row. The tests of those cases assert what a merge
+may draw over and that the grid ends clean, not equality with the unbatched run.
 
 **The undo of a step that holds a reorder and a merge finds the merge by its anchor.** UndoRedo restores the row index
 maps before the plugin states, so the live merge has already been re-anchored to the restored order while the recorded
@@ -1254,9 +1304,6 @@ after a single undo (a row move or a sort in one `batch()` with a merge, in eith
 matched by anchor, `rowspan` and `colspan`; an entry without one keeps the coordinates. The restore reads the live
 merge's own coordinates for the removal, so nothing else changes. A merge that a column move in a batch did not follow
 also left `copyable: false` on the wrong cells after the undo, because the recorded step named the wrong columns.
-
-**Known gap, not part of this:** a row move in a batch that splits an existing merge draws it over a row it does not own,
-because the re-anchor at the end of the batch moves a merge without splitting it (`it.todo` in the spec below).
 
 The timing is public behavior, so it is documented in the JSDoc of `merge()` and `unmerge()` and in the "Merge and
 unmerge cells programmatically" section of the merge-cells guide. Change them together with the code.

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed screen readers announcing a different menu item position and menu size in each browser.",
+  "type": "fixed",
+  "issueOrPR": 14437,
+  "breaking": false,
+  "framework": "none"
+}

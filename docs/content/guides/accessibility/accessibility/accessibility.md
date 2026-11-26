@@ -130,6 +130,86 @@ Browsers in the last audit: {{$a11y.browsers.sentence}}.
 
 {{$a11y.notes.automation}}
 
+## Name and describe the grid
+
+A screen reader reads the name of the grid when the focus enters it. Without a name, it reads only the role, so give each grid a name that says what data it holds. Pick one of these options:
+
+- [`ariaLabelledby`](@/api/options.md#arialabelledby): the `id` of a visible heading or another element that names the grid. Use it when the page already shows a title for the grid.
+- [`ariaLabel`](@/api/options.md#arialabel): the name as text. Use it when the page shows no title for the grid.
+
+To add a longer description, such as instructions or a note about the data, set [`ariaDescribedby`](@/api/options.md#ariadescribedby) to the `id` of the element that holds it. A screen reader reads the description after the name.
+
+::: only-for javascript
+
+```html
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<div id="example"></div>
+```
+
+```js
+const hot = new Handsontable(container, {
+  ariaLabelledby: 'sales-title',
+  ariaDescribedby: 'sales-help',
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<HotTable
+  ariaLabelledby="sales-title"
+  ariaDescribedby="sales-help"
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  ariaLabelledby: 'sales-title',
+  ariaDescribedby: 'sales-help',
+};
+```
+
+```html
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  ariaLabelledby: 'sales-title',
+  ariaDescribedby: 'sales-help',
+});
+```
+
+```html
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+- Handsontable writes the options to the `aria-label`, `aria-labelledby`, and `aria-describedby` attributes of the grid's root element.
+- The options work only while the [`ariaTags`](@/api/options.md#ariatags) option is `true`, which is its default.
+- You can change them with [`updateSettings()`](@/api/core.md#updatesettings). An empty string removes the attribute.
+- Handsontable removes only an attribute it wrote. An attribute that your own code wrote on the grid's root element stays.
+
 ## Cell descriptions for screen readers
 
 A screen reader reads the value of the cell it moves onto. Some cells hold more than a value, and the focus stays on the cell, so Handsontable gives the cell an accessible description that a screen reader reads together with the value and the column header. Where the description falls in the announcement depends on the screen reader:
@@ -330,6 +410,10 @@ For the list of [options](@/guides/configuration/configuration-options/configura
 
 <div class="boxes-list">
 
+- [`ariaDescribedby`](@/api/options.md#ariadescribedby)
+- [`ariaLabel`](@/api/options.md#arialabel)
+- [`ariaLabelledby`](@/api/options.md#arialabelledby)
+- [`ariaTags`](@/api/options.md#ariatags)
 - [`autoWrapCol`](@/api/options.md#autowrapcol)
 - [`autoWrapRow`](@/api/options.md#autowraprow)
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)

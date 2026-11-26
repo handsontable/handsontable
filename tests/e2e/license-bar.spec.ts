@@ -43,4 +43,21 @@ test.describe('license notification bar on a narrow grid', { tag: [THEMES_TAG, B
 
     expect(hiddenContentPx).toBe(0);
   });
+
+  test.describe('at a 320 px viewport (reflow)', () => {
+    test.use({ viewport: { width: 320, height: 1024 } });
+
+    test('wraps the notice, scrolls the page not at all and leaves the grid its whole header row', async () => {
+      await licenseBar.goto(600);
+      await licenseBar.fitGridToViewport();
+
+      // The notice reflows: several lines inside the bar, and the page never needs a sideways scroll.
+      expect(await licenseBar.barLineCount()).toBeGreaterThan(2);
+      expect(await licenseBar.barContentOverflowPx()).toBe(0);
+      expect(await licenseBar.pageSidewaysScrollPx()).toBe(0);
+      // The grid box still holds what the bar left it, header row included (1.4.10). On a theme whose
+      // wrapped notice is shorter (classic) the box never clipped, so this is the guard on the others.
+      expect(await licenseBar.gridBoxClippedPx()).toBeLessThanOrEqual(1);
+    });
+  });
 });

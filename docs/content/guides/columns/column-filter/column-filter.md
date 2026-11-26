@@ -1946,6 +1946,8 @@ For a reference list of filter-related shortcuts, see [Keyboard shortcuts](@/gui
 
 ## Related keyboard shortcuts
 
+The filters are part of the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md). To open it, press <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> from a data cell, or <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> from a focused column header. To let users move focus onto the headers with the arrow keys, set [`navigableHeaders: true`](@/api/options.md#navigableheaders), as the [Filtering demo](#filtering-demo) does. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
 | <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>⌥</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |

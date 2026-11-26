@@ -159,6 +159,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'بازنشانی فیلترها',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'در حال بارگذاری داده‌ها',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'لطفاً صبر کنید.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'داده‌ها بارگذاری شد',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'بارگذاری داده‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'ایجاد ردیف‌ها ناموفق بود',

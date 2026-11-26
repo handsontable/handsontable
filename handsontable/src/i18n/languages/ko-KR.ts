@@ -158,6 +158,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: '필터 재설정',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: '데이터 로드 중',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: '잠시만 기다려 주세요.',
+  [C.EMPTY_DATA_STATE_LOADED]: '데이터 로드 완료',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: '데이터를 불러올 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_CREATE]: '행을 만들 수 없습니다',

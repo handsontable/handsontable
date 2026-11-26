@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a row move inside `batch()` kept a merged cell whole and drew it over a row it does not own.",
+  "type": "fixed",
+  "issueOrPR": 14478,
+  "breaking": false,
+  "framework": "none"
+}

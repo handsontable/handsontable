@@ -6,14 +6,14 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T11:00:31.676Z"
+    "at": "2026-11-25T11:18:08.614Z"
   },
   "steps": {
-    "open-menu": "insert column left 1 of 2 column menu menu",
-    "arrow-down-insert-right": "insert column right 2 of 2",
-    "arrow-down-remove": "remove column 1 of 1",
-    "arrow-down-clear": "clear column 1 of 1",
-    "arrow-down-read-only": "read only not checked 1 of 1",
+    "open-menu": "insert column left 1 of 9 column menu menu",
+    "arrow-down-insert-right": "insert column right 2 of 9",
+    "arrow-down-remove": "remove column 3 of 9",
+    "arrow-down-clear": "clear column 4 of 9",
+    "arrow-down-read-only": "read only not checked 5 of 9",
     "close-menu": "table red selected color row 2 column 3",
     "arrow-down-in-grid": "green not selected color row 3 column 3"
   }

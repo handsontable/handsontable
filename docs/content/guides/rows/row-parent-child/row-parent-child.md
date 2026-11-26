@@ -511,7 +511,7 @@ The text is translated. To change it, override the `NestedRows:announcement.expa
 
 ### Keyboard shortcuts
 
-The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> shortcuts work from any data cell of the row or from its row header, with or without `navigableHeaders`. The other shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> shortcuts work from any data cell of the row or from its row header, with or without `navigableHeaders`. The other shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys, as the example in [Prepare the data source](#prepare-the-data-source) does. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                                                                                                 |
 | -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |

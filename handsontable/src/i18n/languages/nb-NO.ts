@@ -161,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Tilbakestill filtre',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Laster inn data',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Vennligst vent.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Data lastet inn',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Kunne ikke laste inn data',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Kunne ikke opprette rader',

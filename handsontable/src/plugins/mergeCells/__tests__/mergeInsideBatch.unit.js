@@ -54,13 +54,15 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
    * Reads what a user can observe: the merges, the flags the merge writes on every cell, and the text a copy
    * of the whole grid produces next to the data it should reproduce.
    *
+   * @param {number} [rows] How many rows of the grid to read.
+   * @param {number} [columns] How many columns of the grid to read.
    * @returns {object} The observable state.
    */
-  function readState() {
+  function readState(rows = ROWS, columns = COLUMNS) {
     const flags = [];
 
-    for (let row = 0; row < ROWS; row++) {
-      for (let column = 0; column < COLUMNS; column++) {
+    for (let row = 0; row < rows; row++) {
+      for (let column = 0; column < columns; column++) {
         const { hidden, spanned, copyable, rowspan, colspan } = hot.getCellMeta(row, column);
 
         flags.push({ row, column, hidden, spanned, copyable, rowspan, colspan });
@@ -71,7 +73,7 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       merges: hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
         .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan })),
       flags: flags.filter(cell => cell.hidden || cell.spanned || cell.copyable === false),
-      copyableText: hot.getCopyableText(0, 0, ROWS - 1, COLUMNS - 1),
+      copyableText: hot.getCopyableText(0, 0, rows - 1, columns - 1),
       dataText: hot.getData().map(row => row.join('\t')).join('\n'),
     };
   }
@@ -379,73 +381,399 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       expect(merged).toEqual([[1, 1], [3, 1], [5, 5]]);
     });
 
-    it('should drop a held back call when rows are added before the batch ends', () => {
-      createGrid();
+    describe('when rows or columns are added or removed before the batch ends', () => {
+      const MERGE = [1, 1, 2, 2];
+      const WIDE_MERGE = [1, 1, 3, 3];
+      const reorderOnOtherAxis = {
+        row: () => hot.getPlugin('manualColumnMove').moveColumn(5, 0),
+        col: () => hot.getPlugin('manualRowMove').moveRow(5, 0),
+      };
+      /**
+       * Reads the merges as plain rows.
+       *
+       * @returns {number[][]} `[row, col, rowspan, colspan]` of every merge.
+       */
+      const readMerges = () => hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
+        .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
+      // A move on the other axis leaves the altered axis unbatched, so the same calls outside the batch give the
+      // merge the user expects.
+      const ALTERS = [
+        ['row', 'insert_row_above', 0, 2, MERGE, 'before the range'],
+        ['row', 'insert_row_below', 0, 1, MERGE, 'right before the range'],
+        ['row', 'insert_row_above', 1, 1, MERGE, 'at its first row'],
+        ['row', 'insert_row_above', 2, 1, MERGE, 'inside the range'],
+        ['row', 'insert_row_below', 1, 2, MERGE, 'between its rows'],
+        ['row', 'insert_row_below', 2, 1, MERGE, 'after its last row'],
+        ['row', 'insert_row_above', 5, 1, MERGE, 'after the range'],
+        ['row', 'remove_row', 0, 1, MERGE, 'a row before the range'],
+        ['row', 'remove_row', 5, 2, MERGE, 'rows after the range'],
+        ['row', 'remove_row', 2, 1, WIDE_MERGE, 'a row inside the range'],
+        ['col', 'insert_col_start', 0, 2, MERGE, 'before the range'],
+        ['col', 'insert_col_end', 0, 1, MERGE, 'right before the range'],
+        ['col', 'insert_col_start', 1, 1, MERGE, 'at its first column'],
+        ['col', 'insert_col_start', 2, 1, MERGE, 'inside the range'],
+        ['col', 'insert_col_end', 1, 2, MERGE, 'between its columns'],
+        ['col', 'insert_col_end', 2, 1, MERGE, 'after its last column'],
+        ['col', 'insert_col_start', 5, 1, MERGE, 'after the range'],
+        ['col', 'remove_col', 0, 1, MERGE, 'a column before the range'],
+        ['col', 'remove_col', 5, 2, MERGE, 'columns after the range'],
+        ['col', 'remove_col', 2, 1, WIDE_MERGE, 'a column inside the range'],
+      ];
 
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      // A move on the altered axis makes `alter()` pivot from the stale cache, which only matches the live order
+      // outside the rows the move permutes. So the ranges and the alters sit past them.
+      const reorderOnSameAxis = {
+        row: () => hot.getPlugin('manualRowMove').moveRow(1, 0),
+        col: () => hot.getPlugin('manualColumnMove').moveColumn(1, 0),
+      };
+      const LATE_MERGE = { row: [3, 1, 4, 2], col: [1, 3, 2, 4] };
+      const LATE_WIDE_MERGE = { row: [3, 1, 5, 2], col: [1, 3, 2, 5] };
+      const SAME_AXIS_ALTERS = [
+        ['row', 'insert_row_above', 2, 2, LATE_MERGE.row, 'before the range'],
+        ['row', 'insert_row_above', 3, 1, LATE_MERGE.row, 'at its first row'],
+        ['row', 'insert_row_below', 3, 2, LATE_MERGE.row, 'between its rows'],
+        ['row', 'insert_row_below', 4, 1, LATE_MERGE.row, 'after its last row'],
+        ['row', 'insert_row_above', 6, 1, LATE_MERGE.row, 'after the range'],
+        ['row', 'remove_row', 2, 1, LATE_MERGE.row, 'a row before the range'],
+        ['row', 'remove_row', 6, 2, LATE_MERGE.row, 'rows after the range'],
+        ['row', 'remove_row', 4, 1, LATE_WIDE_MERGE.row, 'a row inside the range'],
+        ['col', 'insert_col_start', 2, 2, LATE_MERGE.col, 'before the range'],
+        ['col', 'insert_col_start', 3, 1, LATE_MERGE.col, 'at its first column'],
+        ['col', 'insert_col_end', 3, 2, LATE_MERGE.col, 'between its columns'],
+        ['col', 'insert_col_end', 4, 1, LATE_MERGE.col, 'after its last column'],
+        ['col', 'insert_col_start', 6, 1, LATE_MERGE.col, 'after the range'],
+        ['col', 'remove_col', 2, 1, LATE_MERGE.col, 'a column before the range'],
+        ['col', 'remove_col', 6, 2, LATE_MERGE.col, 'columns after the range'],
+        ['col', 'remove_col', 4, 1, LATE_WIDE_MERGE.col, 'a column inside the range'],
+      ];
 
-      try {
+      [
+        ['the other axis', ALTERS, reorderOnOtherAxis],
+        ['the same axis', SAME_AXIS_ALTERS, reorderOnSameAxis],
+      ].forEach(([reorderName, table, reorders]) => table.forEach(([axis, action, index, amount, merge, name]) => {
+        it(`should follow ${action}(${index}, ${amount}) ${name} after a move on ${reorderName}, as the same calls outside the batch do`, () => {
+          const reorder = reorders[axis];
+
+          createGrid();
+          reorder();
+          hot.getPlugin('mergeCells').merge(...merge);
+          hot.alter(action, index, amount);
+
+          const expected = { merges: readMerges(), dataText: hot.getData().map(row => row.join('\t')).join('\n') };
+
+          hot.destroy();
+          container.remove();
+          container = document.createElement('div');
+          document.body.appendChild(container);
+
+          const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+          try {
+            createGrid();
+            hot.batch(() => {
+              reorder();
+              hot.getPlugin('mergeCells').merge(...merge);
+              hot.alter(action, index, amount);
+            });
+
+            expect(expected.merges).toHaveLength(1);
+            expect({ merges: readMerges(), dataText: hot.getData().map(row => row.join('\t')).join('\n') })
+              .toEqual(expected);
+            expect(warn).not.toHaveBeenCalled();
+          } finally {
+            warn.mockRestore();
+          }
+        });
+      }));
+
+      it('should keep a merge when a row is removed after a row move in the batch', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualRowMove').moveRow(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.alter('remove_row', 7);
+          });
+
+          expect(hot.countRows()).toBe(ROWS - 1);
+          expect(readMerges()).toEqual([[1, 1, 2, 2]]);
+          expect(warn).not.toHaveBeenCalled();
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should keep a merge when a column is inserted after a column move in the batch', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.alter('insert_col_start', 7);
+          });
+
+          expect(hot.countCols()).toBe(COLUMNS + 1);
+          expect(readMerges()).toEqual([[1, 1, 2, 2]]);
+          expect(warn).not.toHaveBeenCalled();
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should merge the rows the user meant when rows are inserted after a row move in the batch', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualRowMove').moveRow(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.alter('insert_row_above', 0);
+          });
+
+          const values = hot.getData().flat();
+          const [merge] = hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+          // The merge covers the source rows of A1 and A2: it keeps B1 and clears B2, C1 and C2.
+          expect(values).toEqual(expect.arrayContaining(['A1', 'A2', 'B1', 'A6']));
+          expect(values).not.toContain('B2');
+          expect(values).not.toContain('C1');
+          expect(values).not.toContain('C2');
+          expect(readMerges()).toHaveLength(1);
+          expect([merge.rowspan, merge.colspan]).toEqual([2, 2]);
+          expect(hot.getSourceDataAtCell(hot.toPhysicalRow(merge.row), 1)).toBe('B1');
+          expect(warn).not.toHaveBeenCalled();
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      [
+        ['insert_row_above', 0, 3, 'rows before the range'],
+        ['insert_row_below', 1, 2, 'rows between the rows of the range'],
+        ['insert_row_below', 2, 1, 'a row after the range'],
+        ['insert_row_above', 2, 2, 'rows inside the range'],
+        ['remove_row', 4, 2, 'rows after the range'],
+      ].forEach(([action, index, amount, name]) => {
+        it(`should merge the rows the user meant for ${action}(${index}, ${amount}) ${name} after a row move`, () => {
+          createGrid();
+
+          const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+          try {
+            hot.batch(() => {
+              hot.getPlugin('manualRowMove').moveRow(5, 0);
+              hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+              hot.alter(action, index, amount);
+            });
+
+            const values = hot.getData().flat();
+            const [merge] = hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+            // The merge covers the cells of A1 and A2: it keeps B1 and clears B2, C1 and C2.
+            expect(readMerges()).toHaveLength(1);
+            expect(merge.colspan).toBe(2);
+            expect(hot.getSourceDataAtCell(hot.toPhysicalRow(merge.row), 1)).toBe('B1');
+            expect(values).not.toContain('B2');
+            expect(values).not.toContain('C1');
+            expect(values).not.toContain('C2');
+            expect(warn).not.toHaveBeenCalled();
+          } finally {
+            warn.mockRestore();
+          }
+        });
+      });
+
+      it('should re-base the corners whatever order the removed rows are given in', () => {
+        createGrid();
         hot.batch(() => {
-          hot.getPlugin('manualRowMove').moveRow(5, 0);
-          hot.getPlugin('mergeCells').merge(3, 1, 4, 2);
-          hot.alter('insert_row_above', 0, 2);
+          hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+          hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+          hot.alter('remove_row', [[5, 1], [0, 1]]);
         });
 
-        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
-        expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
-      } finally {
-        warn.mockRestore();
-      }
-    });
+        expect(readMerges()).toEqual([[0, 1, 2, 2]]);
+      });
 
-    it('should drop a held back call when an insert and a removal cancel out before the batch ends', () => {
-      createGrid();
+      it('should drop a held unmerge with a warning when a corner row is removed, and leave the merge', () => {
+        createGrid();
+        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
 
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-      try {
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+            hot.getPlugin('mergeCells').unmerge(1, 1, 2, 2);
+            hot.alter('remove_row', 2);
+          });
+
+          expect(readMerges()).toHaveLength(1);
+          expect(warn).toHaveBeenCalledTimes(1);
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should not unmerge a merge the held call did not name when a corner row is removed after a row move', () => {
+        createGrid();
+        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+        hot.getPlugin('mergeCells').merge(3, 1, 4, 2);
+        hot.getPlugin('mergeCells').merge(5, 1, 6, 2);
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualRowMove').moveRow(7, 1);
+            hot.getPlugin('mergeCells').unmerge(0, 1, 1, 2);
+            hot.alter('remove_row', 0);
+          });
+
+          // The call named no merge that is left, and it must not pick the neighbor of its removed corner.
+          expect(readMerges()).toHaveLength(3);
+          expect(warn).toHaveBeenCalledTimes(1);
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should follow an insert and the removal of the inserted row', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.alter('insert_row_above', 0);
+            hot.alter('remove_row', 0);
+          });
+
+          expect(hot.countRows()).toBe(ROWS);
+          expect(readMerges()).toEqual([[1, 1, 2, 2]]);
+          expect(warn).not.toHaveBeenCalled();
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should follow every held call, and keep the order of a merge and the unmerge that follows it', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.getPlugin('mergeCells').merge(4, 4, 5, 5);
+            hot.alter('insert_row_above', 0);
+            hot.getPlugin('mergeCells').unmerge(2, 1, 3, 2);
+          });
+
+          expect(readMerges()).toEqual([[5, 4, 2, 2]]);
+          expect(warn).not.toHaveBeenCalled();
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should drop a held back call once, with a warning, when a corner row is removed, and keep the others', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.getPlugin('mergeCells').merge(4, 4, 5, 5);
+            hot.alter('remove_row', 1);
+            hot.alter('remove_row', 0);
+          });
+
+          expect(readMerges()).toEqual([[2, 4, 2, 2]]);
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
+          expect(warn.mock.calls.flat().join(' ')).toContain('removed');
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should drop a held back call with a warning when a corner column is removed', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualRowMove').moveRow(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.alter('remove_col', 2);
+          });
+
+          expect(readMerges()).toEqual([]);
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      // A hook the plugin forgot to remove would re-base the corners twice after a disable and an enable.
+      [
+        ['row', 'insert_row_above', 0, [[2, 1, 2, 2]]],
+        ['row', 'remove_row', 0, [[0, 1, 2, 2]]],
+        ['col', 'insert_col_start', 0, [[1, 2, 2, 2]]],
+        ['col', 'remove_col', 0, [[1, 0, 2, 2]]],
+      ].forEach(([axis, action, index, expected]) => {
+        it(`should follow ${action} once after the plugin was disabled and enabled again`, () => {
+          createGrid();
+          hot.getPlugin('mergeCells').disablePlugin();
+          hot.getPlugin('mergeCells').enablePlugin();
+
+          hot.batch(() => {
+            // A move on the other axis leaves the altered axis unbatched.
+            if (axis === 'row') {
+              hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+
+            } else {
+              hot.getPlugin('manualRowMove').moveRow(5, 0);
+            }
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.alter(action, index);
+          });
+
+          expect(readMerges()).toEqual(expected);
+        });
+      });
+
+      it('should undo a batch with a merge and an insert as one step', () => {
+        createGrid();
         hot.batch(() => {
-          hot.getPlugin('manualRowMove').moveRow(5, 0);
+          hot.getPlugin('manualColumnMove').moveColumn(5, 0);
           hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
           hot.alter('insert_row_above', 0);
-          hot.alter('remove_row', ROWS);
         });
+
+        expect(readMerges()).toHaveLength(1);
+
+        hot.getPlugin('undoRedo').undo();
 
         expect(hot.countRows()).toBe(ROWS);
-        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
-        expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
-      } finally {
-        warn.mockRestore();
-      }
-    });
-
-    it('should drop a held back call when columns are added or removed before the batch ends', () => {
-      createGrid();
-
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-      try {
-        hot.batch(() => {
-          hot.getPlugin('manualColumnMove').moveColumn(5, 0);
-          hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
-          hot.alter('insert_col_start', 0);
-        });
-
-        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
-        expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
-
-        warn.mockClear();
-        hot.batch(() => {
-          hot.getPlugin('manualColumnMove').moveColumn(5, 0);
-          hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
-          hot.alter('remove_col', 0);
-        });
-
-        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
-        expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
-      } finally {
-        warn.mockRestore();
-      }
+        expect(readMerges()).toEqual([]);
+        expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+      });
     });
 
     it('should drop a held back call and warn when a row of its range is trimmed before the batch ends', () => {
@@ -517,10 +845,280 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
 
       expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row, col }) => [row, col])).toEqual([[1, 1]]);
     });
+  });
 
-    // A row move in a batch that splits a merge draws it over a row it does not own: the re-anchor at the end of
-    // the batch moves the merge without splitting it.
-    it.todo('should split a merge that a row move in a batch breaks, as the same call outside the batch does');
+  describe('a row move that splits a merge that exists before the batch', () => {
+    const MOVES = {
+      'one row': () => hot.getPlugin('manualRowMove').moveRow(2, 6),
+      'two rows': () => hot.getPlugin('manualRowMove').moveRows([2, 3], 6),
+      'the first row of the merge': () => hot.getPlugin('manualRowMove').moveRows([1], 6),
+    };
+
+    /**
+     * Runs the scenario on a fresh grid, in a batch or outside it, and reads what a user can observe.
+     *
+     * @param {Function} scenario Called after the merge was made.
+     * @param {boolean} isBatched Whether the scenario runs in `hot.batch()`.
+     * @param {object} [settings] Settings merged over the grid defaults.
+     * @returns {object} The observable state.
+     */
+    function run(scenario, isBatched, settings = {}) {
+      createGrid(settings);
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+      if (isBatched) {
+        hot.batch(scenario);
+      } else {
+        scenario();
+      }
+
+      const state = readState();
+
+      hot.destroy();
+      hot = null;
+      container.remove();
+      container = document.createElement('div');
+      document.body.appendChild(container);
+
+      return state;
+    }
+
+    Object.entries(MOVES).forEach(([name, move]) => {
+      it(`should split the merge when ${name} move(s) out of it, as the same call outside the batch does`, () => {
+        const expected = run(move, false);
+
+        expect(run(move, true)).toEqual(expected);
+      });
+    });
+
+    it('should not draw the merge over a row it does not own', () => {
+      createGrid();
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+      hot.batch(() => hot.getPlugin('manualRowMove').moveRow(2, 6));
+
+      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
+        .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan])).toEqual([[1, 0, 2, 1]]);
+      expect(hot.getCopyableText(1, 0, 6, 0)).toBe('A2\n\nA5\nA6\nA7\n');
+    });
+
+    it('should keep a merge that a row move in a batch does not break whole', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(6, 5);
+      const expected = run(move, false);
+
+      expect(run(move, true)).toEqual(expected);
+    });
+
+    it('should keep the cell meta a user set next to the merge when a row move in a batch shifts it', () => {
+      const { batched, unbatched } = runBothWays(
+        instance => instance.getPlugin('manualRowMove').moveRow(0, 7),
+        (instance) => {
+          instance.getPlugin('mergeCells').merge(4, 0, 5, 0);
+          instance.setCellMeta(3, 0, 'copyable', false);
+        }
+      );
+
+      expect(unbatched.flags.find(cell => cell.row === 2 && cell.column === 0)?.copyable).toBe(false);
+      expect(batched).toEqual(unbatched);
+    });
+
+    it('should split the merge as outside the batch when a row of the grid is trimmed', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(2, 6);
+      const settings = { trimRows: [4] };
+      const expected = run(move, false, settings);
+
+      expect(run(move, true, settings)).toEqual(expected);
+    });
+
+    it('should split the merge as outside the batch when a row inside the merge is trimmed', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(3, 6);
+      const settings = { trimRows: [2] };
+      const expected = run(move, false, settings);
+
+      expect(run(move, true, settings)).toEqual(expected);
+    });
+
+    it('should split the merge when a column move and a row move are made in one batch', () => {
+      const scenario = () => {
+        hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+        hot.getPlugin('manualRowMove').moveRow(2, 6);
+      };
+      const expected = run(scenario, false);
+
+      expect(run(scenario, true)).toEqual(expected);
+    });
+
+    it('should not rebuild the live row caches for a move that touches no merge, and move as outside the batch', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(5, 7);
+      const expected = run(move, false);
+
+      createGrid();
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+      const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
+
+      hot.batch(move);
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(readState()).toEqual(expected);
+    });
+
+    it('should not rebuild the live row caches for a move away from the merges when a row is trimmed', () => {
+      createGrid({ trimRows: [4] });
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+      const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
+
+      hot.batch(() => hot.getPlugin('manualRowMove').moveRow(5, 6));
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should translate the merges of a move away from them when a row is trimmed and a sort scattered a merge', () => {
+      createGrid({
+        data: [6, 1, 3, 2, 0, 4, 5, 7].map((key, row) => [`A${row}`, `B${row}`, key]),
+        trimRows: [7],
+      });
+      hot.getPlugin('mergeCells').merge(0, 0, 1, 1);
+      hot.getPlugin('mergeCells').merge(2, 0, 3, 1);
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
+
+      hot.batch(() => hot.getPlugin('manualRowMove').moveRow(4, 5));
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should rebuild the live row caches for a move that touches a merge', () => {
+      createGrid();
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+      const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
+
+      hot.batch(() => hot.getPlugin('manualRowMove').moveRow(2, 6));
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should undo and redo the split with the same state as outside the batch', () => {
+      const state = {};
+
+      [false, true].forEach((isBatched) => {
+        createGrid();
+        hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+        const initial = readState();
+
+        if (isBatched) {
+          hot.batch(MOVES['one row']);
+        } else {
+          MOVES['one row']();
+        }
+
+        const moved = readState();
+
+        hot.getPlugin('undoRedo').undo();
+
+        const undone = readState();
+
+        hot.getPlugin('undoRedo').redo();
+
+        state[isBatched] = { initial, moved, undone, redone: readState() };
+
+        hot.destroy();
+        hot = null;
+        container.remove();
+        container = document.createElement('div');
+        document.body.appendChild(container);
+      });
+
+      expect(state.true).toEqual(state.false);
+      expect(state.true.undone).toEqual(state.true.initial);
+      expect(state.true.redone).toEqual(state.true.moved);
+    });
+
+    /**
+     * Builds a 10 x 4 grid, merges the given range, sorts it outside any batch when asked to, runs a scenario in
+     * a batch or outside it and reads the grid.
+     *
+     * @param {object} options The setup.
+     * @param {number[]} options.merge The range to merge, `[fromRow, fromColumn, toRow, toColumn]`.
+     * @param {object} [options.settings] Settings merged over the grid defaults.
+     * @param {boolean} [options.isSorted] Whether to sort the grid, descending, before the scenario.
+     * @param {Function} options.scenario The calls to make.
+     * @param {boolean} options.isBatched Whether they run in `hot.batch()`.
+     * @returns {object} The observable state.
+     */
+    function runOnTallGrid({ merge, settings = {}, isSorted = false, scenario, isBatched }) {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(10, 4), ...settings });
+      hot.getPlugin('mergeCells').merge(...merge);
+
+      if (isSorted) {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      }
+
+      if (isBatched) {
+        hot.batch(scenario);
+      } else {
+        scenario();
+      }
+
+      const state = readState(10, 4);
+
+      hot.destroy();
+      hot = null;
+      container.remove();
+      container = document.createElement('div');
+      document.body.appendChild(container);
+
+      return state;
+    }
+
+    it('should keep the flags of a row a sorted merge drew over before the move, as outside the batch', () => {
+      const options = {
+        merge: [3, 0, 6, 0],
+        settings: { trimRows: [9, 6] },
+        isSorted: true,
+        scenario: () => hot.getPlugin('manualRowMove').moveRow(3, 7),
+      };
+      const expected = runOnTallGrid({ ...options, isBatched: false });
+
+      expect(runOnTallGrid({ ...options, isBatched: true })).toEqual(expected);
+    });
+
+    it('should draw no merge over a row it does not own when a sort comes before the move in the same batch', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(10, 4) });
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+      hot.batch(() => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.getPlugin('manualRowMove').moveRow(2, 6);
+      });
+
+      hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.forEach(({ row, rowspan }) => {
+        for (let visualRow = row; visualRow < row + rowspan; visualRow++) {
+          expect([1, 2, 3]).toContain(hot.toPhysicalRow(visualRow));
+        }
+      });
+    });
+
+    it('should leave no merge behind when the sort is cleared after the move in the same batch', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(10, 4) });
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+      hot.batch(() => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.getPlugin('manualRowMove').moveRow(2, 6);
+        hot.getPlugin('columnSorting').clearSort();
+      });
+
+      hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }) => {
+        hot.getPlugin('mergeCells').unmerge(row, col, row + rowspan - 1, col + colspan - 1);
+      });
+
+      const { merges, flags } = readState(10, 4);
+
+      expect(merges).toEqual([]);
+      expect(flags).toEqual([]);
+    });
   });
 
   it('should not change a merge made in a batch without a reorder', () => {

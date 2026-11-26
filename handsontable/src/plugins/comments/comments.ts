@@ -32,6 +32,7 @@ import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
 import { registerMenuEntries } from '../../utils/menu/menuEntries';
+import { returnFocusToGrid } from '../../utils/menu/menu/utils';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { LICENSE } from './feature.generated';
 import { COMMENT_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
@@ -281,6 +282,13 @@ export class Comments extends BasePlugin {
    */
   #preventEditorHiding = false;
   /**
+   * Whether a pointer hover opened the comment on screen. Escape in the grid's shortcut context hides
+   * only such a comment: one the API or a shortcut opened is left alone.
+   *
+   * @type {boolean}
+   */
+  #shownByHover = false;
+  /**
    * Prevents saving the comment value when the editor is blurred.
    *
    * @type {boolean}
@@ -357,7 +365,14 @@ export class Comments extends BasePlugin {
     if (!this.#displaySwitch) {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
       this.#displaySwitch.addLocalHook('hide', () => this.hide());
-      this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
+      this.#displaySwitch.addLocalHook('show', (row: number, col: number) => {
+        // Set after the show, which clears the flag, and only when the show succeeded: a failed one
+        // (the cell left the grid inside the display delay) returns before it clears anything, and
+        // the comment on screen may be one the API opened.
+        if (this.showAtCell(row, col)) {
+          this.#shownByHover = true;
+        }
+      });
     }
 
     registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
@@ -460,6 +475,7 @@ export class Comments extends BasePlugin {
         this.#editor?.setValue(this.#commentValueBeforeSave);
         this.hide();
         manager.setActiveContextName('grid');
+        this.#returnFocusToCell();
       },
       runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && this.#editor?.isFocused()),
       group: SHORTCUTS_GROUP,
@@ -470,6 +486,7 @@ export class Comments extends BasePlugin {
       callback: () => {
         this.hide();
         manager.setActiveContextName('grid');
+        this.#returnFocusToCell();
       },
       runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && this.#editor?.isFocused()),
       group: SHORTCUTS_GROUP,
@@ -553,6 +570,7 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseover', onMouseOver);
     this.eventManager.addEventListener(rootDocument, 'mousedown', onMouseDown);
     this.eventManager.addEventListener(rootDocument, 'mouseup', onMouseUp);
+    this.eventManager.addEventListener(rootDocument, 'keydown', this.#onDocumentKeyDown);
 
     if (this.#gridShadowRoot) {
       this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseover', onMouseOver);
@@ -760,6 +778,8 @@ export class Comments extends BasePlugin {
 
     const meta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, col);
 
+    // Every show starts as "not by hover"; the hover path sets the flag after this call returns.
+    this.#shownByHover = false;
     this.#displaySwitch?.cancelHiding();
     const commentMeta = meta[META_COMMENT];
 
@@ -799,6 +819,7 @@ export class Comments extends BasePlugin {
    * Hides the comment editor.
    */
   hide(): void {
+    this.#shownByHover = false;
     this.#resize?.cancel();
     this.#editor?.hide();
   }
@@ -1100,6 +1121,16 @@ export class Comments extends BasePlugin {
   }
 
   /**
+   * Returns the browser focus to the highlighted cell after a shortcut closed the focused editor.
+   * Hiding the editor leaves the focus on its hidden textarea, and then on the document body, where a
+   * screen reader has nothing to read (WCAG 2.4.3). The focus is moved only while it is still in the
+   * editor or on the body, and only to a rendered cell: with no cell selected it stays where it is.
+   */
+  #returnFocusToCell() {
+    returnFocusToGrid(this.hot, this.#editor?.getEditorElement());
+  }
+
+  /**
    * `mousedown` event callback.
    *
    * @param {Event} event The `mousedown` event.
@@ -1205,6 +1236,31 @@ export class Comments extends BasePlugin {
 
     } else if (this.#isInRenderedTree(target)) {
       this.#displaySwitch?.hide();
+    }
+  };
+
+  /**
+   * `keydown` event callback of the document: Escape hides a comment that a hover opened.
+   *
+   * Such a comment is not focused, so the plugin's own Escape shortcut never runs for it, and without
+   * this only a pointer move could hide it (WCAG 1.4.13). It is a document listener and not a shortcut
+   * of the `grid` context, because a shortcut runs only while the grid listens: a user whose focus is
+   * in a field next to the grid could hover a comment and not dismiss it. The event's default is left
+   * alone, so the grid's own Escape shortcuts and the host page's Escape handling work as before. A
+   * comment the API opened stays: an application may show one on purpose.
+   *
+   * @param {Event} event The `keydown` event.
+   */
+  #onDocumentKeyDown = (event: Event) => {
+    const { key, isComposing } = event as KeyboardEvent;
+
+    // An Escape that ends an IME composition belongs to the field the user types in.
+    if (key !== 'Escape' || isComposing) {
+      return;
+    }
+
+    if (this.#shownByHover && this.#editor?.isVisible() && !this.#editor.isFocused()) {
+      this.hide();
     }
   };
 

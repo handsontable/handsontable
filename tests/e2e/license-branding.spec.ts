@@ -320,23 +320,34 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
   test.describe('a key that cannot be read, and no key at all', () => {
     // DEV-2562: the two install faults BLOCK from 18.1 on (the specification's S4.5 shape). Their
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
+    const INVALID = {
+      title: 'The license key for Handsontable is invalid.',
+      description: 'Read more in the documentation on how to install it properly, or contact us at support@handsontable.com.',
+    };
     const FAULTS = [
-      { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
+      { key: 'tampered', ...INVALID },
       // A current key protects its text, so a key whose text was edited is an unreadable key as well.
-      { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
-      { key: 'missing', title: 'The license key for Handsontable is missing.' },
+      { key: 'edited-prose', ...INVALID },
+      {
+        key: 'missing',
+        title: 'The license key for Handsontable is missing.',
+        description: 'Use your purchased key to activate the product. Read more about it in the documentation, ' +
+          'or contact us at support@handsontable.com.',
+      },
       // PRO-1356: Handsontable 19.0 no longer recognizes the non-commercial key, so it locks the
       // grid as an invalid key does.
-      { key: 'non-commercial', title: 'The license key for Handsontable is invalid.' },
+      { key: 'non-commercial', ...INVALID },
     ] as const;
 
-    for (const { key, title } of FAULTS) {
+    for (const { key, title, description } of FAULTS) {
       test(`blocks the grid with a non-closable modal, and no bar, for a "${key}" key`, async ({ page }) => {
         await license.goto(INSTANT.duringTrial, { key });
 
         await expect(license.lock).toBeVisible();
         await expect(license.lock).toHaveAttribute('role', 'alertdialog');
         await expect(license.lock).toContainText(title);
+        // The link is read in its sentence: the lock's description is the whole text, "documentation" inside it (2.4.4).
+        await expect(license.lock).toHaveAccessibleDescription(description);
         // The bar is withdrawn: one surface says it, not two. And no badge - that is the trial's.
         await expect(license.bar).toHaveCount(0);
         await expect(license.badge).toHaveCount(0);
@@ -348,7 +359,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
         // Focus is not taken at init; it lands on the action once the user reaches the lock.
         await expect(license.outsideField).toBeFocused();
 
-        await license.lock.click();
+        await license.lockTitle.click();
 
         await expect(license.lockSupportButton).toBeFocused();
 
@@ -363,7 +374,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await license.goto(INSTANT.duringTrial, { key: 'missing' });
 
       // Focus has to be brought in first - the lock never claims it on its own.
-      await license.lock.click();
+      await license.lockTitle.click();
 
       await expect(license.lockSupportButton).toBeFocused();
 
@@ -422,8 +433,8 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       expect(await license.isInsideInert(page.locator('.ht-grid .htCore td').first())).toBe(true);
     });
 
-    test('keeps the Powered by bar of a trial lock operable beside the inert grid', async () => {
-      await license.goto(INSTANT.trialHardStop);
+    test('keeps the Powered by bar of an `attribution-bar` trial lock operable beside the inert grid', async () => {
+      await license.goto(INSTANT.trialHardStop, { key: 'trial-attribution-bar' });
 
       await expect(license.poweredByLink).toBeVisible();
       expect(await license.isInsideInert(license.poweredByLink)).toBe(false);
@@ -531,12 +542,28 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     }
   });
 
-  // DEV-3413: a trial key and a key with the `attribution-bar` flag show a "Powered by Handsontable DataGrid"
-  // bar last in the bottom slot. It is branding, not a license warning, so `no-ui-warns` does not hide
-  // it, and it is a separate element from the warning bar (`license.bar`).
+  // DEV-3413: a key with the `attribution-bar` flag shows a "Powered by Handsontable DataGrid" bar last in
+  // the bottom slot - a trial too, but only with the flag: the `trial` flag alone shows none. It is
+  // branding, not a license warning, so `no-ui-warns` does not hide it, and it is a separate element from
+  // the warning bar (`license.bar`).
   test.describe('the "Powered by Handsontable DataGrid" bar', () => {
-    test('shows for a running trial, beside the corner badge and with no warning bar', async () => {
+    test('does not show for a running trial without the `attribution-bar` flag, which keeps its corner badge', async () => {
       await license.goto(INSTANT.duringTrial);
+
+      await expect(license.grid).toBeVisible();
+      await expect(license.badge).toBeAttached();
+      await expect(license.poweredBy).toHaveCount(0);
+    });
+
+    test('does not show for a trial issued for external use without the `attribution-bar` flag', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'trial-external' });
+
+      await expect(license.grid).toBeVisible();
+      await expect(license.poweredBy).toHaveCount(0);
+    });
+
+    test('shows for a running `attribution-bar` trial, beside the corner badge and with no warning bar', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'trial-attribution-bar' });
 
       await expect(license.poweredByLink).toBeVisible();
       await expect(license.poweredByLink).toHaveAttribute('href', 'https://handsontable.com');
@@ -562,14 +589,6 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       });
     }
 
-    test('shows for a trial issued for external use, whose `no-ui-warns` still hides the corner badge', async () => {
-      // O-6: DEV-3413 keeps the bar on under `no-ui-warns`, for a trial as for an `attribution-bar` key.
-      await license.goto(INSTANT.duringTrial, { key: 'trial-external' });
-
-      await expect(license.poweredByLink).toBeVisible();
-      await expect(license.badge).toHaveCount(0);
-    });
-
     for (const key of ['sponsored-no-attribution-bar', 'sponsored-retired-badge-flag', 'subscription', 'legacy-expired'] as const) {
       test(`does not show for a "${key}" key`, async () => {
         await license.goto(INSTANT.duringTrial, { key });
@@ -583,7 +602,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
 
     for (const [key, instant] of [
       ['sponsored-attribution-bar', INSTANT.duringTrial],
-      ['trial', INSTANT.trialSoftStop],
+      ['trial-attribution-bar', INSTANT.trialSoftStop],
     ] as const) {
       test(`keeps the grid at its declared height of 200px, the bars inside it (a "${key}" key)`, async () => {
         // The bars mount after the height was written, and the slot observer is seeded after them, so
@@ -599,8 +618,8 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       });
     }
 
-    test('stays the last line, under the warning bar of a soft-stopped trial', async () => {
-      await license.goto(INSTANT.trialSoftStop);
+    test('stays the last line, under the warning bar of a soft-stopped `attribution-bar` trial', async () => {
+      await license.goto(INSTANT.trialSoftStop, { key: 'trial-attribution-bar' });
 
       await expect(license.bar).toBeVisible();
       await expect(license.poweredByLink).toBeVisible();

@@ -7,6 +7,7 @@ import {
 import { GRID_SCOPE, GRID_GROUP, GRID_TAB_NAVIGATION_GROUP } from '../../shortcuts/contexts';
 import { hasRenderedCells } from '../../shortcuts/guards';
 import { getTabReentryCoords, setTabReentryCoords, setLeftByTab } from '../tabReentry';
+import { createTabWrapState } from '../../shortcuts/contexts/commands/tabWrapState';
 
 /**
  * @param {Handsontable} hot The Handsontable instance.
@@ -14,10 +15,7 @@ import { getTabReentryCoords, setTabReentryCoords, setLeftByTab } from '../tabRe
 export function focusGridScope(hot: HotInstance) {
   const clampCoordsIfNeeded = normalizeCoordsIfNeeded(hot);
 
-  const rowWrapState = {
-    wrapped: false,
-    flipped: false,
-  };
+  const wrapState = createTabWrapState(hot);
   let isSavingCoordsEnabled = true;
   let isEmptyDataStateActive = false;
   let isTabPressed = false;
@@ -42,11 +40,6 @@ export function focusGridScope(hot: HotInstance) {
     setTabReentryCoords(hot, undefined);
     setLeftByTab(hot, false);
   });
-  hot.addHook('beforeRowWrap', (
-    interruptedByAutoInsertMode: boolean, newCoords: Record<string, number>, isFlipped: boolean) => {
-    rowWrapState.wrapped = true;
-    rowWrapState.flipped = isFlipped;
-  });
   hot.addHook('beforeEmptyDataStateShow', () => {
     isEmptyDataStateActive = true;
   });
@@ -67,6 +60,7 @@ export function focusGridScope(hot: HotInstance) {
       const { tabNavigation } = hot.getSettings();
 
       isTabPressed = true;
+      wrapState.start();
 
       if (hot.getSelectedRangeActive() && !tabNavigation) {
         isSavingCoordsEnabled = false;
@@ -79,25 +73,23 @@ export function focusGridScope(hot: HotInstance) {
     relativeToGroup: GRID_GROUP,
     group: GRID_TAB_NAVIGATION_GROUP,
     callback(event: KeyboardEvent) {
-      const { tabNavigation, autoWrapRow } = hot.getSettings();
+      const { tabNavigation } = hot.getSettings();
 
       isSavingCoordsEnabled = true;
 
       if (
         !tabNavigation ||
         !hot.selection.isSelected() ||
-        autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
-        !autoWrapRow && rowWrapState.wrapped
+        wrapState.leavesGrid()
       ) {
-        if (autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped) {
+        if (wrapState.isFlippedOffGrid()) {
           const newCoords = event.shiftKey
             ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
 
           setTabReentryCoords(hot, newCoords as unknown as Record<string, number> | undefined);
         }
 
-        rowWrapState.wrapped = false;
-        rowWrapState.flipped = false;
+        wrapState.reset();
       }
     },
     position: 'after',

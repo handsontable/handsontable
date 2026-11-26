@@ -38,6 +38,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowInvalid: true,
   allowRemoveColumn: true,
   allowRemoveRow: true,
+  ariaDescribedby: 'grid-description',
+  ariaLabel: 'Quarterly sales',
+  ariaLabelledby: 'grid-heading',
   ariaTags: true,
   asyncValues: oneOf(
     true,

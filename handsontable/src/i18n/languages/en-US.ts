@@ -158,6 +158,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Reset filters',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Loading data',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Please wait.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Data loaded',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Could not load data',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Could not create rows',

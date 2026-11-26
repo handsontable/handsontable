@@ -284,8 +284,8 @@ Each license behaves differently around its date:
 ### Trial keys
 
 A trial key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left
-corner and the [Powered by Handsontable DataGrid bar](#powered-by-handsontable-datagrid-bar) below
-the table. Hover over the badge to see the trial status. Once the key's notice period begins, the
+corner, and the [Powered by Handsontable DataGrid bar](#powered-by-handsontable-datagrid-bar) below
+the table when the key's terms ask for it. Hover over the badge to see the trial status. Once the key's notice period begins, the
 console starts warning how many days remain - on a standard 45-day trial that is from day one. On
 the last licensed day the warning says the key expires today, because that day is still licensed in
 full. After the expiration date, a message opens next to the badge and below the grid, and the console
@@ -311,12 +311,13 @@ console reports an error and the grid shows a notice below the table.
 
 ### Powered by Handsontable DataGrid bar
 
-A trial key, and a key whose license terms ask for it, show a bar below the table that reads
+A key whose license terms ask for it shows a bar below the table that reads
 "Powered by Handsontable DataGrid" next to the Handsontable logo. The bar links to
 [handsontable.com](https://handsontable.com) and sits below any license message.
 
 The bar is not a warning, so it shows on a key issued for use in an application for external users
-too, and no option turns it off. Every other key shows no bar. The grid keeps the height you set:
+too, and no option turns it off. A trial key follows the same rule: it shows the bar only when its terms ask
+for it. The grid keeps the height you set:
 the bar takes its room from the grid, as the pagination bar does.
 
 ## Keys that name a tier
@@ -474,7 +475,7 @@ Entitlement keys extend this process. A trial or subscription key carries its ex
 
 If your license key is missing, invalid, or expired, Handsontable displays a notification. Where it appears depends on the problem.
 
-A **missing or invalid key** blocks the grid. Handsontable covers it with a modal that cannot be closed, and repeats the message in the console. Create the instance with a valid key to remove it. The grid is not usable until you do.
+A **missing or invalid key** blocks the grid. Handsontable covers it with a modal that cannot be closed, and prints a message in the console. Create the instance with a valid key to remove it. The grid is not usable until you do.
 
 <span class="img-light">
 
@@ -498,15 +499,23 @@ The messages are as follows:
 
 ### Missing license key
 
-Shown in a blocking modal and in the console:
+Shown in a blocking modal:
 
-_The license key for Handsontable is missing. Use your purchased key to activate the product.  Read more about it in the documentation or contact us at `[email]`._
+_The license key for Handsontable is missing. Use your purchased key to activate the product. Read more about it in the documentation, or contact us at `[email]`._
+
+Printed in the console:
+
+_The license key for Handsontable is missing. Use your purchased key to activate the product. If you need any help, contact us at `[email]`._
 
 ### Invalid license key
 
-Shown in a blocking modal and in the console:
+Shown in a blocking modal:
 
-_The license key for Handsontable is invalid.  Read more on how to install it properly or contact us at `[email]`._
+_The license key for Handsontable is invalid. Read more in the documentation on how to install it properly, or contact us at `[email]`._
+
+Printed in the console:
+
+_The license key for Handsontable is invalid. If you need any help, contact us at `[email]`._
 
 Since Handsontable 19.0, the `non-commercial-and-evaluation` key, and its second form
 `ht68e-1f2b7-47158-70b05-0842f`, show this message too. To keep using Handsontable, pass a key from

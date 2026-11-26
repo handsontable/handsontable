@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture – Tab out of a grid that moves down on Tab</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    input { display: block; margin: 10px 0; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A grid between two text inputs, so a Tab that leaves the grid has somewhere to land on either
+    side. Inputs, not buttons: WebKit leaves buttons out of the Tab order.
+    The spec builds the grid with its own settings through `window.buildGrid()`; the defaults are
+    an 8 x 5 grid with both headers and both auto-wrap options off.
+  -->
+  <input type="text" aria-label="Before grid">
+  <div data-testid="grid"></div>
+  <input type="text" aria-label="After grid">
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.buildGrid = function(extraSettings) {
+      if (window.hot) {
+        window.hot.destroy();
+        window.hot = null;
+      }
+
+      container.removeAttribute('data-init-error');
+
+      try {
+        window.hot = new Handsontable(container, Object.assign({
+          data: Handsontable.helper.createSpreadsheetData(8, 5),
+          colHeaders: true,
+          rowHeaders: true,
+          autoWrapRow: false,
+          autoWrapCol: false,
+          height: 'auto',
+          afterRenderer(td, row, column) {
+            td.setAttribute('data-testid', `cell-${row}-${column}`);
+          },
+          licenseKey: window.htTestLicenseKey,
+        }, extraSettings));
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+      }
+    };
+
+    window.buildGrid();
+  </script>
+</body>
+</html>

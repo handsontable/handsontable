@@ -18,7 +18,11 @@
       border-inline-end-color: transparent;
       border-radius: 50%;
       pointer-events: none;
-      animation: ht-async-values-spin 1s linear infinite;
+      // Four turns, then it rests: motion that starts on its own and runs past five seconds needs a way
+      // to pause it (WCAG 2.2.2). The ring stays drawn for as long as the request is pending. A repaint
+      // resumes the turns through a negative inline `animation-delay` (`decoration.ts`), so they count
+      // from the start of the request, not from the paint.
+      animation: ht-async-values-spin 1s linear 4;
 
       @media (prefers-reduced-motion: reduce) {
         animation: none;
@@ -51,14 +55,15 @@
       pointer-events: none;
     }
 
-    .htAsyncErrorMessage,
-    .htAsyncPendingMessage {
+    .htAsyncErrorMessage {
       position: absolute;
       width: 1px;
       height: 1px;
       overflow: hidden;
       clip-path: inset(50%);
-      white-space: nowrap;
+      // `pre`, not `nowrap`: the text starts with a space that keeps it apart from the cell's value for a
+      // screen reader, and `nowrap` collapses a space at the start of a box.
+      white-space: pre;
       user-select: none;
     }
 

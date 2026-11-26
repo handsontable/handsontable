@@ -615,6 +615,100 @@ export default (): Record<string, unknown> => {
     allowRemoveRow: true,
 
     /**
+     * The `ariaDescribedby` option gives the grid an accessible description. Set it to the `id` of an element
+     * on the page, or to several `id`s separated by spaces. Handsontable writes the value to the `aria-describedby`
+     * attribute of the grid's root element, and a screen reader reads the text of those elements after the grid's name.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-describedby` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-describedby` attribute that the grid wrote. An
+     * `aria-describedby` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // describe the grid with the text of the element with the `sales-help` id
+     * ariaDescribedby: 'sales-help',
+     * ```
+     */
+    ariaDescribedby: undefined,
+
+    /**
+     * The `ariaLabel` option gives the grid an accessible name. Handsontable writes the value to the `aria-label`
+     * attribute of the grid's root element, and a screen reader reads it when the focus enters the grid.
+     *
+     * When a heading or another element on the page already names the grid, use [`ariaLabelledby`](#arialabelledby)
+     * instead, so the visible text and the accessible name stay the same.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-label` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-label` attribute that the grid wrote. An
+     * `aria-label` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // name the grid
+     * ariaLabel: 'Quarterly sales',
+     * ```
+     */
+    ariaLabel: undefined,
+
+    /**
+     * The `ariaLabelledby` option names the grid with the text of other elements on the page. Set it to the `id`
+     * of an element, or to several `id`s separated by spaces. Handsontable writes the value to the `aria-labelledby`
+     * attribute of the grid's root element.
+     *
+     * A screen reader uses `aria-labelledby` before [`ariaLabel`](#arialabel) when you set both.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-labelledby` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-labelledby` attribute that the grid wrote. An
+     * `aria-labelledby` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // name the grid with the text of the element with the `sales-title` id
+     * ariaLabelledby: 'sales-title',
+     * ```
+     */
+    ariaLabelledby: undefined,
+
+    /**
      * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
      * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
      * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.
@@ -909,6 +1003,11 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
      * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      *
+     * With a [`tabMoves`](#tabmoves) that moves down (`{ row: 1, col: 0 }`), <kbd>**Tab**</kbd> follows the same rule,
+     * except at the grid's edge: with `false`, <kbd>**Tab**</kbd> on a bottom-most cell moves the focus out of the grid; with
+     * `true`, <kbd>**Tab**</kbd> on the last cell of the grid moves the focus out of the grid.
+     * <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> mirrors it at the top.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -934,8 +1033,8 @@ export default (): Record<string, unknown> => {
     /**
      * | Setting           | Description                                                                                                                                                                                                                                                                                                        |
      * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) doesn't do anything.                                                  |
-     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below. |
+     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* doesn't do anything, and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\* moves the focus out of the grid.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* doesn't do anything, and <kbd>**Tab**</kbd>** moves the focus out of the grid. |
+     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below.<br><br>From the last cell of the grid, <kbd>**Tab**</kbd>** moves the focus out of the grid (<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*: from the first cell). |
      *
      * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.<br>
      * \*\* Unless [`tabNavigation`](#tabnavigation) is set to `false`.
@@ -951,8 +1050,8 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) doesn't do anything
-     * // when you select the last cell of a row, pressing ➡ (or Tab) doesn't do anything
+     * // when you select the first cell of a row, pressing ⬅ doesn't do anything, and Shift+Tab moves the focus out of the grid
+     * // when you select the last cell of a row, pressing ➡ doesn't do anything, and Tab moves the focus out of the grid
      * autoWrapRow: false, // default setting
      *
      * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) takes you to the last cell of the row above
@@ -8813,6 +8912,11 @@ export default (): Record<string, unknown> => {
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
      * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `col` columns left     |
+     *
+     * When <kbd>**Tab**</kbd> moves the selection past the grid's edge, the focus leaves the grid. This works
+     * for a move across columns and for a move down or up only (`{ row: 1, col: 0 }`). With
+     * [`autoWrapRow`](#autowraprow) or [`autoWrapCol`](#autowrapcol) on, the selection wraps instead, and
+     * <kbd>**Tab**</kbd> leaves the grid from the last cell (<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>: from the first cell).
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.

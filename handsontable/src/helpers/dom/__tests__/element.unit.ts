@@ -2575,5 +2575,16 @@ describe('DomElement helper', () => {
       expect(cell.classList.contains('invisibleSelection')).toBe(true);
       expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(true);
     });
+
+    it('should keep the selection of the document when asked not to deselect', () => {
+      makeElementContentEditableAndSelectItsContent(cell);
+      removeContentEditableFromElementAndDeselect(cell, true, false);
+
+      expect(cell.hasAttribute('contenteditable')).toBe(false);
+      expect(cell.hasAttribute('aria-hidden')).toBe(false);
+      expect(cell.classList.contains('invisibleSelection')).toBe(false);
+      expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      expect(window.getSelection()?.toString()).toBe('Product 01');
+    });
   });
 });

@@ -106,10 +106,9 @@
   align-items: center;
   gap: 0.4rem;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
   max-width: 100%;
+  min-width: 0;
   margin-bottom: 0;
 }
 

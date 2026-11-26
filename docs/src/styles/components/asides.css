@@ -27,7 +27,7 @@
   border: 1px solid var(--sl-color-gray-4);
   border-radius: 4px;
   font-size: 0.85em;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   line-height: 1;
 }
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed screen readers not being told that the grid is loading, or that it loaded, when a slow fetch runs without a focus move, the status of a pending or failed async cell running into the cell's value for screen readers, and the pending spinner of an async cell turning without end.",
+  "type": "fixed",
+  "issueOrPR": 14461,
+  "breaking": false,
+  "framework": "none"
+}

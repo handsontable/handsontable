@@ -158,6 +158,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Reimposta filtri',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Caricamento dati',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Attendere prego.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Dati caricati',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Impossibile caricare i dati',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Impossibile creare le righe',

@@ -158,6 +158,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Atiestatīt filtrus',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Ielādē datus',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Lūdzu, uzgaidiet.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Dati ielādēti',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nevarēja ielādēt datus',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nevarēja izveidot rindas',

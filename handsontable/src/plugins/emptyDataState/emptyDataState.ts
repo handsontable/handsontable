@@ -2,6 +2,8 @@ import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
+import { htmlToPlainText } from '../../helpers/string';
+import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import { command as selectAllCellsCommand } from '../../shortcuts/contexts/commands/selectAllCells';
@@ -39,6 +41,12 @@ const SOURCE = Object.freeze({
 });
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+/**
+ * How long, in milliseconds, a fetch must keep the loading overlay up before a screen reader is told about it. A
+ * fetch that ends sooner (a fast poll, a quick refetch) is announced neither when it starts nor when it ends.
+ */
+export const LOADING_ANNOUNCEMENT_DELAY = 500;
 
 /**
  * @plugin EmptyDataState
@@ -314,6 +322,29 @@ export class EmptyDataState extends BasePlugin {
   #loadingActive = false;
 
   /**
+   * The plain text of the loading title the overlay shows, kept by `#update()` so the announcement reads it
+   * without calling the `message` option again.
+   *
+   * @type {string}
+   */
+  #loadingTitle = '';
+
+  /**
+   * Counts the loading starts. A delayed loading announcement runs only while the start that scheduled it is
+   * the latest one.
+   *
+   * @type {number}
+   */
+  #loadingStarts = 0;
+
+  /**
+   * `true` once the current loading start was announced, so its end is announced too.
+   *
+   * @type {boolean}
+   */
+  #isLoadingAnnounced = false;
+
+  /**
    * `true` after an enable that ran without a view (the grid was still being built), so its own toggle did
    * nothing and the ready step owes it. An enable with a view toggles, or leaves it to `onDataReady()`.
    *
@@ -437,12 +468,14 @@ export class EmptyDataState extends BasePlugin {
     const selectionState = this.#selectionState;
     const isSelectionDataReplaced = this.#isSelectionDataReplaced;
     const wasLoading = this.#loadingActive;
+    const isLoadingAnnounced = this.#isLoadingAnnounced;
 
     this.disablePlugin();
     this.#isVisible = wasVisible;
     this.#selectionState = selectionState;
     this.#isSelectionDataReplaced = isSelectionDataReplaced;
     this.#loadingActive = wasLoading;
+    this.#isLoadingAnnounced = isLoadingAnnounced;
     this.enablePlugin();
     this.#update();
 
@@ -467,6 +500,7 @@ export class EmptyDataState extends BasePlugin {
    */
   disablePlugin() {
     this.#loadingActive = false;
+    this.#isLoadingAnnounced = false;
     this.#isVisible = false;
     this.#selectionState = null;
     this.#isSelectionDataReplaced = false;
@@ -570,20 +604,59 @@ export class EmptyDataState extends BasePlugin {
     }
 
     this.#loadingActive = true;
+    this.#isLoadingAnnounced = false;
+    this.#loadingStarts += 1;
     this.#toggleEmptyDataState();
+    this.#scheduleLoadingAnnouncement(this.#loadingStarts);
+  }
+
+  /**
+   * Tells a screen reader that the grid is loading, once the fetch has kept the overlay up for
+   * `LOADING_ANNOUNCEMENT_DELAY`. The overlay appears without a focus move (a sheet switch that starts a fetch
+   * leaves the focus on the sheet tab), and it is no live region, so nothing else says it. The delay keeps a
+   * fast fetch quiet: an application that polls with `fetchData()` would otherwise announce on every poll, and
+   * each announcement makes core's selection announcer drop the message of a selection made just before it.
+   * Only a grid the user works in announces: a grid that loads while the user is elsewhere on the page stays
+   * quiet.
+   *
+   * @param {number} start The loading start that schedules the announcement.
+   */
+  #scheduleLoadingAnnouncement(start: number) {
+    this.hot._registerTimeout(() => {
+      if (
+        !this.enabled || !this.#loadingActive || start !== this.#loadingStarts || !this.#isVisible ||
+        !this.hot.getSettings().ariaTags || !this.hot.isListening() || this.#loadingTitle === ''
+      ) {
+        return;
+      }
+
+      this.#isLoadingAnnounced = true;
+      announce(this.#loadingTitle, 'polite');
+    }, LOADING_ANNOUNCEMENT_DELAY);
   }
 
   /**
    * Clears the loading active flag and hides the emptyDataState.
    *
    * @param {boolean} [restoresSelection=true] Whether hiding restores the selection kept when the overlay appeared.
+   * @param {boolean} [isLoaded=false] Whether the fetch the overlay waited for loaded. When its start was
+   * announced, its end is announced too: the focus can be outside the grid (on a sheet tab), so no cell is read
+   * when the rows arrive.
    */
-  #clearLoadingActive(restoresSelection = true) {
+  #clearLoadingActive(restoresSelection = true, isLoaded = false) {
     if (!this.#loadingActive) {
       return;
     }
 
+    const isLoadingAnnounced = this.#isLoadingAnnounced;
+
     this.#loadingActive = false;
+    this.#isLoadingAnnounced = false;
+
+    if (isLoaded && isLoadingAnnounced && this.hot.getSettings().ariaTags) {
+      announce(this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_LOADED), 'polite');
+    }
+
     this.#hide(restoresSelection);
     this.#toggleEmptyDataState();
     this.hot.render();
@@ -784,7 +857,10 @@ export class EmptyDataState extends BasePlugin {
    */
   #update() {
     if (this.#loadingActive) {
-      this.#ui?.updateContent(this.#getMessage(SOURCE.LOADING), true);
+      const message = this.#getMessage(SOURCE.LOADING);
+
+      this.#loadingTitle = typeof message.title === 'string' ? htmlToPlainText(message.title) : '';
+      this.#ui?.updateContent(message, true);
     } else if (this.#hasFilterConditions) {
       this.#ui?.updateContent(this.#getMessage(SOURCE.FILTERS), false);
     } else {
@@ -917,7 +993,7 @@ export class EmptyDataState extends BasePlugin {
    */
   readonly #onAfterDataProviderFetch = (result?: { isRestored?: true }) => {
     if (result?.isRestored !== true) {
-      this.#clearLoadingActive();
+      this.#clearLoadingActive(true, true);
     }
   };
 
@@ -942,6 +1018,7 @@ export class EmptyDataState extends BasePlugin {
    */
   destroy() {
     this.#loadingActive = false;
+    this.#isLoadingAnnounced = false;
     this.#isVisible = false;
     this.#ui?.destroy();
     this.#ui = null;

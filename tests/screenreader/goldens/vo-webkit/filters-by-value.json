@@ -6,17 +6,17 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-24T11:16:29.315Z"
+    "at": "2026-11-25T11:27:00.456Z"
   },
   "steps": {
     "open-menu": "",
-    "tab-to-condition": "none list item menu column menu",
+    "tab-to-condition": "none list item menu column menu 9 items",
     "tab-to-search": "filter by value search filter by value edit text",
     "type-search": "e re",
     "arrow-into-list": "green checked and 1 more item table 1 column",
     "arrow-down-next": "red checked and 1 more item",
     "space-uncheck": "red unchecked and 1 more item",
-    "tab-to-ok": "ok button menu column menu",
+    "tab-to-ok": "ok button menu column menu 9 items",
     "apply-filter": "color green table 3 columns",
     "arrow-down-filtered": "color blue"
   }

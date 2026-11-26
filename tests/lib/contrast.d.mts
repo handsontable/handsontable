@@ -26,9 +26,11 @@ export function partContrast(
 ): { color: number[]; ratio: number; background: number[] };
 type Change = {
   changed: number; ratio: number; replacedColor: number[] | null; replaced: number[] | null;
-  color: number[] | null; adjacent: number[] | null; adjacentRatio: number; area: number;
+  color: number[] | null; adjacent: number[] | null; adjacentRatio: number; area: number; outside?: number;
 };
-export function indicatorChange(before: Image, after: Image, margin?: number): Change;
+export function indicatorChange(
+  before: Image, after: Image, margin?: number, inner?: { x: number; y: number; width: number; height: number } | null,
+): Change;
 export function focusFindings(input: {
   selector: string; step: string; against?: 'adjacent' | 'before';
   change: Pick<Change, 'changed' | 'ratio' | 'color'> & Partial<Change>;

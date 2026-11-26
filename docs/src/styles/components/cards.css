@@ -72,9 +72,8 @@
   font-size: 1rem;
   line-height: 1.25rem;
   display: inline;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .ht-link-card .subtitle {

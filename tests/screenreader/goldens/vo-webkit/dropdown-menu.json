@@ -6,14 +6,14 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-23T11:16:57.800Z"
+    "at": "2026-11-25T11:23:53.653Z"
   },
   "steps": {
     "open-menu": "",
-    "arrow-down-insert-right": "insert column right menu item group 2 of 15 menu column menu",
-    "arrow-down-remove": "remove column menu item group 4 of 15",
-    "arrow-down-clear": "clear column menu item group 6 of 15",
-    "arrow-down-read-only": "read only menu item 8 of 15",
+    "arrow-down-insert-right": "insert column right menu item group 2 of 9 menu column menu 9 items",
+    "arrow-down-remove": "remove column menu item group 3 of 9",
+    "arrow-down-clear": "clear column menu item group 4 of 9",
+    "arrow-down-read-only": "read only menu item 5 of 9",
     "close-menu": "color red table 3 columns",
     "arrow-down-in-grid": "color green"
   }

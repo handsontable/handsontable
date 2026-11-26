@@ -149,6 +149,7 @@ new Handsontable(container, {
     preventOverflow: 'horizontal',
     rowHeaders: true,
     colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
+    navigableHeaders: true,
     nestedRows: true,
     contextMenu: true,
     bindRowsWithHeaders: true,

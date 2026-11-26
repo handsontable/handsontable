@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-23T11:02:00.204Z"
+    "at": "2026-11-25T11:20:33.087Z"
   },
   "steps": {
     "tab-add-sheet": "add sheet button",
@@ -14,7 +14,7 @@
     "tab-active-sheet": "sheets grouping alpha button collapsed sub menu current",
     "arrow-right-sheet": "beta button",
     "enter-switch-sheet": "collapsed sub menu current sheet beta activated",
-    "enter-sheet-menu": "rename 1 of 3 sheet actions beta menu",
+    "enter-sheet-menu": "rename 1 of 5 sheet actions beta menu",
     "enter-rename": "sheets grouping sheet name edit has auto complete selected beta",
     "type-name": "selection removed",
     "enter-commit-rename": "budget button collapsed sub menu current",
