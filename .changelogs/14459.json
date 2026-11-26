@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Safari exposing the highlighted cell to assistive technology as an editable region after the grid re-rendered while the pointer was outside the page.",
+  "type": "fixed",
+  "issueOrPR": 14459,
+  "breaking": false,
+  "framework": "none"
+}

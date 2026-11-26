@@ -1983,16 +1983,18 @@ export function makeElementContentEditableAndSelectItsContent(
  * @param {HTMLElement} selectedElement The element to be deselected.
  * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class and the attribute should be removed
  * from the element.
+ * @param {boolean} [deselect=true] `false` to keep the selection of the document, for a caller that cannot
+ * tell whether the selection is still the one made on the element.
  */
 export function removeContentEditableFromElementAndDeselect(
-  selectedElement: HTMLElement, removeInvisibleSelectionClass = true) {
-  const sel = selectedElement.ownerDocument.defaultView?.getSelection();
-
+  selectedElement: HTMLElement, removeInvisibleSelectionClass = true, deselect = true) {
   if (selectedElement.hasAttribute('aria-hidden')) {
     selectedElement.removeAttribute('aria-hidden');
   }
 
-  sel?.removeAllRanges();
+  if (deselect) {
+    selectedElement.ownerDocument.defaultView?.getSelection()?.removeAllRanges();
+  }
 
   if (removeInvisibleSelectionClass) {
     removeClass(selectedElement, 'invisibleSelection');

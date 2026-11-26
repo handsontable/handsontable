@@ -90,6 +90,95 @@ test.describe('the Safari copy selection', { tag: CROSS_BROWSER_TAG }, () => {
       .toBe(true);
   });
 
+  test('keeps the cell hidden from assistive technology across a render, until the pointer is back', async({ browserName }) => {
+    const cell = grid.cell(0, 1);
+
+    await cell.click();
+    expect(await grid.selected()).toEqual([[0, 1, 0, 1]]);
+    await expect(cell).not.toHaveAttribute('aria-hidden');
+
+    await grid.pointerLeavesBody();
+
+    if (browserName !== 'webkit') {
+      // Only WebKit runs the workaround: nothing made the cell editable, so nothing has to hide it.
+      await expect(cell).not.toHaveAttribute('contenteditable');
+      await expect(cell).not.toHaveAttribute('aria-hidden');
+
+      return;
+    }
+
+    await expect(cell).toHaveAttribute('contenteditable', 'true');
+    await expect(cell).toHaveAttribute('aria-hidden', 'true');
+
+    await grid.render();
+
+    // The render keeps the cell editable. Without `aria-hidden` a screen reader reads it as an editable
+    // region for as long as the pointer stays outside the body.
+    await expect(cell).toHaveAttribute('contenteditable', 'true');
+    await expect(cell).toHaveAttribute('aria-hidden', 'true');
+
+    await grid.pointerEntersBody();
+
+    await expect(cell).not.toHaveAttribute('contenteditable');
+    await expect(cell).not.toHaveAttribute('aria-hidden');
+
+    await grid.render();
+
+    await expect(cell).not.toHaveAttribute('aria-hidden');
+  });
+
+  test('takes the workaround off an element a scroll reuses for another cell', async({ page, browserName }) => {
+    const cell = grid.cell(0, 1);
+    const editableCells = page.getByTestId('grid').locator('td[contenteditable], td[data-ht-invisible-selection]');
+
+    await cell.click();
+    expect(await grid.selected()).toEqual([[0, 1, 0, 1]]);
+
+    await grid.pointerLeavesBody();
+
+    if (browserName !== 'webkit') {
+      await expect(editableCells).toHaveCount(0);
+
+      return;
+    }
+
+    // The positive control: the workaround is on one cell before the scroll.
+    await expect(editableCells).toHaveCount(1);
+
+    await grid.scrollUntilRowIsNotDrawn(0);
+
+    // The element that drew the highlighted cell now draws a cell of another row. Left editable without
+    // `aria-hidden`, a screen reader reads that cell as an editable region.
+    await expect(editableCells).toHaveCount(0);
+    expect(await grid.selected()).toEqual([[0, 1, 0, 1]]);
+    // The reused element keeps its text node, so the workaround's selection would cover the new value,
+    // and without the marker attribute it would show.
+    expect(await page.evaluate(() => window.getSelection()?.toString())).toBe('');
+  });
+
+  test('keeps a highlighted column header hidden from assistive technology across a render', async({ browserName }) => {
+    const header = grid.header(6);
+
+    await grid.keepSearchedValues('Country', 'India', ['India']);
+    expect(await grid.selected()).toEqual([[-1, 6, -1, 6]]);
+
+    await grid.pointerLeavesBody();
+
+    if (browserName !== 'webkit') {
+      await expect(header).not.toHaveAttribute('aria-hidden');
+
+      return;
+    }
+
+    await expect(header).toHaveAttribute('contenteditable', 'true');
+    await expect(header).toHaveAttribute('aria-hidden', 'true');
+
+    await grid.render();
+
+    await expect(header).toHaveAttribute('contenteditable', 'true');
+    await expect(header).toHaveAttribute('aria-hidden', 'true');
+  });
+
   test('leaves a selection painted in a cell a renderer made editable', async() => {
     const cell = grid.cell(1, 1);
 
