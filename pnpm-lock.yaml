@@ -325,6 +325,9 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0(vue@3.5.43(typescript@5.8.3))
     devDependencies:
+      '@handsontable/angular-wrapper':
+        specifier: ~19.0.0
+        version: link:../wrappers/angular-wrapper/dist/hot-table
       '@octokit/rest':
         specifier: ^21.1.1
         version: 21.1.1
@@ -9442,6 +9445,7 @@ packages:
   image-size@0.5.5:
     resolution: {integrity: sha512-6TDAlDPZxUFCv+fuOkIoXT/V/f3Qbq8e37p+YOiYrUv3v9cc3/6x78VdfPgFVaB9dZYeLUfKgHRebpkm/oP2VQ==}
     engines: {node: '>=0.10.0'}
+    deprecated: Please migrate to image-size@2.x
     hasBin: true
 
   img-diff-js@0.5.4:
