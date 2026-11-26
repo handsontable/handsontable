@@ -38,7 +38,7 @@ plugins own the cancel paths, as they do for a drag.
 - **NestedRows turns the row move off.** Its `beforeRowMove` listener (`../../plugins/nestedRows/utils/rowMoveController.ts`)
   moves the rows itself, selects them, and returns `false`, so `dragRows()` reports no move: the mode lost its
   selection, nothing was announced, and the menu items stayed enabled on rows it refuses. The row plugin's
-  `isEnabled()` answers `false` while NestedRows is enabled, so the shortcut does not start and the row items are
+  `canMove()` answers `false` while NestedRows is enabled, so the shortcut does not start and the row items are
   hidden. Supporting it needs a move result from NestedRows, not a guess here.
 - **A step passes the nearest visible index, and lands where a pointer drop would.** Hidden indexes in between are
   stepped over. The index after the passed one comes from the plugin (`dropIndexAfter()`): the column plugin steps

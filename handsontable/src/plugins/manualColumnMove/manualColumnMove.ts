@@ -92,7 +92,7 @@ export class ManualColumnMove extends BasePlugin {
    * Moves the selected columns without a drag: the keyboard move and the menu items.
    */
   readonly #mover = new KeyboardMove(this.hot, COLUMN_MOVE_AXIS, {
-    isEnabled: () => this.enabled,
+    canMove: () => this.enabled,
     drag: (columns, dropIndex) => this.dragColumns(columns, dropIndex),
     countFinalIndex: (columns, dropIndex) => this.countFinalIndex(columns, dropIndex),
     isMovePossible: (columns, finalIndex) => this.isMovePossible(columns, finalIndex),

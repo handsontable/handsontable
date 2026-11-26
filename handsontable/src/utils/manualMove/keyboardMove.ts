@@ -23,7 +23,7 @@ export interface MoveOwner {
    * Tells whether moving without a drag is available: the plugin is enabled, and nothing moves the tracks by a
    * path of its own.
    */
-  isEnabled(): boolean;
+  canMove(): boolean;
   /**
    * Moves the indexes to the drop index (`dragColumns()` or `dragRows()`).
    */
@@ -355,7 +355,7 @@ export class KeyboardMove {
    * @returns {boolean}
    */
   appliesToSelection(): boolean {
-    return this.#owner.isEnabled() && this.#axis.ownsSelection(this.#hot);
+    return this.#owner.canMove() && this.#axis.ownsSelection(this.#hot);
   }
 
   /**
@@ -531,7 +531,7 @@ export class KeyboardMove {
     const hot = this.#hot;
     const range = hot.getSelectedRangeActive();
 
-    if (!this.#owner.isEnabled() || !range || hot.selection.isNonContiguous() || !this.#axis.ownsSelection(hot)) {
+    if (!this.#owner.canMove() || !range || hot.selection.isNonContiguous() || !this.#axis.ownsSelection(hot)) {
       return null;
     }
 

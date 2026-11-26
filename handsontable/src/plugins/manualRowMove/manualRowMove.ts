@@ -97,7 +97,7 @@ export class ManualRowMove extends BasePlugin {
   readonly #mover = new KeyboardMove(this.hot, ROW_MOVE_AXIS, {
     // NestedRows moves the rows by its own path and refuses the drag's result, so the keyboard move and the menu
     // items are off while it is on.
-    isEnabled: () => this.enabled && this.hot.getPlugin('nestedRows')?.enabled !== true,
+    canMove: () => this.enabled && this.hot.getPlugin('nestedRows')?.enabled !== true,
     drag: (rows, dropIndex) => this.dragRows(rows, dropIndex),
     countFinalIndex: (rows, dropIndex) => this.countFinalIndex(rows, dropIndex),
     isMovePossible: (rows, finalIndex) => this.isMovePossible(rows, finalIndex),

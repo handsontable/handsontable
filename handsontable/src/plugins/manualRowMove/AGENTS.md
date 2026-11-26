@@ -153,7 +153,7 @@ The row half of `KeyboardMove` (`../../utils/manualMove/AGENTS.md`): a whole-row
 starts it with `Ctrl`/`Cmd`+`Alt`+`G`, `↑`/`↓` move the rows, and `move_row_up` and `move_row_down` join the default
 context menu. Each step passes `getLowerHalfDropIndex()` of the row it steps past to `dragRows()`, so the keyboard
 lands rows where a lower-half drop would, with the same band and merged-cell exceptions. While NestedRows is enabled
-the mover's `isEnabled()` is `false`, so neither the shortcut nor the items move rows (NestedRows moves them by its
+the mover's `canMove()` is `false`, so neither the shortcut nor the items move rows (NestedRows moves them by its
 own path and reports the drag as refused; `../../utils/manualMove/AGENTS.md`). This plugin's
 `updatePlugin()` sets `#restarting` only to keep a running keyboard move through the update cycle; a drag here
 survives that cycle without it. `beforeLoadData` and a real `disablePlugin()` end the mode. Pinned by
