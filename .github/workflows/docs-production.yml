@@ -1,7 +1,7 @@
 name: Docs Production Deployment
 
 env:
-  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
+  GHA_DOCKER_TAG: ghcr.io/${{ github.repository }}/handsontable-documentation
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
 
       - name: Docker login into GHCR
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
 
       - name: Install monorepo dependencies and build packages
         working-directory: .
