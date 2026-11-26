@@ -38,6 +38,30 @@ const code = file => readFileSync(file, 'utf8').split('\n').filter(line => !line
 // keep the old `ubuntu-latest` text. Only that exact shape is exempt, never a `runs-on` or an `os` value.
 const REQUIRED_CHECK_NAME = /^\s+name:\s*ubuntu-latest\s+# required check name$/;
 
+const IMAGE_EXCEPTIONS = [
+  {
+    file: '.github/workflows/docs-production.yml',
+    job: 'docker',
+    label: 'ubuntu-24.04',
+    reason: 'Docker 29 on ubuntu-26.04 gets 401 Unauthorized pushing to the legacy docker.pkg.github.com registry',
+  },
+];
+
+const runsOnLine = label => new RegExp(`^ {4}runs-on:\\s*${label.replace('.', '\\.')}\\s*$`);
+
+const withoutExceptions = (relPath, source, exceptions = IMAGE_EXCEPTIONS) => exceptions
+  .filter(exception => exception.file === relPath)
+  .reduce((text, exception) => {
+    const body = job(text, exception.job);
+    const kept = body.split('\n').filter(line => !runsOnLine(exception.label).test(line)).join('\n');
+
+    return body ? text.replace(body, kept) : text;
+  }, source);
+
+const pinnedCode = file => withoutExceptions(rel(file), readFileSync(file, 'utf8'))
+  .split('\n')
+  .filter(line => !line.trimStart().startsWith('#'));
+
 // A composite action has no jobs; its steps sit at four spaces. Each unit is a
 // block of steps that has to declare the runner image before it uses it.
 const stepUnits = file => {
@@ -93,7 +117,7 @@ test('every workflow and action uses one and the same Ubuntu image', () => {
   const labels = new Map();
 
   for (const file of files) {
-    for (const line of code(file)) {
+    for (const line of pinnedCode(file)) {
       for (const [label] of line.matchAll(/\bubuntu-\d+\.\d+\b/g)) {
         labels.set(label, [...(labels.get(label) ?? []), rel(file)]);
       }
@@ -147,4 +171,40 @@ test('every runner-image step reads $ImageOS into its output', () => {
       }
     }
   }
+});
+
+test('each image exception names a job that still runs on its own label', () => {
+  for (const exception of IMAGE_EXCEPTIONS) {
+    const body = job(readFileSync(path.join(root, exception.file), 'utf8'), exception.job);
+
+    assert.ok(body, `${exception.file} has no job ${exception.job}`);
+    assert.ok(body.split('\n').some(line => runsOnLine(exception.label).test(line)),
+      `${exception.file} (${exception.job}) no longer runs on ${exception.label}; drop its exception`);
+    assert.ok(exception.reason, `${exception.file} (${exception.job}) needs a reason`);
+  }
+});
+
+test('an image exception exempts only the runs-on line of its own job', () => {
+  const source = [
+    'jobs:',
+    '  docker:',
+    '    runs-on: ubuntu-24.04',
+    '    steps:',
+    '      - run: echo ubuntu-24.04',
+    '  other:',
+    '    runs-on: ubuntu-24.04',
+    '',
+  ].join('\n');
+  const exceptions = [{ file: 'wf.yml', job: 'docker', label: 'ubuntu-24.04', reason: 'test' }];
+
+  assert.equal(withoutExceptions('wf.yml', source, exceptions), [
+    'jobs:',
+    '  docker:',
+    '    steps:',
+    '      - run: echo ubuntu-24.04',
+    '  other:',
+    '    runs-on: ubuntu-24.04',
+    '',
+  ].join('\n'));
+  assert.equal(withoutExceptions('other.yml', source, exceptions), source);
 });
