@@ -2454,7 +2454,10 @@ export class MergeCells extends BasePlugin {
    * Unmerges the merged cell in the provided range.
    *
    * Like `merge()`, the call waits for the end of a [`batch()`](@/api/core.md#batch) that holds a column move,
-   * a row move, or a sort made before it, and it keeps its order with the `merge()` calls around it.
+   * a row move, or a sort made before it, and it keeps its order with the `merge()` calls around it. A call held
+   * back follows the rows and columns that are added or removed before the batch ends. When a row or column at an
+   * end of its range is removed, the end moves to the nearest row or column that stays in the range, and the call
+   * is dropped with a warning only when the whole range is removed.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -2700,7 +2703,9 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Moves the corners of the held back calls after a removal: the survivors are renumbered down by the number
-   * of removed indexes below them. A call with a corner on a removed row or column is dropped with a warning.
+   * of removed indexes below them. A `merge()` with a corner on a removed row or column is dropped with a warning.
+   * An `unmerge()` moves such a corner to the nearest surviving index inside its range, so it still dissolves
+   * the merge the user named, and is dropped only when its whole range is gone.
    *
    * @param {'row'|'column'} axis The axis of the removal.
    * @param {number[]} removedIndexes The physical indexes of the removed rows or columns.
@@ -2714,30 +2719,47 @@ export class MergeCells extends BasePlugin {
     // The order the mapper reports the removed indexes in is not promised, hence the sorted copy.
     const ascending = [...removedIndexes].sort((indexA, indexB) => indexA - indexB);
 
-    this.#rebaseDeferredCorners(axis, index => (removed.has(index) ? null : index - countBelow(ascending, index)));
+    this.#rebaseDeferredCorners(axis, (index, otherIndex, kind) => {
+      const shifted = index - countBelow(ascending, index);
+
+      if (!removed.has(index)) {
+        return shifted;
+      }
+
+      if (kind === 'merge' || index === otherIndex) {
+        return null;
+      }
+
+      // The first survivor after the removed corner (towards the other corner) takes the corner's own slot,
+      // the last survivor before it sits one slot above.
+      return otherIndex > index ? shifted : shifted - 1;
+    });
   }
 
   /**
    * Applies a remapping to the corners of the held back calls along one axis. A call whose corner maps to
-   * `null` is dropped with a warning.
+   * `null`, or whose corners cross each other, is dropped with a warning.
    *
    * @param {'row'|'column'} axis The axis the corners are remapped along.
-   * @param {function(number): (number|null)} remap Maps a physical index to its new one, or to `null` when gone.
+   * @param {function(number, number, string): (number|null)} remap Maps a physical index to its new one, or to
+   * `null` when gone. It gets the other corner of the range and the kind of the call.
    */
-  #rebaseDeferredCorners(axis: 'row' | 'column', remap: (index: number) => number | null) {
+  #rebaseDeferredCorners(axis: 'row' | 'column',
+                         remap: (index: number, otherIndex: number, kind: string) => number | null) {
     this.#deferredRangeOperations = this.#deferredRangeOperations.flatMap((operation) => {
-      const start = remap(axis === 'row' ? operation.startRow : operation.startColumn);
-      const end = remap(axis === 'row' ? operation.endRow : operation.endColumn);
+      const from = axis === 'row' ? operation.startRow : operation.startColumn;
+      const to = axis === 'row' ? operation.endRow : operation.endColumn;
+      const start = remap(from, to, operation.kind);
+      const end = remap(to, from, operation.kind);
 
-      if (start === null || end === null) {
-        warn(`A ${operation.kind}() call made in a batch was dropped, because a ${axis} at a corner of its ` +
+      if (start === null || end === null || (from < to && start > end) || (from > to && start < end)) {
+        warn(`A ${operation.kind}() call made in a batch was dropped, because a ${axis} at an end of its ` +
           'range was removed before the batch ended.');
 
         return [];
       }
 
-      if (start === (axis === 'row' ? operation.startRow : operation.startColumn) &&
-          end === (axis === 'row' ? operation.endRow : operation.endColumn)) {
+      if (start === from && end === to) {
         return [operation];
       }
 

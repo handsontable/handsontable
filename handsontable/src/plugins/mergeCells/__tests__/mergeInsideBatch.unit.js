@@ -418,9 +418,39 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
         ['col', 'remove_col', 2, 1, WIDE_MERGE, 'a column inside the range'],
       ];
 
-      ALTERS.forEach(([axis, action, index, amount, merge, name]) => {
-        it(`should follow ${action}(${index}, ${amount}) ${name} as the same calls outside the batch do`, () => {
-          const reorder = reorderOnOtherAxis[axis];
+      // A move on the altered axis makes `alter()` pivot from the stale cache, which only matches the live order
+      // outside the rows the move permutes. So the ranges and the alters sit past them.
+      const reorderOnSameAxis = {
+        row: () => hot.getPlugin('manualRowMove').moveRow(1, 0),
+        col: () => hot.getPlugin('manualColumnMove').moveColumn(1, 0),
+      };
+      const LATE_MERGE = { row: [3, 1, 4, 2], col: [1, 3, 2, 4] };
+      const LATE_WIDE_MERGE = { row: [3, 1, 5, 2], col: [1, 3, 2, 5] };
+      const SAME_AXIS_ALTERS = [
+        ['row', 'insert_row_above', 2, 2, LATE_MERGE.row, 'before the range'],
+        ['row', 'insert_row_above', 3, 1, LATE_MERGE.row, 'at its first row'],
+        ['row', 'insert_row_below', 3, 2, LATE_MERGE.row, 'between its rows'],
+        ['row', 'insert_row_below', 4, 1, LATE_MERGE.row, 'after its last row'],
+        ['row', 'insert_row_above', 6, 1, LATE_MERGE.row, 'after the range'],
+        ['row', 'remove_row', 2, 1, LATE_MERGE.row, 'a row before the range'],
+        ['row', 'remove_row', 6, 2, LATE_MERGE.row, 'rows after the range'],
+        ['row', 'remove_row', 4, 1, LATE_WIDE_MERGE.row, 'a row inside the range'],
+        ['col', 'insert_col_start', 2, 2, LATE_MERGE.col, 'before the range'],
+        ['col', 'insert_col_start', 3, 1, LATE_MERGE.col, 'at its first column'],
+        ['col', 'insert_col_end', 3, 2, LATE_MERGE.col, 'between its columns'],
+        ['col', 'insert_col_end', 4, 1, LATE_MERGE.col, 'after its last column'],
+        ['col', 'insert_col_start', 6, 1, LATE_MERGE.col, 'after the range'],
+        ['col', 'remove_col', 2, 1, LATE_MERGE.col, 'a column before the range'],
+        ['col', 'remove_col', 6, 2, LATE_MERGE.col, 'columns after the range'],
+        ['col', 'remove_col', 4, 1, LATE_WIDE_MERGE.col, 'a column inside the range'],
+      ];
+
+      [
+        ['the other axis', ALTERS, reorderOnOtherAxis],
+        ['the same axis', SAME_AXIS_ALTERS, reorderOnSameAxis],
+      ].forEach(([reorderName, table, reorders]) => table.forEach(([axis, action, index, amount, merge, name]) => {
+        it(`should follow ${action}(${index}, ${amount}) ${name} after a move on ${reorderName}, as the same calls outside the batch do`, () => {
+          const reorder = reorders[axis];
 
           createGrid();
           reorder();
@@ -452,7 +482,7 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
             warn.mockRestore();
           }
         });
-      });
+      }));
 
       it('should keep a merge when a row is removed after a row move in the batch', () => {
         createGrid();
@@ -570,9 +600,47 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
         expect(readMerges()).toEqual([[0, 1, 2, 2]]);
       });
 
-      it('should drop a held unmerge with a warning when a corner row is removed, and leave the merge', () => {
+      [
+        ['remove_row', 1, 1, 'its first row'],
+        ['remove_row', 2, 1, 'its last row'],
+      ].forEach(([action, index, amount, name]) => {
+        it(`should still unmerge when ${name} is removed in the batch`, () => {
+          createGrid();
+          hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+
+          const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+          try {
+            hot.batch(() => {
+              hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+              hot.getPlugin('mergeCells').unmerge(1, 1, 2, 2);
+              hot.alter(action, index, amount);
+            });
+
+            expect(readMerges()).toEqual([]);
+            expect(warn).not.toHaveBeenCalled();
+          } finally {
+            warn.mockRestore();
+          }
+        });
+      });
+
+      it('should still unmerge when a descending range loses an end row', () => {
         createGrid();
-        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+        hot.getPlugin('mergeCells').merge(1, 1, 3, 2);
+
+        hot.batch(() => {
+          hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+          hot.getPlugin('mergeCells').unmerge(3, 1, 1, 2);
+          hot.alter('remove_row', 3);
+        });
+
+        expect(readMerges()).toEqual([]);
+      });
+
+      it('should drop a held unmerge with a warning when its whole range is removed', () => {
+        createGrid();
+        hot.getPlugin('mergeCells').merge(4, 6, 5, 7);
 
         const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -580,11 +648,13 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
           hot.batch(() => {
             hot.getPlugin('manualColumnMove').moveColumn(5, 0);
             hot.getPlugin('mergeCells').unmerge(1, 1, 2, 2);
-            hot.alter('remove_row', 2);
+            hot.alter('remove_row', 1, 2);
           });
 
-          expect(readMerges()).toHaveLength(1);
+          // The merge at rows 4 and 5 moved up and stays: the call that was dropped did not name it.
+          expect(readMerges()).toEqual([[2, 6, 2, 2]]);
           expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls.flat().join(' ')).toContain('was dropped');
         } finally {
           warn.mockRestore();
         }

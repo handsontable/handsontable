@@ -1213,13 +1213,16 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
   insertion point and moves every index at or after it up by the count, so an insert inside the range grows it and one
   at its first row or column moves it, as for a merge that exists. `mode: 'end'` (`insert_row_below`, `insert_col_end`)
   puts the new ones one index after the first reported one, because `DataMap` splices the data in below. A removal
-  renumbers the survivors down (`countBelow()`) and **drops the call with a warning when a corner's own row or column is
-  removed**, not when one in the middle is (that shrinks the range). A removed corner is not equivalent to the unbatched
-  call, which shrinks a merge that exists onto the surviving rows, and a held `unmerge()` that is dropped leaves its merge
-  in place. The ticket asked for the drop, and a clamp onto the next physical survivor would pair rows that a sort has
-  made visual strangers. The numbering follows the mapper, not the data, so a caller whose inserts hand the mapper a
-  position that is not the row's physical index (NestedRows, `core.ts` `_alignInsertedRowSizes()`) re-bases in the
-  mapper's numbering. **Do not read the pivot from `afterCreateRow` with `toPhysicalRow(row)`:**
+  renumbers the survivors down (`countBelow()`). **A `merge()` with a corner on a removed row or column is dropped with a
+  warning**, not one with only a middle row removed (that shrinks the range). A removed corner is not equivalent to the
+  unbatched call, which shrinks a merge that exists onto the surviving rows; the ticket asked for the drop, and a clamp
+  of a `merge()` onto the next physical survivor would pair rows that a sort has made visual strangers. **An `unmerge()`
+  moves such a corner onto the nearest survivor towards its other corner** (the first one after it takes its slot, the
+  last one before it sits one slot above), so it still dissolves the merge the user named: dropping it left that merge
+  in place, which is the opposite of what was asked. It is dropped, with the warning, only when no survivor is left
+  in its range (the corners cross). The numbering follows the mapper, not the data, so a caller whose inserts hand the
+  mapper a position that is not the row's physical index (NestedRows, `core.ts` `_alignInsertedRowSizes()`) re-bases in
+  the mapper's numbering. **Do not read the pivot from `afterCreateRow` with `toPhysicalRow(row)`:**
   `alter()` in a batch computes its pivot from the stale cache after a row move, so the hook reports a visual row that
   names another record. The mapper hooks carry physical indexes, so the move does not matter. The aim is "the rows the
   user meant", not the unbatched sequence: `moveRow(5, 0)` then `insert_row_above 0` orders the rows `6,0,1,2,…` in the
@@ -1242,7 +1245,7 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
   sequence through the trimming and hiding maps' cached merged values, the same limit as the ColumnSorting band read.
 - **A call outside `suspendExecution()`/`batch()` is never queued.** The queue ends with the execution, and a plugin
   disable drops it (a destroyed plugin never flushes). Three edges: a raw `suspendExecution()` and `resumeExecution()` have no operation, so the
-  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data; and an
+  flushed merge is an undo step of its own; a `loadData()` in the batch replays the corners on the new data, shifted by the earlier inserts and removals of the batch (it resets no queue, and fires no mapper hook that would re-base it); and an
   `afterResumeExecution` listener that throws before this plugin's skips the flush, which then runs at the next
   `merge()` or `unmerge()` call outside the batch, on the corners it held.
 
