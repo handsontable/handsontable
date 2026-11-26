@@ -643,6 +643,48 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
         }
       });
 
+      it('should follow an insert and the removal of the inserted row', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.alter('insert_row_above', 0);
+            hot.alter('remove_row', 0);
+          });
+
+          expect(hot.countRows()).toBe(ROWS);
+          expect(readMerges()).toEqual([[1, 1, 2, 2]]);
+          expect(warn).not.toHaveBeenCalled();
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
+      it('should follow every held call, and keep the order of a merge and the unmerge that follows it', () => {
+        createGrid();
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+          hot.batch(() => {
+            hot.getPlugin('manualColumnMove').moveColumn(5, 0);
+            hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+            hot.getPlugin('mergeCells').merge(4, 4, 5, 5);
+            hot.alter('insert_row_above', 0);
+            hot.getPlugin('mergeCells').unmerge(2, 1, 3, 2);
+          });
+
+          expect(readMerges()).toEqual([[5, 4, 2, 2]]);
+          expect(warn).not.toHaveBeenCalled();
+        } finally {
+          warn.mockRestore();
+        }
+      });
+
       it('should drop a held back call once, with a warning, when a corner row is removed, and keep the others', () => {
         createGrid();
 
