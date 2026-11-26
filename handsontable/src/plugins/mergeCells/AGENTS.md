@@ -1216,11 +1216,10 @@ So while a mapper's sequence is ahead of its cache (`#isIndexSequenceBehind()`) 
   renumbers the survivors down (`countBelow()`). **A `merge()` with a corner on a removed row or column is dropped with a
   warning**, not one with only a middle row removed (that shrinks the range). A removed corner is not equivalent to the
   unbatched call, which shrinks a merge that exists onto the surviving rows; the ticket asked for the drop, and a clamp
-  of a `merge()` onto the next physical survivor would pair rows that a sort has made visual strangers. **An `unmerge()`
-  moves such a corner onto the nearest survivor towards its other corner** (the first one after it takes its slot, the
-  last one before it sits one slot above), so it still dissolves the merge the user named: dropping it left that merge
-  in place, which is the opposite of what was asked. It is dropped, with the warning, only when no survivor is left
-  in its range (the corners cross). The numbering follows the mapper, not the data, so a caller whose inserts hand the
+  of a `merge()` onto the next physical survivor would pair rows that a sort has made visual strangers. **A held `unmerge()` is dropped
+  too, and its merge stays**: a clamp of the removed corner onto the nearest physical survivor was tried and reverted
+  (review of PR 14477), because after a move in the batch that neighbor is a visual stranger, and the call then
+  dissolved a merge it did not name, with no warning. A merge left in place with a warning is the safer miss. The numbering follows the mapper, not the data, so a caller whose inserts hand the
   mapper a position that is not the row's physical index (NestedRows, `core.ts` `_alignInsertedRowSizes()`) re-bases in
   the mapper's numbering. **Do not read the pivot from `afterCreateRow` with `toPhysicalRow(row)`:**
   `alter()` in a batch computes its pivot from the stale cache after a row move, so the hook reports a visual row that
