@@ -55,7 +55,7 @@ const withoutExceptions = (relPath, source, exceptions = IMAGE_EXCEPTIONS) => ex
     const body = job(text, exception.job);
     const kept = body.split('\n').filter(line => !runsOnLine(exception.label).test(line)).join('\n');
 
-    return body ? text.replace(body, kept) : text;
+    return body ? text.replace(body, () => kept) : text;
   }, source);
 
 const pinnedCode = file => withoutExceptions(rel(file), readFileSync(file, 'utf8'))
@@ -207,4 +207,28 @@ test('an image exception exempts only the runs-on line of its own job', () => {
     '',
   ].join('\n'));
   assert.equal(withoutExceptions('other.yml', source, exceptions), source);
+});
+
+test('an image exception keeps dollar sequences of its job text as written', () => {
+  const exceptions = [{ file: 'wf.yml', job: 'docker', label: 'ubuntu-24.04', reason: 'test' }];
+  const source = [
+    'jobs:',
+    '  docker:',
+    '    runs-on: ubuntu-24.04',
+    '    steps:',
+    "      - run: grep -Eq '^[0-9]+$' && echo $& $$ $`",
+    '  other:',
+    '    runs-on: ubuntu-24.04',
+    '',
+  ].join('\n');
+
+  assert.equal(withoutExceptions('wf.yml', source, exceptions), [
+    'jobs:',
+    '  docker:',
+    '    steps:',
+    "      - run: grep -Eq '^[0-9]+$' && echo $& $$ $`",
+    '  other:',
+    '    runs-on: ubuntu-24.04',
+    '',
+  ].join('\n'));
 });
