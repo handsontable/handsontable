@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: '凍結欄位',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: '取消凍結欄位',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: '向左移動欄',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: '向右移動欄',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: '向上移動列',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: '向下移動列',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: '邊界',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: '上',
@@ -187,6 +191,11 @@ const dictionary = {
   [C.MANUAL_RESIZE_COMMENT_STARTED]: '正在調整註解方塊大小。使用方向鍵變更大小，按 Enter 鍵套用，按 Esc 鍵取消。',
   [C.MANUAL_RESIZE_WIDTH]: '寬度：[size] 像素',
   [C.MANUAL_RESIZE_HEIGHT]: '高度：[size] 像素',
+  [C.MANUAL_MOVE_COLUMN_STARTED]: '正在移動欄。使用左右方向鍵移動，按 Enter 鍵完成，按 Esc 鍵取消。',
+  [C.MANUAL_MOVE_ROW_STARTED]: '正在移動列。使用上下方向鍵移動，按 Enter 鍵完成，按 Esc 鍵取消。',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: '已移至第 [position] 欄，共 [count] 欄',
+  [C.MANUAL_MOVE_ROW_POSITION]: '已移至第 [position] 列，共 [count] 列',
+  [C.MANUAL_MOVE_BLOCKED]: '無法再往此方向移動。',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展開列 [label]，顯示的展開列數：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已摺疊列 [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '第 [level] 層，第 [position] 項，共 [setSize] 項',

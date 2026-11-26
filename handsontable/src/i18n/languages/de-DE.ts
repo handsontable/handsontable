@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Spalte fixieren',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Spaltenfixierung aufheben',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Spalte nach links verschieben',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Spalte nach rechts verschieben',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Zeile nach oben verschieben',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Zeile nach unten verschieben',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Rahmen',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Oben',
@@ -195,6 +199,15 @@ const dictionary = {
     'Größe des Kommentarfelds ändern. Mit den Pfeiltasten ändern Sie die Größe, Enter wendet sie an, Escape bricht ab.',
   [C.MANUAL_RESIZE_WIDTH]: 'Breite: [size] Pixel',
   [C.MANUAL_RESIZE_HEIGHT]: 'Höhe: [size] Pixel',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Spalte verschieben. Mit den Pfeiltasten nach links und rechts verschieben Sie sie, Enter beendet das ' +
+    'Verschieben, Escape bricht ab.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Zeile verschieben. Mit den Pfeiltasten nach oben und unten verschieben Sie sie, Enter beendet das Verschieben, ' +
+    'Escape bricht ab.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Verschoben zu Spalte [position] von [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Verschoben zu Zeile [position] von [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'In diese Richtung kann nicht weiter verschoben werden.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Zeile [label] aufgeklappt, angezeigte aufgeklappte Zeilen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zeile [label] zugeklappt',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Ebene [level], [position] von [setSize]',

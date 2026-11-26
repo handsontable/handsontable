@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: '列を固定',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: '列の固定を解除',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: '列を左に移動',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: '列を右に移動',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: '行を上に移動',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: '行を下に移動',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: '枠線',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: '上',
@@ -190,6 +194,11 @@ const dictionary = {
   [C.MANUAL_RESIZE_COMMENT_STARTED]: 'コメントボックスのサイズを変更しています。矢印キーでサイズを変更し、Enter キーで適用、Esc キーでキャンセルします。',
   [C.MANUAL_RESIZE_WIDTH]: '幅: [size] ピクセル',
   [C.MANUAL_RESIZE_HEIGHT]: '高さ: [size] ピクセル',
+  [C.MANUAL_MOVE_COLUMN_STARTED]: '列を移動しています。左右の矢印キーで移動し、Enter キーで確定、Esc キーでキャンセルします。',
+  [C.MANUAL_MOVE_ROW_STARTED]: '行を移動しています。上下の矢印キーで移動し、Enter キーで確定、Esc キーでキャンセルします。',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: '[count] 列中 [position] 列目に移動しました',
+  [C.MANUAL_MOVE_ROW_POSITION]: '[count] 行中 [position] 行目に移動しました',
+  [C.MANUAL_MOVE_BLOCKED]: 'この方向にはこれ以上移動できません。',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'レベル [level]、[setSize] 件中 [position] 件目',

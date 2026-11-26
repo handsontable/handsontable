@@ -8,6 +8,9 @@ import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fi
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 import { LICENSE } from './feature.generated';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
+import { COLUMN_MOVE_AXIS, KeyboardMove } from '../../utils/manualMove/keyboardMove';
+import { createColumnMoveItems } from '../../utils/manualMove/menuItems';
 
 Hooks.getSingleton().register('beforeColumnMove');
 Hooks.getSingleton().register('afterColumnMove');
@@ -18,6 +21,8 @@ const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
 const CSS_AFTER_SELECTION = 'after-selection--columns';
+// The dropdown menu's own items come first, then the Filters ones, then the plugins' (as for ManualColumnFreeze).
+const AFTER_FILTERS_ORDER_INDEX = 1;
 
 /**
  * @plugin ManualColumnMove
@@ -39,6 +44,11 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * The plugin creates additional components to make moving possibly using user interface:
  * - backlight - highlight of selected columns.
  * - guideline - line which shows where columns has been moved.
+ *
+ * Columns also move without a drag. `Ctrl`/`Cmd`+`Alt`+`G` starts a keyboard move of the columns of the selected
+ * cells: the left and right arrow keys move the columns one place, `Enter` ends the move, and `Escape` puts the
+ * columns back. The context menu and the column menu list the `move_column_left` and `move_column_right` items
+ * while the plugin is enabled.
  *
  * @class ManualColumnMove
  * @plugin ManualColumnMove
@@ -78,6 +88,16 @@ export class ManualColumnMove extends BasePlugin {
    * @type {object}
    */
   readonly #guideline = new GuidelineUI(this.hot);
+  /**
+   * Moves the selected columns without a drag: the keyboard move and the menu items.
+   */
+  readonly #mover = new KeyboardMove(this.hot, COLUMN_MOVE_AXIS, {
+    isEnabled: () => this.enabled,
+    drag: (columns, dropIndex) => this.dragColumns(columns, dropIndex),
+    countFinalIndex: (columns, dropIndex) => this.countFinalIndex(columns, dropIndex),
+    isMovePossible: (columns, finalIndex) => this.isMovePossible(columns, finalIndex),
+    dropIndexAfter: column => this.#getDropIndexAfter(column),
+  });
   /**
    * @type {number[]}
    */
@@ -165,6 +185,14 @@ export class ManualColumnMove extends BasePlugin {
     this.addHook('afterScrollVertically', this.#onAfterScrollVertically);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
+    this.addHook('afterSelection', this.#mover.onSelectionChange);
+    this.addHook('beforeKeyDown', this.#mover.onBeforeKeyDown);
+
+    registerMenuEntries(this, () => createColumnMoveItems(this.#mover), {
+      contextMenu: {},
+      dropdownMenu: { orderIndex: AFTER_FILTERS_ORDER_INDEX },
+    });
+    this.#mover.registerShortcuts();
 
     this.buildPluginUI();
     this.registerEvents();
@@ -199,6 +227,13 @@ export class ManualColumnMove extends BasePlugin {
     if (!this.#restarting && this.#pressed) {
       this.#cancelDrag();
     }
+
+    // The update cycle keeps a keyboard move, as it keeps a drag: the wrappers send the option on every render.
+    if (!this.#restarting) {
+      this.#mover.cancel();
+    }
+
+    this.#mover.unregisterShortcuts();
 
     removeClass(this.hot.rootElement, CSS_PLUGIN);
 
@@ -430,6 +465,31 @@ export class ManualColumnMove extends BasePlugin {
     }, 0);
 
     return dropIndex - numberOfColumnsLowerThanDropIndex;
+  }
+
+  /**
+   * Gets the drop index right after the visible column, as a pointer drop at its far edge gives it: past the
+   * hidden columns that follow it, which have no width to drop on.
+   *
+   * @param {number} column Visual column index of a visible column.
+   * @returns {number}
+   */
+  #getDropIndexAfter(column: number): number {
+    const mapper = this.hot.columnIndexMapper;
+    const length = mapper.getNotTrimmedIndexesLength();
+    let dropIndex = column + 1;
+
+    while (dropIndex < length) {
+      const physicalColumn = mapper.getPhysicalFromVisualIndex(dropIndex);
+
+      if (physicalColumn === null || !mapper.isHidden(physicalColumn)) {
+        break;
+      }
+
+      dropIndex += 1;
+    }
+
+    return dropIndex;
   }
 
   /**
@@ -1029,6 +1089,11 @@ export class ManualColumnMove extends BasePlugin {
     if (source === 'init' && this.#pressed) {
       this.#cancelDrag();
     }
+
+    // A keyboard move holds visual indexes of the order it started on, as a drag does.
+    if (source === 'init') {
+      this.#mover.cancel();
+    }
   };
 
   /**
@@ -1084,6 +1149,8 @@ export class ManualColumnMove extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#mover.dispose();
+    this.#mover.unregisterShortcuts();
     this.#backlight.destroy();
     this.#guideline.destroy();
 

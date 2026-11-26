@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Kolom blokkeren',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Kolom blokkering opheffen',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Kolom naar links verplaatsen',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Kolom naar rechts verplaatsen',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Rij omhoog verplaatsen',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Rij omlaag verplaatsen',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Randen',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Boven',
@@ -197,6 +201,15 @@ const dictionary = {
     'passen, Escape om te annuleren.',
   [C.MANUAL_RESIZE_WIDTH]: 'Breedte: [size] pixels',
   [C.MANUAL_RESIZE_HEIGHT]: 'Hoogte: [size] pixels',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Kolom verplaatsen. Gebruik de pijltoetsen links en rechts om de kolom te verplaatsen, Enter om te voltooien, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Rij verplaatsen. Gebruik de pijltoetsen omhoog en omlaag om de rij te verplaatsen, Enter om te voltooien, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Verplaatst naar kolom [position] van [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Verplaatst naar rij [position] van [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Kan niet verder verplaatsen in deze richting.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] van [setSize]',

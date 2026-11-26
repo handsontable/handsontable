@@ -70,6 +70,15 @@ You can drag one range of rows at a time. When the selection holds several range
 
 :::
 
+## Move rows with the keyboard or the menu
+
+You can move rows without dragging:
+
+- With the keyboard, select whole rows, or focus a row header, and press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**G**</kbd>. Then each <kbd>**↑**</kbd> or <kbd>**↓**</kbd> moves the rows one place, <kbd>**Enter**</kbd> ends the move, and <kbd>**Escape**</kbd> puts the rows back where they started. A screen reader announces the new position.
+- With a pointer, right-click a row header and choose **Move row up** or **Move row down**.
+
+A keyboard move is one undo step, however many places it moved the rows, and a menu step is one undo step. Each step runs the [`beforeRowMove`](@/api/hooks.md#beforerowmove) and [`afterRowMove`](@/api/hooks.md#afterrowmove) hooks, as a drag does. A step passes over hidden rows. When [`contextMenu`](@/api/options.md#contextmenu) is `true`, the items join the default menu while the plugin is enabled. To leave them out, list the menu items you want. For all the keys, see [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-and-row-move-keyboard-shortcuts).
+
 ## Set a pre-defined row order
 
 Instead of setting [`manualRowMove`](@/api/options.md#manualrowmove) to `true`, you can pass an **array of physical row indexes** to define the initial visual order of rows on render.

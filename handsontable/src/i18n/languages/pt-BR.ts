@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Congelar coluna',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Descongelar coluna',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Mover coluna para a esquerda',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Mover coluna para a direita',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Mover linha para cima',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Mover linha para baixo',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Bordas',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Superior',
@@ -196,6 +200,14 @@ const dictionary = {
     'cancelar.',
   [C.MANUAL_RESIZE_WIDTH]: 'Largura: [size] pixels',
   [C.MANUAL_RESIZE_HEIGHT]: 'Altura: [size] pixels',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Movendo a coluna. Use as setas para a esquerda e para a direita para movê-la, Enter para concluir, Escape para ' +
+    'cancelar.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Movendo a linha. Use as setas para cima e para baixo para movê-la, Enter para concluir, Escape para cancelar.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Movida para a coluna [position] de [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Movida para a linha [position] de [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Não é possível mover mais nesta direção.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Linha [label] expandida, linhas expandidas exibidas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Linha [label] recolhida',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nível [level], [position] de [setSize]',

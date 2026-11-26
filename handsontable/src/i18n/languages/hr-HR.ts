@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Zamrzni stupac',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Odmrzni stupac',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Premjesti stupac ulijevo',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Premjesti stupac udesno',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Premjesti redak prema gore',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Premjesti redak prema dolje',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Granice',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Gore',
@@ -199,6 +203,13 @@ const dictionary = {
     'Promjena veličine okvira komentara. Strelicama mijenjate veličinu, Enter primjenjuje, Escape otkazuje.',
   [C.MANUAL_RESIZE_WIDTH]: 'Širina: [size] piksela',
   [C.MANUAL_RESIZE_HEIGHT]: 'Visina: [size] piksela',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Premještanje stupca. Strelicama lijevo i desno premještate stupac, Enter dovršava, Escape otkazuje.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Premještanje retka. Strelicama gore i dolje premještate redak, Enter dovršava, Escape otkazuje.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Premješteno na stupac [position] od [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Premješteno na redak [position] od [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Nije moguće premjestiti dalje u ovom smjeru.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen redak [label], prikazani prošireni retci: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sažet redak [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Razina [level], [position] od [setSize]',

@@ -159,6 +159,18 @@ A same-shape `updateData()` keeps the order (`fitToLength()`, no `'init'`) and t
 
 Pinned by `tests/e2e/manual-column-move-data-replace.spec.ts`.
 
+## Moving without a drag: the keyboard move and the menu items
+
+`Ctrl`/`Cmd`+`Alt`+`G` starts a keyboard move of the columns of the selection, the arrow keys move them one place
+per press, `Enter` ends it and `Escape` puts them back. The `move_column_left` and `move_column_right` items join
+the default context menu and column menu. Both are `KeyboardMove` from `../../utils/manualMove/` (read its
+`AGENTS.md`), which every step sends through `dragColumns()`, so a step fires the move hooks and records an undo
+step the way a drop does. The plugin owns the cancels: `disablePlugin()` (not inside `updatePlugin()`, as for a
+drag) and the `'init'` column sequence change end the mode. The selection change that usually comes with a new
+order ends it too; the `'init'` cancel covers a change that keeps the selection. `#getDropIndexAfter()` is the drop
+index a pointer release at a column's far edge gives (past the hidden columns after it); change it together with
+the drop resolution in `refreshPositions()`. Pinned by `tests/e2e/manual-move-keyboard.spec.ts`.
+
 ## DataProvider blocks this plugin
 
 `registerConflict('dataProvider', ['manualColumnMove', …])`: with a complete server-backed `dataProvider`

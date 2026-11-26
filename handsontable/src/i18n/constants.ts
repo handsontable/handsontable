@@ -38,6 +38,10 @@ export const CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX = `${CM_ALIAS}.exportFileXlsx`;
 
 export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = `${CM_ALIAS}.freezeColumn`;
 export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = `${CM_ALIAS}.unfreezeColumn`;
+export const CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT = `${CM_ALIAS}.moveColumnLeft`;
+export const CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT = `${CM_ALIAS}.moveColumnRight`;
+export const CONTEXTMENU_ITEMS_MOVE_ROW_UP = `${CM_ALIAS}.moveRowUp`;
+export const CONTEXTMENU_ITEMS_MOVE_ROW_DOWN = `${CM_ALIAS}.moveRowDown`;
 
 export const CONTEXTMENU_ITEMS_RENAME_HEADER = `${CM_ALIAS}.renameHeader`;
 
@@ -206,6 +210,13 @@ export const MANUAL_RESIZE_ROW_STARTED = `${MANUAL_RESIZE_NAMESPACE}rowStarted`;
 export const MANUAL_RESIZE_COMMENT_STARTED = `${MANUAL_RESIZE_NAMESPACE}commentStarted`;
 export const MANUAL_RESIZE_WIDTH = `${MANUAL_RESIZE_NAMESPACE}width`;
 export const MANUAL_RESIZE_HEIGHT = `${MANUAL_RESIZE_NAMESPACE}height`;
+
+export const MANUAL_MOVE_NAMESPACE = 'ManualMove:';
+export const MANUAL_MOVE_COLUMN_STARTED = `${MANUAL_MOVE_NAMESPACE}columnStarted`;
+export const MANUAL_MOVE_ROW_STARTED = `${MANUAL_MOVE_NAMESPACE}rowStarted`;
+export const MANUAL_MOVE_COLUMN_POSITION = `${MANUAL_MOVE_NAMESPACE}columnPosition`;
+export const MANUAL_MOVE_ROW_POSITION = `${MANUAL_MOVE_NAMESPACE}rowPosition`;
+export const MANUAL_MOVE_BLOCKED = `${MANUAL_MOVE_NAMESPACE}blocked`;
 
 export const CELL_DESCRIPTION_NAMESPACE = 'CellDescription:';
 export const CELL_DESCRIPTION_READ_ONLY = `${CELL_DESCRIPTION_NAMESPACE}readOnly`;

@@ -159,7 +159,7 @@
     },
     {
       "id": "drag-alternatives",
-      "text": "Moving and resizing rows and columns, and the fill handle, need a drag: a keyboard or single-pointer alternative is missing or covers only part of the action.",
+      "text": "The fill handle, moving cells, selecting a range by dragging, and picking a formula reference by dragging need a drag: a keyboard or single-pointer alternative is missing or covers only part of the action.",
       "criteria": ["2.1.1", "2.5.7"],
       "reportRef": null
     },

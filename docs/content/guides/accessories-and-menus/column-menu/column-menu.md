@@ -97,9 +97,11 @@ With no other plugin adding its own entries, setting [`dropdownMenu`](@/api/opti
 | [`make_read_only`](@/api/dropdownMenu.md)     | Make the selected column read-only                |
 | [`alignment`](@/api/dropdownMenu.md)          | Align the text in the column                     |
 
-The [`Filters`](@/api/filters.md) plugin and the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin (see below) each append their own entries after this list when enabled -- they don't replace it. `Filters` appends its entries first, and `ManualColumnFreeze` appends after them. See [Filter menu items](#filter-menu-items) for what `Filters` adds.
+The [`Filters`](@/api/filters.md), [`ManualColumnFreeze`](@/api/manualColumnFreeze.md), and [`ManualColumnMove`](@/api/manualColumnMove.md) plugins (see below) each append their own entries after this list when enabled -- they don't replace it. `Filters` appends its entries first, and the other two append after them. See [Filter menu items](#filter-menu-items) for what `Filters` adds.
 
 Some entries come from other plugins, and work only when their plugin is enabled. The `freeze_column` and `unfreeze_column` entries require the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin. When you enable it, both entries join the default dropdown contents. Each one shows only when it applies: `freeze_column` on a column that is not frozen, and `unfreeze_column` on a column that is.
+
+The `move_column_left` and `move_column_right` entries require the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin. When you enable it, both entries join the default dropdown contents. Each one moves the selected columns one place, and is disabled when the columns can't move that way.
 
 The `hidden_columns_hide` and `hidden_columns_show` entries require the [`HiddenColumns`](@/api/hiddenColumns.md) plugin. They don't join the default dropdown contents, so list their keys to show them. Each one shows only when it applies, the same way it does in the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md). An item you define under one of these keys in the object form of `items` keeps that rule unless you give it your own `hidden`.
 

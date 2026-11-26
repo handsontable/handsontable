@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Zablokuj kolumnę',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Odblokuj kolumnę',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Przenieś kolumnę w lewo',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Przenieś kolumnę w prawo',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Przenieś wiersz w górę',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Przenieś wiersz w dół',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Obramowanie',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Krawędź górna',
@@ -193,6 +197,13 @@ const dictionary = {
     'Zmiana rozmiaru pola komentarza. Strzałkami zmieniasz rozmiar, Enter zatwierdza, Escape anuluje.',
   [C.MANUAL_RESIZE_WIDTH]: 'Szerokość: [size] pikseli',
   [C.MANUAL_RESIZE_HEIGHT]: 'Wysokość: [size] pikseli',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Przenoszenie kolumny. Strzałkami w lewo i w prawo przenosisz kolumnę, Enter kończy, Escape anuluje.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Przenoszenie wiersza. Strzałkami w górę i w dół przenosisz wiersz, Enter kończy, Escape anuluje.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Przeniesiono do kolumny [position] z [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Przeniesiono do wiersza [position] z [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Nie można przenieść dalej w tym kierunku.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Poziom [level], [position] z [setSize]',

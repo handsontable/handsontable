@@ -54,13 +54,23 @@ export const DRAG_OPERATIONS = [
     id: 'column-move', plugin: 'manualColumnMove', gesture: 'drag', operation: 'Move a column by dragging its selected header',
     page: 'shared-demo', expect: 'moves',
     drag: [{ click: { colHeader: 1 } }, { drag: { from: { colHeader: 1 }, to: { colHeader: 3 } } }],
-    alternatives: [],
+    alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+G starts the move of the selected columns, each arrow key moves them one place and Enter ends it',
+        steps: [{ select: [1, 1] }, { press: ['ControlOrMeta+Alt+g', 'ArrowRight', 'ArrowRight', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'The context menu\'s Move column right moves the selected columns one place',
+        steps: [{ click: { cell: [1, 1] }, button: 'right' }, { click: { text: 'Move column right', within: '.htContextMenu' } }] },
+    ],
   },
   {
     id: 'row-move', plugin: 'manualRowMove', gesture: 'drag', operation: 'Move a row by dragging its selected header',
     page: 'shared-demo', expect: 'moves',
     drag: [{ click: { rowHeader: 1 } }, { drag: { from: { rowHeader: 1 }, to: { rowHeader: 4 } } }],
-    alternatives: [],
+    alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'Ctrl/Cmd+Alt+G starts the move of the selected rows, each arrow key moves them one place and Enter ends it',
+        steps: [{ click: { rowHeader: 1 } }, { press: ['ControlOrMeta+Alt+g', 'ArrowDown', 'ArrowDown', 'Enter'] }] },
+      { input: 'single-pointer', covers: 'full', how: 'The context menu\'s Move row down moves the selected rows one place',
+        steps: [{ click: { rowHeader: 1 } }, { click: { rowHeader: 1 }, button: 'right' }, { click: { text: 'Move row down', within: '.htContextMenu' } }] },
+    ],
   },
   {
     id: 'column-resize', plugin: 'manualColumnResize', gesture: 'drag', operation: 'Resize a column by dragging the handle on its header edge',

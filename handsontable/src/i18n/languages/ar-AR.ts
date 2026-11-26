@@ -39,6 +39,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'تجميد العمود',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'إلغاء تجميد العمود',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'نقل العمود لليسار',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'نقل العمود لليمين',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'نقل الصف للأعلى',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'نقل الصف للأسفل',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'الحدود',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'أعلى',
@@ -191,6 +195,13 @@ const dictionary = {
     'تغيير حجم مربع التعليق. استخدم مفاتيح الأسهم لتغيير الحجم، وEnter للتطبيق، وEscape للإلغاء.',
   [C.MANUAL_RESIZE_WIDTH]: 'العرض: [size] بكسل',
   [C.MANUAL_RESIZE_HEIGHT]: 'الارتفاع: [size] بكسل',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'نقل العمود. استخدم مفتاحي السهم الأيسر والأيمن لنقله، وEnter للإنهاء، وEscape للإلغاء.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'نقل الصف. استخدم مفتاحي السهم لأعلى ولأسفل لنقله، وEnter للإنهاء، وEscape للإلغاء.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'تم النقل إلى العمود [position] من [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'تم النقل إلى الصف [position] من [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'لا يمكن النقل أكثر في هذا الاتجاه.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'المستوى [level]، [position] من [setSize]',
