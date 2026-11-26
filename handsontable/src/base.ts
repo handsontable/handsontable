@@ -225,6 +225,7 @@ interface HandsontableFactory {
     Pagination: typeof import('./plugins/pagination').Pagination;
     RowSelection: typeof import('./plugins/rowSelection').RowSelection;
     CheckboxHeader: typeof import('./plugins/checkboxHeader').CheckboxHeader;
+    EditableHeaders: typeof import('./plugins/editableHeaders').EditableHeaders;
     Search: typeof import('./plugins/search').Search;
     SelectionHandles: typeof import('./plugins/selectionHandles').SelectionHandles;
     StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
@@ -507,6 +508,7 @@ declare namespace Handsontable {
       export type ServerSelection = import('./plugins/rowSelection').ServerRowSelection;
     }
     export type CheckboxHeader = import('./plugins/checkboxHeader').CheckboxHeader;
+    export type EditableHeaders = import('./plugins/editableHeaders').EditableHeaders;
     export type Search = import('./plugins/search').Search;
     export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;
     export type StretchColumns = import('./plugins/stretchColumns').StretchColumns;

@@ -158,8 +158,7 @@ class GhostTable {
       this.samples = samples;
       this.table = this.createTable(this.hot!.table.className);
 
-      this.table.colGroup.appendChild(this.createColGroupsCol());
-
+      // `appendColumnHeadersRow()` builds the column group itself, from the cells it renders.
       this.appendColumnHeadersRow();
 
       this.container.container.appendChild(this.table.fragment);
@@ -393,7 +392,9 @@ class GhostTable {
   }
 
   /**
-   * Creates DOM elements for headers and appends them to the THEAD element of the table.
+   * Creates DOM elements for headers and appends them to the THEAD element of the table, fills
+   * them with the grid's first-level column header renderer, and builds the column group that
+   * sizes them.
    */
   appendColumnHeadersRow() {
     const rootDocument = this.hot!.rootDocument;
@@ -401,34 +402,95 @@ class GhostTable {
     // DOM — the cell styling is scoped with child combinators (#4363), so a `<th>` appended
     // straight into `<thead>` would miss it and measure without padding/borders.
     const headersRow = rootDocument.createElement('tr');
-    const columnHeaders: [number, HTMLTableCellElement][] = [];
-
-    if (this.hot!.hasRowHeaders()) {
-      const th = rootDocument.createElement('th');
-
-      columnHeaders.push([-1, th]);
-      headersRow.appendChild(th);
-    }
+    const columnGroup = rootDocument.createDocumentFragment();
+    const sampledColumns = new Set<number>();
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const column = string.col!;
-        const th = rootDocument.createElement('th');
-
-        columnHeaders.push([column, th]);
-        headersRow.appendChild(th);
+        sampledColumns.add(string.col!);
       });
     });
 
-    // Appending DOM elements for headers
-    this.table!.tHead.appendChild(headersRow);
+    // The row is filled by the renderer the grid draws its first header level with, not by
+    // `appendColHeader()` alone: a plugin's renderer can do more than write the label. The
+    // NestedHeaders one spans a group header over its columns (`colspan`) and hides the cells the
+    // group covers. Filled with the label alone, a group label was measured inside its first column
+    // and a label allowed to wrap made the header row several times taller than the drawn label.
+    // For a grid without such a plugin the renderer is `appendColHeader()` itself.
+    const [firstLevelRenderer] = this.hot!.view._wt.getSetting('columnHeaders') as
+      ((renderedColumnIndex: number, TH: HTMLTableCellElement) => void)[];
+    const appendHeader = (column: number) => {
+      const th = rootDocument.createElement('th');
 
-    arrayEach(columnHeaders, (columnHeader: [number, HTMLTableCellElement]) => {
-      const [column, th] = columnHeader;
+      headersRow.appendChild(th);
+      columnGroup.appendChild(this.createColElement(column, -1));
 
-      // Using source method for filling a header with value.
-      this.hot!.view.appendColHeader(column, th);
+      return this.#renderColumnHeader(column, th, firstLevelRenderer);
+    };
+
+    if (this.hot!.hasRowHeaders()) {
+      appendHeader(-1);
+    }
+
+    // The samples can hold a few scattered columns only (AutoRowSize samples the header row by value
+    // and skips repeated labels), in the order of their buckets, while a spanned header covers the
+    // cells and the `<col>`s that follow it. So the columns go in their visual order, and the columns
+    // a header spans are added right after it, as the placeholders the grid draws there, so the header
+    // is measured over the width it is drawn at.
+    const coveredColumns = new Set<number>();
+
+    Array.from(sampledColumns).sort((a, b) => a - b).forEach((column) => {
+      if (coveredColumns.has(column)) {
+        return;
+      }
+
+      appendHeader(column).forEach((spannedColumn) => {
+        coveredColumns.add(spannedColumn);
+        appendHeader(spannedColumn);
+      });
     });
+
+    this.table!.colGroup.appendChild(columnGroup);
+    this.table!.tHead.appendChild(headersRow);
+  }
+
+  /**
+   * Fills one header cell of the ghost header row and returns the visual indexes of the other
+   * columns the renderer spanned it over (an empty array for a header of one column).
+   *
+   * @param {number} column Visual column index, or `-1` for the corner above the row headers.
+   * @param {HTMLTableCellElement} th The header cell to fill.
+   * @param {Function} [renderer] The grid's first-level column header renderer.
+   * @returns {number[]}
+   */
+  #renderColumnHeader(
+    column: number,
+    th: HTMLTableCellElement,
+    renderer?: (renderedColumnIndex: number, TH: HTMLTableCellElement) => void
+  ): number[] {
+    const { columnIndexMapper } = this.hot!;
+    const renderedColumn = column >= 0 ? columnIndexMapper.getRenderableFromVisualIndex(column) : null;
+
+    if (!renderer || renderedColumn === null) {
+      // The corner above the row headers, and a column that is not rendered (hidden).
+      this.hot!.view.appendColHeader(column, th);
+
+      return [];
+    }
+
+    renderer(renderedColumn, th);
+
+    const spannedColumns: number[] = [];
+
+    for (let offset = 1; offset < th.colSpan; offset++) {
+      const spannedColumn = columnIndexMapper.getVisualFromRenderableIndex(renderedColumn + offset);
+
+      if (spannedColumn !== null) {
+        spannedColumns.push(spannedColumn);
+      }
+    }
+
+    return spannedColumns;
   }
 
   /**

@@ -18,7 +18,9 @@
  * (`test-health/a11y.json`, `mergeA11yLedger`) as one row per finding with when it was first and last
  * seen, how many nights it was seen, its status (`new`, `persisting`, `flapping`, `resolved`), and the
  * root-cause cluster the catalog (`tests/a11y/issues.json`, `tests/lib/a11y-issues.mjs`) sorts it into,
- * and derives what the page draws (`a11yView`).
+ * and derives what the page draws (`a11yView`). Beside the rows it keeps a history, one entry per night with each
+ * cluster's open, new, resolved and returned findings, for `A11Y_HISTORY_DAYS`: the rows leave after 90 days, and the
+ * history is what still says, a year on, when a fix task's findings went away (`fixProgress`).
  *
  * The rules that keep the ledger honest:
  *
@@ -39,7 +41,13 @@
  *   skipped, a map keyed by a name from an artifact is read through `Object.hasOwn`, and the page builds
  *   links from run numbers alone.
  * - Rows stay `A11Y_RETENTION_DAYS` from their last sighting; past `A11Y_CAP_BYTES` the oldest resolved rows
- *   go first, then the oldest nights, never an open row or the latest night of a source.
+ *   go first, then the oldest nights, then the oldest history entries, never an open row or the latest night of a
+ *   source.
+ * - The history is counted from the rows after each merge, never kept as a running total, so it resolves nothing a
+ *   row does not: a target that was not measured leaves its findings open in both. It is keyed by cluster, and the
+ *   catalog names a cluster's trackers when the page is drawn, so a tracker written into the catalog later owns its
+ *   cluster's whole past. A row the catalog moves to another cluster takes its past along (`rekeyHistory`): a
+ *   catalog change is never a fix.
  * - A collection that adds nothing returns the stored document as it was, so the published file stays
  *   byte-identical, like the flake ledger and the durations document.
  *
@@ -48,7 +56,9 @@
  * and the cluster catalog".
  */
 
-import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, SEVERITIES, WCAG_CRITERIA, compareCriteria, targetKey } from '../../../tests/lib/a11y-evidence.mjs';
+import {
+  EVIDENCE_CHECKS, EVIDENCE_SCHEMA, SEVERITIES, WCAG_CRITERIA, atTargetLevel, compareCriteria, targetKey,
+} from '../../../tests/lib/a11y-evidence.mjs';
 import { SITE_CHECKS, siteChecks, siteEvidenceArtifact } from '../../../tests/lib/a11y-site-checks.mjs';
 import {
   AXE_SCAN_CHECK,
@@ -70,12 +80,32 @@ import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
 import { severityOfImpact } from '../../../tests/lib/a11y-verdict.mjs';
 
-export const A11Y_VERSION = 1;
+/**
+ * The stored document's version. Version 2 added `history` and `historyDays`; `migrateA11yLedger()` reads a version 1
+ * file into it.
+ */
+export const A11Y_VERSION = 2;
 /**
  * How long a row stays after its last sighting: the flake ledger's window, long enough to see a finding
  * return after a fix that did not hold.
  */
 export const A11Y_RETENTION_DAYS = 90;
+/**
+ * How long a night's history entry stays: two years, so a report on a release can look a year back and compare it with
+ * the year before, long after the rows of that time left the ledger. An entry weighs about 1 KB, so a weekly audit of
+ * the four workflows adds about 210 KB a year.
+ */
+export const A11Y_HISTORY_DAYS = 730;
+/**
+ * How far from an audit's first night its other nights may complete. An audit is one dispatch of each workflow, and the
+ * screen reader lanes of a full one finish about two and a half hours after the scans; half a day keeps them together
+ * and keeps the next day's dispatch apart.
+ */
+export const A11Y_AUDIT_WINDOW_HOURS = 12;
+/**
+ * How far back the page's "resolved lately" number looks.
+ */
+export const A11Y_RECENT_DAYS = 30;
 /**
  * The most the stored document may weigh. A night of every check is about 5,000 rows, and a row persists
  * rather than multiplies, so the open rows of the whole product weigh about 4.5 MB (measured on the first
@@ -162,12 +192,12 @@ export const READER_NIGHTLY_WORKFLOW = 'Screen reader nightly';
 export const DOCS_A11Y_WORKFLOW = 'Docs a11y';
 export const WEBSITE_A11Y_WORKFLOW = 'Website a11y';
 /**
- * The events a run is recorded from: a dispatch (on the two nightlies the audit, on develop with no inputs:
- * their `check-inputs` job refuses a subset dispatch there, because the page draws the latest night of each
- * source and a subset night would show what it skipped as gone; the docs and website site scans run by dispatch only)
- * and a schedule, which the two nightlies do not have today and which is kept here for the day a tier
- * brings a cron back (`.ai/CI.md`). All three workflows also run on a pull request that touches them, to
- * validate their graph; such a run is never recorded.
+ * The events a run is recorded from: a schedule (the weekly audit: each recorded workflow runs on develop once a
+ * week while the accessibility debt is being fixed, `tests/AGENTS.md`, "A11y: the audit and the proof runs") and
+ * a dispatch (on develop with no inputs, the same audit started by a person: each workflow's `check-inputs` job
+ * refuses a subset dispatch there, because the page draws the latest night of each source and a subset night
+ * would show what it skipped as gone). All four workflows also run on a pull request that touches them, to
+ * validate their graph or to prove a change to a scan; such a run is never recorded.
  */
 export const A11Y_EVENTS = ['schedule', 'workflow_dispatch'];
 
@@ -178,6 +208,7 @@ export const A11Y_EVENTS = ['schedule', 'workflow_dispatch'];
 export const A11Y_LIMITS = Object.freeze({ findings: 20000, steps: 500, where: 300, reason: 300, url: 300, issues: 200, locations: 20000 });
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
 const LIMITS = A11Y_LIMITS;
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PAGE_ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
@@ -204,6 +235,12 @@ export const SOURCES_OF_WORKFLOW = Object.freeze({
   [WEBSITE_A11Y_WORKFLOW]: Object.freeze(['website']),
 });
 export const NIGHT_SOURCES = ['a11y', 'reader', 'docs', 'website'];
+/**
+ * The surfaces the page's filter and the digest speak of, and the one each night source audits: the grid (the two
+ * nightlies), the docs site and the website.
+ */
+export const A11Y_SURFACES = ['grid', 'docs', 'website'];
+const SURFACE_OF_NIGHT = Object.freeze({ a11y: 'grid', reader: 'grid', docs: 'docs', website: 'website' });
 /**
  * What each site's scan and checks are read as: the night source, the scan's check, the artifacts, and the deploy a
  * recorded night must be of (the docs: develop's staging deploy; the website: production). A dispatch can read
@@ -995,27 +1032,31 @@ export function findingKey(finding) {
  * @param {object} [options] Options.
  * @param {number} [options.retentionDays] Override of `A11Y_RETENTION_DAYS`.
  * @param {number} [options.capBytes] Override of `A11Y_CAP_BYTES`.
+ * @param {number} [options.historyDays] Override of `A11Y_HISTORY_DAYS`.
  * @returns {object} The ledger.
  */
-export function emptyA11yLedger({ retentionDays = A11Y_RETENTION_DAYS, capBytes = A11Y_CAP_BYTES } = {}) {
+export function emptyA11yLedger({ retentionDays = A11Y_RETENTION_DAYS, capBytes = A11Y_CAP_BYTES, historyDays = A11Y_HISTORY_DAYS } = {}) {
   return {
     version: A11Y_VERSION,
     updatedAt: null,
     retentionDays,
+    historyDays,
     capBytes,
     trendNights: A11Y_TREND_NIGHTS,
     flapNights: A11Y_FLAP_NIGHTS,
     latest: { a11y: null, reader: null },
     nights: [],
+    history: [],
     rows: [],
   };
 }
 
 /**
  * Throws unless a stored ledger is absent or of this code's version, older or newer alike: a version bump
- * ships its own migration, and reverting the collector after one must not drop the history either.
+ * ships its own migration (`migrateA11yLedger()`), and reverting the collector after one must not drop the history
+ * either.
  *
- * @param {object|null} doc The ledger as read from `gh-pages`, or `null`.
+ * @param {object|null} doc The ledger, migrated, or `null`.
  */
 export function assertA11yVersion(doc) {
   if (doc !== null && doc?.version !== A11Y_VERSION) {
@@ -1025,12 +1066,44 @@ export function assertA11yVersion(doc) {
 }
 
 /**
+ * The stored ledger in this code's version. A version 1 file (rows and nights, no history) gets its history rebuilt
+ * from what it holds: one entry per night it still records, counted from the rows as they are (`historyEntryOf()`).
+ * That is exact for every row that was never resolved and seen again, which a row's fields cannot tell night by night.
+ * A document of this version is returned as it is, the same object, so a collection that adds nothing still leaves the
+ * published file byte-identical; the migrated file is written with the next night that is recorded. Any other version
+ * throws, a newer one included.
+ *
+ * @param {object|null} doc The ledger as read from `gh-pages`, or `null`.
+ * @returns {object|null} The ledger in version `A11Y_VERSION`, or `null`.
+ */
+export function migrateA11yLedger(doc) {
+  if (doc === null || doc === undefined) {
+    return null;
+  }
+  if (doc.version === 1) {
+    const { nights = [], rows = [], ...head } = doc;
+
+    return {
+      ...head,
+      version: A11Y_VERSION,
+      historyDays: A11Y_HISTORY_DAYS,
+      nights,
+      history: sortNights(nights.map(night => historyEntryOf(night, rows))),
+      rows,
+    };
+  }
+  assertA11yVersion(doc);
+
+  return doc;
+}
+
+/**
  * Which night source a row belongs to.
  *
  * @param {{source: string}} row The row or finding.
  * @returns {'a11y'|'reader'|'docs'|'website'} The source.
  */
-function nightSourceOf(row) {
+export function nightSourceOf(row) {
   return SOURCE_OF_NIGHT[row.source];
 }
 
@@ -1118,6 +1191,19 @@ function covered(row, index) {
 }
 
 /**
+ * Whether a recorded night measured a row's target: what tells a finding that is new because something broke from one
+ * that is new because nothing had looked there before (a new check, scenario or page, or a target with a tooling
+ * problem that night). Only the latest night of a source keeps its coverage; a night without it answers `null`.
+ *
+ * @param {object|null} night The night's record.
+ * @param {object} row The row or finding, of the night's source.
+ * @returns {boolean|null} The verdict, or `null` when the night does not say.
+ */
+export function nightMeasured(night, row) {
+  return isObject(night?.coverage) ? covered(row, coverageIndex(night.coverage)) : null;
+}
+
+/**
  * The status of a row seen tonight.
  *
  * @param {object} row The row, updated for the sighting.
@@ -1152,18 +1238,17 @@ function sortNights(nights) {
 }
 
 /**
- * The stored ledger as text: one night per line and one row per line, so a diff of the `gh-pages` commit
+ * The stored ledger as text: one night, one history entry and one row per line, so a diff of the `gh-pages` commit
  * shows which rows moved. Valid JSON that `JSON.parse` reads back as the same document.
  *
  * @param {object} doc The ledger.
  * @returns {string} The text.
  */
 export function serializeA11yLedger(doc) {
-  const { nights, rows, ...head } = doc;
-  const nightLines = nights.map(night => JSON.stringify(night));
-  const rowLines = rows.map(row => JSON.stringify(row));
+  const { nights, history = [], rows, ...head } = doc;
+  const lines = list => list.map(item => JSON.stringify(item)).join(',\n');
 
-  return `${JSON.stringify(head).slice(0, -1)},\n"nights":[\n${nightLines.join(',\n')}\n],\n"rows":[\n${rowLines.join(',\n')}\n]}\n`;
+  return `${JSON.stringify(head).slice(0, -1)},\n"nights":[\n${lines(nights)}\n],\n"history":[\n${lines(history)}\n],\n"rows":[\n${lines(rows)}\n]}\n`;
 }
 
 /**
@@ -1171,13 +1256,152 @@ export function serializeA11yLedger(doc) {
  *
  * @param {object} head The head fields.
  * @param {object[]} nights The nights, newest first.
+ * @param {object[]} history The history entries, newest first.
  * @param {object[]} rows The rows, by key.
  * @returns {{doc: object, size: number}} The document and its serialized size in bytes.
  */
-function assemble(head, nights, rows) {
-  const doc = { ...head, nights, rows };
+function assemble(head, nights, history, rows) {
+  const doc = { ...head, nights, history, rows };
 
   return { doc, size: Buffer.byteLength(serializeA11yLedger(doc)) };
+}
+
+/**
+ * What a row adds to the history entry of one night of its source: whether it was open after that night, new on it,
+ * resolved by it, and back on it after having been resolved. Read from the row as it is now, which is exact for the
+ * night being merged. For an earlier night it is what the row still says. A row keeps its latest return and the
+ * resolution that return undid (`backAt`, `lastResolvedAt`), so it reads as resolved by that night, closed until it
+ * came back, and back on the night it did; an earlier resolution and return of the same row are no longer in its
+ * fields. A row that came back before it kept the pair reads as open since its first sighting, and back on its last
+ * night when that night was its return.
+ *
+ * @param {object} row The row.
+ * @param {{runId: string, seenAt: string}} night The night, or its history entry.
+ * @param {number} at The night's time, parsed.
+ * @returns {[number, number, number, number]} `[open, new, resolved, back]`, each 0 or 1.
+ */
+function historyContribution(row, night, at) {
+  const resolvedBy = row.status === 'resolved' && Date.parse(row.resolvedAt) <= at;
+  const keepsReturn = typeof row.backAt === 'string' && typeof row.lastResolvedAt === 'string';
+  // Between the resolution its return undid and the return, the row was not open.
+  const closedThen = keepsReturn && Date.parse(row.lastResolvedAt) <= at && at < Date.parse(row.backAt);
+
+  return [
+    Number(Date.parse(row.firstSeen) <= at && !resolvedBy && !closedThen),
+    Number(row.firstRun === night.runId),
+    Number((row.status === 'resolved' && row.resolvedAt === night.seenAt) || (keepsReturn && row.lastResolvedAt === night.seenAt)),
+    Number(keepsReturn ? row.backAt === night.seenAt : (row.lastRun === night.runId && row.gaps > 0 && row.seenSinceGap === 1)),
+  ];
+}
+
+/**
+ * A map of cluster counts as the history stores it: by cluster id, without the clusters whose counts are all zero.
+ *
+ * @param {Map<string, number[]>} clusters The counts per cluster.
+ * @returns {Record<string, number[]>} The stored form.
+ */
+function storedClusters(clusters) {
+  return Object.fromEntries([...clusters.keys()].sort().filter(id => clusters.get(id).some(count => count > 0)).map(id => [id, clusters.get(id)]));
+}
+
+/**
+ * The history entry of a night: per cluster, the rows of the night's source that were open after it, new on it,
+ * resolved by it and back on it (`historyContribution()`). Counted from the rows, like the night's own counts
+ * (`nightStats()`), so a later attempt of the night recomputes it and no running total can drift. `open` is every
+ * open row of the source, sighted that night or not: a row nothing measured stays open.
+ *
+ * @param {{runId: string, source: string, seenAt: string, headSha?: string}} night The night's record.
+ * @param {Iterable<object>} rows The rows, each sorted into its cluster.
+ * @returns {{runId: string, source: string, seenAt: string, headSha: string, clusters: Record<string, number[]>}} The entry.
+ */
+function historyEntryOf(night, rows) {
+  const at = Date.parse(night.seenAt);
+  const clusters = new Map();
+
+  for (const row of rows) {
+    if (nightSourceOf(row) !== night.source) {
+      continue;
+    }
+
+    const counts = historyContribution(row, night, at);
+    const id = row.cluster ?? TRIAGE_ID;
+    const sum = clusters.get(id) ?? [0, 0, 0, 0];
+
+    counts.forEach((count, index) => { sum[index] += count; });
+    clusters.set(id, sum);
+  }
+
+  return { runId: night.runId, source: night.source, seenAt: night.seenAt, headSha: String(night.headSha ?? '').slice(0, 10),
+    clusters: storedClusters(clusters) };
+}
+
+/**
+ * The history after the catalog moved rows to other clusters: in every entry a moved row counted in, its counts go
+ * from the cluster it left to the one it joined. A split, a rename and a triage shape sorted into a cluster would
+ * otherwise read as that many findings fixed in one cluster and new in the other. The counts are the row's own
+ * (`historyContribution()`), so a cluster never goes below zero for a row that came back; an entry older than the
+ * row's first sighting is untouched.
+ *
+ * A row the ledger no longer holds cannot move anything, and its counts would stay under the id its cluster had.
+ * So a renamed cluster names that id (`formerIds` in the catalog), and whatever an entry still counts under a former
+ * id, after the rows have moved theirs, goes to the cluster that names it: the past of a renamed cluster follows
+ * it for as long as the history is kept, not only for as long as its rows are.
+ *
+ * @param {object[]} history The history entries.
+ * @param {Array<{row: object, from: string, to: string}>} moves The rows the catalog moved, with both clusters.
+ * @param {{clusters: Array<{id: string, formerIds?: string[]}>}} catalog The compiled cluster catalog.
+ * @returns {object[]} The history, with the entries a move or a rename touched replaced.
+ */
+function rekeyHistory(history, moves, catalog) {
+  const renamed = new Map(catalog.clusters.flatMap(cluster => (cluster.formerIds ?? []).map(id => [id, cluster.id])));
+
+  if (moves.length === 0 && renamed.size === 0) {
+    return history;
+  }
+
+  return history.map((entry) => {
+    const at = Date.parse(entry.seenAt);
+    let clusters = null;
+
+    for (const { row, from, to } of moves) {
+      if (nightSourceOf(row) !== entry.source) {
+        continue;
+      }
+
+      const counts = historyContribution(row, entry, at);
+
+      if (!counts.some(count => count > 0)) {
+        continue;
+      }
+      clusters ??= new Map(Object.keys(entry.clusters).map(id => [id, [...entry.clusters[id]]]));
+
+      const left = clusters.get(from) ?? [0, 0, 0, 0];
+      const joined = clusters.get(to) ?? [0, 0, 0, 0];
+
+      counts.forEach((count, index) => {
+        left[index] = Math.max(0, left[index] - count);
+        joined[index] += count;
+      });
+      clusters.set(from, left);
+      clusters.set(to, joined);
+    }
+    for (const [formerId, id] of renamed) {
+      const left = clusters === null ? own(entry.clusters, formerId) : clusters.get(formerId);
+
+      if (left === undefined) {
+        continue;
+      }
+      clusters ??= new Map(Object.keys(entry.clusters).map(key => [key, [...entry.clusters[key]]]));
+
+      const joined = clusters.get(id) ?? [0, 0, 0, 0];
+
+      left.forEach((count, index) => { joined[index] += count; });
+      clusters.set(id, joined);
+      clusters.delete(formerId);
+    }
+
+    return clusters === null ? entry : { ...entry, clusters: storedClusters(clusters) };
+  });
 }
 
 /**
@@ -1274,8 +1498,13 @@ function nightSummaries(earlier, night) {
  *   sources records one night per source: a night is the run and its source. A run of another workflow than the
  *   night's source, an attempt already recorded, a run older than the latest night of its source, or a night
  *   with no readable document changes nothing.
- * - Rows past the retention window (from their last sighting) and nights past it go; past the cap, the
- *   oldest resolved rows go first, then the oldest nights, never the latest night of a source.
+ * - The night gets its history entry (`historyEntryOf()`), and a row the catalog moved to another cluster takes its
+ *   counts along in the earlier entries (`rekeyHistory()`).
+ * - Rows past the retention window (from their last sighting) and nights past it go, and history entries past
+ *   theirs (`A11Y_HISTORY_DAYS`); past the cap, the oldest resolved rows go first, then the oldest nights, then the
+ *   oldest history entries, never the latest night of a source.
+ * - A version 1 ledger is migrated first (`migrateA11yLedger()`); a merge that records nothing returns it migrated
+ *   and unchanged, so the file is rewritten only with a night.
  *
  * @param {object|null} previous The ledger as read from `gh-pages`, or `null`.
  * @param {Night} night The night (`readA11yArtifacts`).
@@ -1285,6 +1514,7 @@ function nightSummaries(earlier, night) {
  * @param {Date} options.now The current time.
  * @param {number} [options.retentionDays] Override of `A11Y_RETENTION_DAYS`.
  * @param {number} [options.capBytes] Override of `A11Y_CAP_BYTES`.
+ * @param {number} [options.historyDays] Override of `A11Y_HISTORY_DAYS`.
  * @param {Record<string, readonly string[]>} [options.workflows] The recorded workflows and their sources
  * (`SOURCES_OF_WORKFLOW`); a test passes a workflow that holds several.
  * @returns {{doc: object, changed: boolean, notes: string[], recorded: object|null, ambiguous: Array<{clusters: string[], rows: number}>}}
@@ -1292,9 +1522,9 @@ function nightSummaries(earlier, night) {
  * sets of clusters some rows match more than one of.
  */
 export function mergeA11yLedger(previous, night, run, catalog, {
-  now, retentionDays = A11Y_RETENTION_DAYS, capBytes = A11Y_CAP_BYTES, workflows = SOURCES_OF_WORKFLOW,
+  now, retentionDays = A11Y_RETENTION_DAYS, capBytes = A11Y_CAP_BYTES, historyDays = A11Y_HISTORY_DAYS, workflows = SOURCES_OF_WORKFLOW,
 }) {
-  assertA11yVersion(previous ?? null);
+  const stored = migrateA11yLedger(previous ?? null);
 
   if (!isA11yRun(run, workflows)) {
     throw new Error(`run ${run.runId} is a ${run.event} run of ${run.workflow} on ${run.branch}; only runs of `
@@ -1310,7 +1540,7 @@ export function mergeA11yLedger(previous, night, run, catalog, {
     throw new Error(`run ${run.runId} has no completion time (${JSON.stringify(run.seenAt)})`);
   }
 
-  const prior = previous ?? emptyA11yLedger({ retentionDays, capBytes });
+  const prior = stored ?? emptyA11yLedger({ retentionDays, capBytes, historyDays });
   const notes = [];
   const unchanged = () => ({ doc: prior, changed: false, notes, recorded: null, ambiguous: [] });
   const { source } = night;
@@ -1427,6 +1657,12 @@ export function mergeA11yLedger(previous, night, run, catalog, {
       continue;
     }
 
+    // A row that comes back keeps the resolution this sighting undoes, and when it came back: the history of the
+    // nights in between is counted from them, and a row the catalog later moves takes both along.
+    if (row.status === 'resolved') {
+      row.lastResolvedAt = row.resolvedAt;
+      row.backAt = at;
+    }
     // A resolved row's `seenSinceGap` is 0 (the resolution set it), so the count restarts at 1 on its comeback.
     Object.assign(row, latestFields, {
       lastSeen: at,
@@ -1461,10 +1697,15 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   }
 
   const overlaps = new Map();
+  // The rows the catalog sorts into another cluster than the one they were in: their past goes with them.
+  const moves = [];
 
   for (const row of rows.values()) {
     const verdict = clusterOf(row, catalog);
 
+    if (row.cluster !== null && row.cluster !== verdict.id) {
+      moves.push({ row, from: row.cluster, to: verdict.id });
+    }
     row.cluster = verdict.id;
     row.tracker = verdict.tracker;
 
@@ -1511,9 +1752,22 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   const others = prior.nights.filter(entry => entry.runId !== run.runId || entry.source !== source)
     .map(({ coverage: stored, ...entry }) => (entry.source === source ? entry : { ...entry, ...(stored ? { coverage: stored } : {}) }));
   const keptNights = sortNights([...others, record]).filter(entry => Date.parse(entry.seenAt) >= cutoff);
+  // The history: tonight's entry in place of an earlier attempt's, the earlier entries re-keyed for the rows the
+  // catalog moved, and its own, longer retention.
+  const historyCutoff = now.getTime() - (historyDays * DAY_MS);
+  const earlierHistory = (prior.history ?? []).filter(entry => entry.runId !== run.runId || entry.source !== source);
+  // Tonight's entry counts the rows the ledger keeps, and the rows tonight resolved even when they leave at once: a
+  // row last seen past the rows' retention is dropped by the merge that resolves it, and the history is then the only
+  // record of the fix. A row that leaves unresolved, because nothing measured it for that long, is not open any more.
+  const counted = [...rows.values()].filter(row => Date.parse(row.lastSeen) >= cutoff || (row.status === 'resolved' && row.resolvedAt === at));
+  const keptHistory = sortNights([...rekeyHistory(earlierHistory, moves, catalog), historyEntryOf(record, counted)])
+    .filter(entry => Date.parse(entry.seenAt) >= historyCutoff);
 
   if (droppedRows > 0) {
     notes.push(`${droppedRows} row(s) older than ${retentionDays} days dropped`);
+  }
+  if (moves.length > 0) {
+    notes.push(`${moves.length} row(s) moved to another cluster by the catalog; the history moved with them`);
   }
 
   const head = {
@@ -1521,6 +1775,7 @@ export function mergeA11yLedger(previous, night, run, catalog, {
     // Sized with a timestamp in place: the final value is `now`, of this length.
     updatedAt: now.toISOString(),
     retentionDays,
+    historyDays,
     capBytes,
     trendNights: A11Y_TREND_NIGHTS,
     flapNights: A11Y_FLAP_NIGHTS,
@@ -1529,9 +1784,11 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   const latestRuns = new Set(NIGHT_SOURCES.map(entry => head.latest?.[entry]?.runId).filter(Boolean));
   let currentRows = sortRows(keptRows);
   let currentNights = keptNights;
-  let { doc, size } = assemble(head, currentNights, currentRows);
+  let currentHistory = keptHistory;
+  let { doc, size } = assemble(head, currentNights, currentHistory, currentRows);
   let shedRows = 0;
   let shedNights = 0;
+  let shedHistory = 0;
 
   // The cap: the oldest resolved rows first, in rounds measured against the serialized text.
   while (size > capBytes && currentRows.some(row => row.status === 'resolved')) {
@@ -1549,7 +1806,7 @@ export function mergeA11yLedger(previous, night, run, catalog, {
     }
     currentRows = currentRows.filter(row => !victims.has(row.key));
     shedRows += victims.size;
-    ({ doc, size } = assemble(head, currentNights, currentRows));
+    ({ doc, size } = assemble(head, currentNights, currentHistory, currentRows));
   }
   // Then the oldest nights (the list is newest first), never the latest night of a source.
   while (size > capBytes) {
@@ -1560,7 +1817,18 @@ export function mergeA11yLedger(previous, night, run, catalog, {
     }
     currentNights = currentNights.filter((_, index) => index !== oldest);
     shedNights += 1;
-    ({ doc, size } = assemble(head, currentNights, currentRows));
+    ({ doc, size } = assemble(head, currentNights, currentHistory, currentRows));
+  }
+  // Last, the oldest history entries: the smallest part and the one nothing else can rebuild.
+  while (size > capBytes) {
+    const oldest = currentHistory.findLastIndex(entry => !latestRuns.has(entry.runId));
+
+    if (oldest === -1) {
+      break;
+    }
+    currentHistory = currentHistory.filter((_, index) => index !== oldest);
+    shedHistory += 1;
+    ({ doc, size } = assemble(head, currentNights, currentHistory, currentRows));
   }
   if (shedRows > 0) {
     notes.push(`a11y.json: dropped ${shedRows} resolved row(s) to stay under ${capBytes} bytes`);
@@ -1568,8 +1836,11 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   if (shedNights > 0) {
     notes.push(`a11y.json: dropped the ${shedNights} oldest night(s) to stay under ${capBytes} bytes`);
   }
+  if (shedHistory > 0) {
+    notes.push(`a11y.json: dropped the ${shedHistory} oldest history entr${shedHistory === 1 ? 'y' : 'ies'} to stay under ${capBytes} bytes`);
+  }
   if (size > capBytes) {
-    notes.push(`a11y.json: ${size} bytes even without resolved rows and older nights, over the ${capBytes}-byte cap`);
+    notes.push(`a11y.json: ${size} bytes even without resolved rows, older nights and older history, over the ${capBytes}-byte cap`);
   }
 
   const recorded = {
@@ -1632,9 +1903,335 @@ function worse(a, b) {
 }
 
 /**
+ * The surface a row or finding belongs to.
+ *
+ * @param {{source: string}} row The row or finding.
+ * @returns {'grid'|'docs'|'website'} The surface.
+ */
+export function surfaceOf(row) {
+  return SURFACE_OF_NIGHT[nightSourceOf(row)];
+}
+
+/**
+ * Whether an open row counts at the target level, WCAG 2.2 A and AA, by the line the check runs draw
+ * (`tests/lib/a11y-verdict.mjs`): an advisory row (a result axe could not decide, a golden that moved) never raises a
+ * verdict, and a finding that names no A or AA criterion (an AAA criterion alone, a best-practice record) is a warning
+ * at most. A screen reader row carries no criterion by design and counts at its severity. The rest of a fix task's open
+ * rows are for review: they go away with the fix or with a catalog rule, and they are not what the fix has to clear.
+ *
+ * @param {{source: string, severity: string|null, criteria: string[]}} row The row.
+ * @returns {boolean} The verdict.
+ */
+export function countsAtTarget(row) {
+  return row.severity !== 'advisory' && (row.source === 'reader' || atTargetLevel(row));
+}
+
+/**
+ * The audits a history holds, oldest first. The ledger records nights, one per workflow run and source, and an audit
+ * is one dispatch of each workflow, so its nights complete minutes to hours apart: the nights that complete within
+ * `A11Y_AUDIT_WINDOW_HOURS` of the first one are one audit. A full audit holds a night of every source. Audits come
+ * at uneven gaps (a dispatch, then a schedule), and nothing here assumes a rhythm.
+ *
+ * @param {object[]} history The history entries.
+ * @returns {Array<{startedAt: string, endedAt: string, sources: string[], full: boolean, nights: object[]}>} The audits,
+ * each with its entries in `nights`, oldest first.
+ */
+export function a11yAudits(history) {
+  const audits = [];
+
+  for (const entry of [...sortNights(history ?? [])].reverse()) {
+    const at = Date.parse(entry.seenAt);
+    const last = audits.at(-1);
+
+    if (last && at - last.startedMs <= A11Y_AUDIT_WINDOW_HOURS * HOUR_MS) {
+      last.nights.push(entry);
+    } else {
+      audits.push({ startedMs: at, nights: [entry] });
+    }
+  }
+
+  return audits.map(({ nights }) => ({
+    startedAt: nights[0].seenAt,
+    endedAt: nights.at(-1).seenAt,
+    sources: NIGHT_SOURCES.filter(source => nights.some(night => night.source === source)),
+    full: NIGHT_SOURCES.every(source => nights.some(night => night.source === source)),
+    nights,
+  }));
+}
+
+/**
+ * The history as points in time, oldest first: after each entry, the open rows of any cluster over every source. An
+ * entry holds its own source's rows only, so a cluster's total at a point is the latest entry of each source up to it.
+ *
+ * @param {object[]} history The history entries.
+ * @returns {Array<{entry: object, at: number, open: (id: string) => number}>} The points.
+ */
+function historyPoints(history) {
+  const latest = new Map();
+
+  return [...sortNights(history ?? [])].reverse().map((entry) => {
+    latest.set(entry.source, entry.clusters);
+
+    const sources = [...latest.values()];
+
+    return { entry, at: Date.parse(entry.seenAt), open: id => sources.reduce((sum, clusters) => sum + (own(clusters, id)?.[0] ?? 0), 0) };
+  });
+}
+
+/**
+ * One count of a history entry over a set of clusters.
+ *
+ * @param {object} entry The history entry.
+ * @param {string[]} ids The cluster ids.
+ * @param {number} index Which count: 0 open, 1 new, 2 resolved, 3 back.
+ * @returns {number} The sum.
+ */
+function entryCount(entry, ids, index) {
+  return ids.reduce((sum, id) => sum + (own(entry.clusters, id)?.[index] ?? 0), 0);
+}
+
+/**
+ * The middle value of a list of numbers, or `null` for none.
+ *
+ * @param {number[]} values The values.
+ * @returns {number|null} The median.
+ */
+function median(values) {
+  if (values.length === 0) {
+    return null;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+
+  return sorted.length % 2 === 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+/**
+ * Days between two times, to one decimal.
+ *
+ * @param {number} from The earlier time.
+ * @param {number} to The later time.
+ * @returns {number} The days.
+ */
+function daysBetween(from, to) {
+  return Math.round(((to - from) / DAY_MS) * 10) / 10;
+}
+
+/**
+ * How a set of clusters fared over time: its open rows now, the most it had, what was resolved, when it was first
+ * seen and the night after which nothing of it was open.
+ *
+ * @param {string[]} ids The cluster ids.
+ * @param {object[]} rows The rows of those clusters.
+ * @param {ReturnType<typeof historyPoints>} points The history as points in time.
+ * @returns {object} The progress.
+ */
+function progressOf(ids, rows, points) {
+  const openRows = rows.filter(row => row.status !== 'resolved');
+  const series = points.map(point => ids.reduce((sum, id) => sum + point.open(id), 0));
+  const lastOpen = series.findLastIndex(count => count > 0);
+  // The first night that recorded any of it: a row's own first sighting while the row is kept, the history's after.
+  const recorded = points.find(point => entryCount(point.entry, ids, 0) > 0 || entryCount(point.entry, ids, 1) > 0);
+  const firstMs = rows.reduce((first, row) => Math.min(first, Date.parse(row.firstSeen)), recorded ? recorded.at : Infinity);
+  // Cleared by the first night after the last one that left a finding open, while the rows agree, and only when that
+  // night measured a finding of it gone: a finding nothing measured for the rows' retention leaves the ledger
+  // unresolved, and the night it left on fixed nothing.
+  const next = lastOpen !== -1 && lastOpen < points.length - 1 ? points[lastOpen + 1] : null;
+  const cleared = openRows.length === 0 && next !== null && entryCount(next.entry, ids, 2) > 0 ? next : null;
+
+  return {
+    open: openRows.length,
+    atTarget: openRows.filter(countsAtTarget).length,
+    peak: series.reduce((most, count) => Math.max(most, count), openRows.length),
+    // What the nights resolved, less what came back: a finding resolved twice is one finding.
+    resolved: Math.max(0, points.reduce((sum, point) => sum + entryCount(point.entry, ids, 2) - entryCount(point.entry, ids, 3), 0)),
+    firstSeen: Number.isFinite(firstMs) ? new Date(firstMs).toISOString().replace('.000Z', 'Z') : null,
+    clearedAt: cleared ? { seenAt: cleared.entry.seenAt, runId: cleared.entry.runId, source: cleared.entry.source } : null,
+    days: cleared && Number.isFinite(firstMs) ? daysBetween(firstMs, cleared.at) : null,
+    surfaces: A11Y_SURFACES.filter(surface => rows.some(row => surfaceOf(row) === surface)
+      || points.some(point => SURFACE_OF_NIGHT[point.entry.source] === surface && ids.some(id => own(point.entry.clusters, id) !== undefined))),
+  };
+}
+
+/**
+ * How the findings are dealt with over time: one row per tracker (the task a cluster of the catalog names), and
+ * the numbers above them.
+ *
+ * - A tracker's row counts the rows of every cluster that names it. A cluster with several trackers counts in each of
+ *   their rows, because the catalog does not say which task owns which finding; the headline numbers count each
+ *   finding once.
+ * - Three kinds of rows stand apart from the fix tasks: the defect clusters no tracker owns (so a missing tracker
+ *   shows), the triage queue, and the clusters the catalog marks as not a defect, one row per class (`notDefect`).
+ *   The headline counts leave the last kind out.
+ * - The past comes from the history, which is keyed by cluster, and the clusters' trackers from the catalog as it is
+ *   now: a tracker written into the catalog today owns its clusters' whole past.
+ * - A tracker is cleared by the first night after the last one that left any of its findings open, when that night
+ *   measured a finding of it gone; findings that left the ledger unmeasured clear nothing. A fix time is therefore
+ *   only as fine as the gap between audits.
+ * - The first full audit (`a11yAudits()`) is what "open then" is counted at; new coverage after it (a check, a
+ *   scenario) adds findings, which is why the chain names what came new since.
+ *
+ * @param {object|null} doc The ledger.
+ * @param {object} catalog The compiled cluster catalog.
+ * @returns {object|null} The progress, or `null` before any night was recorded.
+ */
+export function fixProgress(doc, catalog) {
+  if (!doc || !Array.isArray(doc.nights) || doc.nights.length === 0) {
+    return null;
+  }
+
+  const rows = doc.rows ?? [];
+  const history = doc.history ?? [];
+  const points = historyPoints(history);
+  const audits = a11yAudits(history);
+  const entries = new Map(catalog.clusters.map(cluster => [cluster.id, cluster]));
+  const trackersOf = (id) => {
+    const tracker = entries.get(id)?.tracker ?? null;
+
+    return Array.isArray(tracker) ? tracker : [tracker].filter(Boolean);
+  };
+  const rowsOf = new Map();
+
+  for (const row of rows) {
+    const id = row.cluster ?? TRIAGE_ID;
+
+    rowsOf.set(id, [...(rowsOf.get(id) ?? []), row]);
+  }
+
+  // Every cluster the catalog, a row or the history names: a cluster the catalog dropped keeps its rows until the
+  // next night re-sorts them, and its past for as long as the history holds it.
+  const ids = [...new Set([...entries.keys(), ...rowsOf.keys(), ...history.flatMap(entry => Object.keys(entry.clusters))])]
+    .filter(id => id !== TRIAGE_ID);
+  const defects = ids.filter(id => !entries.get(id)?.notDefect);
+  const group = (kind, clusterIds, extra) => ({
+    kind,
+    tracker: null,
+    notDefect: null,
+    sharedWith: [],
+    clusters: clusterIds.map(id => ({ id, title: id === TRIAGE_ID ? 'Needs triage' : (entries.get(id)?.title ?? id) })),
+    ...progressOf(clusterIds, clusterIds.flatMap(id => rowsOf.get(id) ?? []), points),
+    ...extra,
+  });
+  const seen = item => item.peak > 0 || item.resolved > 0;
+  const trackerIds = [...new Set(ids.flatMap(trackersOf))];
+  const trackers = trackerIds.map((tracker) => {
+    const owned = ids.filter(id => trackersOf(id).includes(tracker));
+
+    return group('tracker', owned, { tracker, sharedWith: [...new Set(owned.flatMap(trackersOf))].filter(other => other !== tracker).sort(compareIds) });
+  }).filter(seen).sort((a, b) => b.open - a.open || compareIds(a.tracker, b.tracker));
+  const classes = [...new Set(ids.map(id => entries.get(id)?.notDefect).filter(Boolean))].sort();
+  const others = [
+    group('untracked', defects.filter(id => trackersOf(id).length === 0)),
+    group('triage', [TRIAGE_ID]),
+    ...classes.map(name => group('not-defect', ids.filter(id => entries.get(id)?.notDefect === name), { notDefect: name })),
+  ];
+
+  // The headline: defect findings only, each counted once, the triage queue included.
+  const counted = [...defects, TRIAGE_ID];
+  const countedRows = counted.flatMap(id => rowsOf.get(id) ?? []);
+  const openRows = countedRows.filter(row => row.status !== 'resolved');
+  const sums = (list) => ({
+    new: list.reduce((sum, entry) => sum + entryCount(entry, counted, 1), 0),
+    resolved: list.reduce((sum, entry) => sum + entryCount(entry, counted, 2), 0),
+    back: list.reduce((sum, entry) => sum + entryCount(entry, counted, 3), 0),
+  });
+  const auditView = audit => ({
+    startedAt: audit.startedAt,
+    endedAt: audit.endedAt,
+    sources: audit.sources,
+    full: audit.full,
+    nights: audit.nights.map(({ runId, source, seenAt }) => ({ runId, source, seenAt })),
+    ...sums(audit.nights),
+  });
+  const latest = audits.at(-1) ?? null;
+  const previous = audits.at(-2) ?? null;
+  const firstFull = audits.find(audit => audit.full) ?? null;
+  const asOf = points.at(-1)?.entry.seenAt ?? doc.updatedAt;
+  const baselinePoint = firstFull ? points.find(point => point.entry === firstFull.nights.at(-1)) : null;
+  const recentFrom = Date.parse(asOf) - (A11Y_RECENT_DAYS * DAY_MS);
+  const fixDays = countedRows.filter(row => row.status === 'resolved').map(row => daysBetween(Date.parse(row.firstSeen), Date.parse(row.resolvedAt)));
+
+  return {
+    asOf,
+    auditWindowHours: A11Y_AUDIT_WINDOW_HOURS,
+    recentDays: A11Y_RECENT_DAYS,
+    historyDays: doc.historyDays ?? A11Y_HISTORY_DAYS,
+    headline: {
+      trackers: { total: trackers.length, clear: trackers.filter(item => item.open === 0).length },
+      open: openRows.length,
+      atTarget: openRows.filter(countsAtTarget).length,
+      notDefect: others.filter(item => item.kind === 'not-defect').reduce((sum, item) => sum + item.open, 0),
+      // The first full audit, what it left open, and what the nights after it added and took away.
+      baseline: baselinePoint ? {
+        startedAt: firstFull.startedAt,
+        endedAt: firstFull.endedAt,
+        open: counted.reduce((sum, id) => sum + baselinePoint.open(id), 0),
+        ...sums(points.filter(point => point.at > baselinePoint.at).map(point => point.entry)),
+      } : null,
+      audits: audits.length,
+      latestAudit: latest ? auditView(latest) : null,
+      previousAudit: previous ? auditView(previous) : null,
+      // What the page says a fix time is as fine as: the days between the two latest audits.
+      gapDays: latest && previous ? daysBetween(Date.parse(previous.startedAt), Date.parse(latest.startedAt)) : null,
+      recent: sums(points.filter(point => point.at > recentFrom).map(point => point.entry)),
+      cameBack: openRows.filter(row => row.gaps > 0).length,
+      medianDays: median(fixDays),
+      resolvedRows: fixDays.length,
+    },
+    trackers,
+    others,
+  };
+}
+
+/**
+ * Two task ids in reading order: by prefix, then by number (`DEV-999` before `DEV-1000`).
+ *
+ * @param {string} a One id.
+ * @param {string} b The other.
+ * @returns {number} The order.
+ */
+function compareIds(a, b) {
+  return a.localeCompare(b, 'en', { numeric: true });
+}
+
+/**
+ * The fix progress as the page inlines it, without a task id: the page is public, and a tracker is code in the
+ * catalog, never printed there. A tracker's row is named by its clusters, and the trackers that own the same clusters,
+ * whose rows would read alike, are one row that says how many tasks it stands for. The headline keeps counting tasks.
+ *
+ * @param {object|null} progress The progress (`fixProgress()`).
+ * @returns {object|null} The view.
+ */
+function fixView(progress) {
+  if (progress === null) {
+    return null;
+  }
+
+  const { trackers, others, ...head } = progress;
+  const byClusters = new Map();
+
+  for (const { tracker, sharedWith, ...item } of trackers) {
+    const key = item.clusters.map(cluster => cluster.id).join('|');
+    const row = byClusters.get(key);
+
+    if (row) {
+      row.tasks += 1;
+      // A task folded into the row no longer counts as another task sharing its clusters.
+      row.shared = Math.max(0, row.shared - 1);
+    } else {
+      byClusters.set(key, { ...item, tasks: 1, shared: sharedWith.length });
+    }
+  }
+
+  return { ...head, rows: [...byClusters.values(), ...others.map(({ tracker, sharedWith, ...item }) => ({ ...item, tasks: 0, shared: 0 }))] };
+}
+
+/**
  * What the page inlines: the clusters with their counts and trend, the criteria, the latest reader
- * verdicts, the triage queue and the nights, all derived from the ledger so the page needs no fetch. No
- * task id is in it: the page says whether a cluster has a tracker, never which.
+ * verdicts, the triage queue, the nights and the fix progress, all derived from the ledger so the page needs no
+ * fetch. No task id is in it: the page says whether a cluster has a tracker, never which, and the fix progress names
+ * a task's row by its clusters (`fixView()`).
  *
  * A cluster's trend has one series per source its rules or rows come from, over that source's nights only:
  * the two nightlies run an hour apart, and one series over both would draw a reader-only cluster at zero on
@@ -1826,6 +2423,7 @@ export function a11yView(doc, catalog) {
     checks,
     reader,
     triage: { total: triageRows.length, shapes: triageShapes.length, rows: triageShapes.slice(0, A11Y_TRIAGE_SHOWN) },
+    fix: fixView(fixProgress(doc, catalog)),
   };
 }
 

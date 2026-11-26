@@ -171,6 +171,8 @@ Each map change triggers a cache rebuild by default. Rebuilds are costly on larg
 
 `IndexMapper` itself wraps `initToLength`, `insertIndexes`, and `removeIndexes` in suspend and resume. Wrap your own bulk map updates the same way.
 
+While the operations are suspended, a move or a sort changes the indexes sequence but not the translation caches, so `toPhysicalRow()` and its siblings answer for the order from before the batch. A caller that must read the order the batch already made, such as `MergeCells#merge()` reading the physical corners of its range, runs inside `runWithLiveCache(callback)`: it rebuilds the caches from the live sequence for the callback and restores the old ones afterwards, with no hook and no flag change. Write after the batch (`afterResumeExecution`) unless every reader of that axis reads the live order, as `MergeCells` does for the column move and freeze hooks. Do not refresh the cache with `updateCache(true)` instead: it fires `cacheUpdated`, and the `beforeCacheUpdate` listeners would take the new order for the old one at the real resume. The trimming and hiding caches are not rebuilt, so a trim made earlier in the same batch is not seen.
+
 ## changesObservable
 
 `handsontable/src/translations/changesObservable/` lets a developer subscribe to index changes that occur while Handsontable runs.

@@ -23,7 +23,7 @@ const data = [
     font-weight: 600;
 }
 example1-conditional-formatting .handsontable td.loss {
-    color: #d81e2c;
+    color: #b0141f;
     background: var(--ht-cell-error-background-color, rgba(216, 30, 44, 0.14));
     background: color-mix(in srgb, #d81e2c 16%, var(--ht-background-color, #ffffff));
 }

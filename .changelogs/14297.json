@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed row heights and the scroll range not following the AutoRowSize plugin after `updateSettings()` turned it on or off, which also left a double line above the frozen bottom rows.",
+  "type": "fixed",
+  "issueOrPR": 14297,
+  "breaking": false,
+  "framework": "none"
+}

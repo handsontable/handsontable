@@ -541,17 +541,76 @@ describe('AsyncValues: writes, flights, and rows', () => {
     destroy();
   });
 
-  it('should add hidden loading text to a pending cell, and a marker bar to a failed one', async() => {
+  it('should describe a pending cell as loading, and give a failed one hidden error text and a marker bar', async() => {
     const { hot, plugin, destroy } = createGrid();
 
     plugin.setAsyncValue(0, 1, () => deferred().promise);
     await plugin.setAsyncValue(1, 1, Promise.reject(new Error('Timeout')));
     hot.render();
 
-    expect(hot.getCell(0, 1)!.querySelector('.htAsyncPendingMessage')!.textContent).toBe('Loading...');
+    const pendingCell = hot.getCell(0, 1)!;
+    const describedBy = (pendingCell.getAttribute('aria-describedby') ?? '').split(' ');
+    const descriptions = describedBy
+      .map(id => hot.rootElement.ownerDocument.getElementById(id)?.textContent ?? '');
+
+    // The loading text is the cell's description, not a child of the cell, so the cell's own text, its
+    // accessible name and what is copied stay the value.
+    expect(descriptions).toContain('Loading...');
+    expect(pendingCell.textContent).toBe(String(hot.getDataAtCell(0, 1)));
+    // The failed cell keeps its own hidden text: the message is different for every cell. It starts with a
+    // space, so a screen reader that reads the cell as one run keeps it apart from the value.
+    expect(hot.getCell(1, 1)!.querySelector('.htAsyncErrorMessage')!.textContent).toBe(' Timeout');
     expect(hot.getCell(1, 1)!.querySelector('.htAsyncErrorMarker')).not.toBeNull();
 
     destroy();
+  });
+
+  it('should not describe a pending cell as loading with `ariaTags` off', () => {
+    const { hot, plugin, destroy } = createGrid({ ariaTags: false });
+
+    plugin.setAsyncValue(0, 1, () => deferred().promise);
+    hot.render();
+
+    const pendingCell = hot.getCell(0, 1)!;
+
+    // The positive control: the cell is pending.
+    expect(pendingCell.classList.contains('htAsyncPending')).toBe(true);
+    expect(pendingCell.hasAttribute('aria-describedby')).toBe(false);
+    expect(pendingCell.textContent).toBe(String(hot.getDataAtCell(0, 1)));
+
+    destroy();
+  });
+
+  it('should resume the pending indicator\'s turns from the start of the request when the cell repaints', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const now = jest.spyOn(Date, 'now').mockReturnValue(10_000);
+
+    try {
+      plugin.setAsyncValue(0, 1, () => deferred().promise);
+      hot.render();
+
+      const indicatorOf = () => hot.getCell(0, 1)!.querySelector<HTMLElement>('.htAsyncIndicator')!;
+      const firstIndicator = indicatorOf();
+
+      // A paint at the start of the request starts the turns from the first one.
+      expect(firstIndicator.style.animationDelay).toBe('');
+
+      now.mockReturnValue(12_500);
+      hot.render();
+
+      // The positive control: the repaint built a new element, whose animation would start again.
+      expect(indicatorOf()).not.toBe(firstIndicator);
+      expect(indicatorOf().style.animationDelay).toBe('-2500ms');
+
+      now.mockReturnValue(30_000);
+      hot.render();
+
+      // Past the four one-second turns, the delay puts the animation at its end, so the ring rests.
+      expect(indicatorOf().style.animationDelay).toBe('-20000ms');
+    } finally {
+      now.mockRestore();
+      destroy();
+    }
   });
 
   it('should check a pending cell by row id with `isPendingAt()`', async() => {

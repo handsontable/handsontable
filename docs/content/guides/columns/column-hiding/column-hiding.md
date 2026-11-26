@@ -212,6 +212,9 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the
 [`HiddenColumns`](@/api/hiddenColumns.md) plugin. Now, the context menu automatically displays
 additional items for hiding and unhiding columns.
 
+To hide columns that are not next to each other, select their headers with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click,
+and choose **Hide columns**. Every column selected by its header is hidden. A cell range added to the selection is left out.
+
 ::: only-for javascript
 
 ::: example #example4 --js 1 --ts 2

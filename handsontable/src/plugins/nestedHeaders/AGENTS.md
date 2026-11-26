@@ -332,6 +332,35 @@ the `fixedColumnsStart` band and reaches past it, and it follows the same rule: 
   control in LTR). Toggle `#renderEndGroupContinuation` off to see the end band header lose the label of a crossing
   group.
 
+## A header above the bottom row with no label is a plain cell, not a column header
+
+A group row that covers fewer columns than the grid has (`['Info', { label: 'Details', colspan: 4 }, 'Extra']`
+over ten columns) is filled with default header settings, label `''`, for the columns it does not cover.
+Walkontable gives every header `role="columnheader"` and `scope="col"`, so each of those cells was a column
+header with no name: axe's `empty-table-header` flags it (the rule wants visible text, so an `aria-label`
+does not clear it), and a screen reader reads an empty header for every cell below it.
+
+`#markUnlabeledGroupHeader()` runs in `headerRendererFactory` for every header that does not reach the cells
+and, when `ariaTags` is on, gives one whose `.colHeader` has no text `role="gridcell"` and drops `scope`. An
+author's own `''` label over a group is the same state and gets the same treatment. Three rules:
+
+- **Bottom-row headers are left alone.** A header that reaches the cells (`reachesCells`, a rowspan to the
+  bottom included) names its column for every cell below, so it stays a `columnheader` even without text.
+- **No clearing pass is needed.** `writeColumnHeaderAriaAttributes()` in walkontable's `columnHeaders.ts`
+  syncs `role` and `scope` back to `columnheader`/`col` on every draw, before the header renderers run, so a
+  recycled `<th>` that gets a label is a column header again. The cost is four attribute writes per unlabeled
+  group cell per draw, scroll draws included: walkontable sets `role` and `scope` back, and the renderer sets
+  `role` and removes `scope` again.
+- **Read the rendered label, not the settings.** The label can come from `modifyColHeader`, so the check reads
+  `.colHeader` through `hasLabelName()`. Labels are written with `fastInnerHTML`, so a label that is markup
+  only (`<img alt="Q1">`, an icon with an `aria-label`) has an empty `textContent` and still names its
+  columns: an element not under `aria-hidden="true"` with a non-empty `alt`, `aria-label`,
+  `aria-labelledby` or `title` counts as a name. Counting any element child as a name is wrong the other
+  way: an `aria-hidden` icon or an `<img>` with no `alt` names nothing and left a nameless column header.
+  A label hidden by `hiddenHeaderText` still has text and stays a column header.
+
+Pinned by `tests/e2e/nested-headers-empty-group-header-role.spec.ts` and the `rtl-grid` tree golden.
+
 ## TypeScript notes
 
 - `utils/dataStructures/tree.ts` `TreeNode<T>` is generic with a permissive default; nestedHeaders
@@ -367,6 +396,35 @@ init, and CollapsibleColumns (290) enables after this plugin (280), so `.enabled
 shrink the measured headers. The cost: a license key that keeps one of them off leaves a little unused room in
 the header width.
 
+## A label the application lets wrap is measured at its narrowest, never at one line
+
+An application lets header labels wrap with `.handsontable thead th .colHeader { white-space: normal; }`. Two
+measurements used to ignore that, and both have to stay fixed for a long group label to wrap inside its columns.
+
+- **The ghost table's labels are `width: min-content`** (`_base.scss`, `.htGhostTable.htNestedHeaders .colHeader`).
+  The ghost is an auto-width table, so without it every label counted at its max-content width, the one-line width
+  whatever `white-space` said, and `#onModifyColWidth` widened the group to it. `min-content` follows `white-space`:
+  a `nowrap` label (the default) still measures its full line, so default widths are unchanged to the pixel. The rule
+  is ghost-only on purpose: on the drawn header it would squeeze every label to its longest word.
+- **Core's ghost header row renders through the grid's first-level header renderer**
+  (`GhostTable#appendColumnHeadersRow`, `utils/ghostTable.ts`), which is this plugin's `headerRendererFactory(0)`.
+  That row is how `TableView`'s pre-draw probe and AutoRowSize measure the header height. Filled with
+  `appendColHeader()` alone it had no `colspan`, so the group label was measured inside its first column, the header
+  row came out several times taller than the drawn label, and the height stuck: the `columnHeaderHeight` funnel
+  writes the larger value onto the `<th>`, and the post-draw probe reads it back on every render. The row also
+  builds its own `<col>`s, in visual column order, and adds the columns a spanned header covers right after it:
+  AutoRowSize samples the header row by value and skips repeated labels, in bucket order, so a sampled row holds a
+  few scattered columns, and a `colspan` laid over the next cells measured the group over the wrong columns (three
+  of four with bottom labels `c0`, `c1`, `c2`). The ghost `<th>` is
+  in no overlay, so two cases still measure off and the post-draw probe settles them: a first draw that starts
+  inside a group draws its placeholder (under-measured), and a group that crosses `fixedColumnsStart` is measured at
+  its full width while the corner clone draws it clamped (over-measured, about one line).
+- **AutoRowSize applies one header height to every level** (its `modifyColumnHeaderHeight` returns a number, and
+  the `columnHeaderHeight` funnel in `tableView.ts` uses it as the floor of each level). With a wrapped group label
+  the bottom level is padded to the group's height. That is AutoRowSize's limit, not this plugin's; the docs say so.
+
+`tests/e2e/nested-headers-label-wrap.spec.ts` covers both, and the control case without the CSS.
+
 ## Testing
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`
@@ -378,6 +436,10 @@ the header width.
 - Ghost-table growth and the column-width cache:
   `npm --prefix tests run test:e2e -- e2e/nested-headers-grown-widths.spec.ts` (scrolled to the right edge,
   the last column's cell must lie inside the holder's visible area).
+- A group label the application lets wrap:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-label-wrap.spec.ts` (the group keeps its columns'
+  widths, and the header holds no more space than a one-line header's borders, after a full render and a
+  data load too). It declares `THEMES_TAG`; a stylesheet change needs both bundles rebuilt first.
 - Move/reparent behavior: `__tests__/plugins/manualColumnMove/` — `general.spec.js` (cooperation:
   follow-data, collapse coordination, insert/remove, freeze) plus one file per `columnDropMode`
   strategy (`adopt.spec.js`, `split.spec.js`). **Add a new drop strategy's tests in its own

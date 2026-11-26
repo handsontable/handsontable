@@ -97,10 +97,21 @@ Everything about that machinery is load-bearing:
   and the release would have sorted a column of the new order. A same-shape `updateData()` fires no `'init'`.
 - **Two release signals, deliberately.** `afterOnCellMouseUp` is primary: on touch devices Walkontable calls
   its `onMouseUp` straight from `touchend` instead of dispatching a DOM `mouseup`, so a document listener
-  alone would never fire and tapping a header would stop sorting. A raw `mouseup` on `documentElement` is
-  the fallback for a release landing outside any cell — the drag case, where the queued sort still has to be
-  cleared. `#resolvePendingSort` takes the queued press first, so whichever signal arrives first wins and
-  the rest are no-ops.
+  alone would never fire and tapping a header would stop sorting. A raw `mouseup` on `documentElement`
+  (`#onDocumentMouseUp`) is the second signal: a release landing outside any cell — the drag case — or over a
+  header before the hook ran. `#resolvePendingSort` takes the queued press first, so whichever signal
+  arrives first wins and the rest are no-ops.
+- **A release away from the pressed header cancels the sort (pointer cancellation).** A header sort is a
+  click, so it completes only on the release over the header that was pressed. `HeaderSortPress` keeps the
+  pressed `row` and `column`, and `#resolvePendingSort(release)` compares the release's visual coords with
+  them. The hook path passes the hook's `coords`; the document path reads the header the release landed on
+  (`closest('th')`, then `hot.getCoords()`), and a release over no header passes `null`. Any mismatch drops
+  the press through `#stopWaitingForEditor()` and sorts nothing. **Compare coords, never the `th` element**:
+  Walkontable recycles header elements and the frozen overlays clone them, so the element a release lands on
+  is rarely the one that was pressed. The drag checks (`consumedByMove`, `#isColumnBeingDragged()`) stay
+  first. A touch tap needs nothing extra: `touchend` drives the same hook with the press's own coords, and
+  the keyboard `Enter` goes through `sortByUser()`, not through a press. Pinned by
+  `__tests__/headerSortPointerCancellation.unit.js` and `tests/e2e/column-sorting-pointer-cancellation.spec.ts`.
 - **Two cancel checks, also deliberately.** Both this plugin and ManualColumnMove handle the same `mouseup`
   and **the listener order is not fixed** — re-enabling `columnSorting` after `manualColumnMove` appends
   this listener last. Running first, the drag is still in progress (`#isColumnBeingDragged()`); running
@@ -632,6 +643,14 @@ only place that announces.
   DataProvider plugin does) is announced, before its rows arrive, and stays announced if the fetch fails. Pinned by
   "server-side beforeColumnSort" in the test below. With MultiColumnSorting it names the column the user pressed,
   not the whole queue; naming the queue needs more phrases per language.
+- **While more than one column is sorted, the message says the pressed column's place in the sort (DEV-4013).**
+  The header draws that number as CSS content, so a reader that does not read the header again after the gesture
+  (NVDA and VoiceOver with Chromium) never said it. `#announceSortOrder()` then takes the `..._PRIORITY` phrases
+  (`Sorted by Age, ascending, sort priority 2`) with `[order]` from `getIndexOfColumnInSortQueue() + 1`, the same
+  source as the header's `sort-<n>` class, so the two cannot disagree. A Ctrl+click or `Shift+Enter` on a column
+  that is already sorted moves it to the END of the sort (`getNextSortConfig()`, append strategy), so its number
+  changes with its direction: the message is right to say `2` there. One sorted column keeps the old phrases, and
+  so does a removal. A custom language pack without the two phrases gets the English ones for these messages.
 - **A language pack without the phrases falls back to English**, like every other phrase, so a custom pack is never
   silent.
 - **The column is named by the rendered header text** (`.colHeader` `textContent`, `<br>` read as a space), which is
@@ -639,7 +658,7 @@ only place that announces.
   involved. A header that is not rendered (virtualized out) is read from `getColHeader()` and reduced the same way
   (`htmlToPlainText()`, `<br>` as a space), and an empty label is named by its spreadsheet letter. Pinned by "not rendered" in the test below.
 - **It is gated on `ariaTags`**, like `aria-sort`, and it is `polite`: `assertive` is for errors.
-- The phrases are `COLUMN_SORTING_ANNOUNCEMENT_*` in `i18n/constants.ts`, in all 22 language files. A new
+- The phrases are `COLUMN_SORTING_ANNOUNCEMENT_*` in `i18n/constants.ts`, in all 22 language files (the two `..._PRIORITY` phrases included). A new
   gesture that sorts goes through `sortByUser()`, or it is silent to a screen reader.
 
 Pinned by `__tests__/a11y/sortAnnouncement.unit.js` (both plugins) and `tests/e2e/column-sorting-announcement.spec.ts`.
@@ -696,6 +715,23 @@ rule in `_column-sorting.scss` sets `pointer-events: auto` (plus `cursor: pointe
 sibling selector), and `wasClickableHeaderClicked()` accepts `SORT_INDICATOR_SLOT_CLASS` as a target
 alongside `HEADER_SPAN_CLASS`. Pinned by "a click precisely on the indicator icon toggles the sort
 order" in `tests/e2e/icon-elements.spec.ts`.
+
+**The label is matched by ancestor too, not by the target's own class.** A header label may carry markup
+(`<b>Age</b> in <i>years</i>`), and the press targets the innermost element, so a test on the target's own
+class sorted only on the bare text of `span.colHeader`. `wasClickableHeaderClicked()` therefore asks
+`closest('.colHeader')` for the label and `closest('.ht-sort-indicator')` for the arrow. Two rules keep that
+from over-matching, and both are pinned:
+
+- **The label must sit inside the pressed `th`** (`#isPressOnPlainLabelContent()`). `closest()` walks to the
+  document root, so a host element that carries the class `colHeader` around the grid would otherwise make every
+  part of a header, its padding included, sort.
+- **Markup that handles a press on its own is excluded** (`INTERACTIVE_LABEL_CONTENT_SELECTOR`: links, buttons,
+  form fields, `label`, `summary`, the button, link and checkbox roles, `contenteditable`, `tabindex`,
+  `onclick`). A press on a link must follow the link, not also sort, and a label around a checkbox must toggle it
+  alone. A listener added with `addEventListener()` to any other element cannot be seen from here, so such markup
+  sorts as well as running its handler. Before the ancestor match, a press on any child of the label did nothing.
+
+Pinned by `tests/e2e/column-sorting-html-header-label.spec.ts`.
 
 ## The `initialConfig` sort applied ahead of its data waits for `onDataReady()`
 

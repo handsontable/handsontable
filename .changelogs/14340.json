@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how a selection of several ranges (made with Ctrl/Cmd+click) works with three features: Hide columns and Hide rows now hide every range selected by its header, while Merge cells and Unmerge cells (in the context menu and Ctrl+M) and moving columns or rows by dragging their headers are disabled for such a selection.",
+  "type": "changed",
+  "issueOrPR": 14340,
+  "breaking": false,
+  "framework": "none"
+}

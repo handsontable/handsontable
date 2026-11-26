@@ -31,6 +31,9 @@ $license-badge-dot: "data:image/svg+xml;charset=utf-8,%3Csvg width='11.1415' hei
     // comments: the box stops being a scroll container, which the settings/width specs measure.
     // The cost of keeping it is a scroll container that nothing ever scrolls.
     inset: 0;
+    inset-inline:
+      var(--ht-grid-inset-inline-start)
+      calc(100% - var(--ht-grid-inset-inline-start) - var(--ht-grid-inline-size));
     overflow: hidden;
     z-index: 1050; // above the grid, below the hard-stop dialog (1060)
     // Click-through: the corner header cell underneath keeps its native behavior (select-all click,
@@ -322,6 +325,21 @@ $license-badge-dot: "data:image/svg+xml;charset=utf-8,%3Csvg width='11.1415' hei
     a.ht-button {
       display: inline-block;
       text-decoration: none;
+    }
+
+    // The description takes the theme's PRIMARY foreground, not the secondary one a plain dialog uses:
+    // the secondary color is 4.48:1 on the classic theme, under the 4.5:1 that text needs (1.4.3), and
+    // this text is the license notice. A link inside it takes the same color and is underlined, so it
+    // clears the ratio and never depends on color alone (1.4.1): the theme's link color is 2.45:1 on
+    // horizon, and a host page's link reset removes an underline the browser would draw by default.
+    .ht-dialog__description {
+      color: var(--ht-foreground-color);
+
+      a,
+      a:hover {
+        color: inherit;
+        text-decoration: underline;
+      }
     }
 
     .ht-dialog__title,

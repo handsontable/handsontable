@@ -44,6 +44,8 @@ Two options set row heights, and they differ in what happens when the content do
 | [`rowHeights`](@/api/options.md#rowheights)     | Exactly the height you set, even below default   | Clipped                       |
 | [`minRowHeights`](@/api/options.md#minrowheights) | At least the height you set, never below default | Grows the row to fit          |
 
+There is one exception to these heights. In the built-in themes, the first row of the [frozen bottom rows](@/guides/rows/row-freezing/row-freezing.md) is drawn one pixel taller than the height you set, whichever of the two options sets it. That pixel is the freeze line above the row, and the grid doesn't count it as part of the row's height.
+
 Both options accept a [number](#set-row-heights-to-a-number), an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). You can set both: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others. When you enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, `rowHeights` is a minimum too, because the plugin lets each row grow to fit its content.
 
 If your cell contents require heights greater than default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), or custom styles), and you don't want them clipped, use one of the following configurations to avoid potential layout problems:
@@ -203,6 +205,13 @@ The row height can be set using a function. In this example, the size of all row
 Set the option [`manualRowResize`](@/api/options.md#manualrowresize) to `true` to allow users to manually resize the row height by dragging the handle between the adjacent row headers. Don't forget to enable row headers by setting [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
 
 You can adjust the size of one or multiple rows simultaneously, even if the selected rows are not placed next to each other.
+
+To resize without dragging, use one of these ways:
+
+- Click the handle, then click the grid. The height becomes the distance from the top of the row to the point you click. The handle stays highlighted until you click. The click doesn't select the cell. Press <kbd>**Escape**</kbd>, click the handle again, or press outside the grid to cancel. On a touchscreen, tap the handle, then tap the grid.
+- Select the whole row, or focus its row header, and press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd>. The up and down arrow keys change the height by 10 pixels, or by 1 pixel with <kbd>**Shift**</kbd>. <kbd>**Enter**</kbd> keeps the height and <kbd>**Escape**</kbd> cancels. For all the keys, see [Column and row resize keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-and-row-resize-keyboard-shortcuts).
+
+Both ways store the height in one undo step and run the [`beforeRowResize`](@/api/hooks.md#beforerowresize) and [`afterRowResize`](@/api/hooks.md#afterrowresize) hooks. A screen reader announces the height in pixels.
 
 ::: tip
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of the UndoRedo plugin: when no undo or redo stack hook is registered, recording many separate actions, such as a loop of `setCellMeta()` calls outside `batch()`, no longer slows down as the undo history grows. The undo step of a bulk data change takes about half the memory.",
+  "type": "changed",
+  "issueOrPR": 14351,
+  "breaking": false,
+  "framework": "none"
+}

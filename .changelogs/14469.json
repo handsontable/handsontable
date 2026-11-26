@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the license key lock screen so that its documentation link is named \"documentation\" instead of \"Read more\".",
+  "type": "fixed",
+  "issueOrPR": 14469,
+  "breaking": false,
+  "framework": "none"
+}

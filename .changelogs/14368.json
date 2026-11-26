@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed AutoColumnSize so that on a grid with more than 1,000,000 cells in its default `syncLimit` columns, no `syncLimit` set, and AutoRowSize off, the constructor and `loadData()` measure only the columns needed to draw the grid (the columns on screen and the columns their merged cells span) and measure the rest in the background: `getColWidth()` returns the default width for a column not measured yet, while `selectCell()` and `scrollViewportTo()` measure the columns up to their target first.",
+  "type": "changed",
+  "issueOrPR": 14368,
+  "breaking": false,
+  "framework": "none"
+}

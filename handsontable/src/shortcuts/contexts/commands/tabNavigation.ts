@@ -1,26 +1,20 @@
 import type { HotInstance } from '../../../core/types';
 import { canNavigateGrid } from '../../guards';
+import { createTabWrapState } from './tabWrapState';
 
 export const command = {
   name: 'tabNavigation',
   callback(hot: HotInstance) {
-    const rowWrapState = {
-      wrapped: false,
-      flipped: false,
-    };
+    const wrapState = createTabWrapState(hot);
     let isTabOrShiftTabPressed = false;
     let preventViewportScroll = false;
 
     hot.addHook('afterSelection', (
       row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }) => {
-      if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
+      if (isTabOrShiftTabPressed && (wrapState.isFlippedOffGrid() || preventViewportScroll)) {
         preventViewportScroll = false;
         preventScrolling.value = true;
       }
-    });
-    hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode: boolean, newCoords: object, isFlipped: boolean) => {
-      rowWrapState.wrapped = true;
-      rowWrapState.flipped = isFlipped;
     });
 
     return {
@@ -28,13 +22,14 @@ export const command = {
         const { tabNavigation } = hot.getSettings();
 
         isTabOrShiftTabPressed = true;
+        wrapState.start();
 
         if (!tabNavigation) {
           preventViewportScroll = true;
         }
       },
       after(event: KeyboardEvent) {
-        const { tabNavigation, autoWrapRow } = hot.getSettings();
+        const { tabNavigation } = hot.getSettings();
 
         isTabOrShiftTabPressed = false;
 
@@ -45,11 +40,9 @@ export const command = {
           // so release it and drop the selection, the same way a wrap off the end of the grid does.
           !canNavigateGrid(hot) ||
           !hot.selection.isSelected() ||
-          autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
-          !autoWrapRow && rowWrapState.wrapped
+          wrapState.leavesGrid()
         ) {
-          rowWrapState.wrapped = false;
-          rowWrapState.flipped = false;
+          wrapState.reset();
           hot.deselectCell();
 
           return false;

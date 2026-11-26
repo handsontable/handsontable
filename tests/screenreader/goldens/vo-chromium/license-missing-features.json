@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "scenario": "license-missing-features",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T15:24:04.767Z"
+  },
+  "steps": {
+    "tab-to-sales": "link sales handsontable com",
+    "read-notice": "the license key for handsontable does not include these features filters they are turned off to add them contact",
+    "read-back-to-link": "link sales handsontable com",
+    "shift-tab-to-grid": "value 10 column 2 row alpha 10 tree grid 3 columns 9 rows"
+  }
+}

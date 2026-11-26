@@ -73,6 +73,7 @@ export type HotInstance = {
   getSelected(): number[][] | undefined;
   getActiveEditor(): { isOpened(): boolean; htEditor?: { countRenderedRows(): number } } | undefined;
   isListening(): boolean;
+  isRtl(): boolean;
   countRows(): number;
   countCols(): number;
   getSettings(): { width?: unknown };
@@ -184,6 +185,23 @@ export async function selectCell(page: Page, root: string, cell: [number, number
 }
 
 /**
+ * Whether the grid is laid out right to left (the axe discovery run's variant, and the `rtl-*` pages).
+ * The left and right arrow keys act in the direction they point on the screen, so an opener that means
+ * a column or a submenu, not a side of the screen, picks its arrow by this.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @returns Whether the grid under the root is right to left.
+ */
+export async function isRightToLeft(page: Page, root: string): Promise<boolean> {
+  return page.evaluate((selector) => {
+    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+    return !!hot?.isRtl();
+  }, root);
+}
+
+/**
  * Walks the highlighted item of an open menu down to the item with the given label, with
  * ArrowDown, and fails loudly when the walk never reaches it.
  *
@@ -277,13 +295,7 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
     await highlightMenuItem(page, '.htContextMenu', 'Alignment');
 
     // A submenu opens toward the inline end: ArrowLeft in a right-to-left grid (the axe discovery run's variant).
-    const rtl = await page.evaluate((selector) => {
-      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: { isRtl(): boolean } }) | null)?.__hotInstance;
-
-      return !!hot?.isRtl();
-    }, root);
-
-    await page.keyboard.press(rtl ? 'ArrowLeft' : 'ArrowRight');
+    await page.keyboard.press(await isRightToLeft(page, root) ? 'ArrowLeft' : 'ArrowRight');
     await expect(page.locator('.htContextMenuSub_Alignment .ht_master .htCore tbody td').first()).toBeVisible();
   },
   'dropdown-menu': async(page, _entry, root, cell) => {
@@ -343,13 +355,15 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
     await markFormulaPopups(page);
   },
   /**
-   * A range extended from the keyboard (Shift+ArrowUp, Shift+ArrowLeft) from a formula error cell, so
+   * A range extended from the keyboard, one row up and one column back, from a formula error cell, so
    * the range holds error values while the focus stays on that cell, whose error popup opens for it.
    */
   'formula-error-range': async(page, _entry, root, [row, col]) => {
     await selectCell(page, root, [row, col]);
     await page.keyboard.press('Shift+ArrowUp');
-    await page.keyboard.press('Shift+ArrowLeft');
+    // The previous column is on the left, and on the right in a right-to-left grid (the axe discovery
+    // run's variant), where Shift+ArrowLeft from the page's cell, in the last column, has no column to reach.
+    await page.keyboard.press(await isRightToLeft(page, root) ? 'Shift+ArrowRight' : 'Shift+ArrowLeft');
     await expect.poll(() => page.evaluate((selector) => {
       const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
 
@@ -366,6 +380,13 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
     await expect(page.locator('.hfe-suggestions [role="option"].hfe-suggestions__item--active.hfe-suggestions__item--named'))
       .toBeVisible();
     await markFormulaPopups(page);
+  },
+  // F2 on a focused column header (the page's `cell` is the header) opens the EditableHeaders input, which takes
+  // the focus.
+  'header-editor': async(page, _entry, root, cell) => {
+    await selectCell(page, root, cell);
+    await page.keyboard.press('F2');
+    await expect(page.getByRole('textbox', { name: 'Header name' })).toBeFocused();
   },
   // The fixture fills the cell from a promise it never settles, so the cell stays pending: the
   // indicator, the pending message and `aria-busy` are what the scan sees.

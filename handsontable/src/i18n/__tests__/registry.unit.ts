@@ -2,6 +2,7 @@ import {
   dictionaryKeys,
   getLanguageDictionary,
   getLanguagesDictionaries,
+  getTranslatedPhrase,
   getValidLanguageCode,
   hasLanguageDictionary,
   registerLanguageDictionary,
@@ -12,6 +13,8 @@ import enUS from 'handsontable/i18n/languages/en-US';
 import srLatnRS from 'handsontable/i18n/languages/sr-Latn-RS';
 import srSP from 'handsontable/i18n/languages/sr-SP';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
+import { registerPhraseFormatter } from 'handsontable/i18n/phraseFormatters';
+import pluralize from 'handsontable/i18n/phraseFormatters/pluralize';
 
 describe('i18n registry', () => {
   it('should register automatically default language', () => {
@@ -78,6 +81,62 @@ describe('i18n registry', () => {
   it('should return copy of registered dictionary when getting previously registered language', () => {
     expect(getLanguageDictionary(plPL.languageCode)).toEqual(plPL);
     expect(getLanguageDictionary(plPL.languageCode)).not.toBe(plPL);
+  });
+
+  describe('getTranslatedPhrase', () => {
+    const { CONTEXTMENU_ITEMS_ROW_ABOVE, CONTEXTMENU_ITEMS_REMOVE_ROW, PAGINATION_NAV_SECTION } = dictionaryKeys;
+
+    it('should return plain, pluralized, and substituted phrases of the registered dictionary', () => {
+      const [singular, plural] = plPL[CONTEXTMENU_ITEMS_REMOVE_ROW];
+
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_ROW_ABOVE, undefined))
+        .toBe(plPL[CONTEXTMENU_ITEMS_ROW_ABOVE]);
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, undefined)).toBe(singular);
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, 0)).toBe(singular);
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, 1)).toBe(plural);
+      expect(getTranslatedPhrase(DEFAULT_LANGUAGE_CODE, PAGINATION_NAV_SECTION, { currentPage: 3, totalPages: 7 }))
+        .toBe('Page 3 of 7');
+    });
+
+    it('should return `null` for a language or a key that is not registered', () => {
+      expect(getTranslatedPhrase('xx-XX', CONTEXTMENU_ITEMS_ROW_ABOVE, undefined)).toBeNull();
+      expect(getTranslatedPhrase(plPL.languageCode, 'Not:a.key', undefined)).toBeNull();
+    });
+
+    it('should keep translating from the registry when the copy from `getLanguageDictionary()` is mutated', () => {
+      const [singular, plural] = plPL[CONTEXTMENU_ITEMS_REMOVE_ROW];
+      const dictionaryCopy = getLanguageDictionary(plPL.languageCode);
+
+      dictionaryCopy[CONTEXTMENU_ITEMS_ROW_ABOVE] = 'changed';
+      dictionaryCopy[CONTEXTMENU_ITEMS_REMOVE_ROW][0] = 'changed';
+      dictionaryCopy[CONTEXTMENU_ITEMS_REMOVE_ROW].push('changed');
+
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_ROW_ABOVE, undefined))
+        .toBe(plPL[CONTEXTMENU_ITEMS_ROW_ABOVE]);
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, 0)).toBe(singular);
+      expect(getLanguageDictionary(plPL.languageCode)[CONTEXTMENU_ITEMS_REMOVE_ROW]).toEqual([singular, plural]);
+    });
+
+    it('should not let a phrase formatter mutate the registered phrase propositions', () => {
+      const [singular, plural] = plPL[CONTEXTMENU_ITEMS_REMOVE_ROW];
+
+      // Replacing a built-in by name keeps its position, so this formatter runs first and gets the raw array.
+      registerPhraseFormatter('pluralize', (phrasePropositions: string[]) => {
+        phrasePropositions[0] = 'changed';
+        phrasePropositions.push('changed');
+
+        return phrasePropositions;
+      });
+
+      try {
+        getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, undefined);
+      } finally {
+        registerPhraseFormatter('pluralize', pluralize);
+      }
+
+      expect(getLanguageDictionary(plPL.languageCode)[CONTEXTMENU_ITEMS_REMOVE_ROW]).toEqual([singular, plural]);
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, 0)).toBe(singular);
+    });
   });
 
   it('should extend registered language by default language dictionary', () => {

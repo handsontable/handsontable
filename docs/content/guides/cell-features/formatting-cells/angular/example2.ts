@@ -8,7 +8,7 @@ registerRenderer('customStylesRenderer', (hotInstance: Handsontable, TD: HTMLTab
   textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
   TD.style.fontWeight = 'bold';
-  TD.style.color = 'green';
+  TD.style.color = '#006400';
   TD.style.background = '#d7f1e1';
 });
 

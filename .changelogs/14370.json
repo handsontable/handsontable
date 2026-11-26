@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Filters ignoring a `valueGetter` that the `cells` function sets on rows the grid has not rendered, when `applyCellsToDataReads` is on.",
+  "type": "fixed",
+  "issueOrPR": 14370,
+  "breaking": false,
+  "framework": "none"
+}

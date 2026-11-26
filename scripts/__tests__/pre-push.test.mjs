@@ -1,9 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
+  resolveBase,
+  pullRequestBaseRef,
   checkEntryFilenames,
   changedPlaywrightSpecs,
   changedUnitTests,
@@ -400,4 +403,338 @@ test('counts every dropped line, including the noise filtered before collapsing'
   const dropped = Number(/(\d+) noise\/duplicate lines dropped/.exec(condensed)?.[1]);
 
   assert.equal(dropped, 100, 'the 100 stack frames must be counted as dropped');
+});
+
+/**
+ * Run git in a scratch repository with a fixed identity.
+ *
+ * @param {string} cwd Repository directory.
+ * @param {...string} args Git arguments.
+ * @returns {string} Trimmed stdout.
+ */
+function git(cwd, ...args) {
+  const identity = ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false'];
+  // A hook exports GIT_DIR; inherited here it would point the scratch repo's commands at the real one.
+  const env = { ...process.env };
+
+  delete env.GIT_DIR;
+  delete env.GIT_WORK_TREE;
+
+  return execFileSync('git', [...identity, ...args], {
+    cwd,
+    env,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
+}
+
+/**
+ * Commit one file on the current branch and return the new SHA.
+ *
+ * @param {string} cwd Repository directory.
+ * @param {string} file Repo-relative path to create.
+ * @returns {string} The commit SHA.
+ */
+function commitFile(cwd, file) {
+  mkdirSync(path.dirname(path.join(cwd, file)), { recursive: true });
+  writeFileSync(path.join(cwd, file), `${file}\n`);
+  git(cwd, 'add', file);
+  git(cwd, 'commit', '-m', `add ${file}`);
+
+  return git(cwd, 'rev-parse', 'HEAD');
+}
+
+/**
+ * Run a scenario in a scratch repository whose `develop` has one commit. Remote-tracking
+ * refs are made with `update-ref`, so no remote is needed.
+ *
+ * @param {(cwd: string) => void} scenario Builds the history and asserts.
+ */
+function inScratchRepo(scenario) {
+  const cwd = mkdtempSync(path.join(os.tmpdir(), 'handsontable-resolve-base-'));
+
+  try {
+    git(cwd, 'init', '-q', '-b', 'develop');
+    commitFile(cwd, 'README.md');
+    scenario(cwd);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Publish a local branch tip as `origin/<name>`.
+ *
+ * @param {string} cwd Repository directory.
+ * @param {string} name Branch name, for example `release/19.0.0`.
+ * @param {string} sha Commit to point at.
+ */
+function setOrigin(cwd, name, sha) {
+  git(cwd, 'update-ref', `refs/remotes/origin/${name}`, sha);
+}
+
+const noPr = () => null;
+
+test('resolveBase: a branch cut from release/* diffs against the release line, not develop', () => {
+  inScratchRepo((cwd) => {
+    const cut = git(cwd, 'rev-parse', 'HEAD');
+
+    git(cwd, 'checkout', '-q', '-b', 'release/19.0.0');
+    const releaseTip = commitFile(cwd, 'tests/e2e/release-only.spec.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    const developTip = commitFile(cwd, 'handsontable/src/develop-only.ts');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'release/19.0.0', releaseTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'docs/x', releaseTip);
+    commitFile(cwd, 'docs/x.md');
+
+    const base = resolveBase(cwd, { prBaseRef: noPr });
+
+    assert.equal(base, releaseTip);
+    assert.notEqual(base, cut, 'the develop merge-base is the bug this guards against');
+    assert.deepEqual(git(cwd, 'diff', '--name-only', `${base}...HEAD`).split('\n'), ['docs/x.md']);
+  });
+});
+
+test('resolveBase: a develop-based branch still diffs against develop', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '-b', 'release/19.0.0');
+    const releaseTip = commitFile(cwd, 'tests/e2e/release-only.spec.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    const developTip = commitFile(cwd, 'handsontable/src/develop-only.ts');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'release/19.0.0', releaseTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'feature/x');
+    commitFile(cwd, 'handsontable/src/x.ts');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), developTip);
+  });
+});
+
+test('resolveBase: a release merged back into develop does not pull the base off develop', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '-b', 'release/19.0.0');
+    const releaseTip = commitFile(cwd, 'tests/e2e/release-only.spec.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    commitFile(cwd, 'handsontable/src/develop-only.ts');
+    git(cwd, 'merge', '-q', '--no-ff', '-m', 'merge release back', 'release/19.0.0');
+    const developTip = git(cwd, 'rev-parse', 'HEAD');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'release/19.0.0', releaseTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'feature/x');
+    commitFile(cwd, 'handsontable/src/x.ts');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), developTip);
+  });
+});
+
+test('resolveBase: an lts/* branch is a candidate too', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '-b', 'lts/16.2');
+    const ltsTip = commitFile(cwd, 'handsontable/src/lts-only.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    const developTip = commitFile(cwd, 'handsontable/src/develop-only.ts');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'lts/16.2', ltsTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'feature/x', ltsTip);
+    commitFile(cwd, 'handsontable/src/x.ts');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), ltsTip);
+  });
+});
+
+test('resolveBase: the PR base wins when its remote ref exists', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '-b', 'release/19.0.0');
+    const releaseTip = commitFile(cwd, 'tests/e2e/release-only.spec.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    const developTip = commitFile(cwd, 'handsontable/src/develop-only.ts');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'release/19.0.0', releaseTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'feature/x', releaseTip);
+    commitFile(cwd, 'handsontable/src/x.ts');
+
+    // The branch is cut from the release line but the PR targets develop: the PR wins.
+    const asked = [];
+    const base = resolveBase(cwd, {
+      prBaseRef: (dir) => {
+        asked.push(dir);
+
+        return 'develop';
+      },
+    });
+
+    assert.equal(base, git(cwd, 'merge-base', 'origin/develop', 'HEAD'));
+    assert.deepEqual(asked, [cwd]);
+  });
+});
+
+test('resolveBase: an unusable PR base falls through to the closest candidate', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '-b', 'release/19.0.0');
+    const releaseTip = commitFile(cwd, 'tests/e2e/release-only.spec.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    const developTip = commitFile(cwd, 'handsontable/src/develop-only.ts');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'release/19.0.0', releaseTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'feature/x', releaseTip);
+    commitFile(cwd, 'handsontable/src/x.ts');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: () => 'no/such-branch' }), releaseTip, 'unknown ref');
+    assert.equal(resolveBase(cwd, {
+      prBaseRef: () => {
+        throw new Error('gh: not logged in');
+      },
+    }), releaseTip, 'a throwing lookup must never block a push');
+  });
+});
+
+test('resolveBase: the closest of several release refs wins', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '-b', 'release/18.1.2');
+    const olderTip = commitFile(cwd, 'handsontable/src/old-release.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    git(cwd, 'checkout', '-q', '-b', 'release/19.0.0');
+    commitFile(cwd, 'handsontable/src/new-release-a.ts');
+    const newerTip = commitFile(cwd, 'handsontable/src/new-release-b.ts');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    const developTip = commitFile(cwd, 'handsontable/src/develop-only.ts');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'release/18.1.2', olderTip);
+    setOrigin(cwd, 'release/19.0.0', newerTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'docs/x', newerTip);
+    commitFile(cwd, 'docs/x.md');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), newerTip);
+  });
+});
+
+test('resolveBase: a candidate with no common ancestor is skipped', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '--orphan', 'unrelated');
+    const orphanTip = commitFile(cwd, 'unrelated.txt');
+
+    git(cwd, 'checkout', '-q', 'develop');
+    const developTip = git(cwd, 'rev-parse', 'HEAD');
+
+    setOrigin(cwd, 'develop', developTip);
+    setOrigin(cwd, 'release/1.0.0', orphanTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'feature/x');
+    commitFile(cwd, 'handsontable/src/x.ts');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), developTip);
+  });
+});
+
+test('resolveBase: with origin/develop missing, a release ref still serves as the base', () => {
+  inScratchRepo((cwd) => {
+    git(cwd, 'checkout', '-q', '-b', 'release/19.0.0');
+    const releaseTip = commitFile(cwd, 'tests/e2e/release-only.spec.ts');
+
+    setOrigin(cwd, 'release/19.0.0', releaseTip);
+
+    git(cwd, 'checkout', '-q', '-b', 'docs/x');
+    commitFile(cwd, 'docs/x.md');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), releaseTip);
+  });
+});
+
+/**
+ * Run a scenario with a fake `gh` first on PATH.
+ *
+ * @param {string} script Body of the shell script that stands in for `gh`.
+ * @param {(cwd: string) => void} scenario Calls the code under test.
+ */
+function withFakeGh(script, scenario) {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'handsontable-fake-gh-'));
+  const previousPath = process.env.PATH;
+
+  writeFileSync(path.join(dir, 'gh'), `#!/bin/sh\n${script}\n`, { mode: 0o755 });
+  process.env.PATH = `${dir}${path.delimiter}${previousPath}`;
+
+  try {
+    scenario(dir);
+  } finally {
+    process.env.PATH = previousPath;
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const skipWithoutShell = process.platform === 'win32' ? { skip: 'needs a POSIX shell for the fake gh' } : {};
+
+test('pullRequestBaseRef: returns the base of an open pull request', skipWithoutShell, () => {
+  withFakeGh('echo "OPEN release/19.0.0"', (dir) => {
+    assert.equal(pullRequestBaseRef(dir), 'release/19.0.0');
+  });
+});
+
+test('pullRequestBaseRef: ignores a closed or merged pull request', skipWithoutShell, () => {
+  withFakeGh('echo "MERGED release/18.1.2"', (dir) => {
+    assert.equal(pullRequestBaseRef(dir), null);
+  });
+  withFakeGh('echo "CLOSED develop"', (dir) => {
+    assert.equal(pullRequestBaseRef(dir), null);
+  });
+});
+
+test('pullRequestBaseRef: a failing or silent gh reads as unknown, never as an error', skipWithoutShell, () => {
+  withFakeGh('echo "no pull requests found" >&2; exit 1', (dir) => {
+    assert.equal(pullRequestBaseRef(dir), null, 'non-zero exit');
+  });
+  withFakeGh('exit 0', (dir) => {
+    assert.equal(pullRequestBaseRef(dir), null, 'empty output');
+  });
+});
+
+test('pullRequestBaseRef: a missing gh reads as unknown', skipWithoutShell, () => {
+  const emptyDir = mkdtempSync(path.join(os.tmpdir(), 'handsontable-no-gh-'));
+  const previousPath = process.env.PATH;
+
+  process.env.PATH = emptyDir;
+
+  try {
+    assert.equal(pullRequestBaseRef(emptyDir), null);
+  } finally {
+    process.env.PATH = previousPath;
+    rmSync(emptyDir, { recursive: true, force: true });
+  }
+});
+
+test('resolveBase: without origin refs it uses the local develop, then the literal name', () => {
+  inScratchRepo((cwd) => {
+    const cut = git(cwd, 'rev-parse', 'HEAD');
+
+    git(cwd, 'checkout', '-q', '-b', 'feature/x');
+    commitFile(cwd, 'handsontable/src/x.ts');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), cut);
+
+    git(cwd, 'branch', '-q', '-m', 'develop', 'trunk');
+
+    assert.equal(resolveBase(cwd, { prBaseRef: noPr }), 'develop');
+  });
 });

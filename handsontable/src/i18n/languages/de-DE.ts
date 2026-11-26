@@ -13,6 +13,9 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Abbrechen',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Keine Optionen verfügbar',
+  [C.CONTEXTMENU_LABEL]: 'Kontextmenü',
+  [C.DROPDOWNMENU_LABEL]: 'Spaltenmenü',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Zeile einfügen oberhalb',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Zeile einfügen unterhalb',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Spalte einfügen links',
@@ -52,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zellen teilen',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopieren',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Mit Überschrift kopieren', 'Mit Überschriften kopieren'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Mit Gruppenüberschrift kopieren',
+    'Mit Gruppenüberschriften kopieren',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Nur Überschrift kopieren', 'Nur Überschriften kopieren'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Ausschneiden',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportieren',
@@ -71,6 +80,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Kein Filter',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Ist leer',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Ist nicht leer',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Ist angekreuzt',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Ist nicht angekreuzt',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Ist gleich',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Ist ungleich',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Beginnt mit',
@@ -137,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blatt [name] an Position [position] von [count] verschoben',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blatt',
 
+  [C.CHECKBOX_CHECKED]: 'Angekreuzt',
+  [C.CHECKBOX_UNCHECKED]: 'Nicht angekreuzt',
+
   [C.LOADING_TITLE]: 'Lädt...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Schließen',
 
@@ -147,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filter zurücksetzen',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Daten werden geladen',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Bitte warten.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Daten geladen',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Daten konnten nicht geladen werden',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Zeilen konnten nicht erstellt werden',
@@ -157,6 +172,9 @@ const dictionary = {
   [C.ROW_SELECTION_SELECT_ROW]: 'Zeile [row] auswählen',
   [C.ROW_SELECTION_SELECT_ALL]: 'Alle Zeilen auswählen ([selected] von [total] ausgewählt)',
   [C.CHECKBOX_HEADER_CHECK_ALL]: 'Alle auswählen ([checked] von [total] ausgewählt)',
+  [C.CONTEXTMENU_ITEMS_RENAME_HEADER]: 'Überschrift umbenennen',
+  [C.EDITABLE_HEADERS_INPUT_LABEL]: 'Name der Überschrift',
+  [C.EDITABLE_HEADERS_RENAMED]: 'Überschrift umbenannt in [value]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Zeile [row] ausgewählt',
   [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Auswahl von Zeile [row] aufgehoben',
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] von [total] Zeilen ausgewählt',
@@ -166,11 +184,51 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Fixierte Zeilen unten',
   [C.FREEZE_BAR_COLUMNS_START]: 'Fixierte Spalten am Anfang',
   [C.FREEZE_BAR_COLUMNS_END]: 'Fixierte Spalten am Ende',
+  [C.ARMED_PICK_STARTED]: 'Klicken oder tippen Sie auf das Ziel, um abzuschließen. Escape bricht ab.',
+  [C.ARMED_PICK_CANCELED]: 'Abgebrochen.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Spaltenbreite ändern. Mit den Pfeiltasten nach links und rechts ändern Sie die Breite, Enter wendet sie an, ' +
+    'Escape bricht ab.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Zeilenhöhe ändern. Mit den Pfeiltasten nach oben und unten ändern Sie die Höhe, Enter wendet sie an, Escape ' +
+    'bricht ab.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Größe des Kommentarfelds ändern. Mit den Pfeiltasten ändern Sie die Größe, Enter wendet sie an, Escape bricht ab.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Breite: [size] Pixel',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Höhe: [size] Pixel',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Zeile [label] aufgeklappt, angezeigte aufgeklappte Zeilen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zeile [label] zugeklappt',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Ebene [level], [position] von [setSize]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Ebene [level], [position] von [setSize], aufgeklappt',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Ebene [level], [position] von [setSize], zugeklappt',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formel: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'schreibgeschützt',
+  [C.CELL_DESCRIPTION_LINK]: 'Link',
+  [C.CELL_DESCRIPTION_MERGED]: 'verbunden bis Zeile [row] Spalte [column]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Spaltengruppe [label] aufgeklappt',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Spaltengruppe [label] zugeklappt',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortiert nach [label], aufsteigend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortiert nach [label], absteigend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortierung von [label] entfernt',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortiert nach [label], aufsteigend, Sortierpriorität [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortiert nach [label], absteigend, Sortierpriorität [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Auswahl von Spalte [startColumn], Zeile [startRow] bis Spalte [endColumn], Zeile [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle Zellen ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Spalte [column] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Spalten [startColumn] bis [endColumn] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Zeile [row] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Zeilen [startRow] bis [endRow] ausgewählt',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Auswahl hinzugefügt: [selection]. Auswahlen insgesamt: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'Spalte [column], Zeile [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'von Spalte [startColumn], Zeile [startRow] bis Spalte [endColumn], Zeile [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'alle Zellen',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'Spalte [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'Spalten [startColumn] bis [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'Zeile [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'Zeilen [startRow] bis [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Formeleditor',
   [C.FORMULA_BUILDER_INPUT]: 'Formeleingabe',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Zellbezug',
@@ -190,6 +248,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Fehler in [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] weitere Zelle enthält jetzt einen Fehler.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] weitere Zellen enthalten jetzt Fehler.',
+  [C.EDITOR_INPUT_LABEL]: '[column], Zeile [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Kommentar zu [column], Zeile [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Kommentar zu [column], [row]',
 };
 
 export default dictionary;

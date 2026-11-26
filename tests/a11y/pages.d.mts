@@ -12,7 +12,8 @@ export type A11yState =
   | 'formula-suggestions'
   | 'formula-function-help'
   | 'formula-error-range'
-  | 'formula-named-suggestion';
+  | 'formula-named-suggestion'
+  | 'header-editor';
 
 
 export interface A11yPage {

@@ -23,6 +23,8 @@ import {
   HTML_CHARACTERS,
   isVisible,
   findFirstParentWithClass,
+  makeElementContentEditableAndSelectItsContent,
+  removeContentEditableFromElementAndDeselect,
   isHTMLElement,
   isHTMLInputElement,
   isHTMLTableCellElement,
@@ -2508,6 +2510,81 @@ describe('DomElement helper', () => {
       ['an overlay that ends a pixel above the cell', 69, 70, false],
     ])('should answer for %s', (_, overlayBottom, cellTop, expected) => {
       expect(isTopGapCovered(cell(cellTop), { top: 0, bottom: overlayBottom })).toBe(expected);
+    });
+  });
+
+  describe('makeElementContentEditableAndSelectItsContent / removeContentEditableFromElementAndDeselect', () => {
+    let cell: HTMLTableCellElement;
+
+    beforeEach(() => {
+      const row = document.createElement('tr');
+
+      cell = document.createElement('td');
+      cell.innerHTML = 'Product <b>01</b>';
+      row.appendChild(cell);
+      document.body.appendChild(document.createElement('table')).appendChild(row);
+    });
+
+    afterEach(() => {
+      window.getSelection()?.removeAllRanges();
+      document.body.textContent = '';
+    });
+
+    it('should select the content and mark the selection invisible with the class and the marker attribute', () => {
+      makeElementContentEditableAndSelectItsContent(cell);
+
+      expect(cell.getAttribute('contenteditable')).toBe('true');
+      expect(cell.getAttribute('aria-hidden')).toBe('true');
+      expect(cell.classList.contains('invisibleSelection')).toBe(true);
+      expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(true);
+      expect(window.getSelection()?.toString()).toBe('Product 01');
+    });
+
+    it('should add neither the class nor the marker attribute when the selection may show', () => {
+      makeElementContentEditableAndSelectItsContent(cell, false);
+
+      expect(cell.getAttribute('contenteditable')).toBe('true');
+      expect(cell.classList.contains('invisibleSelection')).toBe(false);
+      expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(false);
+    });
+
+    it('should keep the marker attribute when a render rewrites the class list', () => {
+      makeElementContentEditableAndSelectItsContent(cell);
+      cell.className = 'current';
+
+      expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(true);
+      expect(window.getSelection()?.toString()).toBe('Product 01');
+    });
+
+    it('should remove the selection, the attributes and the class it added', () => {
+      makeElementContentEditableAndSelectItsContent(cell);
+      removeContentEditableFromElementAndDeselect(cell);
+
+      expect(cell.hasAttribute('contenteditable')).toBe(false);
+      expect(cell.hasAttribute('aria-hidden')).toBe(false);
+      expect(cell.classList.contains('invisibleSelection')).toBe(false);
+      expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      expect(window.getSelection()?.toString()).toBe('');
+    });
+
+    it('should keep the class and the marker attribute when asked to keep the class', () => {
+      makeElementContentEditableAndSelectItsContent(cell);
+      removeContentEditableFromElementAndDeselect(cell, false);
+
+      expect(cell.hasAttribute('contenteditable')).toBe(false);
+      expect(cell.classList.contains('invisibleSelection')).toBe(true);
+      expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(true);
+    });
+
+    it('should keep the selection of the document when asked not to deselect', () => {
+      makeElementContentEditableAndSelectItsContent(cell);
+      removeContentEditableFromElementAndDeselect(cell, true, false);
+
+      expect(cell.hasAttribute('contenteditable')).toBe(false);
+      expect(cell.hasAttribute('aria-hidden')).toBe(false);
+      expect(cell.classList.contains('invisibleSelection')).toBe(false);
+      expect(cell.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      expect(window.getSelection()?.toString()).toBe('Product 01');
     });
   });
 });

@@ -73,6 +73,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 
 ## Traps
 
+- **The Add, All sheets and page arrow buttons have a 24 px floor, and the strip's reserved padding must
+  follow it.** `.ht-sheets-bar__button` sets `min-width` and `min-height` to
+  `--ht-icon-button-hit-area-size` (WCAG 2.2 2.5.8), because the classic theme's 12 px icon alone gives
+  22 px. `--ht-private-sheets-bar-button-width` in `_sheets-bar.scss` is a `max()` of the old
+  icon-plus-padding-plus-border sum and that token, and the sizer's `padding-inline` reserves two of
+  them for the arrows. Drop the `max()` and the reserved width falls 2 px short of the real buttons in
+  classic, so the tab labels run under the arrows. Main and horizon are unaffected (26 px).
+
 - **The tab strip hides its scrollbar with `scrollbar-width: none !important`** (DEV-3191). Keep
   the `!important`. The selector compiles to `.handsontable.ht-sheets-bar .ht-sheets-bar__tabs`
   (specificity 0,3,0: the bar root carries both classes), so a page-wide rule such as
@@ -146,6 +154,23 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   before the bar's shortcut sees the key, so it also prevents the key's default, as that shortcut
   does, or the same press closed a modal `<dialog>` the grid sits in. Pinned by
   `tests/e2e/sheets-bar-tab-drag-escape.spec.ts`.
+- **A drag released outside the strip does not switch the sheet (pointer cancellation).** A drag holds the
+  pointer capture, so the browser sends the `click` of its release to the dragged tab wherever the pointer
+  was let go, and `TabStrip#onTabClick` would switch to that sheet from a release far away from the bar.
+  `TabDrag#onPointerUp` therefore sets a one-shot `#suppressClick` when a real drag (past the threshold) is
+  released outside the strip's rect (`#isOutsideHost`); `TabStrip#onTabClick` asks
+  `TabDrag#consumeSuppressedClick()` first and returns when it answers `true`, and `start()` clears the flag so
+  a click that never came cannot swallow a later one. Every way the gesture can end while the pointer is
+  still down does the same, because the tab keeps the capture and its `click` still comes: Escape, `abort()`
+  (a repaint of the strip mid-drag) and the window losing focus. `#cancel(true)` arms a one-shot `pointerup`
+  listener (`#onReleaseAfterCancel`) for a real drag, reading the pointer id BEFORE `#finish()` clears it and
+  ignoring any other pointer; `destroy()` removes it. A `pointercancel` and a lost capture do not arm it: the
+  pointer is gone and no click comes. Only the sheet switch is cancelled: a drag that was not cancelled and is
+  released outside the strip still commits its reorder, as before. A release back over the strip keeps
+  reordering and activating, and a press under the threshold, a touch tap and keyboard activation
+  (`activateFocusedTab()`
+  calls the hook directly) are unchanged. Pinned by `__tests__/tabDrag.unit.js` and
+  `tests/e2e/sheets-bar-tab-pointer-cancellation.spec.ts`.
 - **Every tab is its own stacking context (`isolation: isolate`).** The chevron glyph carries
   `z-index: 1` to stay above its `::before` hover surface. Without the isolation that z-index
   competes in the strip at the dragged tab's level (`--dragging` is `z-index: 1` too), so a tab
@@ -873,10 +898,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the user arrows to another tab, and the stop returns to the active tab when the focus leaves the
   strip (`focusin`/`focusout` on the host). `#sheets` is filled before the tabs are built, or a tab
   built early reads a partial map and two tabs take the stop.
+  **A tab being renamed holds no stop** (DEV-4001): it has dropped its `button` role, so a stop on it would
+  be a focus stop with no role beside the name field, which is the one stop there. **Two places carry it, and
+  both are needed.** `#holdsTabStop()` keeps the stop off on every repaint: `#buildTab()`, `#updateTab()` and
+  `#moveTabStop()` rewrite every tab's `tabIndex`, and a repaint lands mid-rename (a host `renameSheet()` on
+  another sheet). The rename start also writes `tab.tabIndex = -1`, because no repaint has to follow it: after
+  the first click of a double-click the tab is already the roving stop, `#onTabFocusIn` skips `#moveTabStop()`,
+  and `#holdsTabStop()` would not run until the next repaint. Pinned by
+  `tests/e2e/sheets-bar-rename-tab-stop.spec.ts`.
 - **The grid takes its accessible name from the active tab's label** (`aria-labelledby` on
   `hot.rootElement`, `#syncGridName`), and follows a rename and a switch. A name the host set
   (`aria-label` or its own `aria-labelledby`) wins: the bar then removes only its own id, and
-  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver` disconnected with the name); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint. While a rename is open the label is out of the DOM, so a hidden span holding the saved name takes the label's `id`, and the grid keeps its saved name instead of pointing at a missing node. It stays until the tab is rebuilt, so an Escape leaves no moment without the node; the mirror that measures the input carries no `id`, or the grid's name would follow the unsaved text. **That hand-back is a trap in Firefox.** When the rebuilt tab's label takes the `id` back from the hidden span, the attribute does not change, and Firefox keeps the name it read from the span: after renaming Beta to Budget, NVDA with Firefox named the grid "Beta" (Chromium read "Budget"). So `#syncGridName` remembers which element held the `id` (`#gridNameTarget`, from `TabStrip#getActiveLabelElement()`) and, when another element holds it, removes the attribute and sets it back in one task. Writing the same value alone does nothing, because the browser skips a write that changes nothing. A rename updated in place (the API, `#updateTab`) changes only the label's text, which Firefox follows, so it writes nothing. Playwright computes accessible names from the DOM, so `toHaveAccessibleName` cannot see this; `tests/e2e/sheets-bar-grid-name-rename.spec.ts` pins the re-write instead. The strip's `focusout` tells a move within the strip with `isHTMLElement()`, never `instanceof Node`, which is `false` for a grid built in another realm (an iframe) and gave the Tab stop back to the active tab on every arrow.
+  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver`); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint. The watch stays connected while the host's name is on the root, and when that name goes away the bar names the grid after the sheet again (`#releaseGridName()` drops only the bar's own name, `#clearGridName()` also disconnects and runs on teardown, `ariaTags: false`, or no active tab). Disconnecting it with the name left the grid with no name at all once the host cleared its own: the grid's `ariaLabel` and `ariaLabelledby` options document an empty value as removing their attribute, and only the next sheet action named the grid again. While a rename is open the label is out of the DOM, so a hidden span holding the saved name takes the label's `id`, and the grid keeps its saved name instead of pointing at a missing node. It stays until the tab is rebuilt, so an Escape leaves no moment without the node; the mirror that measures the input carries no `id`, or the grid's name would follow the unsaved text. **That hand-back is a trap in Firefox.** When the rebuilt tab's label takes the `id` back from the hidden span, the attribute does not change, and Firefox keeps the name it read from the span: after renaming Beta to Budget, NVDA with Firefox named the grid "Beta" (Chromium read "Budget"). So `#syncGridName` remembers which element held the `id` (`#gridNameTarget`, from `TabStrip#getActiveLabelElement()`) and, when another element holds it, removes the attribute and sets it back in one task. Writing the same value alone does nothing, because the browser skips a write that changes nothing. A rename updated in place (the API, `#updateTab`) changes only the label's text, which Firefox follows, so it writes nothing. Playwright computes accessible names from the DOM, so `toHaveAccessibleName` cannot see this; `tests/e2e/sheets-bar-grid-name-rename.spec.ts` pins the re-write instead. The strip's `focusout` tells a move within the strip with `isHTMLElement()`, never `instanceof Node`, which is `false` for a grid built in another realm (an iframe) and gave the Tab stop back to the active tab on every arrow.
 - **A move and a duplicate made in the bar are announced politely** (`SHEETS_BAR_SHEET_MOVED`,
   `SHEETS_BAR_SHEET_DUPLICATED`, `SOURCE_UI` only); the switch announcement keeps its assertive
   politeness.

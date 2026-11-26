@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the context menu, the column menu, and their submenus exposing menu items without a menu parent to assistive technologies. Each menu now has an `aria-label`, the highlighted menu item no longer has `aria-selected`, and the menus' `.wtHolder` elements no longer have `tabindex`.",
+  "type": "fixed",
+  "issueOrPR": 14365,
+  "breaking": false,
+  "framework": "none"
+}

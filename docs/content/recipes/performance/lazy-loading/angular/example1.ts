@@ -47,7 +47,6 @@ const TOTAL_PAGES = 10;
     .status-line {
       padding: 8px;
       text-align: center;
-      color: #666;
       font-size: 13px;
     }
   `],

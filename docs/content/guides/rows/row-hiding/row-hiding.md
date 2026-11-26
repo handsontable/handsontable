@@ -17,6 +17,7 @@ vue:
   metaTitle: Row hiding | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 
@@ -188,6 +189,8 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 To easily hide and unhide rows, add row hiding items to Handsontable DataGrid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
 
 Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin. Now, the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) automatically displays additional items for hiding and unhiding rows.
+
+To hide rows that are not next to each other, select their headers with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click, and choose **Hide rows**. Every row selected by its header is hidden. A cell range added to the selection is left out.
 
 ::: only-for javascript
 

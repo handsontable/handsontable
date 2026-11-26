@@ -47,6 +47,19 @@
     }
 
     window.htZoom = htZoom;
+
+    // The zoom a user applies AFTER the page loaded (Ctrl+minus on an open demo). It is applied once the
+    // grid is built, then a `resize` is dispatched the way a browser does on a zoom change. `?zoom=`
+    // above is the other path: a page that opens already zoomed out.
+    const htZoomAfter = Number(htParams.get('zoomAfter') ?? '1');
+
+    if (!Number.isFinite(htZoomAfter) || htZoomAfter <= 0 || htZoomAfter > 4) {
+      throw new Error('Unknown ?zoomAfter= value: ' + JSON.stringify(htParams.get('zoomAfter')));
+    }
+
+    window.htZoomAfter = htZoomAfter;
+    // Opt-in, so the specs that only measure heights keep the grid they were written against.
+    window.htRowMove = htParams.get('rowMove') === '1';
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -121,6 +134,10 @@
       rowHeaders: true,
       colWidths: 100,
       renderer: testIdRenderer,
+      manualRowMove: window.htRowMove,
+      afterGetRowHeader(row, th) {
+        th.setAttribute('data-testid', `row-header-${row}`);
+      },
       // Defeat row virtualization: without the last row in the DOM there is nothing to
       // compare the container's bottom edge against.
       viewportRowRenderingOffset: ROWS + 10,
@@ -128,6 +145,11 @@
     });
 
     window.htRowCount = ROWS;
+
+    if (window.htZoomAfter !== 1) {
+      document.documentElement.style.zoom = String(window.htZoomAfter);
+      window.dispatchEvent(new Event('resize'));
+    }
   </script>
 </body>
 </html>

@@ -66,6 +66,7 @@ const highlightRenderer = rendererFactory(({ td, value, cellProperties }) => {
           id="search_field"
           type="search"
           placeholder="Search tasks"
+          aria-label="Search tasks"
           (input)="onSearch($event)"
         />
       </div>

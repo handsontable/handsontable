@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "read-only",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T14:48:41.349Z"
+  },
+  "steps": {
+    "arrow-right-read-only": "b b1 column 2 row a1 b1 c1",
+    "enter-on-read-only": "b b2 column 2 row a2 b2 c2",
+    "type-on-read-only": "",
+    "delete-on-read-only": "",
+    "arrow-down-read-only": "b b3 column 2 row a3 b3 c3",
+    "arrow-up-unchanged": "b b2 column 2 row a2 b2 c2"
+  }
+}

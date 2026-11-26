@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - collapsible columns keyboard and announcements</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htAriaTags = ({ on: true, off: false })[htParams.get('aria') ?? 'on'];
+    if (window.htAriaTags === undefined) {
+      throw new Error('Unknown ?aria= value: ' + JSON.stringify(htParams.get('aria')));
+    }
+    window.htNavigableHeaders = ({ on: true, off: false })[htParams.get('navigableHeaders') ?? 'off'];
+    if (window.htNavigableHeaders === undefined) {
+      throw new Error('Unknown ?navigableHeaders= value: ' + JSON.stringify(htParams.get('navigableHeaders')));
+    }
+    window.htNestedRows = ({ on: true, off: false })[htParams.get('nestedRows') ?? 'off'];
+    if (window.htNestedRows === undefined) {
+      throw new Error('Unknown ?nestedRows= value: ' + JSON.stringify(htParams.get('nestedRows')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Fixture for the CollapsibleColumns keyboard toggle and its announcements.
+
+    Theme, bundle, ariaTags, navigableHeaders and nestedRows come from query params, mapped through
+    fixed allowlists to literals; an unknown value throws. `ariaTags` can only be set at construction,
+    which is why it is a param.
+
+    Three header levels over eight columns (visual column indexes in brackets):
+      level 0 (row -3):  Plain [0] | Group 1 [1-4]              | Group 2 [5-7]
+      level 1 (row -2):  Solo  [0] | Sub 1 [1-2] | Sub 2 [3-4]  | X [5] | Y [6] | Z [7]
+      level 2 (row -1):  c0 ... c7
+    So the group closest to the data is `Sub 1` over column 1, `Sub 2` over column 3, `Group 2` over
+    column 5 (nothing in its level 1 can be collapsed), and column 0 has none.
+
+    `nestedRows=on` swaps the rows for a two-level tree, so both collapsing plugins run on one grid:
+      0 Root A / 1 A-1 / 2 A-2 / 3 Root B / 4 B-1
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+    const keys = ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'];
+    const record = name => Object.fromEntries(keys.map((key, index) => [key, index === 0 ? name : `${name} ${index}`]));
+    const flatRows = [record('Row 1'), record('Row 2'), record('Row 3')];
+    const treeRows = [
+      { ...record('Root A'), __children: [record('A-1'), record('A-2')] },
+      { ...record('Root B'), __children: [record('B-1')] },
+    ];
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: window.htNestedRows ? treeRows : flatRows,
+        columns: keys.map(key => ({ data: key })),
+        rowHeaders: true,
+        colHeaders: true,
+        nestedHeaders: [
+          ['Plain', { label: 'Group 1', colspan: 4 }, { label: 'Group 2', colspan: 3 }],
+          ['Solo', { label: 'Sub 1', colspan: 2 }, { label: 'Sub 2', colspan: 2 }, 'X', 'Y', 'Z'],
+          keys,
+        ],
+        collapsibleColumns: true,
+        dropdownMenu: true,
+        nestedRows: window.htNestedRows,
+        navigableHeaders: window.htNavigableHeaders,
+        ariaTags: window.htAriaTags,
+        renderer: testIdRenderer,
+        height: 'auto',
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

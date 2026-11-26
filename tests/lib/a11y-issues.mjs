@@ -4,8 +4,9 @@
  * The nightlies leave thousands of records a night (the axe discovery run alone about 3,900), most of
  * them the same few defects on many pages. `a11y/issues.json` is the catalog that sorts them into
  * root-cause clusters: one entry per known problem, with a stable id local to this repository, a title
- * that says what the problem is, optionally the tracker task (or tasks) that own the fix, and the
- * rules that say which findings belong to it. It extends the axe baseline's issue catalog
+ * that says what the problem is, optionally the ids it had before a rename (`formerIds`, so its history follows
+ * it), optionally the tracker task (or tasks) that own the fix, or the class that says why its findings are not a
+ * defect (`notDefect`), and the rules that say which findings belong to it. It extends the axe baseline's issue catalog
  * (`a11y/axe-baseline.json`, `lib/a11y-baseline.mjs`): the same id, title and tracker fields, plus
  * `match`. A finding that matches no cluster lands in `needs-triage`; one that matches two is a
  * catalog error, which `lib/__tests__/a11y-issues.test.mjs` refuses before it can reach the ledger.
@@ -99,8 +100,10 @@ const NEVER_CARRIED = Object.freeze({
 
 const LIST_FIELDS = MATCH_FIELDS.slice(1);
 const PATTERN_FIELDS = new Set(['pages', 'where']);
-const CLUSTER_FIELDS = new Set(['id', 'title', 'tracker', 'match']);
+const CLUSTER_FIELDS = new Set(['id', 'title', 'formerIds', 'tracker', 'notDefect', 'match']);
 const CLUSTER_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// The class of a cluster whose findings are not a defect (`reader-behavior`, `tool-hidden-content`): a slug, like an id.
+const NOT_DEFECT_CLASS = CLUSTER_ID;
 const TRACKER_ID = /^[A-Z][A-Z0-9]*-\d+$/;
 const TASK_ID_IN_TEXT = /\b[A-Z][A-Z0-9]*-\d+\b/;
 // A generated instance id (`ht_<hex>`, `wt_<hex>`), on its own or inside a class name.
@@ -219,6 +222,8 @@ export function validateIssuesCatalog(doc, known = {}) {
   }
 
   const ids = new Set();
+  // Every former id a cluster names, with the cluster, to check against the ids in use once all are read.
+  const former = [];
 
   doc.clusters.forEach((cluster, index) => {
     const where = `cluster ${index + 1}`;
@@ -232,7 +237,7 @@ export function validateIssuesCatalog(doc, known = {}) {
     const label = typeof cluster.id === 'string' ? `cluster "${cluster.id}"` : where;
 
     for (const field of Object.keys(cluster).filter(name => !CLUSTER_FIELDS.has(name))) {
-      problems.push(`${label}: unknown field "${field}"; a cluster has id, title, an optional tracker and match`);
+      problems.push(`${label}: unknown field "${field}"; a cluster has id, title, optional formerIds, an optional tracker or notDefect, and match`);
     }
     if (typeof cluster.id !== 'string' || !CLUSTER_ID.test(cluster.id)) {
       problems.push(`${where}: "id" must be a kebab-case slug (menu-semantics), got ${JSON.stringify(cluster.id)}`);
@@ -257,6 +262,25 @@ export function validateIssuesCatalog(doc, known = {}) {
           + `got ${JSON.stringify(cluster.tracker)}`);
       }
     }
+    if (cluster.formerIds !== undefined) {
+      if (!Array.isArray(cluster.formerIds) || cluster.formerIds.length === 0
+        || cluster.formerIds.some(id => typeof id !== 'string' || !CLUSTER_ID.test(id) || id === TRIAGE_ID)) {
+        problems.push(`${label}: "formerIds" is optional, and when present it lists the ids the cluster had before a rename, as kebab-case `
+          + `slugs, got ${JSON.stringify(cluster.formerIds)}`);
+      } else {
+        former.push(...cluster.formerIds.map(id => ({ id, label })));
+      }
+    }
+    if (cluster.notDefect !== undefined) {
+      if (typeof cluster.notDefect !== 'string' || !NOT_DEFECT_CLASS.test(cluster.notDefect)) {
+        problems.push(`${label}: "notDefect" is optional, and when present it is the class that says why the cluster's findings `
+          + `are not a defect, a kebab-case slug (reader-behavior), got ${JSON.stringify(cluster.notDefect)}`);
+      }
+      if (cluster.tracker !== undefined) {
+        problems.push(`${label}: a cluster has a tracker or is not a defect, never both: a task owns a fix, and findings that are `
+          + 'not a defect have none. Split the cluster by its match rules when only some of its findings are a defect');
+      }
+    }
     if (!Array.isArray(cluster.match) || cluster.match.length === 0) {
       problems.push(`${label}: no match rule; a cluster needs at least one, or it matches nothing`);
 
@@ -264,6 +288,20 @@ export function validateIssuesCatalog(doc, known = {}) {
     }
     cluster.match.forEach((rule, ruleIndex) => validateRule(rule, `${label}, rule ${ruleIndex + 1}`, problems, known));
   });
+
+  // A former id is the past of one cluster: an id still in use has a past of its own, and one that two clusters
+  // claim would give its history to whichever comes first.
+  const claimed = new Map();
+
+  for (const { id, label } of former) {
+    if (ids.has(id)) {
+      problems.push(`${label}: the former id "${id}" is the id of a cluster in the catalog; a former id is one no cluster uses any more`);
+    } else if (claimed.has(id)) {
+      problems.push(`${label}: the former id "${id}" is already named by ${claimed.get(id)}; one cluster takes a former id's past`);
+    } else {
+      claimed.set(id, label);
+    }
+  }
 
   return problems;
 }
@@ -414,8 +452,10 @@ function valuesProblem(field, values, source, known) {
  * @param {unknown} doc The parsed `issues.json`.
  * @returns {{schema: number, triageLimit: number, triage: Array<{shape: string, reason: string}>, clusters: object[]}}
  * The compiled catalog: the triage limit (the length of `triage`, or the `triageLimit` of a catalog that gives the
- * number alone), the triage entries, and each cluster with its `id`, `title`, `tracker` (a task id, a list of them,
- * or `null`) and `match` rules, whose `pages` and `where` are regular expressions (`pages` anchored to the whole id).
+ * number alone), the triage entries, and each cluster with its `id`, `title`, `formerIds` (the ids it had before a
+ * rename, or none), `tracker` (a task id, a list of them, or `null`), `notDefect` (the class that says why its findings
+ * are not a defect, or `null`) and `match` rules, whose `pages` and `where` are regular expressions (`pages` anchored
+ * to the whole id).
  */
 export function compileIssuesCatalog(doc) {
   const problems = validateIssuesCatalog(doc);
@@ -431,7 +471,9 @@ export function compileIssuesCatalog(doc) {
     clusters: doc.clusters.map(cluster => ({
       id: cluster.id,
       title: cluster.title,
+      formerIds: cluster.formerIds ?? [],
       tracker: cluster.tracker ?? null,
+      notDefect: cluster.notDefect ?? null,
       match: cluster.match.map(rule => ({
         ...rule,
         pages: rule.pages?.map(pattern => new RegExp(`^(?:${pattern})$`)),

@@ -19,6 +19,7 @@ vue:
   metaTitle: Column groups | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 
@@ -190,6 +191,20 @@ nestedHeaders: [
 ```
 
 :::
+
+### Wrap long group labels
+
+By default, a header label stays on one line, and Handsontable widens the columns under a group header until its label fits. To let long labels wrap instead, add this CSS:
+
+```css
+.handsontable thead th .colHeader {
+  white-space: normal;
+}
+```
+
+With wrapping on, a group label wraps inside the width its columns already have. The header row grows to fit the wrapped label. The columns grow only when the longest word of the label does not fit. With [`autoRowSize`](@/api/options.md#autorowsize) enabled, every header row is at least as tall as the first one.
+
+To give the header rows a fixed height instead, set the [`columnHeaderHeight`](@/api/options.md#columnheaderheight) option.
 
 ## Collapsible headers
 
@@ -477,6 +492,12 @@ In the example below, both quarters group three months. **Q1 2025** uses adopt m
 
 :::
 
+## Screen reader announcements
+
+With [`ariaTags`](@/api/options.md#ariatags) enabled, the `CollapsibleColumns` plugin announces a group toggled by a user through a polite live region: `Expanded column group [label]` or `Collapsed column group [label]`. Changes made through the plugin's API methods are not announced. With `ariaTags` set to `false`, nothing is announced.
+
+To change the text, override the `CollapsibleColumns:announcement.expanded` and `CollapsibleColumns:announcement.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
+
 ## Known limitations
 
 - A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the
@@ -486,10 +507,11 @@ In the example below, both quarters group three months. **Q1 2025** uses adopt m
 
 ## Related keyboard shortcuts
 
-This header-focused shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> shortcut works from a data cell or a focused column header, with or without `navigableHeaders`. The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys, as the examples in [Nested column headers](#nested-column-headers) and [Collapsible headers](#collapsible-headers) do. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows                                     | macOS                                        | Action                                                  |  Excel  | Sheets  |
 | ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↑**</kbd> | Collapse or expand the collapsible column group closest to the data, over the current column. From a focused column header, toggle that header's group | &cross; | &cross; |
 | <kbd>**Enter**</kbd>                        | <kbd>**Enter**</kbd>                         | Collapse or expand the selected column group            | &cross; | &cross; |
 
 ## Related API reference

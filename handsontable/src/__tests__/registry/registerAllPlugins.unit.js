@@ -64,6 +64,7 @@ describe('`registerAllPlugins`', () => {
       'FreezeBar',
       'RowSelection',
       'CheckboxHeader',
+      'EditableHeaders',
       'Pagination',
       'SheetsBar',
       'ViewState',

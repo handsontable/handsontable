@@ -67,6 +67,50 @@ normalizes: a bare string becomes the title, an absent value becomes the default
 normalization the value is a record, which is why the later code reads it as one — the union is narrowed by
 the checks above it, not by a cast.
 
+## The element that takes the focus is a named group (DEV-4001)
+
+With no buttons, `getFocusableElements()` returns the message wrapper (`emptyDataStateInner`), so a Tab
+stop lands on a `div`. A bare `div` has no role in the accessibility tree, and NVDA with Firefox read it as
+`section` with no text. With `ariaTags` on (read once, when the UI is built), `updateContent()` makes it
+`role="group"` and names it with `aria-labelledby` pointing at the title and the description together.
+Both ids go in the name, not the description in `aria-describedby`: a reader that skips descriptions on
+arrival would speak half the message. The ids are `${hot.guid}-ht-empty-data-state-title` and `-description`,
+so two grids on a page never share one; the reference to a part the message lacks is left out. The role and the name are written only while no button is rendered (`isLoading` or no `buttons`) and the message has a title or a description (`buttons: []` with neither leaves plain content, not an unnamed group): with buttons, `getFocusableElements()` returns the buttons, the wrapper is plain content, and a name on it would make a reader speak the message twice. The loading
+message is the same element, so it keeps the role next to `aria-busy`. Pinned by
+`tests/e2e/empty-data-state-focus-role.spec.ts` and `__tests__/ui.unit.js`.
+
+## A slow fetch is announced, politely, when it starts and when it loads (DEV-4011)
+
+`#setLoadingActive()` schedules the announcement (`#scheduleLoadingAnnouncement()`,
+`LOADING_ANNOUNCEMENT_DELAY`, 500 ms, through `_registerTimeout`): the loading title, through
+`htmlToPlainText()`, to the polite region of `utils/a11yAnnouncer.ts`. The overlay appears without a focus move (a sheet switch that
+starts a fetch leaves the focus on the sheet tab), and the message group is not a live region, so no reader
+said the grid was loading. Four conditions, read when the timer fires:
+
+- **The same fetch still loads.** `#loadingStarts` counts the starts, and a timer runs only for the latest
+  one while `#loadingActive` is set, so a fetch that ended before the delay, and the timer of a fetch that
+  ended when the next one started, say nothing. A fast poll is quiet.
+- **The overlay is visible.** `#toggleEmptyDataState()` can leave it hidden.
+- **`ariaTags` is on.**
+- **The grid listens** (`hot.isListening()`). A grid that loads while the user is elsewhere on the page
+  stays quiet, and so does the first load of a page.
+
+The delay is what keeps a polling application from announcing on every poll, and from making core's
+selection announcer stand aside (an announcement drops the message of a selection made just before it). A
+fetch made with `skipLoading: true` shows no overlay and announces nothing: DataProvider's own sort and save
+refetches use it.
+
+**The end is announced when the start was** (`#isLoadingAnnounced`), with `EMPTY_DATA_STATE_LOADED` ("Data
+loaded"), from `#clearLoadingActive(…, true)`, which only `afterDataProviderFetch` passes. A sheet switch that
+starts a fetch leaves the focus on the sheet tab, so no cell is read when the rows arrive. A failed fetch, an
+abort, and a view change end the loading without it: the error has its own notification. `updatePlugin()`
+keeps `#isLoadingAnnounced` with the loading flag.
+
+The announcement reads the title `#update()` kept (`#loadingTitle`), so a `message` function is not called
+again for it. Pinned by `__tests__/loadingAnnouncement.unit.js` and the keyboard case in
+`tests/e2e/data-provider-sheets-bar.spec.ts`. Not proven locally: what each screen reader says, which
+only the screen reader run shows.
+
 ## Button types go through `helpers/uiButton.ts`
 
 `isButtonType()` / `resolveButtonType()` are used at the render site **and** in `SETTINGS_VALIDATORS` — same
@@ -131,6 +175,11 @@ whole dataset under the loading overlay. Without it, the `Ctrl`+`A` above hands 
 a destructive shortcut to the grid context, from anywhere, guard it with that helper; every inheriting
 overlay depends on it. `Tab` carries the same guard for the opposite reason: the grid's tab-navigation pair
 calls `preventDefault()` whenever a selection survives, which used to trap the user inside the overlay.
+**A typed character is not a shortcut, and `EditorManager#onAfterDocumentKeyDown` checks `isGridBodyCovered()`
+itself.** A printable key opens the editor from that document listener, which no shortcut guard reaches, so
+before the check a key pressed under the loading overlay (cells drawn, selection laid by the API) opened an
+editor on a covered cell. Pinned by `tests/e2e/empty-data-state-shortcuts.spec.ts` ("does not let a typed
+character open an editor under the loading overlay").
 
 ## The shortcut context rolls back in the scope manager, not here
 

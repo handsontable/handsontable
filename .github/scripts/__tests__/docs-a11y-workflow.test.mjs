@@ -7,7 +7,7 @@ import { job, jobIds, steps } from '../lib/workflow-text.mjs';
 import { DOCS_A11Y_WORKFLOW, DOCS_AXE_ARTIFACT, DOCS_CHECKS_ARTIFACT, sourcesOfWorkflow } from '../lib/a11y-ledger.mjs';
 
 // tests/AGENTS.md ("A11y: the docs site scan" and "A11y: the site checks beyond axe"): the docs site scan and
-// the docs site checks are report-only jobs, run on demand or by a workflow that calls it, never on a schedule;
+// the docs site checks are report-only jobs, run once a week on a schedule, on demand, or by a workflow that calls it;
 // a pull request that changes the scan runs the scan alone. Each link fails silently when it breaks: a workflow
 // renamed away from the name the findings ledger records, an artifact renamed away from the one it downloads, a
 // report renamed into the product report's artifact name, a dispatch input interpolated into a script, or a
@@ -24,7 +24,7 @@ const A11Y = '.github/workflows/a11y.yml';
 const CONFIG = 'tests/playwright.a11y-docs.config.ts';
 const DOC = 'See tests/AGENTS.md, "A11y: the docs site scan".';
 
-test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by a dispatch, a caller, or a change to the scan itself', () => {
+test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by its weekly schedule, a dispatch, a caller, or a change to the scan itself', () => {
   const workflow = stripYamlComments(read(DOCS));
   const [, triggers] = /^on:\n([\s\S]*?)^\S/m.exec(workflow) ?? [];
 
@@ -32,17 +32,19 @@ test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by a d
     `${DOCS}: the name is what isA11yRun and test-health.yml's trigger list read. ${DOC}`);
   assert.deepEqual(sourcesOfWorkflow(DOCS_A11Y_WORKFLOW), ['docs']);
   assert.ok(triggers, `${DOCS}: lost the on: block`);
-  assert.deepEqual([...triggers.matchAll(/^ {2}([a-z_]+):/gm)].map(([, name]) => name), ['workflow_dispatch', 'pull_request', 'workflow_call'],
-    `${DOCS}: on demand, from a caller, and on a change to the scan itself; the scan has no schedule. ${DOC}`);
+  assert.deepEqual([...triggers.matchAll(/^ {2}([a-z_]+):/gm)].map(([, name]) => name), ['schedule', 'workflow_dispatch', 'pull_request', 'workflow_call'],
+    `${DOCS}: once a week on a schedule, on demand, from a caller, and on a change to the scan itself. ${DOC}`);
+  assert.match(triggers, /^ {2}schedule:\n {4}- cron: '17 1 \* \* 1'$/m,
+    `${DOCS}: the weekly audit, Monday 01:17 UTC on develop, five minutes after the A11y nightly (a11y-audit-schedule.test.mjs pins the four audit workflows' order and what a schedule's empty inputs give). See tests/AGENTS.md, "A11y: the audit and the proof runs".`);
   const [, paths = ''] = /^ {2}pull_request:\n {4}paths:\n((?: {6}- .*\n)+)/m.exec(triggers) ?? [];
 
   assert.deepEqual([...paths.matchAll(/- '([^']+)'/g)].map(([, file]) => file),
     ['.github/workflows/docs-a11y.yml', 'tests/a11y/docs/**', 'tests/a11y/axe-scan.ts', 'tests/a11y/issues.json',
       'tests/playwright.a11y-docs.config.ts', 'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*',
-      'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-docs-drift.*',
+      'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-baseline-guard.*', 'tests/lib/a11y-pr-comment.*', 'tests/lib/a11y-docs-drift.*',
       'tests/lib/a11y-issues.*', 'tests/lib/a11y-evidence.*', 'tests/lib/a11y-site-checks.*', 'tests/lib/a11y-subset.*',
-      'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/lib/website-pages.*',
-      'tests/scripts/a11y-check-run.mjs', 'docs/tests/paths.js'],
+      'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/lib/github-rest.*', 'tests/lib/website-pages.*',
+      'tests/scripts/a11y-check-run.mjs', 'tests/scripts/a11y-docs-new-pages.mjs', 'docs/tests/paths.js'],
     `${DOCS}: a pull request runs the scan only when it changes the scan's own code; a full scan is too long for every docs pull request. ${DOC}`);
   // Every module of tests/lib the spec, its reporter and the check run's poster reach, import by import, is in the
   // list, so a change to the scan's code, its verdict or its poster runs the scan.
@@ -93,6 +95,17 @@ test('docs-a11y.yml runs the docs config in the Playwright container, report-onl
     `${DOCS}: a dispatch input is free text; it is never interpolated into a script.`);
   assert.match(step('Run the docs site scan'), /^ {8}run: cd tests && npx playwright test --config playwright\.a11y-docs\.config\.ts$/m,
     `${DOCS}: the run step runs the docs config and nothing else. ${DOC}`);
+
+  const newPages = step('Name the pages this pull request adds');
+
+  assert.match(newPages, /^ {8}if: \$\{\{ github\.event_name == 'pull_request' && env\.DOCS_A11Y_BASE_URL == '' \}\}$/m,
+    `${DOCS}: a pull request's run skips the pages it adds, and a run that names a deploy skips none. ${DOC}`);
+  assert.match(newPages, /git rev-list --parents -n 1 "\$GITHUB_SHA"/,
+    `${DOCS}: the base is the first parent of the merge commit, never the payload's base.sha (.ai/CI.md, the diff-scoped gate trap).`);
+  assert.doesNotMatch(newPages, /base\.sha/, `${DOCS}: the payload's base.sha is stale after a re-run.`);
+  assert.match(newPages, /a11y-docs-new-pages\.mjs --base "\$BASE"/, `${DOCS}: the script names the pages new since the base.`);
+  assert.match(newPages, />> "\$GITHUB_ENV"/, `${DOCS}: the spec and the reporter read DOCS_A11Y_SKIP_PAGES from the environment.`);
+  assert.ok(stepsOf.indexOf(newPages) < stepsOf.indexOf(step('Run the docs site scan')), `${DOCS}: the pages are named before the scan runs.`);
 
   const upload = step('Upload the scan results');
 

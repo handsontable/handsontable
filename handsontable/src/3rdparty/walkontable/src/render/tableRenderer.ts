@@ -10,7 +10,7 @@ import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
-import { firstRowDrawsTopBorder } from '../axisSizing/boxModel';
+import { firstRowDrawsTopBorder, firstRowTopBorderOutsideHeight } from '../axisSizing/boxModel';
 import { CLONE_INLINE_END, CLONE_INLINE_START, INLINE_END_CLONE_TYPES } from '../overlay/constants';
 import { getFreezeLineOverlap } from '../settings/fixedColumnsEnd';
 
@@ -716,15 +716,18 @@ export class TableRenderer {
         if (TR) {
           const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
           const isExact = mayHaveExactRows && rowUtils.isExact(sourceRowIndex);
+          const isBorderBox = this.stylesHandler.areCellsBorderBox();
 
           applyRowHeight(
             TR,
             rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName, isExact),
             isExact,
-            this.stylesHandler.areCellsBorderBox(),
+            isBorderBox,
             rowUtils,
             sourceRowIndex,
             visibleRowIndex === 0 && firstRowTopBorder,
+            visibleRowIndex === 0 &&
+              firstRowTopBorderOutsideHeight(this.activeOverlayName, this.rootNode.tHead, isBorderBox),
           );
         }
       }

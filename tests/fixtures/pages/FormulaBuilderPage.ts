@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
+import { chromiumAccessibility } from '../accessibility';
 
 /**
  * The grid configurations `demo/formula-builder.html` builds, one per `?variant=` value.
@@ -60,6 +61,9 @@ interface FixtureWindow {
     getSourceDataAtCell(row: number, col: number): unknown;
     getDataAtCell(row: number, col: number): unknown;
     setDataAtCell(row: number, col: number, value: unknown): void;
+    getCell(row: number, col: number): HTMLTableCellElement | null;
+    markAllCellsChanged(): void;
+    render(): void;
     isListening(): boolean;
     getActiveEditor(): { isOpened?: () => boolean } | undefined;
     getPlugin(name: string): {
@@ -369,6 +373,30 @@ export class FormulaBuilderPage {
   }
 
   /**
+   * The test id of the cell drawn at a viewport point, or `null` when no cell is there. A pointer
+   * gesture aimed at coordinates asserts this first, so a coordinate that went stale (the grid
+   * scrolled after it was read) fails as one, not as a wrong reference several steps later. The read
+   * looks through what is painted over the cell, such as a selection border.
+   *
+   * @param {number} x The horizontal viewport coordinate.
+   * @param {number} y The vertical viewport coordinate.
+   * @returns {Promise<string | null>}
+   */
+  async cellTestIdAtPoint(x: number, y: number): Promise<string | null> {
+    return this.page.evaluate(([pointX, pointY]) => {
+      for (const element of document.elementsFromPoint(pointX, pointY)) {
+        const cell = element.closest('td[data-testid]');
+
+        if (cell) {
+          return cell.getAttribute('data-testid');
+        }
+      }
+
+      return null;
+    }, [x, y]);
+  }
+
+  /**
    * Open the formula editor on a cell via double click.
    *
    * @param {number} row The visual row index.
@@ -511,6 +539,26 @@ export class FormulaBuilderPage {
     await this.page.evaluate(
       ([r, c, v]) => (window as unknown as FixtureWindow).hot.setDataAtCell(r as number, c as number, v),
       [row, col, value] as const);
+  }
+
+  /**
+   * Paints every rendered cell again and reads a cell's `aria-describedby` in the same task, right after
+   * the paint and before any `MutationObserver` callback runs, so it shows what the paint itself left
+   * on the cell.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<string | null>}
+   */
+  async repaintAndReadDescribedBy(row: number, col: number): Promise<string | null> {
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.markAllCellsChanged();
+      hot.render();
+
+      return hot.getCell(r, c)?.getAttribute('aria-describedby') ?? null;
+    }, [row, col]);
   }
 
   /**
@@ -733,5 +781,19 @@ export class FormulaBuilderPage {
         popupRight: popupBox.right,
       };
     });
+  }
+
+  /**
+   * The name and the description Chromium's own accessibility tree gives a cell, which is what a screen
+   * reader on Chromium reads from it. Chromium only: it reads the tree over CDP.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<{ name: string, description: string }>}
+   */
+  async chromiumAccessibility(row: number, col: number): Promise<{ name: string; description: string }> {
+    const { name, description } = await chromiumAccessibility(this.page, `[data-testid="cell-${row}-${col}"]`);
+
+    return { name: name.trim(), description: description.trim() };
   }
 }

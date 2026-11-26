@@ -62,7 +62,10 @@
       colHeaders: true,
       rowHeaders: true,
       width: gridWidth,
-      height: 150,
+      // Tall enough to hold the wrapped notice (about 125px at a 320px viewport) and the header row
+      // above it: a pixel height includes the bars, so a shorter grid leaves the grid box less room
+      // than its own header and the box clips it.
+      height: 300,
       // A real legacy key that expired on 23/05/2011, so it is expired against any modern build.
       // A LAPSED key is the state that renders the bottom bar: since DEV-2562 a missing or invalid
       // key renders the blocking modal instead and no bar at all. The bar's copy still carries the

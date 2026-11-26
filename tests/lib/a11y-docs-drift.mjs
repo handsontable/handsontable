@@ -9,10 +9,13 @@
  * check run names the remedy (refresh the docs baseline). A grown finding is drift when the audit counted at least as
  * many nodes for it as the run does: develop's docs grew it that far. Beyond the audit's count, the growth is this
  * change's, and a row the ledger recorded before it kept node counts says nothing. A finding that audit did not see
- * stays at its severity: this change made it, or the docs gained it after the audit, which the
- * check run says when the staging deploy is newer than the audit. The latest audit is read from the findings ledger
- * (`test-health/a11y.json` on `gh-pages`, `.github/scripts/lib/a11y-ledger.mjs`): its docs rows sighted on the latest
- * docs night that read the scan. Policy: `tests/AGENTS.md`, "A11y: the docs site scan". No I/O in here.
+ * stays at its severity: this change made it, or the docs gained it after the audit. When a staging deploy landed after
+ * the audit STARTED (`auditIsStale()`: the audit scans for minutes, so its finish time says nothing about whether a
+ * deploy inside the run was read), the docs may have grown a finding the audit saw by more than it counted, so a grown
+ * finding the audit saw is drift whatever its node count, and the check run says the audit is stale. The latest audit
+ * is read from the findings ledger (`test-health/a11y.json` on `gh-pages`, `.github/scripts/lib/a11y-ledger.mjs`): its
+ * docs rows sighted on the latest docs night that read the scan. Policy: `tests/AGENTS.md`, "A11y: the docs site
+ * scan". No I/O in here: the one read this decision needs, the audit's start time, is passed in (`auditStaleness()`).
  */
 import { maskSelector } from './a11y-issues.mjs';
 
@@ -112,9 +115,12 @@ export function siteAudit(ledger, site) {
  *
  * @param {{keys: Set<string>, nodes?: Map<string, number|null>}|null} audit The audit (`siteAudit()`).
  * @param {{newViolations?: object[], grown?: object[]}|null} comparison The site's comparison.
+ * @param {{stale?: boolean}} [options] `stale` is a deploy that landed after the audit started (`auditIsStale()`): the
+ *   docs may have grown a finding the audit saw by more than it counted, so a grown finding the audit saw is drift
+ *   whatever its node count. A finding the audit never saw is not drift either way.
  * @returns {(item: object) => boolean} Whether a counted finding is drift.
  */
-export function driftOf(audit, comparison) {
+export function driftOf(audit, comparison, { stale = false } = {}) {
   const fresh = new Set(comparison?.newViolations ?? []);
   const grown = new Set(comparison?.grown ?? []);
   // The run's nodes per ledger row, over what the ledger sums for an audit: the new findings and every location of a
@@ -134,6 +140,10 @@ export function driftOf(audit, comparison) {
     }
     if (!grown.has(item) || !isDrift(audit, item)) {
       return false;
+    }
+    if (stale) {
+      // A deploy landed after the audit started: the docs may have grown a finding the audit saw, by a count it could not record.
+      return true;
     }
 
     const recorded = audit.nodes?.get(itemKey(item)) ?? null;
@@ -170,22 +180,80 @@ function itemKey(item) {
 }
 
 /**
- * What the check run says about drift: how many of the counted findings it is and the remedy; that the audit could not
- * be read, or that there is none, so every finding counts; and that the audit is older than the staging deploy, so a
- * finding the docs gained since reads as this change's.
+ * Whether a deploy landed after the audit started. The audit scans over several minutes, and a deploy inside that window
+ * may or may not be in what it read, so the audit's START is what the deploy is compared with: its finish time said an
+ * audit was newer than a deploy that landed mid-run, and the finding that deploy added counted as the change's. With no
+ * start time (`startedAt`, read from the audit's run, not kept by the ledger) the finish time decides, as it did before.
+ *
+ * @param {{seenAt: string|null, startedAt?: string|null}|null} audit The audit.
+ * @param {string|null} deployedAt When the deploy the run read finished, when known.
+ * @returns {boolean} Whether the audit may be older than the deploy.
+ */
+export function auditIsStale(audit, deployedAt) {
+  // A start time that does not parse falls back to the finish time, like a missing one.
+  const started = Date.parse(audit?.startedAt ?? '');
+  const since = Number.isNaN(started) ? Date.parse(audit?.seenAt ?? '') : started;
+
+  return Boolean(deployedAt) && !Number.isNaN(since) && Date.parse(deployedAt) > since;
+}
+
+/**
+ * The audit with its start time, and whether a deploy landed after it started: the one step between the ledger's audit
+ * and `driftOf()` / `driftNotes()`. The start is read only when a deploy time is known, since it is the only thing the
+ * start is compared with.
  *
  * @param {object} input What the poster read.
  * @param {{runId: string, seenAt: string|null}|null} input.audit The audit, or `null`.
+ * @param {string|null} input.deployedAt When the deploy the run read finished, when known.
+ * @param {(runId: string) => Promise<string|null>} input.readStart Reads when the audit's run started (`null` when unknown).
+ * @returns {Promise<{audit: object|null, stale: boolean}>} The audit with `startedAt`, and whether it is stale.
+ */
+export async function auditStaleness({ audit, deployedAt, readStart }) {
+  if (audit === null || !deployedAt) {
+    return { audit, stale: false };
+  }
+
+  const withStart = { ...audit, startedAt: await readStart(audit.runId) };
+
+  return { audit: withStart, stale: auditIsStale(withStart, deployedAt) };
+}
+
+/**
+ * Names the first findings of a list, as one phrase: `a, b, c and 2 more`.
+ *
+ * @param {Array<{rule: string, page: string, theme: string}>} items The findings.
+ * @returns {string} The phrase.
+ */
+function nameFindings(items) {
+  const names = items.slice(0, 3).map(item => `${item.rule} on ${item.page} (${item.theme})`);
+  const rest = items.length - names.length;
+
+  if (rest > 0) {
+    return `${names.join(', ')} and ${rest} more`;
+  }
+
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names.join('');
+}
+
+/**
+ * What the check run says about drift: how many of the counted findings it is and the remedy; that the audit could not
+ * be read, or that there is none, so every finding counts; and that a deploy landed after the audit started, so a
+ * finding the docs gained since reads as this change's.
+ *
+ * @param {object} input What the poster read.
+ * @param {{runId: string, seenAt: string|null, startedAt?: string|null}|null} input.audit The audit, or `null`.
  * @param {string|null} [input.problem] Why the ledger could not be read.
  * @param {number} input.drift How many new or grown findings are drift.
  * @param {number} input.counted How many new or grown findings there are.
  * @param {number} [input.grown] How many grown findings are not drift: grown past the audit's count, or on a row with
  *   no count.
+ * @param {Array<{rule: string, page: string, theme: string}>} [input.grownItems] Those grown findings, so the note names
+ *   the ones that count.
  * @param {string|null} [input.deployedAt] When the deploy the run read finished, when known.
  * @param {'docs'|'website'} [input.site] The site.
  * @returns {string[]} The notes, one sentence each.
  */
-export function driftNotes({ audit, problem = null, drift, counted, grown = 0, deployedAt = null, site = 'docs' }) {
+export function driftNotes({ audit, problem = null, drift, counted, grown = 0, grownItems = [], deployedAt = null, site = 'docs' }) {
   const words = SITE_DRIFT[site];
   const Audit = `${words.audit[0].toUpperCase()}${words.audit.slice(1)}`;
 
@@ -198,22 +266,31 @@ export function driftNotes({ audit, problem = null, drift, counted, grown = 0, d
 
   const notes = [];
   const when = audit.seenAt ? ` of ${audit.seenAt.slice(0, 10)}` : '';
+  const stale = auditIsStale(audit, deployedAt);
 
   if (drift > 0) {
     const refresh = words.refresh ? `, \`${words.refresh} ${audit.runId}\`` : '';
+    const nodes = stale
+      ? 'each grown one with at least as many nodes, or with any count here, because a deploy landed after the audit started'
+      : 'each grown one with at least as many nodes';
 
     notes.push(`${drift} of the ${counted} new or grown findings are ${words.on}: ${words.audit}${when} (run ${audit.runId}) `
-      + `saw them, each grown one with at least as many nodes. That is baseline drift, not this change, so each counts as a `
+      + `saw them, ${nodes}. That is baseline drift, not this change, so each counts as a `
       + `warning at most: refresh ${words.baseline} from that audit${refresh} (tests/AGENTS.md, "${words.section}").`);
   }
   if (grown > 0) {
-    notes.push(`${grown === 1 ? 'A grown finding counts' : `${grown} grown findings count`} at ${grown === 1 ? 'its' : 'their'} severity: `
-      + `this run counts more nodes than ${words.audit} recorded, or its row there has no count (recorded before the ledger `
-      + 'kept node counts).');
+    const names = grownItems.length > 0 ? `${nameFindings(grownItems)}: ` : '';
+    // On a stale audit `driftOf()` makes every grown finding the audit saw drift, so what is left counted was not seen by it.
+    const why = stale
+      ? `${words.audit} never saw ${grown === 1 ? 'it' : 'them'}.`
+      : `this run counts more nodes than ${words.audit} recorded, or its row there has no count (recorded before the ledger kept node counts).`;
+
+    notes.push(`${grown === 1 ? 'A grown finding counts' : `${grown} grown findings count`} at ${grown === 1 ? 'its' : 'their'} severity: ${names}${why}`);
   }
-  if (deployedAt && audit.seenAt && Date.parse(deployedAt) > Date.parse(audit.seenAt)) {
-    notes.push(`${Audit}${when} is older than ${words.deploy} this run read (${deployedAt.slice(0, 16).replace('T', ' ')} UTC), so a `
-      + `finding the site gained since reads as this change's: dispatch the audit, \`${words.command}\`, and re-run this job.`);
+  if (stale) {
+    notes.push(`${Audit}${when} is older than ${words.deploy} this run read (${deployedAt.slice(0, 16).replace('T', ' ')} UTC), which landed after the audit `
+      + `${audit.startedAt ? 'started' : 'finished'}, so a new finding the site gained since reads as this change's, and a grown one the audit saw counts as a `
+      + `warning at most: dispatch the audit, \`${words.command}\`, and re-run this job.`);
   }
 
   return notes;

@@ -1,4 +1,4 @@
-import { OverlayRail, railCarriesAxis } from '../../../src/overlay/overlayRail';
+import { OverlayRail, railCarriesAxis, type RailPlacement } from '../../../src/overlay/overlayRail';
 import { OVERLAY_RAIL_CLASS_NAME } from '../../../src/overlay/constants';
 
 /**
@@ -264,6 +264,116 @@ describe('OverlayRail', () => {
     expect(railElement.style.width).toBe('1500px');
     expect(railElement.style.top).toBe('0px');
     expect(railElement.style.bottom).toBe('');
+  });
+
+  describe('a repeated pin with an unchanged placement', () => {
+    // Every draw re-pins. A style property written to a passing value and back marks the layout dirty
+    // although nothing changed, and a geometry read between the two writes then forces a reflow. So the
+    // clone's and the rail's `style` attributes must never hold any value but the final one.
+    const placements: [string, RailPlacement][] = [
+      ['a clone held at the top edge', {
+        isRtl: false, width: 900, height: 4000, inline: true, block: { pinned: true, edge: 'top' },
+      }],
+      ['a clone held at the bottom edge', {
+        isRtl: false, width: 900, height: 4000, inline: true, block: { pinned: true, edge: 'bottom' },
+      }],
+      ['a clone held at the inline-end edge', {
+        isRtl: false, width: 900, height: 4000, inline: true, inlineEdge: 'end', block: { pinned: true, edge: 'top' },
+      }],
+      ['a clone held at the inline-end edge in RTL', {
+        isRtl: true, width: 900, height: 4000, inline: true, inlineEdge: 'end', block: { pinned: true, edge: 'bottom' },
+      }],
+      ['a clone held sideways only, hanging from the top', {
+        isRtl: false, width: 900, height: 4000, inline: true, block: { pinned: false, edge: 'top' },
+      }],
+      ['a clone held sideways only, hanging from the bottom', {
+        isRtl: false,
+        width: 900,
+        height: 4000,
+        inline: true,
+        block: { pinned: false, edge: 'bottom', offset: 40, height: 30 },
+      }],
+      ['a clone held up and down only, at the inline-end edge', {
+        isRtl: false, width: 900, height: 4000, inline: false, inlineEdge: 'end', block: { pinned: true, edge: 'top' },
+      }],
+    ];
+
+    placements.forEach(([name, placement]) => {
+      it(`should write no passing style value for ${name}`, () => {
+        const rail = new OverlayRail(clone, document);
+
+        rail.pin(placement);
+
+        const railElement = clone.parentElement!;
+        const observer = new MutationObserver(() => {});
+
+        observer.observe(railElement, {
+          attributes: true,
+          attributeFilter: ['style'],
+          attributeOldValue: true,
+          subtree: true,
+        });
+
+        rail.pin(placement);
+
+        const records = observer.takeRecords();
+
+        observer.disconnect();
+
+        const passingValues = records
+          .filter(({ target, oldValue }) => oldValue !== (target as HTMLElement).getAttribute('style'))
+          .map(({ target, oldValue }) => `${(target as HTMLElement) === clone ? 'clone' : 'rail'}: ${oldValue}`);
+
+        expect(passingValues).toEqual([]);
+      });
+    });
+
+    it('should clear an inset the scroll listener left on the clone, without the caller clearing it first', () => {
+      // A corner that did not render was placed by the listener with a `bottom` inset. The overlays no
+      // longer clear it before pinning, so `pin()` has to.
+      clone.style.bottom = '40px';
+
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: false,
+        width: 900,
+        height: 4000,
+        inline: true,
+        block: { pinned: false, edge: 'bottom', offset: 40, height: 30 },
+      });
+
+      expect(clone.style.bottom).toBe('');
+      expect(clone.style.top).toBe('');
+    });
+
+    it('should drop the end-edge, bottom-anchored placement when the same rail is re-pinned otherwise', () => {
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: false,
+        width: 900,
+        height: 4000,
+        inline: true,
+        inlineEdge: 'end',
+        block: { pinned: true, edge: 'bottom' },
+      });
+      rail.pin({
+        isRtl: false,
+        width: 900,
+        height: 4000,
+        inline: true,
+        block: { pinned: false, edge: 'bottom', offset: 0, height: 30 },
+      });
+
+      expect(clone.style.bottom).toBe('');
+      expect(clone.style.top).toBe('');
+      expect(clone.style.marginTop).toBe('');
+      expect(clone.style.marginLeft).toBe('');
+      expect(clone.style.marginRight).toBe('');
+      expect(clone.style.left).toBe('0px');
+      expect(clone.style.right).toBe('');
+    });
   });
 
   it('should put the clone back in the rail\'s slot, positioned as the clone factory made it', () => {

@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
+import { collectHeaderSelectedIndexes } from '../../../utils/hiddenIndexes';
 
 /**
  * @param {HiddenRows} hiddenRowsPlugin The plugin instance.
@@ -9,38 +10,17 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
   return {
     key: 'hidden_rows_hide',
     name(this: HotInstance): string {
-      const selection = this.getSelectedActive();
-      let pluralForm = 0;
-
-      if (Array.isArray(selection)) {
-        const [fromRow, , toRow] = selection;
-
-        if (fromRow - toRow !== 0) {
-          pluralForm = 1;
-        }
-      }
+      // Every range selected by its row header counts, so a Ctrl/Cmd+click selection of two single
+      // rows reads "Hide rows".
+      const pluralForm = collectHeaderSelectedIndexes(this, 'row', 2).length > 1 ? 1 : 0;
 
       return (this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm) as string);
     },
     callback(this: HotInstance) {
-      const selectedRange = this.getSelectedRangeActive();
+      const rowsToHide = collectHeaderSelectedIndexes(this, 'row');
 
-      if (!selectedRange) {
+      if (rowsToHide.length === 0) {
         return;
-      }
-
-      const { from, to } = selectedRange;
-
-      if (from.row === null || to.row === null) {
-        return;
-      }
-
-      const start = Math.max(Math.min(from.row, to.row), 0);
-      const end = Math.max(from.row, to.row);
-      const rowsToHide = [];
-
-      for (let visualRow = start; visualRow <= end; visualRow += 1) {
-        rowsToHide.push(visualRow);
       }
 
       hiddenRowsPlugin.hideRows(rowsToHide);
@@ -59,7 +39,9 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
     },
     disabled: false,
     hidden(this: HotInstance) {
-      if (!(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner())) {
+      // Any range selected by its row header shows the item, whichever range was added last, so the
+      // click order of a Ctrl/Cmd+click selection does not decide it.
+      if (collectHeaderSelectedIndexes(this, 'row', 1).length === 0) {
         return true;
       }
 

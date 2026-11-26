@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed row heights, the scroll range, and the row move indicator drifting from the row borders when the browser zoom changed after the grid was created.",
+  "type": "fixed",
+  "issueOrPR": 14330,
+  "breaking": false,
+  "framework": "none"
+}

@@ -281,6 +281,76 @@ describe('Component lifecyle', () => {
     expect((hotInstance.getCell(1, 1) as HTMLElement).firstElementChild?.firstElementChild).toBe(portalContainer);
   });
 
+  it('should not detach the portal container DIV when `validateCells()` repaints a column with a component renderer', async() => {
+    let mountCount = 0;
+
+    function StableCell(props: HotRendererProps) {
+      React.useEffect(() => {
+        mountCount += 1;
+      }, []);
+
+      return (
+        <span data-cell={`${props.row}-${props.col}`}>{String(props.value)}</span>
+      );
+    }
+
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey={TEST_LICENSE_KEY}
+        id="test-hot"
+        data={createSpreadsheetData(4, 2)}
+        width={300}
+        height={300}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+      >
+        <HotColumn
+          renderer={StableCell}
+          validator={(value: string, callback: (valid: boolean) => void) => callback(value !== 'A1')}
+        />
+        <HotColumn renderer={StableCell} />
+      </HotTable>
+    ), false).hotInstance!;
+
+    await sleep(100);
+
+    const mountsBeforeValidation = mountCount;
+    const portalContainer = (hotInstance.getCell(0, 0) as HTMLElement).firstElementChild;
+    let detachedCount = 0;
+    const countDetached = (records: MutationRecord[]) => {
+      records.forEach((rec) => {
+        if (rec.type === 'childList' && rec.target instanceof HTMLTableCellElement) {
+          detachedCount += rec.removedNodes.length;
+        }
+      });
+    };
+    const observer = new MutationObserver(countDetached);
+
+    observer.observe(hotInstance.rootElement, { childList: true, subtree: true });
+
+    let valid: boolean | undefined;
+
+    await act(async() => {
+      valid = await new Promise<boolean>((resolve) => {
+        hotInstance.validateCells(resolve);
+      });
+    });
+
+    await sleep(50);
+
+    countDetached(observer.takeRecords());
+    observer.disconnect();
+
+    expect(valid).toBe(false);
+    expect(hotInstance.getCell(0, 0)?.classList.contains('htInvalid')).toBe(true);
+    expect(detachedCount).toEqual(0);
+    expect(mountCount).toEqual(mountsBeforeValidation);
+    expect((hotInstance.getCell(0, 0) as HTMLElement).firstElementChild).toBe(portalContainer);
+    expect(hotInstance.getCell(0, 0)?.textContent).toBe('A1');
+  });
+
   it('should preserve renderer component state across grid renders (#10800)', async() => {
     let nextSeed = 0;
 

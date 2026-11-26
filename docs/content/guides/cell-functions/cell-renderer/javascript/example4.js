@@ -36,10 +36,13 @@ const safeHtmlRenderer = (_instance, td, _row, _col, _prop, value) => {
   td.innerHTML = value;
 };
 
-const coverRenderer = (_instance, td, _row, _col, _prop, value) => {
+const toPlainText = (html) => new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+
+const coverRenderer = (instance, td, row, _col, _prop, value) => {
   const img = document.createElement('img');
 
   img.src = value;
+  img.alt = toPlainText(String(instance.getDataAtRowProp(row, 'title')));
   img.addEventListener('mousedown', (event) => {
     event.preventDefault();
   });

@@ -48,13 +48,29 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
+    const separators = cMenu.container.querySelectorAll('td.htSeparator');
 
+    expect(separators.length).toBeGreaterThan(0);
     expect(filterElementsByAttribute(
       cMenu.container,
       'td',
       'role',
       'menuitem'
-    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
+    ).length).toEqual(cMenu.hotMenu.countRows() - 1 - separators.length);
+  });
+
+  it('should expose the separators of the context menu as unnamed `role=separator` cells', async() => {
+    handsontable({
+      contextMenu: true
+    });
+
+    await contextMenu();
+
+    const separators = [...getPlugin('contextMenu').menu.container.querySelectorAll('td.htSeparator')];
+
+    expect(separators.length).toBeGreaterThan(0);
+    expect(separators.map(td => td.getAttribute('role'))).toEqual(separators.map(() => 'separator'));
+    expect(separators.filter(td => td.hasAttribute('aria-label') || td.hasAttribute('tabindex'))).toEqual([]);
   });
 
   it('should assign the `role=menuitem` attribute to all the options of the Alignment submenu', async() => {
@@ -72,7 +88,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       'td',
       'role',
       'menuitem'
-    ).length).toBe(8);
+    ).length).toBe(7);
   });
 
   it('should assign the `role=menucheckboxitem` to the `Read only` option of the context menu', async() => {
@@ -136,10 +152,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await waitForNextAnimationFrames(19);
 
+    const separators = cMenu.container.querySelectorAll('td.htSeparator');
     const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
-      .filter(el => el.ariaLabel !== undefined);
+      .filter(el => el.hasAttribute('aria-label'));
 
-    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
+    expect(separators.length).toBeGreaterThan(0);
+    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows() - separators.length);
 
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
   });

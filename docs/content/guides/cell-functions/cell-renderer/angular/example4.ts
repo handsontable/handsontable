@@ -3,10 +3,13 @@ import { Component, OnInit } from '@angular/core';
 import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
-const coverRenderer = (_instance: Handsontable, td: HTMLTableCellElement, _row: number, _col: number, _prop: string | number, value: string) => {
+const toPlainText = (html: string) => new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+
+const coverRenderer = (instance: Handsontable, td: HTMLTableCellElement, row: number, _col: number, _prop: string | number, value: string) => {
   const img = document.createElement('img');
 
   img.src = value;
+  img.alt = toPlainText(String(instance.getDataAtRowProp(row, 'title')));
   img.addEventListener('mousedown', (event) => {
     event.preventDefault();
   });

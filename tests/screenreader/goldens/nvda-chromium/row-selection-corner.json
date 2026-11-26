@@ -11,12 +11,12 @@
   "steps": {
     "arrow-left-row-checkbox": "select row 1 row header 1 row 8 column 2",
     "space-select-row": "row 1 selected",
-    "arrow-up-corner": "select whole grid selected row 13 column 2",
+    "arrow-up-corner": "select all rows 1 of 5 selected selected row 13 column 2",
     "space-select-all": "5 of 5 rows selected",
     "space-clear-all": "0 of 5 rows selected",
     "arrow-down-row-header": "select row 1 row header 1 row 8 column 2",
     "arrow-right-cell": "a 1 a row 2 column 3",
-    "select-all-cells": "",
+    "select-all-cells": "all cells selected",
     "arrow-down-after-select-all": "a 2 a row 3 column 3"
   }
 }

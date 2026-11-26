@@ -751,11 +751,11 @@ export function loadScenarios(directory, { fixtures } = {}) {
 }
 
 /**
- * Where a scenario opens: the fixture file, the catalog page's query (when it opens a catalog page) and the
- * root container of its grid.
+ * Where a scenario opens: the fixture file, the catalog page's query and license preset (when it opens a
+ * catalog page) and the root container of its grid.
  *
  * @param {{page?: string, fixture?: string}} scenario The scenario.
- * @returns {{fixture: string, pageQuery: string|undefined, root: string}} The place.
+ * @returns {{fixture: string, pageQuery: string|undefined, licensePreset: string|undefined, root: string}} The place.
  */
 export function scenarioPlace(scenario) {
   if (scenario.page !== undefined) {
@@ -765,17 +765,10 @@ export function scenarioPlace(scenario) {
       throw new Error(`Scenario page "${scenario.page}" is not in tests/a11y/pages.mjs.`);
     }
 
-    // Such a page needs a key only the TypeScript `fixtureUrl()` of `a11y/harness.ts` can build. Opened
-    // without it, the grid has no license bar, and the scenario would describe another page.
-    if (entry.licensePreset !== undefined) {
-      throw new Error(`Scenario page "${scenario.page}" names a license preset, which this lane cannot open yet: ` +
-        'its fixture needs the preset\'s tiers and key.');
-    }
-
-    return { fixture: entry.fixture, pageQuery: entry.query, root: entry.root ?? DEFAULT_ROOT };
+    return { fixture: entry.fixture, pageQuery: entry.query, licensePreset: entry.licensePreset, root: entry.root ?? DEFAULT_ROOT };
   }
 
-  return { fixture: scenario.fixture, pageQuery: undefined, root: DEFAULT_ROOT };
+  return { fixture: scenario.fixture, pageQuery: undefined, licensePreset: undefined, root: DEFAULT_ROOT };
 }
 
 /**
@@ -791,21 +784,36 @@ export function scenarioPageId(scenario) {
 
 /**
  * The fixture URL of a scenario: the fixture page with the theme and bundle first (the project's, or the
- * scenario query's when it sets them), then the catalog page's query, then the rest of the scenario's.
+ * scenario query's when it sets them), then the catalog page's query, then its license preset's tiers and
+ * key, then the rest of the scenario's.
+ *
+ * A catalog page with a `licensePreset` needs that preset's tiers and key, which only the TypeScript side
+ * can build (`presetLicenseQuery()` in `fixtures/licenseTiers.ts`, from the build's feature manifest), so the
+ * lane passes them as `licenseQuery`. Without them such a page throws: the grid it opens would have no
+ * license key, and the scenario would read another page. A report link, which only names the page, passes
+ * `null` to leave them out.
  *
  * @param {{page?: string, fixture?: string, query?: string}} scenario The scenario.
- * @param {{theme?: string, bundle?: string}} [options] The project's theme and bundle.
+ * @param {{theme?: string, bundle?: string, licenseQuery?: string|null}} [options] The project's theme and
+ * bundle, and the license preset's part of the query.
  * @returns {string} The path and query, relative to the server root.
  */
-export function scenarioUrl(scenario, { theme = 'main', bundle = 'umd' } = {}) {
-  const { fixture, pageQuery } = scenarioPlace(scenario);
+export function scenarioUrl(scenario, { theme = 'main', bundle = 'umd', licenseQuery } = {}) {
+  const { fixture, pageQuery, licensePreset } = scenarioPlace(scenario);
+
+  if (licensePreset !== undefined && licenseQuery === undefined) {
+    throw new Error(`Scenario page "${scenario.page}" names the license preset "${licensePreset}": pass its tiers ` +
+      'and key as licenseQuery (presetLicenseQuery() of tests/fixtures/licenseTiers.ts), or null for a link.');
+  }
+
+  const license = licensePreset === undefined ? null : licenseQuery;
   const own = new URLSearchParams(scenario.query ?? '');
   const first = `theme=${own.get('theme') ?? theme}&bundle=${own.get('bundle') ?? bundle}`;
 
   own.delete('theme');
   own.delete('bundle');
 
-  return `/tests/fixtures/demo/${fixture}?${[first, pageQuery, own.toString()].filter(Boolean).join('&')}`;
+  return `/tests/fixtures/demo/${fixture}?${[first, pageQuery, license, own.toString()].filter(Boolean).join('&')}`;
 }
 
 /**

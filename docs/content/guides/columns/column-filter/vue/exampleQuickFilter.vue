@@ -181,7 +181,7 @@ const hotSettings = ref<GridSettings>({
             </li>
           </ul>
         </div>
-        <input id="filterField" type="text" placeholder="Filter" @keyup="handleFilter" />
+        <input id="filterField" type="text" placeholder="Filter" aria-label="Filter" @keyup="handleFilter" />
       </div>
     </div>
     <HotTable ref="hotTableRef" :settings="hotSettings" />

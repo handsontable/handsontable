@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "license-bar",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T15:22:02.973Z"
+  },
+  "steps": {
+    "tab-to-renew": "renew link",
+    "read-notice": "the license key for handsontable expired on may 24 2011 and is not valid for the installed",
+    "tab-to-sales": "sales at handsontable dot com link",
+    "shift-tab-to-renew": "renew link",
+    "shift-tab-to-grid": "table b 1 b row 2 column 3"
+  }
+}

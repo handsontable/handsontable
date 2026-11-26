@@ -103,6 +103,90 @@ describe('Filters#getAvailableConditions', () => {
     ]);
   });
 
+  describe('a checkbox column', () => {
+    const createCheckboxGrid = (settings = {}) => createGrid({
+      data: [[true, 'a'], [false, 'b']],
+      columns: [{ type: 'checkbox' }, {}],
+      ...settings,
+    });
+
+    it('lists the text conditions with "checked" and "unchecked" after "not_empty"', () => {
+      const filters = createCheckboxGrid();
+
+      expect(filters.getAvailableConditions(0)).toEqual([
+        { name: 'empty', inputsCount: 0 },
+        { name: 'not_empty', inputsCount: 0 },
+        { name: 'checked', inputsCount: 0 },
+        { name: 'unchecked', inputsCount: 0 },
+        { name: 'eq', inputsCount: 1 },
+        { name: 'neq', inputsCount: 1 },
+        { name: 'begins_with', inputsCount: 1 },
+        { name: 'ends_with', inputsCount: 1 },
+        { name: 'contains', inputsCount: 1 },
+        { name: 'not_contains', inputsCount: 1 },
+      ]);
+      expect(names(filters.getAvailableConditions(1))).not.toContain('checked');
+      expect(names(filters.getAvailableConditions(1))).not.toContain('unchecked');
+    });
+
+    it('puts the two conditions in their own group of the menu list', () => {
+      const filters = createCheckboxGrid();
+      const keys = filters._getConditionOptions(0).map(({ key, name }) => key ?? name);
+
+      expect(keys.slice(0, 9)).toEqual([
+        'none', SEPARATOR, 'empty', 'not_empty', SEPARATOR, 'checked', 'unchecked', SEPARATOR, 'eq',
+      ]);
+    });
+
+    it('can be narrowed to the boolean conditions by a column-level allow-list', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const filters = createCheckboxGrid({
+        columns: [
+          { type: 'checkbox', filters: { availableConditions: ['empty', 'not_empty', 'checked', 'unchecked'] } },
+          {},
+        ],
+      });
+
+      expect(names(filters.getAvailableConditions(0))).toEqual(['empty', 'not_empty', 'checked', 'unchecked']);
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('follows the grid-level "text" rule', () => {
+      const filters = createCheckboxGrid({ filters: { availableConditions: { text: { exclude: ['checked'] } } } });
+
+      expect(names(filters.getAvailableConditions(0))).not.toContain('checked');
+      expect(names(filters.getAvailableConditions(0))).toContain('unchecked');
+    });
+
+    it('keeps a grid-level "text" allow-list unchanged on a checkbox column', () => {
+      const filters = createCheckboxGrid({ filters: { availableConditions: { text: ['eq', 'contains'] } } });
+
+      expect(names(filters.getAvailableConditions(0))).toEqual(['eq', 'contains']);
+    });
+
+    it('offers the text list alone while a data provider backs the grid', () => {
+      const filters = createCheckboxGrid();
+      const before = names(filters.getAvailableConditions(0));
+
+      // `hasExternalDataSource` is what the DataProvider plugin answers.
+      hot.addHook('hasExternalDataSource', () => true);
+
+      expect(before).toContain('checked');
+      expect(names(filters.getAvailableConditions(0))).toEqual(names(filters.getAvailableConditions(1)));
+    });
+
+    it('does not offer the two conditions to a text column whose allow-list names them', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const filters = createCheckboxGrid({
+        columns: [{ type: 'checkbox' }, { filters: { availableConditions: ['checked', 'eq'] } }],
+      });
+
+      expect(names(filters.getAvailableConditions(1))).toEqual(['eq']);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0].join(' ')).toContain('"checked" condition is not available for "text" columns');
+    });
+  });
+
   it('takes a visual column index', () => {
     const filters = createGrid({ manualColumnMove: [2, 0, 1] });
 

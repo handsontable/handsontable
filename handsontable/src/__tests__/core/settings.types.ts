@@ -38,6 +38,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowInvalid: true,
   allowRemoveColumn: true,
   allowRemoveRow: true,
+  ariaDescribedby: 'grid-description',
+  ariaLabel: 'Quarterly sales',
+  ariaLabelledby: 'grid-heading',
   ariaTags: true,
   asyncValues: oneOf(
     true,
@@ -107,6 +110,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentRowClassName: 'foo',
   customBorders: true,
   customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
+  applyCellsToDataReads: oneOf(true, false),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
   rowId: oneOf('id', 'meta.id', (row: Handsontable.RowObject | unknown[]) => row, true, false),
@@ -183,6 +187,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     columns: [
       {
         type: 'numeric',
+        applyCellsToDataReads: true,
       },
     ],
     cells: () => ({ readOnly: true }),
@@ -197,12 +202,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   layout: {
     top: ['toolbar'],
     bottom: ['pagination', 'summary'],
+    start: ['navigation', 'outline'],
+    end: ['details'],
   },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
   limitFixedToViewport: true,
   locale: 'pl-PL',
   freezeBar: { rows: true, columns: false },
+  editableHeaders: { columnHeaders: true, rowHeaders: false },
   manualColumnFreeze: true,
   manualColumnMove: true,
   manualColumnResize: true,
@@ -554,6 +562,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetColHeader: (col, TH, headerLevel) => {},
   afterGetColumnHeaderRenderers: (array) => {},
   afterGetRowHeader: (row, TH) => {},
+  afterHeaderChange: (axis, visualIndex, newValue, oldValue) => {
+    const headerAxis: 'column' | 'row' = axis;
+    const name: string = newValue;
+  },
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
@@ -789,6 +801,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
+  beforeHeaderChange: (axis, visualIndex, newValue, oldValue) => axis === 'row' && newValue !== '',
   beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
     const _column: number = column;
     const _headerLevel: number = headerLevel;
@@ -984,6 +997,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
+  modifyRowHeaderValue: (headerValue, visualRowIndex) => `${headerValue}`,
   modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;

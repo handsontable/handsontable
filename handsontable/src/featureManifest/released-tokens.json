@@ -147,6 +147,9 @@
   "feat:dropdown_menu": [
     "token"
   ],
+  "feat:editable_headers": [
+    "token"
+  ],
   "feat:empty_data_state": [
     "token"
   ],

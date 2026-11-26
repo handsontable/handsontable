@@ -24,7 +24,7 @@ This is a collection of practical, production-ready recipes for common Handsonta
 - [Context menu](@/recipes/context-menu/context-menu.md) - Custom context menu actions and programmatic row operations.
 - [Data management](@/recipes/data-management/data-management.md) - Loading from REST, GraphQL, and OData APIs, server-side pagination, auto-save, and multi-grid sync.
 - [Editing and validation](@/recipes/editing-validation/editing-validation.md) - Dependent dropdowns, submit-time validation, and dynamic cell configuration.
-- [Filtering and search](@/recipes/filtering-and-search/filtering-and-search.md) - External search boxes, highlighted matches, and multi-column filter panels.
+- [Filtering and search](@/recipes/filtering-and-search/filtering-and-search.md) - External search boxes, highlighted matches, search boxes that filter rows, and multi-column filter panels.
 - [Import and export](@/recipes/import-export/import-export.md) - CSV and Excel import, PDF export.
 - [Performance](@/recipes/performance/performance.md) - Lazy loading and persisted column layout.
 - [Platforms and embedding](@/recipes/platforms/platforms.md) - Salesforce Lightning Web Components and custom elements with their own shadow root.

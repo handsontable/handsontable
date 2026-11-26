@@ -12,6 +12,7 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
           id="search_field3"
           type="search"
           placeholder="Search"
+          aria-label="Search"
           (keyup)="searchFieldKeyup($event)"
         />
       </div>

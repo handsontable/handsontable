@@ -2,8 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { BasePlugin } from '../base';
 import { normalizeClassNames } from '../../helpers/dom/element';
-import { isObject } from '../../helpers/object';
-import { rangeEach } from '../../helpers/number';
+import { hasOwnProperty, isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { localeLowerCase } from '../../helpers/string';
 import { LICENSE } from './feature.generated';
@@ -23,29 +22,63 @@ export const PLUGIN_KEY = 'search';
 export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
-const DEFAULT_CALLBACK = function(instance: HotInstance, row: number, col: number, data: unknown, testResult: boolean) {
-  const cellMeta = instance.getCellMeta(row, col);
+/**
+ * How many rows `query()` reads at once. Each block is read one column at a time, which resolves the
+ * column once per block instead of once per cell, and keeps the values held at a time bounded.
+ */
+const QUERY_ROW_BLOCK_SIZE = 1000;
 
-  cellMeta.isSearchResult = testResult;
-
+/**
+ * Writes the test result of a cell to its meta, as the default callback does.
+ *
+ * Only a match stores a meta object. A non-match is written to the meta the cell already has: a
+ * stored one gets `false`, and a cell with no stored meta is left without one, so a query does not
+ * store a meta object for every cell it scans. Such a cell reads `isSearchResult` as `undefined`, the
+ * same as a non-match whose meta was evicted.
+ *
+ * @param {Core} instance The Handsontable instance.
+ * @param {number} row Visual row index.
+ * @param {number} col Visual column index.
+ * @param {boolean} testResult Whether the cell matched the query.
+ * @param {object} [testedMeta] The meta `query()` already read for the cell. A non-match writes to it instead
+ * of reading the meta again; a match ignores it and reads the stored meta.
+ */
+function markSearchResult(
+  instance: HotInstance, row: number, col: number, testResult: boolean, testedMeta?: CellProperties
+) {
   // `isSearchResult` is written directly here, not through `setMeta`, so on its own it would be dropped
   // when the cell is evicted from the viewport (and the highlight lost after scrolling away and back).
   // Record it in `_persistedMetaProps` for matches so the viewport meta eviction keeps the cell; it
   // then also shifts with the data on row/column insert/remove, exactly like the meta object itself.
   // Non-matches are removed from the set so they stay evictable. It is intentionally NOT recorded as
   // user-defined, so an `updateSettings` cache reset clears it - the next `query()` re-applies it.
-  let persistedMetaProps = cellMeta._persistedMetaProps as Set<string> | undefined;
-
+  // The set is read as an own property only: an inherited one belongs to the column or grid layer.
   if (testResult) {
-    if (persistedMetaProps === undefined) {
-      persistedMetaProps = new Set();
-      cellMeta._persistedMetaProps = persistedMetaProps;
+    const cellMeta = instance.getCellMeta(row, col);
+
+    cellMeta.isSearchResult = true;
+
+    if (!hasOwnProperty(cellMeta, '_persistedMetaProps')) {
+      cellMeta._persistedMetaProps = new Set<string>();
     }
 
-    persistedMetaProps.add('isSearchResult');
-  } else {
-    persistedMetaProps?.delete('isSearchResult');
+    (cellMeta._persistedMetaProps as Set<string>).add('isSearchResult');
+
+    return;
   }
+
+  // For a cell with no stored meta this is a temporary object, so the write is dropped with it.
+  const cellMeta = testedMeta ?? instance.getCellMetaTransient(row, col);
+
+  cellMeta.isSearchResult = false;
+
+  if (hasOwnProperty(cellMeta, '_persistedMetaProps')) {
+    (cellMeta._persistedMetaProps as Set<string>).delete('isSearchResult');
+  }
+}
+
+const DEFAULT_CALLBACK = function(instance: HotInstance, row: number, col: number, data: unknown, testResult: boolean) {
+  markSearchResult(instance, row, col, testResult);
 };
 
 const DEFAULT_QUERY_METHOD = function(query: string, value: unknown, cellProperties: Record<string, unknown>) {
@@ -68,6 +101,25 @@ interface CellSearchMeta {
   callback?: typeof DEFAULT_CALLBACK;
   queryMethod?: typeof DEFAULT_QUERY_METHOD;
 }
+
+/**
+ * One `query()` call: its arguments and the results it collects.
+ */
+interface QueryRun {
+  queryStr: string;
+  callback: typeof DEFAULT_CALLBACK;
+  queryMethod: typeof DEFAULT_QUERY_METHOD;
+  results: { row: number; col: number; data: unknown }[];
+}
+
+/**
+ * `HotInstance` augmented with the internal `_getDataAtColumnForRows` method, the bulk form of
+ * `getDataAtCell()`. It exists on the Core runtime object but is intentionally NOT part of the public
+ * `HotInstance` type; this plugin is an internal consumer and reaches it through this local type.
+ */
+type HotInstanceInternal = HotInstance & {
+  _getDataAtColumnForRows(column: number, physicalRows: (number | null)[]): unknown[];
+};
 
 /**
  * @plugin Search
@@ -235,40 +287,26 @@ export class Search extends BasePlugin {
   query(queryStr: string, callback = this.getCallback(), queryMethod = this.getQueryMethod()): unknown[] {
     const rowCount = this.hot.countRows();
     const colCount = this.hot.countCols();
-    const queryResult: unknown[] = [];
-    const instance = this.hot;
+    const run: QueryRun = { queryStr, callback, queryMethod, results: [] };
 
-    rangeEach(0, rowCount - 1, (rowIndex) => {
-      rangeEach(0, colCount - 1, (colIndex) => {
-        const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
-        const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
-        // cellProperties.search is unknown in CellMeta; assert once to the known shape
-        const cellSearch = cellProperties.search as CellSearchMeta | undefined;
-        const cellCallback = cellSearch?.callback ?? callback;
-        const cellQueryMethod = cellSearch?.queryMethod ?? queryMethod;
-        const testResult = cellQueryMethod(queryStr, cellData, cellProperties);
+    // The cells are tested and the callbacks called in row order, as before; only the reads are
+    // batched. A callback that changes data sees the values read at the start of its row block.
+    for (let blockStart = 0; blockStart < rowCount; blockStart += QUERY_ROW_BLOCK_SIZE) {
+      const blockEnd = Math.min(rowCount, blockStart + QUERY_ROW_BLOCK_SIZE);
+      const columnsData = this.#readRowBlock(blockStart, blockEnd, colCount);
 
-        if (testResult) {
-          const singleResult = {
-            row: rowIndex,
-            col: colIndex,
-            data: cellData,
-          };
-
-          queryResult.push(singleResult);
+      for (let row = blockStart; row < blockEnd; row++) {
+        for (let col = 0; col < colCount; col++) {
+          this.#testCell(run, row, col, columnsData[col][row - blockStart]);
         }
-
-        if (cellCallback) {
-          cellCallback(instance, rowIndex, colIndex, cellData, testResult);
-        }
-      });
-    });
+      }
+    }
 
     // The result class is applied inside `beforeRenderer`, from state only this plugin holds, so a
     // `renderMode: 'onChange'` cell would keep the previous query's class. Every cell has to paint.
     this.hot.markAllCellsChanged();
 
-    return queryResult;
+    return run.results;
   }
 
   /**
@@ -408,6 +446,62 @@ export class Search extends BasePlugin {
 
     cellProperties.className = classArray.join(' ');
   };
+
+  /**
+   * Reads the values of a block of visual rows, one column at a time. Returns the same values as
+   * `getDataAtCell()` for each cell.
+   *
+   * @param {number} blockStart The first visual row of the block.
+   * @param {number} blockEnd The visual row after the last one of the block.
+   * @param {number} colCount The number of columns to read.
+   * @returns {Array[]} The values of each column, in the order of the rows.
+   */
+  #readRowBlock(blockStart: number, blockEnd: number, colCount: number): unknown[][] {
+    const hot = this.hot as HotInstanceInternal;
+    const physicalRows: (number | null)[] = [];
+    const columnsData: unknown[][] = [];
+
+    for (let row = blockStart; row < blockEnd; row++) {
+      physicalRows.push(hot.toPhysicalRow(row));
+    }
+
+    for (let col = 0; col < colCount; col++) {
+      columnsData.push(hot._getDataAtColumnForRows(col, physicalRows));
+    }
+
+    return columnsData;
+  }
+
+  /**
+   * Tests one cell against the query, collects it when it matches, and calls the cell's callback.
+   *
+   * The meta is read without storing it: a stored meta is returned as it is, and a cell without one
+   * gets a temporary object, so a query over the whole grid does not store a meta object per cell.
+   *
+   * @param {QueryRun} run The query call.
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   * @param {*} cellData The value of the cell.
+   */
+  #testCell(run: QueryRun, row: number, col: number, cellData: unknown) {
+    const cellProperties = this.hot.getCellMetaTransient(row, col);
+    // cellProperties.search is unknown in CellMeta; assert once to the known shape
+    const cellSearch = cellProperties.search as CellSearchMeta | undefined;
+    const cellCallback = cellSearch?.callback ?? run.callback;
+    const cellQueryMethod = cellSearch?.queryMethod ?? run.queryMethod;
+    const testResult = cellQueryMethod(run.queryStr, cellData, cellProperties);
+
+    if (testResult) {
+      run.results.push({ row, col, data: cellData });
+    }
+
+    if (cellCallback === DEFAULT_CALLBACK) {
+      markSearchResult(this.hot, row, col, testResult, cellProperties);
+
+    } else if (cellCallback) {
+      cellCallback(this.hot, row, col, cellData, testResult);
+    }
+  }
 
   /**
    * Removes the result class from the `className` of every stored cell meta that carries it.

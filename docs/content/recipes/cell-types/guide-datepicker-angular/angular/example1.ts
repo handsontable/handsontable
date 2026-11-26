@@ -53,6 +53,7 @@ export const inputData = [
   template: `
     <input
       type="date"
+      aria-label="Restock date"
       [(ngModel)]="dateValue"
       #editorInput
       (change)="onDateChange()"

@@ -11,7 +11,8 @@ import {HyperFormula} from 'hyperformula';
   template: `
     <div class="example-controls-container">
       <div class="controls">
-        <input [formControl]="namedExpressionsControl" type="text" />&nbsp;
+        <label for="named-expressions-input">Named expression ADDITIONAL_COST</label>
+        <input id="named-expressions-input" [formControl]="namedExpressionsControl" type="text" />&nbsp;
         <button (click)="applyNamedExpression()">Calculate the price</button>
       </div>
       <output [class.is-error]="errorMessage">{{ errorMessage }}</output>

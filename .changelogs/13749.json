@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added `start` and `end` layout slots, so you can dock a panel at either side of the grid with `getLayoutManager().register()`. When you dock side panels, the `width` option includes them.",
+  "type": "added",
+  "issueOrPR": 13749,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "editable-headers",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-23T11:00:44.407Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "price column header selected sub menu row 1 column 3",
+    "f2-open-field": "header name edit selected price",
+    "type-name": "unselected",
+    "enter-save": "cost column header selected sub menu row 1 column 3 header renamed to cost",
+    "f2-open-again": "header name edit selected cost",
+    "escape-cancel": "cost column header selected sub menu row 1 column 3"
+  }
+}

@@ -151,7 +151,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         afterViewRender={handleAfterViewRender}
       />
-      <p ref={statsRef} style={{ margin: '8px 0 0', fontSize: 13, color: '#666' }}>
+      <p ref={statsRef} style={{ margin: '8px 0 0', fontSize: 13 }}>
         Renderer calls: 0 | Computations: 0
       </p>
     </div>

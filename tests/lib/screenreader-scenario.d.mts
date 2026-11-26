@@ -81,6 +81,6 @@ export function validateScenario(doc: unknown, options?: { fixtures?: string[]; 
 export function resolveVariants<T extends { fileName: string; scenario: unknown; problems: string[] }>(loaded: T[]): T[];
 export function loadScenarios(directory: string, options?: { fixtures?: string[] }):
   { fileName: string; scenario: Scenario | null; problems: string[] }[];
-export function scenarioPlace(scenario: Pick<Scenario, 'page' | 'fixture'>): { fixture: string; pageQuery: string | undefined; root: string };
+export function scenarioPlace(scenario: Pick<Scenario, 'page' | 'fixture'>): { fixture: string; pageQuery: string | undefined; licensePreset: string | undefined; root: string };
 export function scenarioPageId(scenario: Pick<Scenario, 'page' | 'fixture'>): string;
-export function scenarioUrl(scenario: Pick<Scenario, 'page' | 'fixture' | 'query'>, options?: { theme?: string; bundle?: string }): string;
+export function scenarioUrl(scenario: Pick<Scenario, 'page' | 'fixture' | 'query'>, options?: { theme?: string; bundle?: string; licenseQuery?: string | null }): string;

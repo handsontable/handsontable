@@ -1,6 +1,6 @@
 import { test, type Page } from '@playwright/test';
 import { siteCheckId, siteOf } from '../../lib/a11y-site-checks.mjs';
-import { CONDITIONS, TEXT_SPACING_CSS, clippingFindings, nameApart, overlapFindings, viewportFindings } from '../../lib/reflow.mjs';
+import { CONDITIONS, TEXT_SPACING_CSS, clipFromAncestors, clippingFindings, nameApart, overlapFindings, viewportFindings } from '../../lib/reflow.mjs';
 import { orientationFindings, pageReflowFindings } from '../../lib/site-visual.mjs';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
 import { declareSiteTarget } from './harness';
@@ -34,7 +34,8 @@ interface Layout {
   offenders: Array<{ selector: string; right: number }>;
   exempt: number;
   texts: Array<Record<string, unknown> & { selector: string }>;
-  controls: Array<{ id: number; selector: string; left: number; top: number; right: number; bottom: number; within: number[]; layer: number }>;
+  controls: Array<{ id: number; selector: string; left: number; top: number; right: number; bottom: number; within: number[]; layer: number;
+    clipChain: { position: string; ancestors: object[] } }>;
   surfaces: Array<{ selector: string; surface: string; left: number; right: number; top: number; bottom: number; fixed: boolean }>;
 }
 
@@ -78,7 +79,10 @@ test.describe(CHECK, () => {
         findings.push(...aggregate([
           ...pageReflowFindings({ condition, viewport: layout.viewport, offenders: layout.offenders, exempt: layout.exempt }) as EvidenceFinding[],
           ...clippingFindings({ condition, boxes: layout.texts }) as EvidenceFinding[],
-          ...overlapFindings({ condition, controls: layout.controls }) as EvidenceFinding[],
+          ...overlapFindings({
+            condition,
+            controls: layout.controls.map(({ clipChain, ...control }) => ({ ...control, clip: clipFromAncestors(clipChain) })),
+          }) as EvidenceFinding[],
           ...viewportFindings({ condition, viewport: { ...layout.viewport, scrollWidth: layout.viewport.width }, surfaces }) as EvidenceFinding[],
         ]));
         detail[condition] = { viewport: layout.viewport, offenders: layout.offenders.slice(0, 10), exempt: layout.exempt, clipped: layout.texts.length,
@@ -293,6 +297,27 @@ async function measure(page: Page, grid: string): Promise<Layout> {
       .filter(element => shown(element) && !inGrid(element) && element.getBoundingClientRect().width > 0 && element.getClientRects().length === 1
         && onViewport(element));
     const layers = new Map<Element, number>();
+    const clipChainOf = (element: Element) => {
+      const ancestors = [];
+
+      for (let ancestor = element.parentElement; ancestor && ancestor !== document.body; ancestor = ancestor.parentElement) {
+        const style = getComputedStyle(ancestor);
+        const [clipsX, clipsY] = [style.overflowX !== 'visible', style.overflowY !== 'visible'];
+        const transformed = style.transform !== 'none';
+
+        if (!clipsX && !clipsY && !transformed && style.position === 'static') {
+          continue;
+        }
+
+        const box = ancestor.getBoundingClientRect();
+        const left = box.left + ancestor.clientLeft + scrollX;
+        const top = box.top + ancestor.clientTop + scrollY;
+
+        ancestors.push({ position: style.position, transformed, clipsX, clipsY, left, top, right: left + ancestor.clientWidth, bottom: top + ancestor.clientHeight });
+      }
+
+      return { position: getComputedStyle(element).position, ancestors };
+    };
     const controls = controlElements.map((element, id) => {
       const rect = element.getBoundingClientRect();
       const fixed = fixedOf(element);
@@ -310,6 +335,7 @@ async function measure(page: Page, grid: string): Promise<Layout> {
         bottom: rect.bottom + scrollY,
         within: controlElements.map((other, index) => (other !== element && other.contains(element) ? index : -1)).filter(index => index >= 0),
         layer: fixed ? layers.get(fixed)! : 0,
+        clipChain: clipChainOf(element),
       };
     });
     // A fixed layer is judged by where its text is, not by its box (a column can be wider than what it holds). A text

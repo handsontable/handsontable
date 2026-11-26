@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Filters \"Select all\" and \"Select none\" links, which screen readers announced as a button nested inside a button.",
+  "type": "fixed",
+  "issueOrPR": 14346,
+  "breaking": false,
+  "framework": "none"
+}

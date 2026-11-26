@@ -274,16 +274,19 @@ async function waitForScrollbarClearanceToClose(page: Page) {
 /**
  * Drops the browser's own text-selection highlight, which a click sequence can leave behind.
  *
- * A filter flow can end with the column header's label selected - seen on `columns-filter-2` under
- * WebKit - and nothing in the grid takes it away: `clearTextSelection()` runs on a mousedown inside
- * the grid, and the last click of that flow lands in the dropdown menu. The highlight paints the
- * browser default over whatever text it covers, so the same spec publishes two correct-looking
- * images on nothing but where the run happened to leave the caret.
+ * The highlight paints the browser default over whatever text it covers, so the same spec would publish
+ * two correct-looking images on nothing but where the run happened to leave the caret. A selected
+ * column header label on a WebKit filter capture is not such a leftover: it is CopyPaste's Safari
+ * workaround, which selects the highlighted cell's content when the page body reports a `mouseleave`,
+ * on a frame the engine picks, so it can land after this reset. The core stylesheet paints that
+ * selection transparent (the `data-ht-invisible-selection` cell rule in `_base.scss`), so no capture
+ * depends on when it lands.
  *
  * The grid's own cell selection is drawn by Handsontable and is not a native selection - with one
  * exception. `CopyPaste` puts a real TD into a native range for its Safari clipboard path
- * (`makeElementContentEditableAndSelectItsContent`), so this does reach it. That range carries the
- * `invisibleSelection` class, which hides it, so clearing it changes no pixel today.
+ * (`makeElementContentEditableAndSelectItsContent`), so this does reach it. That range is marked
+ * invisible (the `invisibleSelection` class and the `data-ht-invisible-selection` attribute), so clearing
+ * it changes no pixel today.
  *
  * `fragmentSelection` is the case to watch. It is a real setting whose whole point is a visible
  * native selection spanning TDs (`tableView.ts`), and no visual spec turns it on. A spec that did

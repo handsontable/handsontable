@@ -5,13 +5,18 @@
  * `#mobile-assistant-btn`) rendered in Header.astro. The panel is
  * *non-modal* (`aria-modal="false"`) so readers can keep interacting
  * with the docs while the assistant is open. ESC and the close button
- * both dismiss the panel; opening moves focus to the composer.
+ * both dismiss the panel; opening moves focus to the composer, and closing
+ * gives it back to the control that opened the panel (or to the header
+ * button when that control is gone). The closed panel is `inert`: it is
+ * off screen, so none of its controls may take the focus or reach the
+ * accessibility tree.
  *
  * Open state, thread, and panel width are persisted to localStorage
  * (see `STORAGE_KEYS`) so navigation between docs pages does not reset
  * the conversation.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { canTakeFocus } from '../../lib/can-take-focus.mjs';
 import { STORAGE_KEYS, WIDTH } from './constants';
 import { IconChatbot, IconClose, IconTrash } from './icons';
 import { ProactiveBubble } from './ProactiveBubble';
@@ -40,11 +45,33 @@ function readInitialWidth(): number {
   }
 }
 
+const HEADER_BUTTONS_SELECTOR = '#header-assistant-btn, #mobile-assistant-btn';
+
+/**
+ * Reads the focused element outside the panel, the one to give the focus back to on close.
+ *
+ * @param panel The panel.
+ * @returns The element, or `null` when the focus is on the page body or inside the panel.
+ */
+function focusedOutside(panel: HTMLElement): HTMLElement | null {
+  const focused = document.activeElement;
+
+  if (!(focused instanceof HTMLElement) || focused === document.body || panel.contains(focused)) {
+    return null;
+  }
+
+  return focused;
+}
+
 export function DocsAssistantWidget() {
   const [open, setOpen] = useState<boolean>(() => readInitialOpen());
   const [width, setWidth] = useState<number>(() => readInitialWidth());
   const [pendingDraft, setPendingDraft] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const pendingOpenerRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(open);
   const resizingRef = useRef(false);
   const { state, send, sendToSupport, canWriteToSupport, stop, retry, clear, clearAndSend, setFeedback } =
     useAssistant({ active: open });
@@ -74,6 +101,18 @@ export function DocsAssistantWidget() {
     return () => window.removeEventListener('docs-assistant:toggle', onToggle);
   }, []);
 
+  /**
+   * Names the control that opens the closed panel. A mouse click does not focus a button in Safari
+   * or in Firefox on macOS, so the focused element cannot name it there.
+   *
+   * @param opener The control.
+   */
+  const rememberOpener = useCallback((opener: unknown) => {
+    if (!wasOpenRef.current && opener instanceof HTMLElement) {
+      pendingOpenerRef.current = opener;
+    }
+  }, []);
+
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const tocBtn = (e.target as HTMLElement).closest('#toc-assistant-btn');
@@ -81,23 +120,65 @@ export function DocsAssistantWidget() {
       const pageTitle = tocBtn.getAttribute('data-page-title') || document.title;
       clear();
       setPendingDraft(`I have a question about the "${pageTitle}" page.\n`);
+      rememberOpener(tocBtn);
       setOpen(true);
     };
     document.addEventListener('click', onClick);
     return () => document.removeEventListener('click', onClick);
-  }, [clear]);
+  }, [clear, rememberOpener]);
 
   // "Ask AI about this API" buttons on API reference pages — opens assistant
   // and auto-submits the prefilled question without user interaction.
   useEffect(() => {
     const handleAskAboutApi = (e: Event) => {
-      const { question } = (e as CustomEvent<{ question: string }>).detail;
+      const { question, opener } = (e as CustomEvent<{ question: string; opener?: HTMLElement }>).detail;
+      rememberOpener(opener);
       setOpen(true);
       clearAndSend(question);
     };
     window.addEventListener('docs-assistant:ask', handleAskAboutApi);
     return () => window.removeEventListener('docs-assistant:ask', handleAskAboutApi);
-  }, [clearAndSend]);
+  }, [clearAndSend, rememberOpener]);
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+
+    if (!panel) return;
+
+    const wasOpen = wasOpenRef.current;
+
+    wasOpenRef.current = open;
+
+    const pendingOpener = pendingOpenerRef.current;
+
+    pendingOpenerRef.current = null;
+
+    if (open) {
+      panel.removeAttribute('inert');
+      if (!wasOpen) {
+        openerRef.current = pendingOpener ?? focusedOutside(panel);
+      }
+      return;
+    }
+
+    const focusWasInside = panel.contains(document.activeElement);
+
+    panel.setAttribute('inert', '');
+
+    if (!wasOpen) return;
+
+    const opener = openerRef.current;
+
+    openerRef.current = null;
+
+    if (!focusWasInside && document.activeElement && document.activeElement !== document.body) return;
+
+    const target = canTakeFocus(opener)
+      ? opener
+      : [...document.querySelectorAll<HTMLElement>(HEADER_BUTTONS_SELECTOR)].find(canTakeFocus);
+
+    target?.focus();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -151,6 +232,7 @@ export function DocsAssistantWidget() {
   return (
     <>
       <aside
+        ref={panelRef}
         className="da-panel"
         role="dialog"
         aria-modal="false"

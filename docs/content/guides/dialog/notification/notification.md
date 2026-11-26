@@ -151,7 +151,7 @@ Hooks: `beforeNotificationShow`, `afterNotificationShow`, `beforeNotificationHid
 
 </div>
 
-## Read more
+## Related API reference
 
 - [`Notification`](@/api/notification.md) plugin reference.
 - [`notification`](@/api/options.md#notification) grid option.

@@ -65,7 +65,7 @@ const hotSettings: GridSettings = {
 
 <style>
 #example2 .handsontable td.loss-cell {
-  color: #d81e2c;
+  color: #b0141f;
   font-weight: 600;
 }
 

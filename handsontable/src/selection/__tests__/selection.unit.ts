@@ -99,6 +99,68 @@ describe('Selection', () => {
     });
   });
 
+  describe('#isNonContiguous', () => {
+    it('should answer `true` only while the selection holds more than one range', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      expect(selection.isNonContiguous()).toBe(false);
+
+      selection.selectCells([[1, 1, 2, 2]]);
+
+      expect(selection.isNonContiguous()).toBe(false);
+
+      selection.selectCells([[1, 1, 2, 2], [4, 3, 4, 3]]);
+
+      expect(selection.isNonContiguous()).toBe(true);
+
+      selection.selectCells([[4, 3, 4, 3]]);
+
+      expect(selection.isNonContiguous()).toBe(false);
+    });
+  });
+
+  describe('#isSelectAllLayer', () => {
+    it('should mark a layer made by selectAll() and no other layer', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      selection.selectAll();
+
+      expect(selection.isSelectAllLayer(0)).toBe(true);
+
+      selection.selectCells([[0, 1, 4, 1]]);
+
+      expect(selection.isSelectAllLayer(0)).toBe(false);
+    });
+  });
+
+  describe('#removeLayers', () => {
+    it('should move the header flags onto the layers that stay', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      // A cell, a column selected by its header, and the same cell again (a Ctrl/Cmd+click repeat).
+      selection.selectCells([[2, 2, 2, 2], [0, 3, 7, 3], [2, 2, 2, 2]]);
+      selection.selectedByColumnHeader = new Set([1]);
+      selection.selectedByRowHeader = new Set([2]);
+
+      selection.removeLayers([0]);
+
+      expect(selection.getSelectedRange().size()).toBe(2);
+      expect(Array.from(selection.selectedByColumnHeader)).toEqual([0]);
+      expect(Array.from(selection.selectedByRowHeader)).toEqual([1]);
+    });
+
+    it('should drop the flags of a removed layer', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      selection.selectCells([[0, 3, 7, 3], [2, 2, 2, 2]]);
+      selection.selectedByColumnHeader = new Set([0]);
+
+      selection.removeLayers([0]);
+
+      expect(Array.from(selection.selectedByColumnHeader)).toEqual([]);
+    });
+  });
+
   describe('fill handle with a non-contiguous selection (DEV-540)', () => {
     // `multiple` is the grid's default selection mode; the shared `createSettings()` uses `range`,
     // which keeps one range only.

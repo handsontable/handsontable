@@ -1,5 +1,6 @@
 import { createMenuItemRenderer } from 'handsontable/utils/menu/menu/menuItemRenderer';
-import { isItemChecked, isItemCheckable } from 'handsontable/utils/menu/menu/utils';
+import { getMenuItemPosition, isItemChecked, isItemCheckable } from 'handsontable/utils/menu/menu/utils';
+import { SEPARATOR } from 'handsontable/utils/menu/predefinedItems';
 
 const CHECK_MARK = String.fromCharCode(10003);
 const MIXED_MARK = String.fromCharCode(8211);
@@ -21,8 +22,33 @@ function createInstances(item, settings = {}) {
       rootElement,
       getSettings: () => settings,
     },
-    menuHot: {
-      getSourceDataAtRow: () => item,
+    menuHot: createMenuHot([item]),
+  };
+}
+
+/**
+ * Builds the menu grid the renderer reads its items and their positions from.
+ *
+ * @param {object[]} items The menu items, one per physical row.
+ * @param {number[]} [hiddenRows] The physical rows the menu grid hides (the Filters plugin hides some of its own).
+ * @param {number[]} [rowOrder] The physical row shown at each visual row; the identity when left out.
+ * @returns {object}
+ */
+function createMenuHot(items, hiddenRows = [], rowOrder = items.map((item, index) => index)) {
+  const hooks = {};
+
+  return {
+    getSourceDataAtRow: jest.fn(physicalRow => items[physicalRow]),
+    countRows: () => rowOrder.length,
+    toPhysicalRow: visualRow => rowOrder[visualRow] ?? null,
+    rowIndexMapper: {
+      isHidden: physicalRow => hiddenRows.includes(physicalRow),
+    },
+    addHook: (name, callback) => {
+      hooks[name] = [...(hooks[name] ?? []), callback];
+    },
+    runHooks: (name) => {
+      (hooks[name] ?? []).forEach(callback => callback());
     },
   };
 }
@@ -307,6 +333,259 @@ describe('menuItemRenderer', () => {
       expect(TD.getAttribute('aria-disabled')).toBe(null);
       expect(TD.getAttribute('tabindex')).toBe('-1');
       expect(TD.classList.contains('htDisabled')).toBe(false);
+    });
+  });
+
+  describe('a separator', () => {
+    it('should be exposed as a separator with no name and no tab stop', () => {
+      const { TD } = renderItem({ name: SEPARATOR }, { ariaTags: true });
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.hasAttribute('tabindex')).toBe(false);
+      expect(TD.classList.contains('htSeparator')).toBe(true);
+    });
+
+    it('should drop the item attributes a reused cell carried from an earlier item', () => {
+      const separator = { name: SEPARATOR };
+      const item = { key: 'a', name: 'Top', checked: true, disabled: true, submenu: { items: [] } };
+      const TD = document.createElement('td');
+      let current = item;
+      const { mainTableHot, menuHot } = createInstances(item, { ariaTags: true });
+      const render = createMenuItemRenderer(mainTableHot);
+
+      menuHot.getSourceDataAtRow = () => current;
+      render(menuHot, TD, 0, 0, '0', item.name, {});
+      current = separator;
+      menuHot.runHooks('beforeRender');
+      render(menuHot, TD, 0, 0, '0', separator.name, {});
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.hasAttribute('aria-checked')).toBe(false);
+      expect(TD.hasAttribute('aria-disabled')).toBe(false);
+      expect(TD.hasAttribute('aria-expanded')).toBe(false);
+      expect(TD.hasAttribute('aria-posinset')).toBe(false);
+      expect(TD.hasAttribute('aria-setsize')).toBe(false);
+    });
+
+    it('should drop the tab stop a reused cell carried from an enabled item', () => {
+      const separator = { name: SEPARATOR };
+      const item = { key: 'b', name: 'Enabled' };
+      const TD = document.createElement('td');
+      let current = item;
+      const { mainTableHot, menuHot } = createInstances(item, { ariaTags: true });
+      const render = createMenuItemRenderer(mainTableHot);
+
+      menuHot.getSourceDataAtRow = () => current;
+      render(menuHot, TD, 0, 0, '0', item.name, {});
+
+      expect(TD.getAttribute('tabindex')).toBe('-1');
+
+      current = separator;
+      menuHot.runHooks('beforeRender');
+      render(menuHot, TD, 0, 0, '0', separator.name, {});
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('tabindex')).toBe(false);
+    });
+
+    it('should give a reused separator cell the position of the item it shows next', () => {
+      const separator = { name: SEPARATOR };
+      const item = { key: 'c', name: 'Next' };
+      const TD = document.createElement('td');
+      let current = separator;
+      const { mainTableHot, menuHot } = createInstances(separator, { ariaTags: true });
+      const render = createMenuItemRenderer(mainTableHot);
+
+      menuHot.getSourceDataAtRow = () => current;
+      render(menuHot, TD, 0, 0, '0', separator.name, {});
+
+      expect(TD.hasAttribute('aria-posinset')).toBe(false);
+
+      current = item;
+      menuHot.runHooks('beforeRender');
+      render(menuHot, TD, 0, 0, '0', item.name, {});
+
+      expect(TD.getAttribute('role')).toBe('menuitem');
+      expect(TD.getAttribute('aria-posinset')).toBe('1');
+      expect(TD.getAttribute('aria-setsize')).toBe('1');
+    });
+
+    it('should write no ARIA when `ariaTags` is off', () => {
+      const { TD } = renderItem({ name: SEPARATOR }, { ariaTags: false });
+
+      expect(TD.hasAttribute('role')).toBe(false);
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.classList.contains('htSeparator')).toBe(true);
+    });
+  });
+  describe('the position of an item (DEV-4172)', () => {
+    /**
+     * Renders every row of a menu into its own `<td>` and reads the position ARIA back.
+     *
+     * @param {object[]} items The menu items, one per row.
+     * @param {object} [options] The options.
+     * @param {number[]} [options.hiddenRows] The rows the menu grid hides.
+     * @param {boolean} [options.ariaTags] The main grid's `ariaTags` setting.
+     * @returns {Array<[string | null, string | null]>} `[aria-posinset, aria-setsize]` per row.
+     */
+    function renderPositions(items, { hiddenRows = [], ariaTags = true } = {}) {
+      const mainTableHot = {
+        rootDocument: document,
+        rootElement: document.createElement('div'),
+        getSettings: () => ({ ariaTags }),
+      };
+      const menuHot = createMenuHot(items, hiddenRows);
+      const render = createMenuItemRenderer(mainTableHot);
+
+      return items.map((item, row) => {
+        const TD = document.createElement('td');
+
+        render(menuHot, TD, row, 0, '0', item.name, {});
+
+        return [TD.getAttribute('aria-posinset'), TD.getAttribute('aria-setsize')];
+      });
+    }
+
+    it('should number the items in order and leave the separators out of the count', () => {
+      const positions = renderPositions([
+        { name: 'A' },
+        { name: SEPARATOR },
+        { name: 'B' },
+        { name: 'C' },
+        { name: SEPARATOR },
+        { name: 'D' },
+      ]);
+
+      expect(positions).toEqual([
+        ['1', '4'],
+        [null, null],
+        ['2', '4'],
+        ['3', '4'],
+        [null, null],
+        ['4', '4'],
+      ]);
+    });
+
+    it('should leave a row the menu grid hides out of the count', () => {
+      const positions = renderPositions([
+        { name: 'A' },
+        { name: 'Hidden' },
+        { name: 'B' },
+      ], { hiddenRows: [1] });
+
+      expect(positions[0]).toEqual(['1', '2']);
+      expect(positions[2]).toEqual(['2', '2']);
+    });
+
+    it('should count a disabled item and an item that cannot be selected', () => {
+      const positions = renderPositions([
+        { name: 'A', disabled: true },
+        { name: 'B', disableSelection: true },
+        { name: 'C', checked: true },
+      ]);
+
+      expect(positions).toEqual([['1', '3'], ['2', '3'], ['3', '3']]);
+    });
+
+    it('should write no position when `ariaTags` is off', () => {
+      const positions = renderPositions([{ name: 'A' }, { name: 'B' }], { ariaTags: false });
+
+      expect(positions).toEqual([[null, null], [null, null]]);
+    });
+
+    it('should read each item once per render, however many cells ask for a position', () => {
+      const items = Array.from({ length: 50 }, (_, index) => ({ name: `Item ${index}` }));
+      const menuHot = createMenuHot(items);
+
+      items.forEach((item, row) => getMenuItemPosition(menuHot, row));
+
+      expect(menuHot.getSourceDataAtRow).toHaveBeenCalledTimes(50);
+      expect(getMenuItemPosition(menuHot, 49)).toEqual({ position: 50, setSize: 50 });
+    });
+
+    it('should count the menu again after the menu grid\'s `beforeRender`', () => {
+      const items = [{ name: 'A' }, { name: 'Second condition' }, { name: 'B' }];
+      const hiddenRows = [1];
+      const menuHot = createMenuHot(items, hiddenRows);
+
+      expect(getMenuItemPosition(menuHot, 2)).toEqual({ position: 2, setSize: 2 });
+
+      // The Filters plugin shows a hidden row and renders the open menu again.
+      hiddenRows.length = 0;
+
+      expect(getMenuItemPosition(menuHot, 2)).toEqual({ position: 2, setSize: 2 });
+
+      menuHot.runHooks('beforeRender');
+
+      expect(getMenuItemPosition(menuHot, 1)).toEqual({ position: 2, setSize: 3 });
+      expect(getMenuItemPosition(menuHot, 2)).toEqual({ position: 3, setSize: 3 });
+    });
+
+    it('should read each row\'s item and hidden state through its physical index', () => {
+      const items = [{ name: 'A' }, { name: SEPARATOR }, { name: 'B' }, { name: 'Hidden' }];
+      // Visual rows 0-3 show physical rows 2, 3, 1, 0; physical row 3 is hidden.
+      const menuHot = createMenuHot(items, [3], [2, 3, 1, 0]);
+
+      expect(getMenuItemPosition(menuHot, 0)).toEqual({ position: 1, setSize: 2 });
+      expect(getMenuItemPosition(menuHot, 1)).toBeNull();
+      expect(getMenuItemPosition(menuHot, 2)).toBeNull();
+      expect(getMenuItemPosition(menuHot, 3)).toEqual({ position: 2, setSize: 2 });
+    });
+
+    it('should skip a visual row that maps to no physical row', () => {
+      const menuHot = createMenuHot([{ name: 'A' }, { name: 'B' }], [], [0, null, 1]);
+
+      expect(getMenuItemPosition(menuHot, 1)).toBeNull();
+      expect(getMenuItemPosition(menuHot, 2)).toEqual({ position: 2, setSize: 2 });
+    });
+  });
+  describe('the row of an item', () => {
+    /**
+     * Renders one item into a cell that sits in a table row, the way the menu grid renders it.
+     *
+     * @param {object} item The menu item definition under test.
+     * @param {object} [settings] Settings the main instance should report.
+     * @returns {{ TD: HTMLTableCellElement, TR: HTMLTableRowElement }}
+     */
+    function renderItemInRow(item, settings) {
+      const { mainTableHot, menuHot } = createInstances(item, settings);
+      const TR = document.createElement('tr');
+      const TD = document.createElement('td');
+
+      TR.appendChild(TD);
+      createMenuItemRenderer(mainTableHot)(menuHot, TD, 0, 0, '0', item.name, {});
+
+      return { TD, TR };
+    }
+
+    it('should take the row out of the accessibility tree, so the item is a child of the menu', () => {
+      const { TD, TR } = renderItemInRow({ name: 'Insert row above' }, { ariaTags: true });
+
+      expect(TR.getAttribute('role')).toBe('presentation');
+      expect(TD.getAttribute('role')).toBe('menuitem');
+    });
+
+    it('should mark the row of a separator as well', () => {
+      const { TD, TR } = renderItemInRow({ name: SEPARATOR }, { ariaTags: true });
+
+      expect(TR.getAttribute('role')).toBe('presentation');
+      expect(TD.getAttribute('role')).toBe('separator');
+    });
+
+    it('should write no role on the row when `ariaTags` is off', () => {
+      const { TD, TR } = renderItemInRow({ name: 'Insert row above' }, { ariaTags: false });
+
+      expect(TR.hasAttribute('role')).toBe(false);
+      expect(TD.hasAttribute('role')).toBe(false);
+    });
+
+    it('should render a cell that sits in no row', () => {
+      const { TD } = renderItem({ name: 'Insert row above' }, { ariaTags: true });
+
+      expect(TD.parentElement).toBe(null);
+      expect(TD.getAttribute('role')).toBe('menuitem');
     });
   });
 });

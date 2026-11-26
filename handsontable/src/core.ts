@@ -1,4 +1,11 @@
-import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import {
+  addClass,
+  empty,
+  hasClass,
+  isShadowRoot,
+  observeVisibilityChangeOnce,
+  removeClass,
+} from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
@@ -55,6 +62,7 @@ import {
   Hooks,
   CellRangeToRenderableMapper,
 } from './core/index';
+import { installSelectionAnnouncer } from './core/selectionAnnouncer';
 import {
   countSurplusTrailingItems,
   countTrailingItems,
@@ -91,7 +99,7 @@ import { getValueSetterValue } from './utils/valueAccessors';
 import { getCellType, hasCellType } from './cellTypes/registry';
 import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
-import { LayoutManager, type LayoutConfig } from './core/layout';
+import { LayoutManager, LAYOUT_SLOTS, refreshSlotFilledState, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
@@ -101,7 +109,7 @@ import type { CellChange, CellProperties, ColumnDataGetterSetterFunction, Settin
 import type {
   CellOptionMetaEntry, GridHelperInstance, HotInstance, KeptCellMetas, SelectAllOptions, ViewportScrollerInstance,
 } from './core/types';
-import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
+import { applyRootSize, getSideSlotsWidth, reapplyPixelRootHeight, reapplyRootWidth } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -169,6 +177,64 @@ interface FiltersPluginLike {
 }
 
 let activeGuid: string | null = null;
+
+/**
+ * Renumbers physical rows after a removal: a removed row is dropped, and every other row moves up by
+ * the number of removed rows above it, the way the index mapper renumbers them.
+ *
+ * @param {number[]} rows The physical rows to renumber.
+ * @param {number[]} removedRows The physical rows the removal took, in the numbering before it.
+ * @returns {number[]} The rows that are left, in the numbering after the removal.
+ */
+function renumberAfterRemoval(rows: number[], removedRows: number[]): number[] {
+  if (removedRows.length === 0) {
+    return rows;
+  }
+
+  const sortedRemovedRows = removedRows.slice().sort((a, b) => a - b);
+  const removedRowsSet = new Set(sortedRemovedRows);
+  const renumberedRows: number[] = [];
+
+  rows.forEach((row) => {
+    if (removedRowsSet.has(row)) {
+      return;
+    }
+
+    let low = 0;
+    let high = sortedRemovedRows.length;
+
+    // Counts the removed rows above `row`.
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+
+      if (sortedRemovedRows[middle] < row) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+
+    renumberedRows.push(row - low);
+  });
+
+  return renumberedRows;
+}
+
+/**
+ * Returns the first run of consecutive indexes in a list sorted in ascending order.
+ *
+ * @param {number[]} sortedIndexes The indexes, sorted in ascending order. Must not be empty.
+ * @returns {number[]} The run as an `[index, amount]` pair.
+ */
+function getFirstConsecutiveRun(sortedIndexes: number[]): [number, number] {
+  let amount = 1;
+
+  while (amount < sortedIndexes.length && sortedIndexes[amount] === sortedIndexes[0] + amount) {
+    amount += 1;
+  }
+
+  return [sortedIndexes[0], amount];
+}
 
 /**
  * Normalizes an array of `[index, amount]` pairs by merging overlapping or adjacent groups
@@ -863,6 +929,15 @@ export default function Core(
    */
   let fontRefreshVisibilityObserver: IntersectionObserver | null = null;
 
+  /**
+   * Watches the elements registered in the `start`/`end` side slots (never the slots themselves:
+   * they span the full wrapper height at the same DOM depth as the top/bottom slots, so a render in
+   * `slotsResizeObserver`'s callback would resize them in the same frame and the browser would report
+   * a ResizeObserver loop). A panel that changes its width re-applies the `width` option, which
+   * includes the side panels.
+   */
+  let sideSlotsResizeObserver: ResizeObserver | null = null;
+
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
     ...userSettings,
@@ -924,6 +999,27 @@ export default function Core(
   this.rootSlotBottomElement = null!;
 
   /**
+   * Reference to the start slot element. A wrapper slot rendered at the inline-start edge of the
+   * grid, spanning the full wrapper height (for example a side panel). Ordered through the layout
+   * manager. It is inserted into the root wrapper only while it holds an element, so a grid without
+   * side panels keeps the wrapper's original children.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootSlotStartElement = null!;
+
+  /**
+   * Reference to the end slot element. A wrapper slot rendered at the inline-end edge of the grid,
+   * spanning the full wrapper height. Ordered through the layout manager. Like the start slot, it is
+   * inserted into the root wrapper only while it holds an element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootSlotEndElement = null!;
+
+  /**
    * Reference to the overlays element (dialog). Note: the empty-data-state lives inside the grid
    * element (`ht-grid`), not here.
    *
@@ -973,6 +1069,8 @@ export default function Core(
     this.rootGridContentElement = this.rootDocument.createElement('div');
     this.rootOverlaysElement = this.rootDocument.createElement('div');
     this.rootSlotBottomElement = this.rootDocument.createElement('div');
+    this.rootSlotStartElement = this.rootDocument.createElement('div');
+    this.rootSlotEndElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
@@ -986,6 +1084,8 @@ export default function Core(
     addClass(this.rootGridContentElement, 'ht-grid-content');
     addClass(this.rootOverlaysElement, 'ht-overlay');
     addClass(this.rootSlotBottomElement, 'ht-slot-bottom');
+    addClass(this.rootSlotStartElement, 'ht-slot-start');
+    addClass(this.rootSlotEndElement, 'ht-slot-end');
 
     this.rootGridContentElement.appendChild(this.rootElement);
     this.rootGridElement.appendChild(this.rootGridContentElement);
@@ -1560,11 +1660,16 @@ export default function Core(
 
     if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
       this.selection.recaptureHighlightRecord();
+      // A restore that followed records (a NestedRows collapse or expand, DEV-509) committed the
+      // moved ranges without the selection hooks, which must not run before the public hooks above.
+      this.selection.notifyFollowedRecords(axis);
       // The test above repairs a SHRINK only - it fires on a corner left past the last index. An
       // untrim leaves every corner in range, so a full-column selection or a select-all is grown
       // back to the whole axis here instead (DEV-152).
       this.selection.fitGridTrackingExtents(axis);
     }
+    // When the selection was dropped, a restore that followed records owes nothing: its debt entry
+    // is popped by `discardPhysicalSelectionSnapshot()` on the mapper's `afterCacheUpdate`.
   };
 
   this.columnIndexMapper.addLocalHook(
@@ -1665,12 +1770,13 @@ export default function Core(
   }
 
   this.selection.addLocalHook('afterSetRangeEnd', (
-    cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean
+    cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean, layerIndex: number
   ) => {
     const preventScrolling = createObjectPropListener(false);
-    const selectionRange = this.selection.getSelectedRange();
-    const { from, to } = selectionRange!.current()!;
-    const selectionLayerLevel = selectionRange.size() - 1;
+    // The layer that was just ended, which is not always the last one: `Selection#refresh()` ends the
+    // active layer last, so the hook reports the range and the level the focus is in (DEV-509).
+    const { from, to } = this.selection.getSelectedRange().peekByIndex(layerIndex)!;
+    const selectionLayerLevel = layerIndex;
 
     this.runHooks('afterSelection',
       from.row,
@@ -2112,6 +2218,10 @@ export default function Core(
 
           case 'remove_row':
 
+            // The physical rows the last `datamap.removeRow()` of this call took. Written by its
+            // callback, so a nested `alter()` from a hook does not overwrite it.
+            let lastRemovedPhysicalRows: number[] = [];
+
             const removeRow = (indexes: number[][]) => {
               let offset = 0;
 
@@ -2145,7 +2255,9 @@ export default function Core(
 
                 // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeRow breaks the removing functionality.
-                const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
+                const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source, (physicalRows) => {
+                  lastRemovedPhysicalRows = physicalRows;
+                });
 
                 if (!wasRemoved) {
                   return;
@@ -2218,8 +2330,68 @@ export default function Core(
               });
             };
 
+            // Several groups are resolved to their physical rows before any of them is removed, and each
+            // removal renumbers the rows still to go from the list it really took. Counting by the amounts
+            // the groups name breaks as soon as a removal takes more rows than it was asked for, or shows
+            // rows it did not take: NestedRows widens a parent to its whole subtree and expands the
+            // collapsed parents while it removes, so the next group's index pointed at other rows, or past
+            // the last one, and a row the caller never named was removed or a named one survived. On a grid
+            // where a removal takes exactly what it names, this removes the same rows as counting does.
+            const removeRowsByRecord = (groups: number[][]) => {
+              const countRowsBefore = instance.countRows();
+              let pendingGroups = groups.map(([groupIndex, groupAmount]) => {
+                const clippedRange = clipRemovalRange(groupIndex, groupAmount, countRowsBefore);
+
+                return clippedRange === null ?
+                  [] : datamap.visualRowsToPhysical(clippedRange.start, clippedRange.amount);
+              });
+
+              // Removes the first run of visually consecutive rows left in the group, and answers whether
+              // anything is left to try.
+              const removeNextRun = (groupPosition: number): boolean => {
+                const visualRows = pendingGroups[groupPosition]
+                  .map(physicalRow => instance.toVisualRow(physicalRow))
+                  .filter((visualRow): visualRow is number => visualRow !== null)
+                  .sort((a, b) => a - b);
+
+                // A row another plugin trimmed meanwhile has no visual index and cannot be removed.
+                if (visualRows.length === 0) {
+                  return false;
+                }
+
+                const [runIndex, runAmount] = getFirstConsecutiveRun(visualRows);
+                const runPhysicalRows = new Set(datamap.visualRowsToPhysical(runIndex, runAmount));
+
+                lastRemovedPhysicalRows = [];
+                removeRow([[runIndex, runAmount]]);
+
+                // The run is done whatever the removal took (a veto takes nothing), so the loop always moves on.
+                pendingGroups[groupPosition] = pendingGroups[groupPosition].filter(row => !runPhysicalRows.has(row));
+
+                const removedRows = lastRemovedPhysicalRows;
+
+                pendingGroups = pendingGroups.map(rows => renumberAfterRemoval(rows, removedRows));
+
+                return pendingGroups[groupPosition].length > 0;
+              };
+
+              for (let groupPosition = 0; groupPosition < pendingGroups.length; groupPosition++) {
+                let hasRowsLeft = pendingGroups[groupPosition].length > 0;
+
+                while (hasRowsLeft) {
+                  hasRowsLeft = removeNextRun(groupPosition);
+                }
+              }
+            };
+
             if (Array.isArray(index)) {
-              removeRow(normalizeIndexesGroup(index));
+              const groups = normalizeIndexesGroup(index);
+
+              if (groups.length > 1) {
+                removeRowsByRecord(groups);
+              } else {
+                removeRow(groups);
+              }
             } else {
               removeRow([[index as number, amount]]);
             }
@@ -3100,6 +3272,7 @@ export default function Core(
       const slotsHeightBeforeLicense = measureSlotsHeight();
 
       installAccessibilityAnnouncer(instance.rootPortalElement);
+      installSelectionAnnouncer(instance);
       initLicenseNotification(instance);
       initLicenseBranding(instance);
 
@@ -3130,7 +3303,10 @@ export default function Core(
         const isWindowAxis = view.isHorizontallyScrollableByWindow();
         let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
+        const isZeroWithoutSidePanels = width === 0 && getSideSlotsWidth(instance) === 0;
+        const hasNoRenderedColumns = isWindowAxis && instance.countRenderedCols() <= 0;
+
+        if ((isZeroWithoutSidePanels || hasNoRenderedColumns) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
@@ -3145,9 +3321,10 @@ export default function Core(
         // item) the wrapper sizes to its widest child, but the table is one of those children and
         // the slot was written no wider than the table, so `min(table, wrapper)` still tracks the
         // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
-        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
+        const wrapper = instance.rootWrapperElement;
+        const wrapperWidth = wrapper ? wrapper.clientWidth - getSideSlotsWidth(instance) : 0;
 
-        if (isWindowAxis && wrapperWidth > 0) {
+        if (isWindowAxis && wrapperWidth > 0 && !hasClass(wrapper, 'ht-grid-width-follows-content')) {
           width = Math.min(width, wrapperWidth);
         }
 
@@ -3165,6 +3342,41 @@ export default function Core(
       };
 
       instance.addHook('afterRender', syncEdgeSlotsWidth);
+
+      const gridArea = { start: '', size: '' };
+
+      /**
+       * Writes where the grid area sits inside the root wrapper as two custom properties: the
+       * distance from the wrapper's inline-start edge to the grid, and the grid's inline size.
+       * Neither depends on the free space past the `end` panel of a fixed-width component, which
+       * changes with the container without a render; the stylesheet derives the inline-end inset
+       * from them.
+       */
+      const syncGridInsets = () => {
+        if (!instance || instance.isDestroyed) {
+          return;
+        }
+
+        const { rootWrapperElement: wrapper, rootGridElement: grid } = instance;
+        const hasSideSlots = getSideSlotsWidth(instance) > 0;
+        const startOffset = instance.isRtl()
+          ? wrapper.clientWidth - grid.offsetLeft - grid.offsetWidth
+          : grid.offsetLeft;
+        const start = hasSideSlots ? `${Math.max(0, startOffset)}px` : '';
+        const size = hasSideSlots ? `${grid.offsetWidth}px` : '';
+
+        if (start !== gridArea.start) {
+          gridArea.start = start;
+          wrapper.style.setProperty('--ht-grid-inset-inline-start', start);
+        }
+
+        if (size !== gridArea.size) {
+          gridArea.size = size;
+          wrapper.style.setProperty('--ht-grid-inline-size', size);
+        }
+      };
+
+      instance.addHook('afterRender', syncGridInsets);
 
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
@@ -6143,8 +6355,11 @@ export default function Core(
    * call: Handsontable re-measures its rows and columns when the document finishes loading a font.
    *
    * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
-   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
-   * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
+   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. And it
+   * renders when a change of the browser zoom moved the border of the cells, which changes the height of every
+   * row even though the container kept its size: the [afterRefreshDimensions](@/api/hooks.md#afterrefreshdimensions)
+   * hook then receives `false` for its `stateChanged` argument. To repaint the cells without re-measuring the
+   * container, use [render()](@/api/core.md#render) instead.
    *
    * When the size changed while a cell editor is open, the editor moves onto its cell. If the cell was not fully
    * in view, the grid first scrolls it into view and renders once more, which fires
@@ -6180,7 +6395,11 @@ export default function Core(
       return;
     }
 
-    if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
+    // A browser zoom change fires the window `resize` this runs on, and it moves what a row measures even
+    // when the root keeps its size (a pixel `width` and `height`), so it renders on its own.
+    const isZoomChanged = view.refreshZoomDependentSizes();
+
+    if (isZoomChanged || isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
       instance.render();
     } else {
@@ -6297,8 +6516,11 @@ export default function Core(
           // the source itself on its normal path but not when it throws, and a source stuck at
           // `updateData` makes every later selection skip its scroll, its editor close and its
           // `prepareEditor()` for the rest of the instance's life (DEV-2831 review).
+          //
+          // The selection is laid again, not moved by the user, so an element outside the grid that holds the
+          // focus (an option of an example, a button) keeps it.
           try {
-            selection.refresh();
+            focusGridManager.keepForeignFocusWhile(() => selection.refresh());
           } finally {
             selection.markEndSource();
           }
@@ -6440,9 +6662,10 @@ export default function Core(
         grid.adjustRowsAndCols();
         selection.markSource('loadData');
 
-        // Paired, for the reason `updateData()` gives above.
+        // Paired, for the reason `updateData()` gives above. The selection is laid again, not moved by the
+        // user, so an element outside the grid that holds the focus keeps it.
         try {
-          selection.refresh();
+          focusGridManager.keepForeignFocusWhile(() => selection.refresh());
         } finally {
           selection.markEndSource();
         }
@@ -7499,6 +7722,22 @@ export default function Core(
   }
 
   /**
+   * Re-syncs the grid's accessible name and description on the root element when an `updateSettings()`
+   * payload names `ariaLabel`, `ariaLabelledby`, or `ariaDescribedby`.
+   *
+   * @private
+   * @param {object} settings A settings object (see {@link Options}).
+   */
+  function syncRootAccessibleName(settings: SettingsUpdate): void {
+    const namesOption = ['ariaLabel', 'ariaLabelledby', 'ariaDescribedby']
+      .some(optionName => hasOwnProperty(settings, optionName));
+
+    if (namesOption && instance.view) {
+      instance.view.updateRootAccessibleName();
+    }
+  }
+
+  /**
    * Merges an `updateSettings()` payload into the grid, option by option. The class names and the hook
    * callbacks go through their own registration, `data` and `language` are applied later, and every other
    * option is written onto the global meta on an update (the initial settings already live there).
@@ -7543,6 +7782,8 @@ export default function Core(
     if (init) {
       return false;
     }
+
+    syncRootAccessibleName(settings);
 
     return metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
   }
@@ -7969,7 +8210,8 @@ export default function Core(
         pendingColumnLayoutCheck = null;
       }
 
-      clearRowStateAfterDataUpdate();
+      // The filter that clears the conditions selects a cell again, which belongs to the same data update.
+      focusGridManager.keepForeignFocusWhile(() => clearRowStateAfterDataUpdate());
 
     } else if (settings.columns !== undefined) {
       datamap.createMap();
@@ -8200,6 +8442,12 @@ export default function Core(
     selection.updateHighlightClassNames();
     instance.renderChangeTracker.markAllChanged();
     instance.runHooks('afterUpdateSettings', settings);
+
+    // After the hook, so a plugin a listener turned on or off is picked up too. A scroll draw that a suspended
+    // render does not stop must already know who measures the rows. A listener may have destroyed the grid.
+    if (instance && !instance.isDestroyed && instance.view) {
+      instance.view.syncExternalRowCalculator();
+    }
   }
 
   /**
@@ -9007,7 +9255,7 @@ export default function Core(
    *
    * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
    * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
-   * local internal type (see `HotInstanceInternal` in the ColumnSorting plugin). Do not add it to
+   * local internal type (see `HotInstanceInternal` in the ColumnSorting and Search plugins). Do not add it to
    * `HotInstance` - that would turn an implementation detail into a supported public API.
    *
    * @private
@@ -10274,6 +10522,7 @@ export default function Core(
    * @function getRowHeader
    * @param {number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
+   * @fires Hooks#modifyRowHeaderValue
    * @returns {Array|string|number} Array of header values / single header value.
    */
   this.getRowHeader = function(row: number) {
@@ -10300,6 +10549,10 @@ export default function Core(
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = physicalRow + 1;
+    }
+
+    if (row !== undefined) {
+      rowHeader = instance.runHooks('modifyRowHeaderValue', rowHeader, row);
     }
 
     return rowHeader as string | string[];
@@ -10601,6 +10854,9 @@ export default function Core(
    *
    * A row is exact when `rowHeights` resolves to a positive number for it and the AutoRowSize plugin is
    * off. The `minRowHeights` option is never exact.
+   *
+   * The one exception to "exactly" is the first row of the frozen bottom rows: it is drawn one pixel taller,
+   * because that pixel is the freeze line above it, which is not part of the height the grid counts for the row.
    *
    * @private
    * @memberof Core#
@@ -11350,6 +11606,9 @@ export default function Core(
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @param {Function} [callback] The callback function to call after the viewport is scrolled.
+   * The callback runs once per call, unless the grid has no view yet. When nothing is scrolled, including when the `row` or `col` index
+   * cannot be resolved (it is out of range, or every row or column on that axis is hidden or trimmed),
+   * it runs in a microtask right after the call instead of after a scroll.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.scrollViewportTo = function(
@@ -11391,6 +11650,11 @@ export default function Core(
       const resolved = resolveRenderableScrollTarget(row, col);
 
       if (resolved === false) {
+        if (isFunction(callback)) {
+          this.removeHook('afterScroll', callback);
+          this._registerMicrotask(() => callback());
+        }
+
         return false;
       }
 
@@ -11493,6 +11757,8 @@ export default function Core(
     visibilityObserver = null;
     slotsResizeObserver?.disconnect();
     slotsResizeObserver = null;
+    sideSlotsResizeObserver?.disconnect();
+    sideSlotsResizeObserver = null;
     stopWatchingFontLoads?.();
     stopWatchingFontLoads = null;
     fontRefreshVisibilityObserver?.disconnect();
@@ -12278,10 +12544,98 @@ export default function Core(
 
   const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
 
+  let sideSlotsSyncScheduled = false;
+  let lastSideSlotsWidth = 0;
+  let lastSideSlotsLayout = '';
+
+  /**
+   * Describes where the side panels leave the grid: the combined side slot width and the `start`
+   * slot's own width. Two panels that trade widths keep the combined width but move the grid.
+   *
+   * @returns {string}
+   */
+  const measureSideSlotsLayout = () => {
+    const startSlot = instance.rootSlotStartElement;
+    const startWidth = startSlot.childElementCount ? startSlot.offsetWidth : 0;
+
+    return `${getSideSlotsWidth(instance)}:${startWidth}`;
+  };
+
+  const scheduleSideSlotsSync = () => {
+    if (sideSlotsSyncScheduled) {
+      return;
+    }
+
+    sideSlotsSyncScheduled = true;
+    instance._registerTimeout(() => {
+      sideSlotsSyncScheduled = false;
+
+      if (!instance || instance.isDestroyed || !instance.view) {
+        return;
+      }
+
+      if (getSideSlotsWidth(instance) !== lastSideSlotsWidth) {
+        syncSideSlotsWidth();
+      }
+
+      lastSideSlotsLayout = measureSideSlotsLayout();
+      instance.render();
+    });
+  };
+
+  const syncSideSlotsWidth = () => {
+    lastSideSlotsWidth = getSideSlotsWidth(instance);
+    reapplyRootWidth(instance, tableMeta.width);
+  };
+
+  const mountSideSlot = (name: typeof LAYOUT_SLOTS.START | typeof LAYOUT_SLOTS.END) => {
+    const slot = name === LAYOUT_SLOTS.START ? instance.rootSlotStartElement : instance.rootSlotEndElement;
+    const { rootWrapperElement } = instance;
+
+    if (slot.childElementCount > 0 && !slot.parentElement) {
+      const anchor = name === LAYOUT_SLOTS.START ? rootWrapperElement.firstChild : instance.rootOverlaysElement;
+
+      rootWrapperElement.insertBefore(slot, anchor);
+      refreshSlotFilledState(name, slot);
+    } else if (slot.childElementCount === 0 && slot.parentElement) {
+      slot.remove();
+    }
+  };
+
+  const observeSideSlotElements = () => {
+    if (!sideSlotsResizeObserver && instance.rootWindow.ResizeObserver) {
+      sideSlotsResizeObserver = new instance.rootWindow.ResizeObserver(() => {
+        if (instance && !instance.isDestroyed && measureSideSlotsLayout() !== lastSideSlotsLayout) {
+          scheduleSideSlotsSync();
+        }
+      });
+    }
+
+    sideSlotsResizeObserver?.disconnect();
+    [instance.rootSlotStartElement, instance.rootSlotEndElement].forEach((slot) => {
+      Array.from(slot.children).forEach(child => sideSlotsResizeObserver?.observe(child));
+    });
+  };
+
   const layoutManager = isRootInstance(this)
     ? new LayoutManager({
       top: instance.rootSlotTopElement,
       bottom: instance.rootSlotBottomElement,
+      start: instance.rootSlotStartElement,
+      end: instance.rootSlotEndElement,
+    }, {
+      onSlotContentChange: (name) => {
+        if (!isBeingDestroyed && (name === LAYOUT_SLOTS.START || name === LAYOUT_SLOTS.END)) {
+          mountSideSlot(name);
+          observeSideSlotElements();
+
+          if (instance.view) {
+            syncSideSlotsWidth();
+          }
+
+          scheduleSideSlotsSync();
+        }
+      },
     })
     : null;
 
@@ -12327,7 +12681,7 @@ export default function Core(
 
   /**
    * Returns the Layout Manager. The module manages the order of plugin UI elements within the
-   * user-orderable wrapper slots (`top`, `bottom`). Use it to add or remove custom UI and
+   * user-orderable wrapper slots (`top`, `bottom`, `start`, `end`). Use it to add or remove custom UI and
    * order it via weights or the `layout` setting. Only available for the main instance.
    *
    * @memberof Core#
@@ -12338,6 +12692,8 @@ export default function Core(
    * @example
    * ```js
    * hot.getLayoutManager().register('myToolbar', toolbarElement, { side: 'top', weight: 100 });
+   * // Dock a side panel at the grid's inline-start edge (the right edge under RTL).
+   * hot.getLayoutManager().register('myPanel', panelElement, { side: 'start' });
    * ```
    */
   this.getLayoutManager = function() {

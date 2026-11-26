@@ -1,15 +1,8 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // register Handsontable's modules
 registerAllModules();
-
-const dimmedTextRenderer = (instance, td, ...rest) => {
-  textRenderer(instance, td, ...rest);
-
-  td.style.opacity = '0.6';
-};
 
 const data = [
   { name: 'Hydrogen', symbol: 'H', atomicNumber: 1, atomicMass: 1.008 },
@@ -32,7 +25,6 @@ const ExampleComponent = () => {
         {
           data: 'name',
           readOnly: true,
-          renderer: dimmedTextRenderer,
         },
         {
           data: 'symbol',

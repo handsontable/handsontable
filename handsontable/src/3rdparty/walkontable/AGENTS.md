@@ -707,6 +707,26 @@ stays non-passive, JavaScript then scrolls the page itself, and nothing can tear
 only the clones a leg can see — with the clones unpinned they all stand at the table's top, where the
 top clone covers the bottom one, so the control names the two it scans.
 
+**A re-pin writes each style property once, with its final value.** On a window-scrolled grid every
+draw re-pins every clone a rail holds (`resetFixedPosition()` → `OverlayRail#pin()`), and the reads of
+the same draw (`getTotalWidth()` in the
+`pin()` argument, `adjustRootElementSize()`) sit between the overlays' writes. Clearing an inset and
+setting it back (`bottom: ''` then `bottom: 0`), or removing a margin and adding it again, leaves the
+same state behind, but each write marks the layout dirty, so the read after it forces a synchronous
+style recalculation and layout. That cost was most of a window scroll's layouts with frozen panes:
+290 style recalculations and 240 layouts over 40 wheel steps of the `?tall=1&frozen=1` fixture, against
+50 and 80 once the churn was gone. A write of the value already there is free, so `pin()` may rewrite
+every property on every draw, as long as no write passes through another value. The rail owns the
+clone's insets and flow margins, so an overlay must not set one to another value before calling `pin()`
+(the `style.top = ''` the bottom overlays write first is harmless only because a pinned clone's `top` is
+already empty). The margins are cleared with `removeProperty()`, not by assigning `''`: jsdom 16, the
+unit environment, ignores an empty assignment to a margin. Pinned by the "a draw leaves the pinned
+clones' inline style alone" block of the same spec (a `MutationObserver` on the clone roots and rails
+sees each passing write, where the end state hides it, beside the master spreader's changes as the
+in-test control that the draws were observed) and by the repeated-pin cases in
+`test/unit/overlay/overlayRail.unit.ts`. The fixture has no `fixedColumnsEnd`, so the inline-end
+margins are covered by the unit cases only.
+
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.
@@ -732,6 +752,47 @@ The invalidation is therefore explicit, in one place for both axes: `onIndexMapp
 **The position cache is not the only reorder-blind cache.** `wtViewport.oversizedRows` is keyed by renderable row too, and `resetOversizedRows` (`axisSizing/oversizedRows.ts`) deliberately wipes only the rendered band, so on a reorder every index outside that band keeps the previous order's measurement and the rebuilt prefix sums inherit it. That matters when walkontable measures the rows itself rather than a `modifyRowHeight` provider supplying them; `resetAllOversizedRows()` is the call that clears it. Not addressed by DEV-2823 and not yet reproduced — flagged here so the next person does not assume invalidating the position cache is sufficient.
 
 Before trusting a size cache across an operation, ask whether the operation changes the item count. If it does not, nothing invalidates for you.
+
+## A frozen clone's band is live, its DOM is not: `getCell` answers "not rendered" in between
+
+The three bottom clones (`bottom`, `bottom_inline_start_corner`, `bottom_inline_end_corner`, `BOTTOM_CLONE_TYPES`)
+take their rendered band from the live `totalRows` and `fixedRowsBottom` settings (`stickyRowsBottom`), while
+`Table#getCell` resolves the element through the `rowFilter` and the TBODY of the LAST draw. The two agree at rest
+and part between a change of the row count and the draw that follows it. `loadData()` is the case that shows it: it
+refreshes the selection before it renders, and `afterSelectionEnd` listeners (the focus manager, a user hook)
+call `hot.getCell(row, col, true)`. With 10 rows and one frozen bottom row, a load of 3 rows put the live band on
+row 2 while the clone still held row 9, so the row passed the "is it rendered" gate and the lookup threw
+`TR was expected to be rendered but is not` (GitHub #14315). With two or more frozen rows the same mismatch
+returned the cell of ANOTHER row, with no error.
+
+`hasStaleBottomBand()` in `table/cellAccess.ts` asks three questions. A clone that was never drawn (no `rowFilter`, no
+TBODY) holds nothing: a grid built without frozen rows, then given `data` and `fixedRowsBottom` in one
+`updateSettings()` call, which is how the wrappers send them. The filter's `offset` against the live first rendered
+row (`buildRenderFilters` builds it from the same getter, so they agree after every draw) catches a band that moved
+(`loadData()` to fewer rows, a removal, a new `fixedRowsBottom` with the same row count). The rows in the clone's TBODY
+against `getRenderedRowsCount()` catches a band that only grew at its end, where the first row stays put: every row
+pinned, or rows and pinned rows growing by the same amount. When any of them says stale, `getCell` returns `-1` for a
+row before the rows the clone drew and `-2` from there on. `TableView#getCellAtCoords` maps both to `null`, the
+documented answer for a cell that is not rendered. Two rules:
+
+- **Do not turn the `throwWithCause` in `getCell` into a `null` for every table instead.** That throw is the loud
+  signal for the desync class `restoreRenderedStateIfSafe` fixes on the master, and it would keep the
+  wrong-cell answer above.
+- **A new reader of a bottom clone's rendered range that runs between a data change and the render needs the same
+  question answered**, or it sees a band the DOM does not hold. The master's band comes from its calculators,
+  which are stale but consistent with its DOM, so `getCell` does not throw there. It answers the cell the DOM
+  holds, which still shows the data from before the change (with two frozen bottom rows, `getCell(3, 0, true)` in
+  `afterRemoveRow` after `alter('remove_row', 0)` returns the cell showing the old row 3 until the render).
+
+The top clones (`TOP_CLONE_TYPES`) count their rows from the live settings too (`stickyRowsTop`), but start at row 0,
+so only GROWTH opens the gap: with `fixedRowsTop: 5`, a grid drawn with 3 rows and loaded with 8 names rows 3 and 4
+before the clone has a TR for them, and a top clone that was never drawn (no frozen top rows and no column headers
+yet) has no TR for any row. `isBeyondDrawnTopRows()` answers `-2` for a body row past the clone's TBODY, which is
+exactly what used to throw. Shrinking needs nothing: the rows the clone still holds are the rows it should
+hold, so a guard on the row count there would hide correct cells.
+
+Pinned by `test/unit/table/stickyBottomCellAccess.unit.ts` (bottom and top clones) and
+`tests/e2e/fixed-rows-bottom-load-data.spec.ts`.
 
 ## Content-driven sizes the master never renders
 
@@ -798,20 +859,24 @@ Five rules ride along:
   still works; clearing `tr.style.height` for every row whose first cell can carry the height would have wiped it
   on every draw.
 - **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
-  the row as tall as the block.
+  the row as tall as the block. In the first row of a bottom table it is the own height plus the freeze line's
+  pixel (`topBorderOutsideHeight`, see the bottom freeze line paragraph in "Border ownership").
 - **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
   row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
   likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
   1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one. The question is
   asked in ONE place, `firstRowDrawsTopBorder(thead)` (`axisSizing/boxModel.ts`), which `markOversizedRows`
   shares; the callers hand `applyRowHeight` the answer for the row (`isFirstRow && drawsTopBorder`) rather than
-  letting it sniff the DOM. A recorded or provided height already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  letting it sniff the DOM. A recorded or provided height already includes that pixel, except in the bottom
+  tables, where the first row's pixel is the freeze line and is added on top (`topBorderOutsideHeight`). The host's inflation has to stay: pinning alone, with no inflated span, collapsed
   rows a block covers entirely and broke seven legacy MergeCells specs.
 - **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
   layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
   shrinking. The write is skipped when the value is unchanged.
-- **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
-  `tr`. The same box adjustment as the exact shape applies to the pin.
+- **The exact shape is untouched, apart from the freeze line.** It picks its own carrier among all the cells and
+  already falls back to the `tr`. The same box adjustment as the exact shape applies to the pin. The first row of
+  a bottom table is written one pixel above its height in the exact shape too (`getExactCarrierHeight` adds it to
+  the row's own height), so an exact `rowHeights` row there renders at `height + 1`.
 
 Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled, with
 AutoRowSize, `rowHeights`, and measured heights; rows inside a block keep their own heights; a hidden first row;
@@ -1135,19 +1200,36 @@ Consequences worth knowing:
   header alone brings the double line back for AutoRowSize without column headers. For a lined-up row the
   bottom clone and its corners draw the selection's line pixel, the fill handle and the mobile bottom handle
   are pulled inside the cell as on the last scrollable row, and a custom border, which no frozen overlay draws,
-  ends 1px higher. Two limits. (1) The clone is 1px taller than counted only while its first row has no height
-  of its own. A first bottom row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content
-  height) holds its top border inside that height, so a lined-up row ends at the clone's top edge with both
-  borders showing, as in 18.1.2. `Overlays#bottomCloneCoversLinedUpRow()` answers
+  ends 1px higher. The clone is always 1px taller than counted, whether or not the first bottom row has a height
+  of its own. A row without one gets the pixel from the default height (counted without the top border, drawn
+  with it). A row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content height) would
+  hold the border inside that height, so a lined-up row ended at the clone's top edge with both borders
+  showing, as in 18.1.2. `firstRowTopBorderOutsideHeight()` (`axisSizing/boxModel.ts`) names the tables
+  where the first row is therefore written one pixel above its height (`applyRowHeight`'s
+  `topBorderOutsideHeight`: the `bottom` clone and its two corners, border-box cells, no head row), and
+  `markOversizedRows` takes that pixel off what it measures for that row. Without that, the measured `+1`
+  would be recorded as the row's height, the counted height would grow with it, and the double line would
+  return. The pixel is never counted, so the scroll range and the hider do not change. The corners get it
+  too, or their first row would sit 1px off the clone's. Content-box cells are left alone (their row height
+  already leaves the border out). `Overlays#bottomCloneCoversLinedUpRow()` answers
   it from the clone's drawn height against the counted one, once per draw: on the first ask, which the bottom
   overlay makes right after it rendered (it is the first overlay `refresh()` renders), and then from the
   draw's snapshot. Reading it with the snapshot, before `refresh()`, used the clone of the previous draw, so
   a `fixedRowsBottom` or `minRowHeights` change was one draw late. `Border#isRowLinedUpWithBottomFreezeLine`
   is false without it: the row's selection and custom border are
-  drawn on the row's own gridline, as for any row. (2) Where the nudge is kept (no column header, AutoRowSize
-  off), the row below is one pixel inside the calculators' viewport, so the snapshot does not report the row as
-  lined up. The line is one border high there, but the selection is drawn as for any row and the fill handle
-  is partly under the bottom rows, as before DEV-3984. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
+  drawn on the row's own gridline, as for any row. An AutoRowSize plugin turned on through `updateSettings()`
+  used to put every grid in that state: the host read `externalRowCalculator` only when it built the engine, so
+  the engine kept measuring and recorded the clone's first row with its border (`syncExternalRowCalculator()`
+  in `tableView.ts`, see `src/plugins/autoRowSize/AGENTS.md`). Two limits. (1) Where the nudge is kept (no
+  column header, AutoRowSize off), the row below is one pixel inside the calculators' viewport, so the snapshot
+  does not report the row as lined up. The line is one border high there, but the selection is drawn as for any
+  row and the fill handle is partly under the bottom rows, as it was before the bottom freeze line rule. (2) The nudge cannot tell a first
+  row with a height of its own from one without: `getHiderHeightCompensation()` reads settings only, and the
+  hider and the layout prediction read the same helper, so it cannot be changed for the scroll target alone.
+  With no column header and a first row that has a height of its own, the nudge still moves a lined-up row
+  1px above where the clone's border is: measured 0px between the row's bottom edge and the clone's top edge,
+  so the two borders sit side by side, where a grid with column headers has the clone covering the row's
+  border. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
   `test/unit/selection/border/frozenBottomLine.unit.ts`. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
@@ -1175,6 +1257,31 @@ Consequences worth knowing:
   the twin of `standsBehindRowHeader` — the cell is the first `<tr>` of a `tbody` whose previous
   sibling is a NON-empty `thead` — and `Border#appear` moves the top edge onto the cell's own boundary
   for it. Same blind spot: the edge is present, just painted over.
+- **Under AutoRowSize the first-row pixel moves with the band, and two readers must not depend on which band
+  the grid was in (DEV-4050).** AutoRowSize puts the grid's top-border pixel in the height of the row that is
+  first rendered NOW, and the engine's row-height cache bakes it at the row that was first rendered when the
+  cache was built (`#rowFirstRenderedAtBuild`). With no column header that is the case
+  `heightsCarryFirstRowPixel()` (`axisSizing/hiderCompensation.ts`) answers; ask it there, never a fifth copy
+  of the question.
+  - **A bottom-snap target sums for the layout AFTER the scroll.** `TopOverlay#scrollTo` sums `[0, row + 1)`,
+    and `Viewport#sumRowHeights` holds the pixel only when the current first rendered row is in that range, but
+    the band that will exist after the scroll starts above the row. `Viewport#getFirstRowPixelMissingFrom()`
+    adds the pixel when the current band left it out. Without it a snap from a band below the target ended
+    1px low, and the result followed the scroll history (the ticket's 1, 1, 2, 2, 1). With no frozen bottom
+    rows the target keeps its extra pixel after it, so that shape now ends one pixel above the viewport edge
+    from every band, as it already did from the ones that held the pixel.
+  - **A band start is not read raw from the cache.** Every published rendered-band `startPosition` (the
+    calculator build through `rowBandStartOffsetFn`, and the two band-extension sites in
+    `viewport/calculatorFactory.ts`) goes through `Viewport#getRowBandStartOffset()`, which takes the baked
+    pixel out for a band that starts below the baked row. A cache rebuilt at one band and then read for another
+    drew the band a pixel low (`startPosition` 871 against 870 live). The fully and partially visible
+    calculators still read the cache directly, on purpose: that keeps their borderline answers unchanged.
+  - A top-edge snap under AutoRowSize shows the same 0 or 1px alternation of `scrollTop` and renders
+    identically, so it was left alone.
+  - Pinned by the `bottom snap with AutoRowSize` blocks of `tests/e2e/fixed-rows-bottom-line.spec.ts` (the
+    cache-rebuild case fails without the band-start rule, the sequence cases without the target rule),
+    `test/unit/viewport/firstRowPixel.unit.ts`, `test/unit/calculator/viewportRows.unit.ts`,
+    `test/unit/viewport/calculatorFactory.unit.js` and `test/unit/overlay/topOverlayScrollTarget.unit.ts`.
 - **The active-header accent on the first rendered row moves to the CORNER.** `-row-seam-bottom` /
   `-row-seam-top` colour the row *above* an active one, and row 0 has none — the accent used to come
   from the row's own `border-top`, which is now 0px wide. `SelectionManager` therefore tags the last
@@ -1331,7 +1438,11 @@ Nine rules follow.
   `overflow-x: clip` inline on the root of a root instance under `'horizontal'`, the same clip a definite
   `width` gets, so the scroll spacer and the overlay rails cannot reach through the root and widen the
   page. It only reads and writes the inline style, so an inline `overflow` on the root is left alone and
-  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the last case of `tests/e2e/width-window-scroll.spec.ts`.
+  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the `'horizontal'` cases of `tests/e2e/width-window-scroll.spec.ts`.
+  The forced `y` branch of `resolveAxisOwner()` has its own pin in the same file: the `'vertical'`
+  alias in a parent with a `height` and no `overflow`. The forced owner there is the grid's root
+  element (`ht_master`'s parent), which gets the parent's height through the root wrapper chain, so
+  the cases measure `hot.rootElement` and not the element the height is written on.
 - **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
   `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
   element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
@@ -1629,7 +1740,7 @@ Never guess a container from an empty style read, and never cache a layout decis
 - **Cancel `touchend` when a tap moved focus onto the cell, and when the gesture was not a tap on a cell that was not selected at `touchstart`.** A non-tap never runs the deferred mousedown, so the focus range does not include that cell. The cancel stops a compatibility mousedown inside the browser's tap slop from selecting it (#11659). A drift that ends on the already-selected cell is not cancelled (DEV-2687). `disableVisualSelection` of `true`, `'current'`, or an array containing `'current'` never commits a range (`Highlight#isEnabledFor` skips `add().commit()`), so a tap there is not cancelled. A hook that stops selection leaves the previous range where it was, so a tap is not cancelled either. A checkbox stays exempt. On iOS Chrome and iOS Firefox, `preventDefault` also runs for a non-interactive target whether or not a range was committed, because those engines drop the second tap otherwise. `A`, `BUTTON`, `INPUT`, and a label whose control is a file input stay exempt. Read the range, not the Handsontable setting.
 
 - **Drop only the first synthesized pair after a tap, gated veto → pending pair → ceiling.** `#isTouchSynthesizedMouseEvent()` gates both `mousedown` and `mouseup` in that order: an engine that reports the origin and says "not touch" wins first (Blink's `sourceCapabilities.firesTouchEvents === false` means a real mouse or pen click, always processed, even right after a tap); otherwise the event is synthesized only if a touch-driven `onMouseUp` just armed `#synthesizedPairPending` AND the `TOUCH_SYNTHESIZED_MOUSE_WINDOW` (500 ms) ceiling since `#lastTouchMouseUpAt` has not passed — a tap that drifted past the move threshold is classified as a scroll by the touch path (no `onMouseDown`/`onMouseUp`, no stamp, pair never armed) — a drift ending over the already-selected cell gets its compatibility pair processed on every engine alike (DEV-2687); a drift over an unselected cell is `preventDefault`-ed and synthesizes nothing — provided no tap armed the pair inside the ceiling; a scroll-classified gesture clears the flag at its `touchend`, before its own compatibility pair arrives. The `mouseup` half consumes the pair (`#synthesizedPairPending = false`), so any later real mouse event inside the ceiling is treated as real — a fill-handle grab, a drag-selection, or a right-click started with a mouse right after a tap works on engines that do not report the input origin (WebKit, Firefox), where the residual gap is only the FIRST synthesized pair itself. Dropping only `mouseup` (the original #12804 fix) fired `onCellMouseDown` twice per tap and re-armed the pairing slot and made iPad double-tap-to-edit nondeterministic. `TOUCH_SYNTHESIZED_MOUSE_WINDOW` lives in `helpers/dom/inputOrigin.ts`, alongside `getMouseEventTouchOrigin()`, and is shared with `tableView.ts` (its `#recentTouchEndTimeout` uses the same constant), so both layers use the same fallback window. `tableView.ts`'s own gate (`#isSyntheticMouseEvent()`) deliberately keeps its older `reported ?? #recentTouchEnd` policy instead of adopting `event.ts`'s consume-once order: a Blink-flagged pair (`firesTouchEvents === true`) must never be allowed to close the editor through the outside-click handler, so the two gates are not to be "harmonized".
-- **The long-press timer is the shared `LongPressDetector`** (`helpers/dom/longPress.ts`: `LONG_PRESS_DELAY` 500 ms, `LONG_PRESS_MOVE_THRESHOLD` 10 px). `event.ts` keeps what a long press does on a cell (`#onLongPress`: the mouse-down, the double-click reset, the synthetic `contextmenu`); the detector only times the press. The sheets bar's tabs use the same detector, so a change to the delay or the drift changes both surfaces, which is the point: one touch rule across the grid's UI.
+- **The long-press timer is the shared `LongPressDetector`** (`helpers/dom/longPress.ts`: `LONG_PRESS_DELAY` 500 ms, `LONG_PRESS_MOVE_THRESHOLD` 10 px). `event.ts` keeps what a long press does on a cell (`#onLongPress`: the mouse-down, the double-click reset, the synthetic `contextmenu`); the detector only times the press. The sheets bar's tabs use the same detector, so a change to the delay or the drift changes both surfaces, which is the point: one touch rule across the grid's UI. `#onLongPress` replays the press through `onMouseDown` while the finger is still down and marks that event with `markLongPressReplay()`: a control that acts on the release of a press (the header and row checkboxes, the collapse indicator and button) reads `isLongPressReplay(event)` and skips its action, because a tap is replayed at `touchend` and a long press has no release behind it yet.
 - **Touch double-taps are paired independently of the mouse double-click slots.** `#handleTouchTap()` tracks `#lastTapCoords`/`#lastTapAt` and fires the double-click callbacks when a second tap lands on the same coordinates within `TOUCH_DBLTAP_TIMEOUT` (1000 ms); a long-press, a tap outside the cells, or a tap on different coordinates resets the detector. Coordinates, not the resolved TD, because Walkontable recycles TD elements across scrolls and re-renders (DEV-2687 review). Touch taps never arm `#dblClickOrigin` — only a mouse `mousedown` with `button === 0` does — so a real mouse click right after a tap cannot complete a double-click by pairing with it. Mouse double-click timing (`DBLCLICK_MOUSEDOWN_TIMEOUT` 1000 ms / `DBLCLICK_MOUSEUP_TIMEOUT` 500 ms) is unchanged. `touchcancel` resets the per-gesture state (`onTouchCancel`) — `touchApplied`, the mouse-down flag, the long-press timer, and the pending synthesized pair — so a cancelled gesture cannot leave `touchApplied` stuck and route real mouse events into the tap detector, leave drag-selection armed with no `mouseup` coming, or leave an earlier tap's pending flag dropping the next real mouse pair inside the ceiling.
 - **Before 18.1, a tap on an already-selected cell opened the editor** on these devices (the unsuppressed synthesized pair completed a second double-click match). A first tap that commits a focus range is `preventDefault`-ed and synthesizes nothing. A first tap that does not commit a range (visual selection off, or a hook that blocks selection) is not cancelled, except on iOS Chrome and iOS Firefox, where a non-interactive target still is. The pre-18.1 editor-on-first-tap behavior was a side effect. Do not restore it.
 - Test it in Playwright with `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` (`tests/e2e/touch-tap-to-edit.spec.ts`); Chromium synthesizes the same mouse sequence after `locator.tap()`. Use `page.clock` to drive the pairing timers. Script-dispatched `MouseEvent`s have `sourceCapabilities === null` and exercise the WebKit fallback.
@@ -2001,6 +2112,115 @@ offered to the host with its own coordinates) and `tests/e2e/incremental-render.
 a scroll down and up, element identity in the master and the frozen-columns clone, equality to a
 full repaint, an open editor across a scroll).
 
+## A painted element's accessibility attributes are reconciled, never stripped and rewritten
+
+Every draw repaints recycled TD and TH elements, mostly with the attributes they already carry. The
+renderers used to remove every `aria-*` and `role` attribute (a regex walk) and write the managed ones
+again for a DOM that ended up identical. They now write only what differs, which cut the scripting time
+of the `scroll-down` performance scenario by about 13% (DEV-4105):
+
+- **Cells are brought to their start state before the renderer runs** (`prepareCellAriaAttributes` in
+  `render/cells.ts`). Every attribute whose name contains `aria-` or `role` is removed (the old unanchored
+  regexes, so a renderer's `data-role` still goes), except the cell's own `role`, `aria-colindex` and
+  `aria-describedby`, which are then set to this draw's values with `tabindex`, each written only when it
+  differs. A vertical scroll and a plain redraw write none of these; a horizontal scroll rewrites the two
+  that follow the column, in place. An attribute the cell renderer adds itself (core's base renderer adds
+  `aria-readonly` and `aria-invalid`) is still cleared and written again on every paint.
+- **A cell renderer therefore starts from core's attributes**: `role="gridcell"`, `tabindex`,
+  `aria-colindex` and `aria-describedby`, on a new element and a recycled one alike. Before, it started from
+  none of them. Keep that state the same for both: when a fresh element and a recycled one reach the renderer
+  in different states, a renderer that reads before it writes (`if (!TD.hasAttribute('role'))`, or appending
+  to `aria-describedby`) gives output that depends on the element's paint history.
+- **After the renderer** (`restoreCellAriaAttributes`), `role` and `aria-describedby` are written back only
+  when the renderer removed them, so a renderer's own value wins; `aria-colindex` and `tabindex` are written
+  when the renderer changed them, so core wins there, as before.
+- **Headers** (`columnHeaders.ts`, `rowHeaders.ts`) write before their header renderers, so they use
+  `syncAriaAttributes(element, attributes)` from `render/ariaAttributes.ts`: clear the rest, then write each
+  one that differs. The object lists the attributes in the order a new element gets them.
+- **`ariaTags: false` keeps nothing** (`NO_KEPT_ARIA_ATTRIBUTES`): every such attribute is cleared, as
+  before.
+- Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
+  renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
+- **A table section is a `rowgroup` only while it holds rows** (`giveRowGroupRole` and `dropRowGroupRole` in
+  `render/ariaAttributes.ts`, called by `render/rows.ts` for the TBODY and `render/columnHeaderRows.ts` for
+  the THEAD). Every clone has both sections and most leave one empty: the top clone's body without frozen top
+  rows, a top corner's body without frozen top rows, a bottom clone's head. A `rowgroup` with no `row` is an
+  invalid structure, read as an empty group and reported by axe as "needs review" (DEV-3652). The sections are
+  reused across draws, so the role is removed when a section is drawn with no rows, and only a `rowgroup` role
+  is removed: a role another module wrote on such a section stays. "Holds rows" means rows with a cell. A side
+  clone that is turned off (`rowHeaders: false`, `fixedColumnsStart` or `fixedColumnsEnd` back to 0) is drawn
+  one last time with the master's rows and none of its columns, and is never drawn again, so its rows stayed
+  in the tree as rows with nothing in them; both renderers therefore key the section's role and each row's
+  `row` role and `aria-rowindex` (`dropRowRole`) on `columnsToRender + rowHeadersCount > 0`. Pinned by
+  `test/unit/renderer/rowGroupRole.unit.ts` and `tests/e2e/rowgroup-roles.spec.ts`.
+
+**The strip had a side effect a screen reader depended on, and it is now asked for on purpose (DEV-4151).**
+Removing and re-adding a cell's `role` makes the browser build a new accessibility object for it. That is what
+made VoiceOver with WebKit and NVDA with Firefox read a focused cell again when it changed in place, or read a
+cell the focus jumped to as a move, with its column and row. An attribute that keeps its value does neither: the
+reader keeps the object of the cell the recycled element showed before and says nothing (checkbox toggles, async
+values, `Ctrl+ArrowDown` to a row the grid renders only then). The rebuild is
+`rebuildAccessibilityObject()` (`helpers/a11y.ts`), asked for in three places, each for the cells that need it:
+
+- **A focus move onto a data cell** (`FocusGridManager#announceCellFocus`, `focusManager/grid.ts`): the cell's
+  `role` is rebuilt right before `focus()`, unless the cell holds the focus already, and the cell's state is
+  recorded (`rememberAnnouncedCell()`). A column header only gets the record. This is the case the old strip
+  covered for the cell about to take the focus. The rebuild runs for the root grid only: the lists and menus the
+  editors build are grids of their own, a reader reaches their options through the editor that keeps the focus,
+  and a rebuilt option lost the speech of the list (autocomplete and dropdown arrow keys, the intl date editor).
+  Those grids still record the cell, so a checkbox toggled in a menu list is read again.
+- **The focused cell or header changes in place, or the grid draws the selected cell into it**
+  (`FocusGridManager#announceChangeInPlace`, `focusManager/grid.ts`, on `afterRender`): when the element that holds
+  the focus is the cell the selection points at (`getCell()` of the highlight, not the `current` class, which a grid
+  with `disableVisualSelection` never gets), `hasCellChangedSinceAnnounced()` compares it with the record. The record holds
+  what the cell showed and where it was (`readCellAnnouncementSignature()`: markup, form control state, `aria-*`
+  attributes) when it took the focus, not what it showed before this draw, because the browser can change the
+  state before the draw (a checkbox flipped by Space). A different signature, row or column rebuilds it. The
+  selection check is what keeps a scroll quiet: a wheel scroll with the selection fixed recycles the focused
+  element for rows the user is not on, and the old paint-time check rebuilt it for each of them. A jump to a row the
+  grid renders only then (`Ctrl+ArrowDown`) draws the selected cell into the element that keeps the focus, so the
+  row in the record is what tells it from a repeated paint, and the readers read the cell as a move. The coordinates are the
+  selection's highlight, never `getCoords()`: looking an element up fires the public `modifyGetCoordsElement` hook,
+  which a legacy spec counts. Only the one focused element is looked at. An element whose markup changes on every paint (a
+  generated id, an animated bar) reads as changed on every draw, so such a cell is read again each time.
+- **The offsets that position the cells change** (`#hasPositionOffsetChanged` in `render/cells.ts`, and the same
+  question for the column header count in `render/rows.ts`): when the number of row headers or column headers
+  changes, every painted cell, and every row for a change of the column headers, is rebuilt once, so a reader that
+  learned the old positions counts again (NVDA with Firefox read the first rows of a grid that got column headers
+  one row too low, and the cells alone were not enough: a row keeps the position the reader cached for it). A grid
+  with `renderMode: 'onChange'` is covered by the same test.
+
+Do not make any of these unconditional: the cost of the strip was the reason it went. The rebuild does not reach
+NVDA or VoiceOver with Chromium, which were silent on these steps before DEV-4105 too (DEV-4004 and DEV-4011).
+The readers' speech is not testable in Chromium: the specs pin the mechanism (a `MutationObserver` on `role`), and
+the `Screen reader nightly` lanes (`vo-webkit`, `nvda-firefox`) show whether the reader says it.
+
+Pinned by `test/unit/renderer/ariaAttributes.unit.ts`, `test/unit/renderer/cellsAnnounce.unit.ts` (the header counts), `helpers/__tests__/a11y.unit.ts`,
+`focusManager/__tests__/grid.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
+showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
+from the same attributes on a new and a recycled element, a redraw plus a vertical scroll write no
+accessibility attribute on an element that already holds it (a `MutationObserver`, with a horizontal scroll
+as the positive control), and the three rebuilds above happen once, for the cell that needs them.
+
+## The corner header is a plain `gridcell` with no name of its own
+
+The column header row's cells above the row headers (one per row-header column, in every overlay that draws
+them) get `role="gridcell"`, `aria-colindex` and `tabindex` from `getCornerAriaAttributes` in
+`render/columnHeaders.ts`, and nothing else: no `aria-label`, no `scope`, no `id`. They are not column headers
+(a `columnheader` there would be counted as one), and they have no action of their own to name.
+
+- **A control rendered into the corner names itself.** RowSelection puts its "select all" checkbox there, with
+  its own translated `aria-label` and `aria-checked`. A label on the cell would replace the name the cell takes
+  from that content, so a screen reader would announce the cell's label instead of the checkbox. The cell
+  used to carry `role="gridcell button"` and an English `aria-label="Select whole grid"`, which did exactly that.
+- **A recycled header needs no extra removal.** `syncAriaAttributes` clears every `aria-*` and `role` attribute
+  the kept set does not hold before it writes, so a TH that was a corner with a label, or a column header, sheds
+  what it carried on the next draw. `scope` and `id` are not in that clearing pass and are removed explicitly
+  (`writeColumnHeaderAriaAttributes`).
+
+Pinned by `tests/e2e/corner-header-role.spec.ts` (every overlay's copy, the RowSelection checkbox as the cell's
+name, `ariaTags: false`, and row selection toggled on and off) and `src/__tests__/a11y/headers.spec.js`.
+
 ## A data cell names its column header through `aria-describedby`, and the owner is per column
 
 So a screen reader announces the header with the cell ("Position, C1", not "C1"), `render/cells.ts`
@@ -2012,6 +2232,12 @@ scroll and pooled-node reuse. The id-prefix builder, the ownership predicate, an
 test live together on `TableRenderer` (`getAriaColumnHeaderIdPrefix`, `ownsAriaColumnHeaderId`,
 `hasColumnHeaders`); the prefix is draw-constant and both renderers hoist it out of their per-element
 loop, appending the column index per element.
+
+A cell may also point at a description element (`utils/cellDescription/AGENTS.md`): the cell painter appends a reference that starts
+with `CELL_DESCRIPTION_ID_PREFIX` after this one, once the renderer ran. `prepareCellAriaAttributes` keeps such a value
+(`isKeptDescribedBy()` in `render/ariaAttributes.ts`: the cell's own header reference, then only description references) instead of
+resetting it to the header, which cost two writes per described cell per paint. A value with any other reference, or the header of
+another column, is reset as before.
 
 Four things are load-bearing, and each was a bug first:
 
@@ -2026,10 +2252,10 @@ Four things are load-bearing, and each was a bug first:
 - **The cell gate is grid-wide, not this table's `columnHeadersCount`.** A bottom clone renders no
   header row, so its own count is `0` while the grid has headers its cells must still reference — read
   `hasColumnHeaders()` (from the grid-level `columnHeaders` setting), not the per-table count.
-- **`id` is not covered by the `aria-*`/`role` strip, so `render/columnHeaders.ts` strips it explicitly
-  (`/^id$/`) each paint.** Header nodes are pooled and reused across draws; without the strip a header
-  that stops owning an id (scrolled to a different column, or a corner cell reused as a header) keeps a
-  stale id a data cell points at.
+- **`id` is not covered by the `aria-*`/`role` clearing pass, so `render/columnHeaders.ts` handles it
+  explicitly each paint**: written when the header owns an id and differs, removed otherwise. Header nodes
+  are pooled and reused across draws; without that a header that stops owning an id (scrolled to a
+  different column, or a corner cell reused as a header) keeps a stale id a data cell points at.
 - **A renderer spec's `TableRendererMock` must provide `hasColumnHeaders`, `ownsAriaColumnHeaderId`,
   and `getAriaColumnHeaderIdPrefix`** (same reason the mock must provide `shouldPaintCell`). The
   no-column-header path is inert without a `guid`, so a standalone Walkontable host that sets none

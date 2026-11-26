@@ -16,6 +16,7 @@ const ExampleComponent = () => {
       // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={true}
+      navigableHeaders={true}
       dropdownMenu={true}
       height="auto"
       autoWrapRow={true}

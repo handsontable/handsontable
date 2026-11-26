@@ -24,6 +24,7 @@ class SelectEditor extends BaseEditor {
     cellProperties: object
   ): void {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
+    this.select.setAttribute('aria-label', String(this.hot.getColHeader(col)));
 
     const rawOptions = (this.cellProperties as any).selectOptions ?? [];
     const options: Record<string, string> = Array.isArray(rawOptions)
@@ -91,17 +92,17 @@ class SelectEditor extends BaseEditor {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  Low: '#22c55e',
-  Medium: '#f59e0b',
-  High: '#ef4444',
+  Low: '#15803d',
+  Medium: '#b45309',
+  High: '#b91c1c',
   Critical: '#7c3aed',
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  'To Do': '#6b7280',
-  'In Progress': '#3b82f6',
-  Review: '#f59e0b',
-  Done: '#22c55e',
+  'To Do': '#4b5563',
+  'In Progress': '#1d4ed8',
+  Review: '#b45309',
+  Done: '#15803d',
 };
 
 function badgeRenderer(colorMap: Record<string, string>) {
@@ -119,7 +120,7 @@ function badgeRenderer(colorMap: Record<string, string>) {
       const badge = hotInstance.rootDocument.createElement('span');
 
       badge.className = 'htSelectBadge';
-      badge.style.background = colorMap[value] ?? '#6b7280';
+      badge.style.background = colorMap[value] ?? '#4b5563';
       badge.innerText = value as string;
       td.appendChild(badge);
     }

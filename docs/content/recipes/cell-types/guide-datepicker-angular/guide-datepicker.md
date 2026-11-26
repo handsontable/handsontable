@@ -157,6 +157,7 @@ The editor component handles user input with a native HTML5 date picker.
   template: `
     <input
       type="date"
+      aria-label="Restock date"
       [(ngModel)]="dateValue"
       #editorInput
       (change)="onDateChange()"

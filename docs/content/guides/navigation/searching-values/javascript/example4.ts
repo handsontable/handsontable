@@ -5,8 +5,6 @@ import { Search } from 'handsontable/plugins';
 // Register all Handsontable's modules.
 registerAllModules();
 
-let searchResultCount = 0;
-
 const data: (string | number)[][] = [
   ['Hydrogen', 'H', 1, 1.008],
   ['Helium', 'He', 2, 4.003],
@@ -15,35 +13,13 @@ const data: (string | number)[][] = [
   ['Boron', 'B', 5, 10.81],
 ];
 
-// define your custom callback function
-function searchResultCounter(
-  instance: Handsontable.Core,
-  row: number,
-  column: number,
-  value: Handsontable.CellValue,
-  result: boolean
-): void {
-  const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
-    instance.getCellMeta(row, col).isSearchResult = testResult;
-  };
-
-  DEFAULT_CALLBACK.apply(this, [instance, row, column, value, result]);
-
-  if (result) {
-    searchResultCount++;
-  }
-}
-
 const container = document.querySelector('#example4')!;
 
 const hot = new Handsontable(container, {
   data,
   colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
   // enable the `Search` plugin
-  search: {
-    // add your custom callback function
-    callback: searchResultCounter,
-  },
+  search: true,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
@@ -54,10 +30,19 @@ const searchField = document.querySelector('#search_field4')!;
 const output = document.querySelector('#output')!;
 
 searchField.addEventListener('keyup', (event) => {
-  searchResultCount = 0;
-
   const search: Search = hot.getPlugin('search');
-  const queryResult = search.query((event.target as HTMLInputElement).value);
+  // the default callback marks the matching cells, so they stay highlighted
+  const defaultCallback = search.getCallback();
+  let searchResultCount = 0;
+
+  // pass your custom callback function: it calls the default callback and counts the matches
+  const queryResult = search.query((event.target as HTMLInputElement).value, (instance, row, col, value, result) => {
+    defaultCallback(instance, row, col, value, result);
+
+    if (result) {
+      searchResultCount++;
+    }
+  });
 
   console.log(queryResult);
   (output as HTMLElement).innerText = `${searchResultCount} results`;

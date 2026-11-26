@@ -22,6 +22,8 @@ const dictionary = {
   [C.CANCEL]: 'Otkaži',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih opcija',
+  [C.CONTEXTMENU_LABEL]: 'Kontekstni meni',
+  [C.DROPDOWNMENU_LABEL]: 'Meni kolone',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Unesi red iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Unesi red ispod',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Unesi kolonu levo',
@@ -83,6 +85,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Nema',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Je prazno',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nije prazno',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Označeno',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Nije označeno',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Je jednako',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Nije jednako',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Počinje sa',
@@ -149,6 +153,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] premešten na poziciju [position] od [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
 
+  [C.CHECKBOX_CHECKED]: 'Označeno',
+  [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
+
   [C.LOADING_TITLE]: 'Učitavanje...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zatvori',
 
@@ -159,6 +166,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtere',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Učitavanje podataka',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Sačekajte.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Podaci su učitani',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nije moguće učitati podatke',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nije moguće kreirati redove',
@@ -169,6 +177,9 @@ const dictionary = {
   [C.ROW_SELECTION_SELECT_ROW]: 'Izaberi red [row]',
   [C.ROW_SELECTION_SELECT_ALL]: 'Izaberi sve redove (izabrano [selected] od [total])',
   [C.CHECKBOX_HEADER_CHECK_ALL]: 'Označi sve (označeno [checked] od [total])',
+  [C.CONTEXTMENU_ITEMS_RENAME_HEADER]: 'Preimenuj zaglavlje',
+  [C.EDITABLE_HEADERS_INPUT_LABEL]: 'Naziv zaglavlja',
+  [C.EDITABLE_HEADERS_RENAMED]: 'Zaglavlje preimenovano u [value]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Red [row] izabran',
   [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Izbor reda [row] poništen',
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Izabrano [selected] od [total] redova',
@@ -178,11 +189,49 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti redovi na dnu',
   [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznute kolone na početku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznute kolone na kraju',
+  [C.ARMED_PICK_STARTED]: 'Kliknite ili dodirnite cilj da završite. Pritisnite Escape da otkažete.',
+  [C.ARMED_PICK_CANCELED]: 'Otkazano.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Promena širine kolone. Strelicama levo i desno menjate širinu, Enter primenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Promena visine reda. Strelicama gore i dole menjate visinu, Enter primenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Promena veličine polja za komentar. Strelicama menjate veličinu, Enter primenjuje, Escape otkazuje.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Širina: [size] piksela',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Visina: [size] piksela',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivo [level], [position] od [setSize]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Nivo [level], [position] od [setSize], prošireno',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Nivo [level], [position] od [setSize], skupljeno',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'samo za čitanje',
+  [C.CELL_DESCRIPTION_LINK]: 'veza',
+  [C.CELL_DESCRIPTION_MERGED]: 'spojeno do reda [row] kolone [column]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Proširena grupa kolona [label]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Skupljena grupa kolona [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Sortirano po [label], rastuće',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Sortirano po [label], opadajuće',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortiranje uklonjeno za [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Sortirano po [label], rastuće, prioritet sortiranja [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Sortirano po [label], opadajuće, prioritet sortiranja [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Izbor od kolone [startColumn], reda [startRow] do kolone [endColumn], reda [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Sve ćelije izabrane',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Kolona [column] izabrana',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Kolone od [startColumn] do [endColumn] izabrane',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Red [row] izabran',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Redovi od [startRow] do [endRow] izabrani',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Izbor dodat: [selection]. Broj izbora: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'kolona [column], red [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'od kolone [startColumn], reda [startRow] do kolone [endColumn], reda [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'sve ćelije',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'kolona [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'kolone od [startColumn] do [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'red [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'redovi od [startRow] do [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Uređivač formula',
   [C.FORMULA_BUILDER_INPUT]: 'Unos formule',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Adresa ćelije',
@@ -202,6 +251,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Greška u [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Još [count] ćelija sada sadrži grešku.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Broj drugih ćelija sa greškom: [count].',
+  [C.EDITOR_INPUT_LABEL]: '[column], red [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Komentar za [column], red [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentar za [column], [row]',
 };
 
 export default dictionary;

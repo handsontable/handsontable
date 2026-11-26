@@ -615,6 +615,100 @@ export default (): Record<string, unknown> => {
     allowRemoveRow: true,
 
     /**
+     * The `ariaDescribedby` option gives the grid an accessible description. Set it to the `id` of an element
+     * on the page, or to several `id`s separated by spaces. Handsontable writes the value to the `aria-describedby`
+     * attribute of the grid's root element, and a screen reader reads the text of those elements after the grid's name.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-describedby` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-describedby` attribute that the grid wrote. An
+     * `aria-describedby` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // describe the grid with the text of the element with the `sales-help` id
+     * ariaDescribedby: 'sales-help',
+     * ```
+     */
+    ariaDescribedby: undefined,
+
+    /**
+     * The `ariaLabel` option gives the grid an accessible name. Handsontable writes the value to the `aria-label`
+     * attribute of the grid's root element, and a screen reader reads it when the focus enters the grid.
+     *
+     * When a heading or another element on the page already names the grid, use [`ariaLabelledby`](#arialabelledby)
+     * instead, so the visible text and the accessible name stay the same.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-label` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-label` attribute that the grid wrote. An
+     * `aria-label` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // name the grid
+     * ariaLabel: 'Quarterly sales',
+     * ```
+     */
+    ariaLabel: undefined,
+
+    /**
+     * The `ariaLabelledby` option names the grid with the text of other elements on the page. Set it to the `id`
+     * of an element, or to several `id`s separated by spaces. Handsontable writes the value to the `aria-labelledby`
+     * attribute of the grid's root element.
+     *
+     * A screen reader uses `aria-labelledby` before [`ariaLabel`](#arialabel) when you set both.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-labelledby` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-labelledby` attribute that the grid wrote. An
+     * `aria-labelledby` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // name the grid with the text of the element with the `sales-title` id
+     * ariaLabelledby: 'sales-title',
+     * ```
+     */
+    ariaLabelledby: undefined,
+
+    /**
      * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
      * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
      * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.
@@ -807,8 +901,22 @@ export default (): Record<string, unknown> => {
      *
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
+     * On a tall grid, the first measure measures only the columns on screen (and the columns their merged cells
+     * span) before the first paint, and the other columns in the background. That happens at initialization and
+     * on [`loadData()`](@/api/core.md#loaddata), when all of these are true:
+     * - You don't set `syncLimit` in an object (with `autoColumnSize: true`, or unset, the plugin measures 51 columns).
+     * - [`autoRowSize`](#autorowsize) is off.
+     * - The measured columns times the rows exceed 1,000,000 cells (with 51 columns, from 19,608 rows).
+     *
+     * Until the background work ends, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for
+     * an off-screen column. A [`selectCell()`](@/api/core.md#selectcell) or
+     * [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made then measures the columns up to its
+     * target first, so it scrolls by the real widths. Set `syncLimit` to keep its columns measured before the
+     * first paint, whatever the number of rows.
+     *
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
+     * - [Performance](@/guides/optimization/performance/performance.md)
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -895,6 +1003,11 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
      * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      *
+     * With a [`tabMoves`](#tabmoves) that moves down (`{ row: 1, col: 0 }`), <kbd>**Tab**</kbd> follows the same rule,
+     * except at the grid's edge: with `false`, <kbd>**Tab**</kbd> on a bottom-most cell moves the focus out of the grid; with
+     * `true`, <kbd>**Tab**</kbd> on the last cell of the grid moves the focus out of the grid.
+     * <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> mirrors it at the top.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -920,8 +1033,8 @@ export default (): Record<string, unknown> => {
     /**
      * | Setting           | Description                                                                                                                                                                                                                                                                                                        |
      * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) doesn't do anything.                                                  |
-     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below. |
+     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* doesn't do anything, and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\* moves the focus out of the grid.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* doesn't do anything, and <kbd>**Tab**</kbd>** moves the focus out of the grid. |
+     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* (or <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*) takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* (or <kbd>**Tab**</kbd>**) takes you to the first cell of the row below.<br><br>From the last cell of the grid, <kbd>**Tab**</kbd>** moves the focus out of the grid (<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>\*\*: from the first cell). |
      *
      * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.<br>
      * \*\* Unless [`tabNavigation`](#tabnavigation) is set to `false`.
@@ -937,8 +1050,8 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) doesn't do anything
-     * // when you select the last cell of a row, pressing ➡ (or Tab) doesn't do anything
+     * // when you select the first cell of a row, pressing ⬅ doesn't do anything, and Shift+Tab moves the focus out of the grid
+     * // when you select the last cell of a row, pressing ➡ doesn't do anything, and Tab moves the focus out of the grid
      * autoWrapRow: false, // default setting
      *
      * // when you select the first cell of a row, pressing ⬅ (or Shift+Tab) takes you to the last cell of the row above
@@ -1098,6 +1211,53 @@ export default (): Record<string, unknown> => {
      * ```
      */
     cells: undefined,
+
+    /**
+     * The `applyCellsToDataReads` option makes data reads call the [`cells`](#cells) function for
+     * every cell they read, so a [`valueGetter`](#valuegetter) or a key/value cell type that `cells`
+     * sets applies to every row, rendered or not.
+     *
+     * By default, a data read applies such a `valueGetter` only to the cells the grid has rendered.
+     * The grid keeps the cell meta of the rows around the viewport and drops it when they scroll away,
+     * so without this option, [`getData()`](@/api/core.md#getdata) and the other `getDataAt*()` methods,
+     * copying, column sorting, and filtering read the raw value for the other rows.
+     *
+     * With this option on, those reads call `cells` once for every cell they read. A read runs no
+     * `beforeGetCellMeta` or `afterGetCellMeta` hook and stores no cell meta. The cost grows with what
+     * `cells` does: a `cells` function that reads grid data (for example, `this.instance.getDataAtRow(row)`)
+     * pays that read for every cell, so a full `getData()` of a large grid can take seconds. Turn the
+     * option on only for the columns whose `cells` function sets a `valueGetter` or a cell type.
+     *
+     * Filtering passes physical row and column indexes to the `valueGetter`, as described in
+     * [`valueGetter`](#valuegetter).
+     *
+     * Read more:
+     * - [`cells`](#cells)
+     * - [`valueGetter`](#valuegetter)
+     * - [Performance: Avoid the `cells` option when possible](@/guides/optimization/performance/performance.md#avoid-the-cells-option-when-possible)
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     // apply the `valueGetter` that `cells` sets to every row a data read returns
+     *     applyCellsToDataReads: true,
+     *   },
+     *   {},
+     * ],
+     * cells(row, column) {
+     *   return column === 0 ? { valueGetter: value => String(value).toUpperCase() } : {};
+     * },
+     * ```
+     */
+    applyCellsToDataReads: false,
 
     /**
      * The `checkedTemplate` option lets you configure what value
@@ -3236,6 +3396,59 @@ export default (): Record<string, unknown> => {
     editor: undefined,
 
     /**
+     * The `editableHeaders` option configures the [`EditableHeaders`](@/api/editableHeaders.md) plugin, which lets
+     * users rename column headers, and optionally row headers, the way they edit cells.
+     *
+     * You can set the `editableHeaders` option to one of the following:
+     *
+     * | Setting   | Description                                                                                      |
+     * | --------- | ------------------------------------------------------------------------------------------------ |
+     * | `true`    | Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin for column headers               |
+     * | `false`   | Disable the [`EditableHeaders`](@/api/editableHeaders.md) plugin                                 |
+     * | An object | Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin and choose the header axes      |
+     *
+     * The object form accepts the following properties:
+     *
+     * | Property        | Type      | Default | Description                          |
+     * | --------------- | --------- | ------- | ------------------------------------ |
+     * | `columnHeaders` | `boolean` | `true`  | Whether users can rename column headers |
+     * | `rowHeaders`    | `boolean` | `false` | Whether users can rename row headers    |
+     *
+     * To keep one column's header from being renamed, set `editableHeaders: false` for that column in the
+     * [`columns`](#columns) option.
+     *
+     * Read more:
+     * - [Column header](@/guides/columns/column-header/column-header.md#rename-headers-in-the-grid)
+     * - [Plugins: `EditableHeaders`](@/api/editableHeaders.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category EditableHeaders
+     * @configScope grid columns
+     * @since 19.0.0
+     *
+     * @example
+     * ```js
+     * // let users rename column headers
+     * editableHeaders: true,
+     *
+     * // let users rename column headers and row headers
+     * editableHeaders: {
+     *   columnHeaders: true,
+     *   rowHeaders: true,
+     * },
+     *
+     * // keep the first column's header from being renamed
+     * columns: [
+     *   { editableHeaders: false },
+     *   {},
+     * ],
+     * ```
+     */
+    editableHeaders: undefined,
+
+    /**
      * @description
      * The `emptyDataState` option configures the [`EmptyDataState`](@/api/emptyDataState.md) plugin.
      *
@@ -3785,9 +3998,12 @@ export default (): Record<string, unknown> => {
      *
      * The condition names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes, for
      * example `'eq'`, `'gt'`, `'between'`, or `'not_between'`. A column whose type has no list of its
-     * own (for example `dropdown`) uses the `text` list. **None** always stays first. A name the
-     * column's data type does not offer is left out. The setting changes the lists only: a condition
-     * added through [`addCondition()`](@/api/filters.md#addcondition) still filters, and its select
+     * own (for example `dropdown`) uses the `text` list. A `checkbox` column uses the `text` list with
+     * `'checked'` and `'unchecked'` added (unless a data provider backs the grid), and follows the
+     * `text` key of a per-type object. There is no `checkbox` key: to offer a checkbox column only
+     * `'empty'`, `'not_empty'`, `'checked'`, and `'unchecked'`, set `availableConditions` on that column.
+     * **None** always stays first. A name the column's data type does not offer is left out. The
+     * setting changes the lists only: a condition added through [`addCondition()`](@/api/filters.md#addcondition) still filters, and its select
      * still shows it.
      *
      * When the grid is created, and when the setting changes, a console warning names each condition
@@ -5047,11 +5263,15 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `layout` option configures the order of plugin UI elements within the user-orderable
-     * wrapper slots rendered around the grid: `top` and `bottom`. Each slot takes an ordered array
-     * of element keys (for example `'pagination'`). Keys you list are placed first in that order;
-     * any remaining elements follow by their default weight. The grid and the overlays layer (the
+     * wrapper slots rendered around the grid: `top`, `bottom`, `start`, and `end`. The `top` and
+     * `bottom` slots sit above and below the grid. The `start` and `end` slots sit at the grid's
+     * inline-start and inline-end edges (with [`layoutDirection: 'rtl'`](#layoutdirection), `start`
+     * is on the right). Each slot takes an ordered array of element keys (for example
+     * `'pagination'`). Keys you list are placed first in that order; any remaining elements follow
+     * by their default weight. The grid and the overlays layer (the
      * modal layer, such as the dialog) are not orderable through this option. The license
      * notification is not orderable either; it always renders last in the `bottom` slot.
+     * The `start` and `end` slots are available since 19.0.0.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5068,6 +5288,11 @@ export default (): Record<string, unknown> => {
      * // render pagination above a custom 'summary' element registered in the bottom slot
      * layout: {
      *   bottom: ['pagination', 'summary'],
+     * },
+     *
+     * // in the start side slot, render a custom 'filters' panel at the outer edge, before a custom 'notes' panel
+     * layout: {
+     *   start: ['filters', 'notes'],
      * },
      * ```
      */
@@ -7587,7 +7812,14 @@ export default (): Record<string, unknown> => {
      *
      * Default `queryMethod` behavior: case-insensitive, locale-aware substring match using `toLocaleLowerCase()` with `cellProperties.locale`.
      *
-     * Default `callback` behavior: sets `instance.getCellMeta(row, col).isSearchResult = testResult` on every cell.
+     * Default `callback` behavior: sets `isSearchResult` to `true` on the cell metadata of every match, and to `false`
+     * on every other cell that already has stored metadata. A non-matching cell without stored metadata is left as it
+     * is, so a query does not store metadata for every cell it scans, and its `isSearchResult` reads `undefined`.
+     * A custom `callback` that calls `getCellMeta()` for every cell stores metadata for every cell; to keep the default
+     * behavior, call the callback that `getCallback()` returns from yours.
+     *
+     * The `cellProperties` object passed to `queryMethod` can be a temporary object that is not stored, so
+     * read from it, but do not write to it.
      *
      * **Per-cell overrides:** `queryMethod` and `callback` can also be set on individual cells, columns, or rows
      * using the cascading configuration model. A cell-level `search.queryMethod` or `search.callback` takes
@@ -7621,15 +7853,6 @@ export default (): Record<string, unknown> => {
      *
      *     return queryStr.toString() === value.toString();
      *   },
-     *   // Count results while preserving default highlighting
-     *   callback(instance, row, col, data, testResult) {
-     *     // Preserve the default isSearchResult flag so highlighting still works
-     *     instance.getCellMeta(row, col).isSearchResult = testResult;
-     *
-     *     if (testResult) {
-     *       // Custom logic: e.g., increment a result counter
-     *     }
-     *   }
      * },
      *
      * // Override queryMethod for a specific column only (per-cell via cascading config)
@@ -7643,6 +7866,22 @@ export default (): Record<string, unknown> => {
      *     }
      *   }
      * ],
+     * ```
+     *
+     * ```js
+     * // Count results while preserving the default highlighting: get the default callback
+     * // before you pass your own, and call it from yours
+     * const searchPlugin = hot.getPlugin('search');
+     * const defaultCallback = searchPlugin.getCallback();
+     * let resultCount = 0;
+     *
+     * searchPlugin.query('He', (instance, row, col, data, testResult) => {
+     *   defaultCallback(instance, row, col, data, testResult);
+     *
+     *   if (testResult) {
+     *     resultCount += 1;
+     *   }
+     * });
      * ```
      */
     search: false,
@@ -8674,6 +8913,11 @@ export default (): Record<string, unknown> => {
      * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
      * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
+     * When <kbd>**Tab**</kbd> moves the selection past the grid's edge, the focus leaves the grid. This works
+     * for a move across columns and for a move down or up only (`{ row: 1, col: 0 }`). With
+     * [`autoWrapRow`](#autowraprow) or [`autoWrapCol`](#autowrapcol) on, the selection wraps instead, and
+     * <kbd>**Tab**</kbd> leaves the grid from the last cell (<kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>: from the first cell).
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -9161,6 +9405,11 @@ export default (): Record<string, unknown> => {
      * The `valueGetter` option configures a function that defines what value will be used when displaying the cell content.
      * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
      *
+     * When the [`Filters`](@/api/filters.md) plugin filters a column, it passes the physical row and column
+     * indexes as `row` and `column`. After you sort, move, or filter rows, a `valueGetter` that reads other
+     * cells by these indexes can read different cells while filtering than in
+     * [`getDataAtCell()`](@/api/core.md#getdataatcell).
+     *
      * @example
      * ```js
      * // use the `label` property of the value object with a fallback to the value itself
@@ -9551,6 +9800,11 @@ export default (): Record<string, unknown> => {
      * fixed size. An ignored value leaves the grid's width as it was, and a warning is printed once
      * per grid and value.
      *
+     * With side panels docked in the
+     * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
+     * the width includes them, and the grid fills the rest. When `width` is set, a function `width`
+     * runs again whenever a side panel mounts, unmounts, or changes its width.
+     *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block
      * element. Use this value when you want the grid to stay flexible horizontally while still
@@ -9778,8 +10032,11 @@ export default (): Record<string, unknown> => {
      * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
      * to get editor completion on the values below.
      *
-     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`
-     * and `'CopyPaste.columnHeader'`. A plugin may pass a surface of its own, so treat the list as open.
+     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`,
+     * `'CopyPaste.columnHeader'`, `'A11y.columnLabel'` (a column header read for a cell editor's accessible
+     * name or a sort announcement, when the header is not rendered), and `'A11y.rowLabel'` (a custom row
+     * header read for a cell editor's accessible name). A plugin may pass a surface of its own, so treat the
+     * list as open.
      *
      * The built-in extraction runs a configured [`sanitizer`](#sanitizer) first, under the `'header'`
      * surface, then reduces the result to text. That order matters: a sanitizer may remove content

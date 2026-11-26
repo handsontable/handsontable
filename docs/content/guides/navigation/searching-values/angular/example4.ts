@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
-import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'example4-searching-values',
@@ -13,6 +12,7 @@ import Handsontable from 'handsontable/base';
           id="search_field3"
           type="search"
           placeholder="Search"
+          aria-label="Search"
           (keyup)="searchFieldKeyup($event)"
         />
       </div>
@@ -36,16 +36,7 @@ export class AppComponent {
 
   readonly gridSettings: GridSettings = {
     colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
-    search: {
-      // add your custom callback function
-      callback: (
-        _instance: Handsontable,
-        _row: number,
-        _col: number,
-        _value: Handsontable.CellValue,
-        result: boolean
-      ) => this.searchResultCounter(_instance, _row, _col, _value, result),
-    },
+    search: true,
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true
@@ -54,28 +45,29 @@ export class AppComponent {
   resultCount = 0;
 
   searchFieldKeyup(event: KeyboardEvent): void {
-    this.setResultCounter(0);
-
     const search = this.hotTable?.hotInstance?.getPlugin('search');
-    const queryResult = search?.query((event.target as any).value);
+
+    if (!search) {
+      return;
+    }
+
+    // the default callback marks the matching cells, so they stay highlighted
+    const defaultCallback = search.getCallback();
+    let count = 0;
+
+    // pass your custom callback function: it calls the default callback and counts the matches
+    const queryResult = search.query((event.target as HTMLInputElement).value, (instance, row, col, value, result) => {
+      defaultCallback(instance, row, col, value, result);
+
+      if (result) {
+        count += 1;
+      }
+    });
 
     console.log(queryResult);
+    this.setResultCounter(count);
 
     this.hotTable?.hotInstance?.render();
-  }
-
-  //  define your custom callback function
-  searchResultCounter(
-    _instance: Handsontable,
-    _row: number,
-    _col: number,
-    _value: Handsontable.CellValue,
-    result: boolean
-  ): void {
-    _instance.getCellMeta(_row, _col)['isSearchResult'] = result;
-    if (result) {
-      this.setResultCounter(this.resultCount + 1);
-    }
   }
 
   private setResultCounter(count: number): void {

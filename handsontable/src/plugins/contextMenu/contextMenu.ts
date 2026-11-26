@@ -9,6 +9,7 @@ import {
 } from '../../utils/menu/menu';
 import type { MenuAnchorRectProvider } from '../../utils/menu/menu';
 import { getDocumentOffsetByElement } from '../../utils/menu/utils';
+import { returnFocusToGrid } from '../../utils/menu/menu/utils';
 import type { PredefinedMenuItemKey, MenuItemConfig } from '../../utils/menu/types';
 import { eventTargetEl, hasClass, isHTMLElement } from '../../helpers/dom/element';
 import {
@@ -24,6 +25,7 @@ import {
   ALIGNMENT,
   SEPARATOR,
 } from '../../utils/menu/predefinedItems';
+import { CONTEXTMENU_LABEL } from '../../i18n/constants';
 import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 export type { PredefinedMenuItemKey, MenuItemConfig };
@@ -175,6 +177,8 @@ export class ContextMenu extends BasePlugin {
 
     this.menu = new Menu(this.hot, {
       className: 'htContextMenu',
+      // Resolved on each open, so the name follows a language changed after the plugin was enabled.
+      ariaLabel: () => this.hot.getTranslatedPhrase(CONTEXTMENU_LABEL),
       keepInViewport: true,
       container: (settingsObj?.uiContainer as HTMLElement) || this.hot.rootPortalElement,
     });
@@ -378,6 +382,9 @@ export class ContextMenu extends BasePlugin {
    * the [`contextMenu`](@/api/options.md#contextmenu) option. Running a command that the menu doesn't register
    * throws an error.
    *
+   * A command whose menu item is disabled for the current selection does nothing. For example,
+   * `'mergeCells'` does nothing while the selection holds several ranges (made with Ctrl/Cmd+click).
+   *
    * Or you can execute command registered in settings where `key` is your command name.
    *
    * @param {string} commandName The command name to be executed.
@@ -496,6 +503,8 @@ export class ContextMenu extends BasePlugin {
    */
   #onMenuAfterClose = () => {
     this.hot.listen();
+    // Before the hook, so a listener of `afterContextMenuHide` finds the focus on the cell, not on the body.
+    returnFocusToGrid(this.hot, this.menu?.container);
     this.hot.runHooks('afterContextMenuHide', this);
   };
 

@@ -182,6 +182,18 @@ Each _parent_ row header contains a `+`/`-` button. It is used to collapse or ex
 The child row headers have a bigger indentation, to enable the user to clearly recognize the child and parent elements. In the example above, the
 `Best Metal Performance` category loads collapsed so you can see the expand/collapse controls right away.
 
+### Selection
+
+Collapsing or expanding a row changes which rows are visible, not which rows are selected. The selection stays on the rows you selected, and it moves with them:
+
+- A selected range keeps its first and last row. Rows that an expand reveals between them join the range, and rows that a collapse folds away leave it.
+- A single selected row stays a single row. When you expand it, its child rows are not added to the selection.
+- When you collapse the parent of the focused row while you work in the grid, the selection moves to the nearest visible parent row. When your code collapses it while the grid does not have the focus, the selection is cleared.
+
+The same applies when you undo or redo a collapse or an expand, and when you insert, remove, or detach rows above the selection: the selection stays on the rows you selected. When you remove a selected row, the selection stays at its place. When you move rows, the moved rows are selected.
+
+The [`afterSelection`](@/api/hooks.md#afterselection) and [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) hooks run when a collapse or an expand moves the selection. This includes a collapse or an expand that your code makes, for example with [`collapseAll()`](@/api/nestedRows.md#collapseall) or [`collapseParent()`](@/api/nestedRows.md#collapseparent), also while the grid does not have the focus. The grid does not scroll to the moved selection and does not take the focus. When a collapse removes the focused row from view and the selection is cleared, the [`afterDeselect`](@/api/hooks.md#afterdeselect) hook runs.
+
 ### Context menu
 
 The context menu has been extended with a few Nested Rows related options, such as:
@@ -493,19 +505,23 @@ The position and the number of siblings come from your data. Rows that the [`Hid
 
 When you collapse or expand a row with the keyboard or with the row header button, Handsontable announces the change through a polite live region: for example, "Expanded row 1, expanded rows shown: 5" or "Collapsed row 1". The row is named after the text its row header shows, the same label sighted users see next to the row, or after its row number when the header is empty. Changes made through the API methods are not announced, so your application can describe them in its own words. With `ariaTags` set to `false`, nothing is announced.
 
-The announcement text is translated. To change it, override the `NestedRows:announcement.expanded` and `NestedRows:announcement.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
+When the selection moves to another row, Handsontable adds the row's level and position to the description of the selected cell, for example "Level 2, 1 of 3". A parent row adds ", expanded" or ", collapsed". A screen reader reads the description together with the cell, so the level never replaces the cell's own announcement. A move between the cells of one row adds nothing. A row header has no description, so when a row header takes the focus, Handsontable announces the same text through the polite live region.
+
+The text is translated. To change it, override the `NestedRows:announcement.expanded`, `NestedRows:announcement.collapsed`, `NestedRows:announcement.level`, `NestedRows:announcement.level.expanded`, and `NestedRows:announcement.level.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
 
 ### Keyboard shortcuts
 
-These header-focused shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> shortcuts work from any data cell of the row or from its row header, with or without `navigableHeaders`. The other shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys, as the example in [Prepare the data source](#prepare-the-data-source) does. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                                                                                                 |
 | -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
 | <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
 | <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**→**</kbd> | Expand the current row, if it is a collapsed parent row |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**←**</kbd> | Collapse the current row, if it is an expanded parent row. Otherwise, move the selection to the parent row, in the same column |
 
-In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
+In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions, including with <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
 ## Related articles
 

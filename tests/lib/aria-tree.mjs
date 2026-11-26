@@ -79,7 +79,9 @@ export function gridRows(nodes) {
 /**
  * The structural findings of the grids read in order: the column headers read after the data (1.3.2),
  * row headers exposed in rows of their own instead of in the rows they label (1.3.1), a row exposed
- * twice (1.3.1), cells or rows read out of their index order (1.3.2), and a grid with no row (1.3.1).
+ * twice (1.3.1), a cell exposed twice (1.3.1: the same row and column index on more than one cell, which
+ * a row count cannot see once the rows are joined), cells or rows read out of their index order (1.3.2),
+ * and a grid with no row (1.3.1).
  * Each grid is judged on its own rows (a list inside the page, the handsontable editor's or the filters'
  * value list, is a grid of its own). The first one is read under `READING_ORDER`, every other one under
  * its place among the grids with rows. A page without a grid role is not judged.
@@ -147,6 +149,26 @@ function gridFindings(rows, step) {
   if (duplicated.length > 0) {
     findings.push(finding('row-exposed-twice', ['1.3.1'], 'moderate', { duplicatedRowIndexes: duplicated.length, example: duplicated[0] },
       'The same row index is exposed by more than one row, so a screen reader meets one grid row twice', step));
+  }
+
+  const copies = new Map();
+
+  for (const item of rows.filter(entry => entry.rowindex !== null)) {
+    for (const cell of item.cells.filter(entry => entry.colindex !== null)) {
+      const key = `${item.rowindex}:${cell.colindex}`;
+
+      copies.set(key, (copies.get(key) ?? 0) + 1);
+    }
+  }
+
+  const repeated = [...copies].filter(([, count]) => count > 1);
+
+  if (repeated.length > 0) {
+    const [exampleRow, exampleColumn] = repeated[0][0].split(':').map(Number);
+
+    findings.push(finding('cell-exposed-twice', ['1.3.1'], 'moderate',
+      { duplicatedCells: repeated.length, exampleRow, exampleColumn, mostCopies: Math.max(...repeated.map(([, count]) => count)) },
+      'The same row and column index is exposed by more than one cell, so a screen reader meets one grid cell twice', step));
   }
 
   const unordered = rows.filter((item) => {

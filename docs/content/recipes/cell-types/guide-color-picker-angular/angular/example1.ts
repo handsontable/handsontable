@@ -220,6 +220,7 @@ export class ColorRendererComponent extends HotCellRendererAdvancedComponent<str
     <input
       class="color-picker-editor"
       type="color"
+      aria-label="Item color"
       [value]="value"
       (input)="onColorChange($event)"
     />

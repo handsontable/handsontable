@@ -297,6 +297,19 @@ release, and the timer then auto-sized the same index on the arriving data, with
 never made. Pinned by `__tests__/resizeGesture.unit.js` ("should not resize from a double-click window that an
 abort() ended").
 
+## Resizing without a drag: click, then click, and the keyboard resize
+
+Both ways reuse the drag's state (`#startSize`, `#startRenderedSize`, `#startOverhead`, `#selectedIndexes`, `#newSize`) and store through `#storeNewSize()`, the body `#onMouseUp` used to hold, so the hooks, the clamp and the multi-index rule are the drag's. Nothing is stored before the user ends the gesture, as for a drag.
+
+- **Click, then click** (`#startPick()`, `armPick()` from `../armedPick.ts`). A release of a press on the handle that moved nothing and was the first of a double-click window (`#pressWasFirst`) arms it. The next click on the grid names the size: the distance from the START of the header to the click (`#applyPickedSize()`, the inline start flips under RTL, and an end-band header measures from its inline end). While armed, `#onMouseOver` returns, so the handle stays on the header that armed it. A press on the handle ends the pick (`#pressEndedPick`), so a double-click still fits the column and a second click never arms again. The armed handle shows through `.ht-resize-handle--armed` in both resize stylesheets.
+- **The keyboard resize** (`startKeyboardResize()`): `Ctrl`/`Cmd`+`Alt`+`R` starts it from a cell or a column header (columns) or a selected row or row header (rows). `axis.ownsSelection()` splits the two so one selection never starts both. The mode is a drag whose pointer is the arrow keys: it positions the handle and the guide from the header found by `axis.getHeaderCell()`, `#stepKeyboardResize()` moves `#currentSize`, `Enter` stores, `Escape` or any selection change (`afterSelection`) cancels. The gesture registers the shortcuts itself (`registerShortcuts()` / `unregisterShortcuts()`, called by both plugins in enable, disable and destroy).
+- **What survives the update cycle, and what does not.** `updatePlugin()` runs `disablePlugin(); enablePlugin();` on every wrapper re-render. A waiting pick survives it, and so does a keyboard resize, because both plugins run the cycle inside `keepKeyboardResizeThrough()` and `registerShortcuts()` draws the handle and the guide again (`#restoreKeyboardResize()`). A real disable (`updateSettings({ manualColumnResize: false })`) ends the keyboard resize in `unregisterShortcuts()`: its indexes would be stale when the plugin comes back. A press counts as a click for the pick through `#pressWasFirst` (read on the press, because a press held past 500ms has seen `afterMouseDownTimeout()` reset `#dblclick`) and `#pointerMoved` (a drag the clamp leaves at the start size is still a drag).
+- **Three shortcut traps.** (1) A shortcut chain stops only when a callback returns `false`; `stopPropagation` is for the DOM event. Without `return false` the grid also moved the selection and took `R` as the start of an edit. (2) `Enter` opens the editor from the `EDITOR_EDIT_GROUP` group of the grid context, not from `GRID_GROUP`, so the mode's `Enter` sits before that group. A `before` position next to a group the key does not have is ignored and the shortcut lands last. (3) `Control/Meta` is Cmd on macOS, so a test presses `ControlOrMeta+Alt+r`; `Control+Alt+r` does not match there.
+- **`clampSize` is `NaN` without a theme stylesheet** (`getDefaultRowHeight()` reads CSS), so a row resize in a spec needs the theme CSS built (`build:styles.min`, `build:themes-css.min`).
+- **The comment editor has its own copy** of the keyboard mode and the pick, in `../../plugins/comments/commentResize.ts`: it resizes the textarea, not a size map, and the editor's resize observer saves the size.
+
+Pinned by `tests/e2e/manual-resize-alternatives.spec.ts` and the pointer check's `column-resize` and `row-resize` entries in `tests/a11y/checks/drag-operations.mjs`.
+
 ## Where to look next
 
 - Row plugin: `../../plugins/manualRowResize/AGENTS.md`. Column plugin: `../../plugins/manualColumnResize/AGENTS.md`.
@@ -363,3 +376,12 @@ stores the dragged width, not one pixel more. `getEndBandEdgeShift(hot)` moves t
 where the freeze bar sits. Both are 0 when nothing precedes the band. Pinned by
 `tests/e2e/fixed-columns-end-plugins.spec.ts`, `tests/e2e/fixed-columns-end-review3.spec.ts` and
 `tests/e2e/freeze-bar.spec.ts` (the pills around the end bar).
+
+**The row axis has the same hook, for the frozen bottom rows.** The first row of the bottom tables is drawn one
+pixel above its height, and that pixel is the freeze line (walkontable `AGENTS.md`, the bottom freeze line paragraph in "Border ownership").
+`ROW_RESIZE_AXIS.getFreezeLineOverlap()` answers 1 for that row's header in the bottom start corner, on the same
+rule the engine uses (`firstRowTopBorderOutsideHeight()`), and the gesture subtracts it from the start size like the
+column's. Without it every drag of that row stored one pixel more than the pointer moved
+(`tests/e2e/fixed-rows-bottom-line.spec.ts`, the drag cases, pins the stored height;
+`tests/e2e/manual-resize-guide-geometry.spec.ts` pins the handle and guide geometry against the row boundary). The hook reads `wtTable.name` of the corner clone, so a
+new bottom table needs it added to the list in `axisSizing/boxModel.ts`.

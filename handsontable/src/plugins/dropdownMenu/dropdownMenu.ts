@@ -4,6 +4,7 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../../utils/menu/commandExecutor';
 import { getDocumentOffsetByElement } from '../../utils/menu/utils';
+import { returnFocusToGrid } from '../../utils/menu/menu/utils';
 import {
   addClass, eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, removeClass, setAttribute
 } from '../../helpers/dom/element';
@@ -23,6 +24,7 @@ import {
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 import { syncIcon } from '../../themes/engine/icons';
+import { DROPDOWNMENU_LABEL } from '../../i18n/constants';
 import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
@@ -252,6 +254,8 @@ export class DropdownMenu extends BasePlugin {
       }
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
+        // Resolved on each open, so the name follows a language changed after the plugin was enabled.
+        ariaLabel: () => this.hot.getTranslatedPhrase(DROPDOWNMENU_LABEL),
         keepInViewport: true,
         container: (typeof settings === 'object' ? settingsObj.uiContainer : null) ||
           this.hot.rootPortalElement,
@@ -853,6 +857,8 @@ export class DropdownMenu extends BasePlugin {
    */
   #onMenuAfterClose() {
     this.hot.listen();
+    // Before the hook, so a listener of `afterDropdownMenuHide` finds the focus on the cell, not on the body.
+    returnFocusToGrid(this.hot, this.menu?.container);
     this.hot.runHooks('afterDropdownMenuHide', this);
   }
 

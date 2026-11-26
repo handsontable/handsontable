@@ -11,7 +11,7 @@ registerAllModules();
 const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
   textRenderer(hotInstance, TD, ...rest);
   TD.style.fontWeight = 'bold';
-  TD.style.color = 'green';
+  TD.style.color = '#006400';
   TD.style.background = '#d7f1e1';
 };
 

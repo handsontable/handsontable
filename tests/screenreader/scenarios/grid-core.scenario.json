@@ -5,7 +5,7 @@
   "group": "keyboard",
   "fixture": "screenreader-grid.html",
   "catalogPages": ["grid", "text-editor"],
-  "criteria": ["1.3.1", "4.1.2"],
+  "criteria": ["1.3.1", "4.1.2", "4.1.3"],
   "setup": [
     {
       "selectCell": [
@@ -191,7 +191,7 @@
           "alice"
         ]
       ],
-      "note": "Escape leaves the editor and the focus returns to the cell. Finding: NVDA and VoiceOver say nothing here on every browser (the committed goldens are empty)."
+      "note": "Escape leaves the editor and the focus returns to the cell, and every reader says the cell again."
     },
     {
       "id": "open-context-menu",
@@ -209,7 +209,7 @@
           "menu"
         ]
       ],
-      "note": "Shift+F10 opens the context menu with its first item highlighted. Finding: NVDA announces the menu as a table; Chromium said `menu` only in the run that recorded its golden, and Firefox says it last. VoiceOver says `menu item` on both browsers and calls the menu a `group, table`."
+      "note": "Shift+F10 opens the context menu with its first item highlighted. NVDA with Firefox says the item and then `context menu, menu`; VoiceOver says `menu item` on both browsers. Finding: NVDA with Chromium reads the item and its position (`1 of 12`) without the word menu. Every item carries `aria-posinset` and `aria-setsize`, counted over the menu's items and not its separators, so the readers that name a position agree: `1 of 12` with NVDA on both browsers and with VoiceOver and WebKit, which also says the menu's size (`12 items`). Finding: VoiceOver with Chromium names no position."
     },
     {
       "id": "menu-arrow-down",
@@ -246,7 +246,7 @@
           "alice"
         ]
       ],
-      "note": "Escape closes the menu, and the focus should return to the cell that opened it. Finding: NVDA and VoiceOver announce the document instead on every browser (the committed goldens): the focus leaves the grid."
+      "note": "Escape closes the menu, the focus returns to the cell that opened it, and every reader says the cell. Finding (the grid's): VoiceOver with Chromium counts 13 rows in this grid of six (`tree grid 4 columns 13 rows`), because the overlay clones add rows of their own to Chromium's accessibility tree."
     },
     {
       "id": "reselect-cell",
@@ -256,21 +256,8 @@
           0
         ]
       },
-      "expect": [
-        [
-          "alice"
-        ],
-        [
-          "name"
-        ],
-        [
-          "row 2"
-        ],
-        [
-          "column 2"
-        ]
-      ],
-      "note": "The API selection a host makes after the menu: the focus is back on the cell whatever the previous step left, so the range steps start from a known state. Finding (the grid's): VoiceOver with Chromium counts 13 rows in this grid of six (`tree grid 4 columns 13 rows`), because the overlay clones add rows of their own to Chromium's accessibility tree."
+      "expect": [],
+      "note": "The API selection a host makes after the menu, so the range steps start from a known state. Escape has already put the focus back on this cell, so the selection changes nothing and no reader says anything: nothing is required, and the golden pins the silence. A reader that says the cell here again means Escape left the focus elsewhere (the close step)."
     },
     {
       "id": "extend-range",
@@ -279,13 +266,16 @@
       },
       "expect": [
         [
-          "34"
+          "selection from"
         ],
         [
-          "selected"
+          "column name, row 1"
+        ],
+        [
+          "column age, row 1"
         ]
       ],
-      "note": "Shift+ArrowRight extends the selection, so the new end cell and its selected state are each required. Finding: NVDA and VoiceOver say nothing on every browser (the committed goldens are empty), because the focus stays on the anchor cell."
+      "note": "Shift+ArrowRight extends the selection while the focus stays on the anchor cell, so the grid announces the range in its polite live region: \"Selection from column Name, row 1 to column Age, row 1\"."
     },
     {
       "id": "extend-range-again",
@@ -294,13 +284,10 @@
       },
       "expect": [
         [
-          "oslo"
-        ],
-        [
-          "selected"
+          "row 1 selected"
         ]
       ],
-      "note": "The next cell joins the range: its value and the selected state are each required. Finding: NVDA and VoiceOver say nothing on every browser (the committed goldens are empty)."
+      "note": "The next Shift+ArrowRight reaches column City, the last of the three columns, so the range covers the whole row and the grid announces \"Row 1 selected\"."
     },
     {
       "id": "up-to-header-for-sort",
@@ -333,7 +320,7 @@
           "ascending"
         ]
       ],
-      "note": "Enter on a sortable header sorts the column; aria-sort changes on the focused header. Finding: VoiceOver says nothing on both browsers when the sort changes, here and on sort-descending (the committed vo-* goldens are empty)."
+      "note": "Enter on a sortable header sorts the column: aria-sort changes on the focused header, and the sort writes a polite status message, `Sorted by Name, ascending` (`descending` on sort-descending). Every reader reads the message. NVDA reads it after the header's new state (with Chromium `sorted ascending`, with Firefox the whole header, `Name, column header, sorted ascending, row 1, column 2`); VoiceOver reads the message alone on both browsers, because it does not read a state that changes under the focus."
     },
     {
       "id": "sort-descending",

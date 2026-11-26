@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-05T13:51:32.094Z"
+    "at": "2026-11-24T11:06:16.123Z"
   },
   "steps": {
     "arrow-right-pending": "old a loading selected busy name row 2 column 3",

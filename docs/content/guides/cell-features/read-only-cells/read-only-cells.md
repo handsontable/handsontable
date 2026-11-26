@@ -90,7 +90,7 @@ To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) t
 
 ## Make a column read-only
 
-To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. The column remains available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>), but editing and pasting are disabled. The example below also defines a custom renderer that dims the read-only column, giving the user a visual cue that its cells are read-only.
+To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. The column remains available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>), but editing and pasting are disabled. Read-only cells get the `htDimmed` class, which dims the column and gives the user a visual cue that its cells are read-only.
 
 ::: only-for javascript
 

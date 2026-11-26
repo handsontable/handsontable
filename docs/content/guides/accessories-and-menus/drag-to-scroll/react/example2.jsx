@@ -35,7 +35,7 @@ for (let row = 0; row < 50; row++) {
 
 function Slider({ label, unit, min, max, step, value, onChange }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, font: '13px/1.4 sans-serif', color: '#334155' }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, font: '13px/1.4 sans-serif' }}>
       <b style={{ fontFamily: 'monospace' }}>{label}: {value} {unit}</b>
       <input
         type="range"

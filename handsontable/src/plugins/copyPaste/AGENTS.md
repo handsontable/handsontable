@@ -127,6 +127,64 @@ test, so the `mouseleave` no longer takes the focus from the editor the user is 
   class turns it red) and `tests/e2e/undo-gestures.spec.ts` (WebKit leg, sends the `mouseleave` itself because
   a real one lands on a frame the layout decides, which is why the old test passed on a race).
 
+**The selection the `mouseleave` workaround makes must never show, and the cell's class cannot hide it
+alone.** `makeElementContentEditableAndSelectItsContent()` adds the `invisibleSelection` class and the
+`data-ht-invisible-selection` attribute, and `_base.scss` paints that selection transparent through either.
+Two things defeat a rule keyed on the class and the cell's own text:
+
+- **A render rewrites the cell's `className`** and drops the class, while the cell's other attributes and the
+  selection stay. The pointer can stay outside the body for any length of time, so a render lands in between
+  (the container's `ResizeObserver` after a filter shrank the grid is one). The same render also drops the
+  `aria-hidden` the helper set; the plugin puts it back (below).
+- **Text in a nested element is not covered by the cell's own `::selection`**: WebKit does not apply an
+  ancestor's `::selection` to descendants. Every header label is a nested `span.colHeader` (the highlighted
+  cell is a header after a header click with `navigableHeaders`, and after a column's dropdown menu closes),
+  and so is any markup a renderer writes into a cell.
+
+So the rule matches the marker attribute as well as the class, and every descendant of the cell as well as the
+cell. **Never key it on `[contenteditable]`**, which survives a render too: a user's renderer can make a cell
+editable for inline editing, and a selection the user makes there must show. Keep the selection itself:
+Safari's Edit → Copy needs it. Pinned by `tests/e2e/clipboard-safari-invisible-selection.spec.ts` (the header
+and nested-markup cases on the WebKit leg, the editable cell on every engine; a mutant of each part of the
+rule fails one of them) and the helper's unit tests in `helpers/dom/__tests__/element.unit.ts`.
+
+**A draw must not expose the editable cell to assistive technology (DEV-4132).** The helper sets
+`aria-hidden="true"` with `contenteditable`, and a draw clears every `aria-*` attribute of a cell or a
+header while `contenteditable` stays. Until the pointer came back into the body, the highlighted cell was
+exposed as an editable region. `#addContentEditableToHighlightedCell()` keeps the element in
+`#safariEditableElement`, and an `afterViewRender` listener, registered in Safari only, writes the attribute
+back. Six rules, pinned in `__tests__/safariMouseLeave.unit.ts`:
+
+- **`afterViewRender`, not `afterRender`.** A scroll draws the cells through Walkontable without a full
+  render, and `afterRender` does not fire for it. The listener runs on every draw in Safari, so it returns
+  before it reads the selection when no element is kept.
+- **Only the element the workaround made editable.** A cell an application's renderer made editable is not
+  the workaround's, and hiding it would hide a working control. The test highlights that cell without a
+  `mouseleave`: a renderer-editable cell that is not highlighted is never reached, whatever the rule.
+- **A kept element that is no longer the highlighted cell loses the workaround on the next draw**
+  (`getCell(highlight) !== element`, or no highlight). The grid reuses its elements: after a scroll the
+  kept `TD` draws a cell of another row (row 205 in a WebKit probe), which stayed `contenteditable`
+  without `aria-hidden`. The draw removes `contenteditable`, the class and the marker attribute, and
+  removes the selection of the document only while its anchor or focus still lies in the element
+  (`#isSelectionInside()`). The reused `TD` keeps its text node (`fastInnerText` rewrites it in place), so
+  the workaround's selection covers the new cell's text, and without the marker it shows. A selection
+  the user made elsewhere on the page is kept. Until the next `mouseleave` Safari's own Copy command has
+  no selection to copy for that cell.
+- **Taking the workaround off cleans the kept element, not only the highlighted cell.**
+  `afterSelection` runs after the highlight moved, so the lookup finds the new cell. The old one stayed
+  editable, and the next draw exposed it.
+- **Moving the workaround to another cell cleans the previous one first.** A selection change made while
+  the grid does not listen leaves the workaround on the old cell, and the next `mouseleave` would
+  overwrite the only reference to it.
+- **`updatePlugin()` carries the kept element across its `disablePlugin()`, and a real disable takes the
+  workaround off.** `updateSettings({ fragmentSelection })` or `({ copyPaste })` updates the plugin, and
+  the draw that follows needs the element. The pointer is still outside the body, so no `mouseleave`
+  would put the workaround back. When the plugin is disabled no listener is left to clean the cell.
+
+A grid that does not listen leaves the workaround where it is until its next draw: `mouseenter` and a
+selection change do nothing there. The WebKit cases are in
+`tests/e2e/clipboard-safari-invisible-selection.spec.ts`.
+
 ## Ragged clipboard payloads (DEV-2615, #7389)
 
 A clipboard whose rows have unequal length must **not** be narrowed to the first row's width, or cells past
@@ -252,6 +310,12 @@ rows are copied. Cell values and row headers are **not** projected, and that is 
 `a<b` is data rather than a display string, and parsing it as HTML would destroy it. So a user's
 `textExtractor` not running on copied cell values is the designed behavior, not a missing call — do not
 "complete" it.
+
+**A header a user renamed (`EditableHeaders`) is not projected either.** It is text already, and the
+extraction parsed `a<b>c` into `ac`. `#readPlainTextHeaders()` records, before `beforeCopy`, which header cells
+`TableView#isPlainTextHeader()` reports and the value each holds; `#extractHeaderText()` leaves such a cell
+alone only while it still holds that value at that position, so a listener that reshaped the row gets the usual
+projection. Pinned in `../editableHeaders/__tests__/editableHeaders.unit.ts`.
 
 ## Hook ordering details
 

@@ -18,10 +18,12 @@ import {
   loadScenarios,
   resolveVariants,
   scenarioPageId,
+  scenarioPlace,
   scenarioUrl,
   unsupportedReason,
   validateScenario,
 } from '../screenreader-scenario.mjs';
+import { A11Y_PAGES } from '../../a11y/pages.mjs';
 import { stepLines } from '../screenreader-report.mjs';
 import { DEFAULT_TOKEN_SEVERITY, SCREENREADER_MODE, SCREENREADER_MODES, TOKEN_SEVERITIES } from '../screenreader-transcript.mjs';
 
@@ -208,6 +210,24 @@ test('a scenario on a catalog page opens its fixture and query; its own theme ta
     '/tests/fixtures/demo/dialog-states.html?theme=main&bundle=full-min&template=confirm&x=1');
   assert.equal(scenarioPageId({ page: 'grid' }), 'grid');
   assert.equal(scenarioPageId({ fixture: 'screenreader-grid.html' }), 'screenreader-grid');
+});
+
+test('a catalog page with a license preset opens with the tiers and key the lane builds, and never without them', () => {
+  const scenario = { page: 'license-missing-features' };
+  const page = A11Y_PAGES.find(entry => entry.id === scenario.page);
+
+  assert.ok(page.licensePreset, 'the page this test reads names a license preset; pick another such page if it stops');
+  assert.equal(scenarioPlace(scenario).licensePreset, page.licensePreset);
+  assert.equal(scenarioPlace({ page: 'grid' }).licensePreset, undefined);
+  assert.equal(scenarioPlace({ fixture: 'screenreader-grid.html' }).licensePreset, undefined);
+  assert.equal(scenarioUrl(scenario, { licenseQuery: 'presets=%7B%7D&licenseKey=k' }),
+    `/tests/fixtures/demo/${page.fixture}?theme=main&bundle=umd&${page.query}&presets=%7B%7D&licenseKey=k`);
+  assert.throws(() => scenarioUrl(scenario), /names the license preset "[^"]+": pass its tiers and key as licenseQuery/,
+    'opened without its key, the grid has no license key, and the scenario would read another page');
+  assert.equal(scenarioUrl(scenario, { licenseQuery: null }), `/tests/fixtures/demo/${page.fixture}?theme=main&bundle=umd&${page.query}`,
+    'a report link names the page and leaves the key out');
+  assert.equal(scenarioUrl({ page: 'rtl-grid' }, { licenseQuery: 'licenseKey=k' }),
+    '/tests/fixtures/demo/grid-layouts.html?theme=main&bundle=umd&layout=rtl-nested-headers', 'a page without a preset takes no key');
 });
 
 test('a scenario opens exactly one place, names its criteria, and says where the reader starts', () => {

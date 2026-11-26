@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `ariaLabel`, `ariaLabelledby`, and `ariaDescribedby` options, which give the grid an accessible name and description.",
+  "type": "added",
+  "issueOrPR": 14474,
+  "breaking": false,
+  "framework": "none"
+}

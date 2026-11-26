@@ -14,7 +14,7 @@
  *
  * Policy: `tests/AGENTS.md`, "A11y: the site checks beyond axe". No I/O in here.
  */
-import { NON_TEXT_RATIO, floorRatio } from './contrast.mjs';
+import { NON_TEXT_RATIO, contrastRatio, dominantColor, floorRatio, strongestPixel } from './contrast.mjs';
 import { CONDITIONS } from './reflow.mjs';
 
 // A pixel of rounding between the page and the viewport is not a scroll.
@@ -104,6 +104,221 @@ const FIELD_ROLES = new Set(['textbox', 'searchbox', 'combobox', 'listbox', 'spi
  */
 export function isFieldStop({ shape, role }) {
   return isFieldShape(shape) && FIELD_ROLES.has(role);
+}
+
+/**
+ * How far an outline reaches past its element's box: its offset plus its width, when it shows. An inset outline
+ * (a negative offset) reaches no further than the box, and one with no style or no width reaches nothing.
+ *
+ * @param {{style: string, width: number, offset: number}} outline The computed outline.
+ * @returns {number} The reach, in CSS pixels.
+ */
+export function outlineReach({ style, width, offset }) {
+  if (style === 'none' || style === 'hidden' || !(width > 0)) {
+    return 0;
+  }
+
+  return Math.max(0, offset + width);
+}
+
+/**
+ * How far a box shadow reaches past its element's box: for each outer layer, its spread, its blur and the larger of
+ * its offsets; the furthest layer counts. An inset layer draws inside the box. A ring drawn with a shadow (a 2 px
+ * gap and a 4 px ring, `0 0 0 2px white, 0 0 0 6px blue`) ends 6 px out, past the margin of the capture.
+ *
+ * @param {string} shadow The computed `box-shadow` (`none`, or layers as Chromium serializes them: the color first,
+ *   then the lengths).
+ * @returns {number} The reach, in CSS pixels.
+ */
+export function shadowReach(shadow) {
+  if (!shadow || shadow === 'none') {
+    return 0;
+  }
+
+  // Layers split on the commas outside parentheses (`rgb(0, 0, 0)` keeps its own).
+  return Math.max(0, ...shadow.split(/,(?![^(]*\))/).map((layer) => {
+    if (/\binset\b/.test(layer)) {
+      return 0;
+    }
+
+    const lengths = (layer.replace(/[a-z]+\([^)]*\)/gi, '').match(/-?[\d.]+px/g) ?? []).map(parseFloat);
+    const [x = 0, y = 0, blur = 0, spread = 0] = lengths;
+
+    return Math.max(0, Math.max(Math.abs(x), Math.abs(y)) + blur + spread);
+  }));
+}
+
+/**
+ * The area a focus indicator paints, to capture before and after the focus arrives: the element's box grown by its
+ * own ring's reach (its outline, `outlineReach()`, or its shadow, `shadowReach()`), and the box of each other ring
+ * the focus drew, grown by that ring's reach: an ancestor's (a card ringed through `:has()` or `:focus-within`) or
+ * the element's own pseudo-element's (a link's overlay stretched over its card). A ring 4 px off its element (an
+ * offset of 4 px and a width of 2 px) lies past the margin, so a capture of the box alone saw nothing change.
+ *
+ * @param {{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number}, shadow?: string}} element
+ *   The focused element: its box, its outline and its shadow while focused.
+ * @param {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number}, shadow?: string}>} [rings]
+ *   The other rings the focus drew (`changedRings()`), read while focused.
+ * @returns {{x: number, y: number, width: number, height: number}} The area, in page pixels.
+ */
+export function focusExtent(element, rings = []) {
+  const reach = ({ box, outline, shadow }) => {
+    const by = Math.max(outlineReach(outline), shadowReach(shadow));
+
+    return { left: box.x - by, top: box.y - by, right: box.x + box.width + by, bottom: box.y + box.height + by };
+  };
+  const parts = [element, ...rings].map(reach);
+  const left = Math.min(...parts.map(part => part.left));
+  const top = Math.min(...parts.map(part => part.top));
+
+  return {
+    x: left,
+    y: top,
+    width: Math.max(...parts.map(part => part.right)) - left,
+    height: Math.max(...parts.map(part => part.bottom)) - top,
+  };
+}
+
+// How far a part may move or grow on a side with the focus and still be the same part ringed (a card that lifts as
+// it is ringed); a popup that opens inside a wrapper grows it by far more.
+const RING_DRIFT = 8;
+
+/**
+ * The rings the focus drew around a control on something other than the control itself: the ancestors and
+ * pseudo-elements whose ring differs between the focused read and the read at rest. A part counts only when its
+ * focused read draws a ring (an outline that shows, or a box shadow) that the read at rest does not draw the same: a
+ * text color a wrapper takes through `:focus-within` draws no ring. A part may move or grow a few pixels with the
+ * focus (a card that lifts as it is ringed), but an ancestor that was not drawn at rest, or that grows by more than
+ * `RING_DRIFT` on a side, opened with the focus: it is a popup, not the indicator, and in the capture its change would
+ * pass a control that draws nothing of its own. A pseudo-element that is drawn only with the focus is the ring itself
+ * (an overlay ringed on focus), so it counts.
+ *
+ * @param {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number, color?: string}, shadow?: string, pseudo?: object}|null>} focused
+ *   Each part read while the control had the focus (`null`: the part was not rendered then); a pseudo-element's
+ *   carries `pseudo`.
+ * @param {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number, color?: string}, shadow?: string}|null>} rest
+ *   The same parts read at rest, in the same order.
+ * @returns {Array<{box: {x: number, y: number, width: number, height: number}, outline: {style: string, width: number, offset: number}, shadow?: string}>} The rings, as read while focused.
+ */
+export function changedRings(focused, rest) {
+  const ring = (part) => {
+    const shows = part.outline.style !== 'none' && part.outline.style !== 'hidden' && part.outline.width > 0;
+    const outline = shows ? `${part.outline.style} ${part.outline.width} ${part.outline.offset} ${part.outline.color ?? ''}` : 'none';
+
+    return `${outline} | ${part.shadow && part.shadow !== 'none' ? part.shadow : 'none'}`;
+  };
+  const draws = part => ring(part) !== 'none | none';
+  const drawn = part => part !== null && part.box.width > 0 && part.box.height > 0;
+  const opened = (part, before) => !drawn(before) || [
+    before.box.x - part.box.x, before.box.y - part.box.y,
+    (part.box.x + part.box.width) - (before.box.x + before.box.width),
+    (part.box.y + part.box.height) - (before.box.y + before.box.height),
+  ].some(growth => growth > RING_DRIFT);
+
+  return focused.flatMap((part, index) => {
+    const before = rest[index] ?? null;
+
+    if (!part || !draws(part) || (drawn(before) && ring(before) === ring(part))) {
+      return [];
+    }
+    // A part the caller read from a `::before` or `::after` carries `pseudo`; any other is an ancestor.
+    if (!part.pseudo && opened(part, before)) {
+      return [];
+    }
+
+    return [part];
+  });
+}
+
+/**
+ * The box of an absolutely placed `::before` or `::after`, which the DOM does not give: its containing block's
+ * padding box offset by the pseudo-element's resolved `left` and `top`, at its resolved size. A fixed one is placed
+ * in the viewport. Known limits: a containing block made by a transform, a filter or `contain` (the nearest
+ * positioned element is taken instead), a scrolled containing block, and a transform on the pseudo-element itself.
+ *
+ * @param {{x: number, y: number, clientLeft: number, clientTop: number}|null} block The containing block's border box
+ *   corner and its border widths, or `null` for a fixed pseudo-element (the viewport).
+ * @param {{left: string, top: string, width: string, height: string}} style The pseudo-element's resolved values.
+ * @returns {{x: number, y: number, width: number, height: number}} Its box, in page pixels.
+ */
+export function pseudoRingBox(block, style) {
+  const origin = block ? { x: block.x + block.clientLeft, y: block.y + block.clientTop } : { x: 0, y: 0 };
+
+  return {
+    x: origin.x + (parseFloat(style.left) || 0),
+    y: origin.y + (parseFloat(style.top) || 0),
+    width: parseFloat(style.width) || 0,
+    height: parseFloat(style.height) || 0,
+  };
+}
+
+/**
+ * An element's box placed in a capture of an area around it. A capture is clipped from the whole pixel at or before
+ * the area's corner (`capture()` floors it), so the box is placed from that pixel. Placed from the area's own
+ * corner, a box was read up to a pixel off whenever the corner fell between pixels, and a field's 1 px edge then lay
+ * outside the band that measures it.
+ *
+ * @param {{x: number, y: number, width: number, height: number}} box The element's box, in page pixels.
+ * @param {{x: number, y: number}} area The captured area's corner, in page pixels.
+ * @returns {{x: number, y: number, width: number, height: number}} The box, in pixels from the capture's corner.
+ */
+export function boxInCapture(box, area) {
+  return { x: box.x - Math.floor(area.x), y: box.y - Math.floor(area.y), width: box.width, height: box.height };
+}
+
+/**
+ * A box grown to the whole pixels it touches, the pixels a capture holds of it.
+ *
+ * @param {{x: number, y: number, width: number, height: number}} box The box.
+ * @returns {{x: number, y: number, width: number, height: number}} The box on whole pixels.
+ */
+export function pixelBox(box) {
+  const x = Math.floor(box.x);
+  const y = Math.floor(box.y);
+
+  return { x, y, width: Math.ceil(box.x + box.width) - x, height: Math.ceil(box.y + box.height) - y };
+}
+
+/**
+ * A control's edge (its outer two pixels' strongest pixel) and its fill (its inside's most common color), each
+ * against the most common color of the page around it (the capture's pixels more than a pixel outside the box).
+ *
+ * @param {{width: number, height: number, data: number[]}} image The capture at rest, with the page around the
+ *   control.
+ * @param {{x: number, y: number, width: number, height: number}} box The control's box inside the capture
+ *   (`boxInCapture()`).
+ * @returns {{boundary: {color: number[], ratio: number}, fill: {color: number[], ratio: number}, around: number[]}} The boundary.
+ */
+export function boundaryOf(image, box) {
+  const around = { data: [] };
+  const edge = { data: [] };
+  const inside = { data: [] };
+
+  for (let y = 0; y < image.height; y++) {
+    for (let x = 0; x < image.width; x++) {
+      const index = (y * image.width + x) * 4;
+      const pixel = [image.data[index], image.data[index + 1], image.data[index + 2], 255];
+      const depth = Math.min(x - Math.round(box.x), Math.round(box.x + box.width) - 1 - x, y - Math.round(box.y),
+        Math.round(box.y + box.height) - 1 - y);
+
+      if (depth < -1) {
+        around.data.push(...pixel);
+      } else if (depth >= 0 && depth < 2) {
+        edge.data.push(...pixel);
+      } else if (depth >= 2) {
+        inside.data.push(...pixel);
+      }
+    }
+  }
+
+  const background = around.data.length > 0 ? dominantColor(around) : dominantColor(image);
+  const fill = inside.data.length > 0 ? dominantColor(inside) : background;
+
+  return {
+    boundary: edge.data.length > 0 ? strongestPixel(edge, background) : { color: background, ratio: 1 },
+    fill: { color: fill, ratio: contrastRatio(fill, background) },
+    around: background,
+  };
 }
 
 /**

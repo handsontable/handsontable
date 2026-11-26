@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a row snapped to the bottom edge of a grid with AutoRowSize and no column headers ending 1px too low under the frozen bottom rows, depending on the previous scroll position. Without frozen bottom rows it now always ends 1px above the edge.",
+  "type": "fixed",
+  "issueOrPR": 14313,
+  "breaking": false,
+  "framework": "none"
+}

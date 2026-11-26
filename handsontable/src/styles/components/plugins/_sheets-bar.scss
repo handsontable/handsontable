@@ -98,8 +98,9 @@ $all-sheets-visible-items: 8;
 
     &.ht-sheets-bar {
       --ht-private-tab-enter-offset: -2em;
-      --ht-private-sheets-bar-button-width: calc(
-        (2 * var(--ht-icon-button-large-padding)) + var(--ht-icon-size) + 2px
+      --ht-private-sheets-bar-button-width: max(
+        calc((2 * var(--ht-icon-button-large-padding)) + var(--ht-icon-size) + 2px),
+        var(--ht-icon-button-hit-area-size)
       );
 
       width: 100%;
@@ -231,6 +232,9 @@ $all-sheets-visible-items: 8;
         background-color: var(--ht-pagination-button-background-color);
         border-radius: var(--ht-icon-button-large-border-radius);
         padding: var(--ht-icon-button-large-padding);
+        // Same floor as the pagination buttons: the classic theme's 12px icon alone gives 22px.
+        min-width: var(--ht-icon-button-hit-area-size);
+        min-height: var(--ht-icon-button-hit-area-size);
         cursor: pointer;
 
         &:disabled,

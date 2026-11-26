@@ -11,7 +11,7 @@ registerAllModules();
 const dimmedTextRenderer: BaseRenderer = (instance, td, ...rest) => {
   textRenderer(instance, td, ...rest);
 
-  td.style.opacity = '0.6';
+  td.style.opacity = '0.7';
 };
 
 const hotSettings = ref<GridSettings>({

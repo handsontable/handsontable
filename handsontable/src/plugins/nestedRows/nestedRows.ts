@@ -12,10 +12,19 @@ import type { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR, GRID_GROUP } from '../../shortcuts/contexts';
 import RowMoveController from './utils/rowMoveController';
 import { announce } from '../../utils/a11yAnnouncer';
+import {
+  addCellDescriptionPart,
+  CELL_DESCRIPTION_RANK,
+  findCellsWithLevelDescription,
+  redescribeRenderedCell,
+} from '../../utils/cellDescription/cellDescription';
 import { isGridBodyCovered } from '../../shortcuts/guards';
 import {
   NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
   NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
 } from '../../i18n/constants';
 import { LICENSE } from './feature.generated';
 
@@ -26,6 +35,12 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * The source the fill handle inserts its rows with (`Autofill#addRow()`).
  */
 const AUTOFILL_INSERT_SOURCE = 'Autofill.fill';
+
+/**
+ * The selection sources that re-lay a selection the user already has (a structural shift, a clamp, a
+ * data load). The highlight they report is not a move the user made, so it announces no row level.
+ */
+const SILENT_SELECTION_SOURCES = ['shift', 'refresh', 'loadData', 'updateData', 'deselect'];
 
 /**
  * Error message for the wrong data type error.
@@ -46,6 +61,32 @@ interface CollapsedRowCell {
  */
 interface CollapsedParentsState {
   readonly collapsedRows: readonly number[];
+}
+
+/**
+ * Where the active highlight sat when the plugin last looked: the record under it, and whether it was
+ * on a header of that row.
+ */
+interface HighlightPosition {
+  physicalRow: number | null;
+  isHeader: boolean;
+}
+
+/**
+ * The data cell that carries the level description of its row, by its physical coordinates, which a
+ * collapse, a sort or a column move does not change.
+ */
+interface LevelCell {
+  physicalRow: number;
+  physicalColumn: number;
+}
+
+/**
+ * The cell a tree key acts on: its visual row, and the column the walk to a parent keeps.
+ */
+interface TreeKeyTarget {
+  row: number;
+  column: number;
 }
 
 /**
@@ -197,6 +238,31 @@ export class NestedRows extends BasePlugin {
   #waitsForObjectData = false;
 
   /**
+   * Where the active highlight sat after the last selection change, or `null` while nothing is
+   * selected. The level announcement compares the next highlight with it, by record and not by visual
+   * row, so a collapse above the highlight does not read as a move.
+   *
+   * @type {HighlightPosition|null}
+   */
+  #lastHighlight: HighlightPosition | null = null;
+
+  /**
+   * The data cell the level of its row is described on, or `null`. Only the cell the highlight reached
+   * on a move to another row carries it, so a move between the cells of one row stays silent.
+   *
+   * @type {LevelCell|null}
+   */
+  #levelCell: LevelCell | null = null;
+
+  /**
+   * `true` while `toggleParentByUser()` changes the tree. A collapse can move the selection onto the
+   * collapsed parent, and that move must not add a level announcement to the one the toggle makes.
+   *
+   * @type {boolean}
+   */
+  #isUserToggleRunning = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -249,6 +315,10 @@ export class NestedRows extends BasePlugin {
     // saw the parent alone and removed only that row from HyperFormula. See `#onBeforeRemoveRow`.
     this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow, -1);
     this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
+    this.addHook('afterSelection', this.#onAfterSelection);
+    this.addHook('afterDeselect', this.#onAfterDeselect);
+    this.addHook('afterSelectionFocusSet', this.#onUserSelectionInput);
+    this.addHook('beforeKeyDown', this.#onUserSelectionInput);
     this.addHook('beforeAddChild', this.#onBeforeAddChild);
     this.addHook('afterAddChild', this.#onAfterAddChild);
     this.addHook('beforeDetachChild', this.#onBeforeDetachChild);
@@ -261,6 +331,10 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterSelection', this.#onHighlightChange);
+    this.addHook('afterSelectionFocusSet', this.#onHighlightChange);
+    this.addHook('afterDeselect', this.#onHighlightDeselect);
+    this.addHook('afterRenderer', this.#onAfterRenderer);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -289,11 +363,14 @@ export class NestedRows extends BasePlugin {
     // rows that expand brought back. Only AFTER the hooks are gone: a removal's stash window also
     // skips renders (`#skipRender`), and the grow renders.
     this.collapsingUI?.releaseGridTrackingFits(true);
+    // The rows the stash recorded for the selection need no drop here: `#restoreSelectionRecords()`
+    // bails while the plugin is disabled, and an enable builds a new CollapsingUI without them.
 
     this.headersUI!.removeRenderedLevelIndicators();
 
     if (!this.#isRebuilding) {
       this.headersUI!.removeRenderedRowAttributes();
+      this.#levelCell = null;
     }
   }
 
@@ -463,12 +540,25 @@ export class NestedRows extends BasePlugin {
       relativeToGroup: GRID_GROUP,
       position: 'before',
     });
+
+    context?.addShortcuts([{
+      keys: [['Shift', 'Alt', 'ArrowRight']],
+      callback: () => this.#runTreeKeyCommand('ArrowRight'),
+    }, {
+      keys: [['Shift', 'Alt', 'ArrowLeft']],
+      callback: () => this.#runTreeKeyCommand('ArrowLeft'),
+    }], {
+      runOnlyIf: () => this.#getTreeKeyTarget() !== null,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: GRID_GROUP,
+      position: 'before',
+    });
   }
 
   /**
-   * Collapses or expands a parent row in answer to a user gesture - the row header button, or a key
-   * pressed on a focused row header - and announces the result to assistive technologies through a
-   * polite live region.
+   * Collapses or expands a parent row in answer to a user gesture - the row header button, a key
+   * pressed on a focused row header, or <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow pressed on any cell of
+   * the row - and announces the result to assistive technologies through a polite live region.
    *
    * The public methods do not announce: an app calling them knows what it changed and can tell the
    * user itself, and `collapseAll()` would otherwise queue one message per parent.
@@ -480,6 +570,9 @@ export class NestedRows extends BasePlugin {
    * pattern's cell-focus mode: there the arrows only move the focus. The number of rows shown counts
    * rendered rows, so rows the `HiddenRows` plugin hides are left out.
    *
+   * A collapse can move the selection onto the collapsed parent. The level announcement of that move
+   * is held back, so one gesture is confirmed by one message.
+   *
    * @private
    * @param {number} physicalRow Physical index of the parent row.
    * @param {'collapse'|'expand'} action The change to make.
@@ -488,7 +581,21 @@ export class NestedRows extends BasePlugin {
   toggleParentByUser(physicalRow: number, action: 'collapse' | 'expand'): boolean {
     const { rowIndexMapper } = this.hot;
     const rowsBefore = rowIndexMapper.getRenderableIndexesLength();
-    const performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+    let performed = false;
+
+    this.#isUserToggleRunning = true;
+
+    try {
+      performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+    } finally {
+      this.#isUserToggleRunning = false;
+    }
+
+    if (performed) {
+      // The description names the state the row had when the highlight reached it, and the toggle changed
+      // it. A toggle that did nothing leaves it as it was.
+      this.#clearLevelDescription();
+    }
 
     if (performed && this.hot.getSettings().ariaTags) {
       const label = this.#getRowLabel(physicalRow);
@@ -1101,7 +1208,7 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeOnCellMousedown` hook callback.
+   * `beforeOnCellMousedown` hook callback. The row toggles when the press is released over its button.
    *
    * @param {MouseEvent} event Mousedown event.
    * @param {object} coords Cell coords.
@@ -1205,6 +1312,18 @@ export class NestedRows extends BasePlugin {
     if (this.#isOperational() && isCollapsedParentsState(state)) {
       this.collapsingUI!.collapsedRows = state.collapsedRows.slice();
     }
+  }
+
+  /**
+   * The collapse map only changes which rows are shown, not which rows are selected, so an undo or a
+   * redo of a collapse or an expand moves the selection with its rows, as the action itself did
+   * (DEV-509).
+   *
+   * @private
+   * @returns {string[]}
+   */
+  getShownRowsTrimmingMaps(): readonly string[] {
+    return ['nestedRows'];
   }
 
   /**
@@ -1350,23 +1469,71 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Resolves what a <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chord pressed on a focused row header does,
-   * or `null` when it does nothing. The chord is claimed either way, so it never reaches the grid's
-   * jump to the row's edge from a row header.
+   * Returns the cell a <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chord acts on, or `null` when the chord
+   * does not apply: the highlight of a single selection range of one row, on a data cell or on the row
+   * header, while nothing covers the grid body. Several selected ranges are left alone, because the
+   * walk to a parent would replace them with one cell. Unlike the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> chords, it does not
+   * need the focus on a row header, so the tree can be operated with `navigableHeaders` off.
+   *
+   * @returns {TreeKeyTarget|null}
+   */
+  #getTreeKeyTarget(): TreeKeyTarget | null {
+    const activeRange = this.hot.getSelectedRangeActive();
+    const highlight = activeRange?.highlight;
+
+    if (!highlight || this.hot.getSelectedRange()?.length !== 1 || isGridBodyCovered(this.hot) ||
+        !this.hot.selection.isCellVisible(highlight)) {
+      return null;
+    }
+
+    const { row, col } = highlight;
+
+    if (row === null || col === null || row < 0 ||
+        activeRange.from.row !== row || activeRange.to.row !== row) {
+      return null;
+    }
+
+    return { row, column: col };
+  }
+
+  /**
+   * Runs the treegrid command of a <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chord on the highlighted
+   * row, and claims the chord.
+   *
+   * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @returns {boolean} Always `false`, which stops the other shortcuts bound to the key.
+   */
+  #runTreeKeyCommand(key: 'ArrowLeft' | 'ArrowRight'): boolean {
+    const target = this.#getTreeKeyTarget();
+
+    if (target) {
+      this.#getTreeArrowCommand(key, target.row, target.column)?.();
+    }
+
+    return false;
+  }
+
+  /**
+   * Resolves what a tree chord does on a row, or `null` when it does nothing. Two chords share it:
+   * <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow on a focused row header, and <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow
+   * on any cell of the row. Both are claimed either way, so the first never reaches the grid's jump
+   * to the row's edge from a row header.
    *
    * The inline-end chord (`ArrowRight`, or `ArrowLeft` in RTL) expands a collapsed parent. The
    * inline-start chord collapses an expanded parent, and otherwise moves the focus to the parent
-   * row's header. An expanded parent's or a leaf's inline-end chord and a top-level row's
-   * inline-start chord do nothing. So does the walk to a parent that is not rendered (trimmed by
-   * another plugin, or hidden), because a focus moved there would leave the keyboard user with no
-   * visible position.
+   * row, in the column the chord was pressed in. An expanded parent's or a leaf's inline-end chord
+   * and a top-level row's inline-start chord do nothing. So does the walk to a parent that is not
+   * rendered (trimmed by another plugin, or hidden), because a focus moved there would leave the
+   * keyboard user with no visible position.
    *
    * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @param {number|null} visualRow The visual row the chord acts on, `null` when there is none.
+   * @param {number} column The visual column the walk to a parent keeps, `-1` for the row header.
    * @returns {Function|null}
    */
-  #getTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): (() => void) | null {
-    const visualRow = this.#getFocusedRowHeader();
-
+  #getTreeArrowCommand(
+    key: 'ArrowLeft' | 'ArrowRight', visualRow: number | null, column: number
+  ): (() => void) | null {
     if (visualRow === null) {
       return null;
     }
@@ -1392,7 +1559,7 @@ export class NestedRows extends BasePlugin {
       return null;
     }
 
-    return () => this.hot.selectCell(parentVisualRow, -1);
+    return () => this.hot.selectCell(parentVisualRow, column);
   }
 
   /**
@@ -1403,7 +1570,7 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean} Always `false`, which stops the other shortcuts bound to the key.
    */
   #runTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): boolean {
-    this.#getTreeArrowCommand(key)?.();
+    this.#getTreeArrowCommand(key, this.#getFocusedRowHeader(), -1)?.();
 
     return false;
   }
@@ -1413,7 +1580,8 @@ export class NestedRows extends BasePlugin {
    * 1-based row number when the header shows nothing. No column is guessed to hold a name - the first
    * one may as well be an ID, a price, or a checkbox. The text is read from the rendered header
    * rather than from `rowHeaders`, because a header configured as HTML would otherwise be announced
-   * with its markup. Every announcing gesture starts on the row's header, so it is rendered.
+   * with its markup. Every announcing gesture starts on the row or on its header, so the header is
+   * rendered whenever the grid shows row headers.
    *
    * @param {number} physicalRow Physical row index.
    * @returns {string}
@@ -1429,6 +1597,212 @@ export class NestedRows extends BasePlugin {
 
     return rowHeader.trim() === '' ? `${visualRow + 1}` : rowHeader.trim();
   }
+
+  /**
+   * Reads where a highlight sits, in the terms the level announcement compares.
+   *
+   * @param {CellCoords} highlight The active highlight.
+   * @returns {HighlightPosition}
+   */
+  #readHighlightPosition(highlight: CellCoords): HighlightPosition {
+    const { row, col } = highlight;
+    const physicalRow = row === null || row < 0 ? null : this.hot.toPhysicalRow(row);
+
+    return { physicalRow, isHeader: col === null || col < 0 };
+  }
+
+  /**
+   * Tells whether a highlight that just changed should announce the level of its row: the grid has
+   * ARIA on and listens to the keyboard, the change is not a re-lay of an existing selection, no
+   * toggle gesture is announcing already, no collapse is putting a stranded selection back on a
+   * parent, and the highlight reached another row or stepped from the
+   * row's header into one of its cells. A move between the cells of one row stays silent.
+   *
+   * @param {HighlightPosition|null} previous Where the highlight sat before.
+   * @param {HighlightPosition} current Where it sits now.
+   * @returns {boolean}
+   */
+  #shouldAnnounceRowLevel(previous: HighlightPosition | null, current: HighlightPosition): boolean {
+    if (this.#isUserToggleRunning || this.collapsingUI!.isRestoringSelection() ||
+        !this.hot.getSettings().ariaTags || !this.hot.isListening() ||
+        SILENT_SELECTION_SOURCES.includes(this.hot.selection.getSelectionSource())) {
+      return false;
+    }
+
+    return previous === null || previous.physicalRow !== current.physicalRow ||
+      (previous.isHeader && !current.isHeader);
+  }
+
+  /**
+   * Returns the level of a row, its position among its siblings, and a parent's state as one phrase
+   * ("Level 2, 1 of 3"). It is read when it is used, so a filter or a toggle that changed the numbers
+   * is spoken as they are now.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @returns {string|null} The phrase, or `null` when the row is not in the tree.
+   */
+  #getRowLevelText(physicalRow: number): string | null {
+    const treePosition = this.dataManager!.getRowTreePosition(physicalRow);
+
+    if (!treePosition) {
+      return null;
+    }
+
+    let phrase = NESTED_ROWS_ANNOUNCEMENT_LEVEL;
+
+    if (this.dataManager!.isParent(physicalRow)) {
+      phrase = this.collapsingUI!.areChildrenCollapsed(physicalRow) ?
+        NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED : NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED;
+    }
+
+    return String(this.hot.getTranslatedPhrase(phrase, { ...treePosition }) ?? '');
+  }
+
+  /**
+   * Tells a screen reader the level of a row, its position among its siblings, and a parent's state.
+   * Screen readers do not read `aria-level`, `aria-posinset` and `aria-setsize` off the row while the
+   * focus is on one of its cells, so the same values are given to the cell the highlight reached, as
+   * part of its description. A polite live region message made the same moment replaced the
+   * announcement of the cell on VoiceOver, and the user heard the level and not the cell. A row
+   * header has no description, so a highlight on one, or a row selected by its header, still gets the
+   * message.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {CellCoords} highlight The active highlight, which sits on a cell or on a row header.
+   */
+  #announceRowLevel(physicalRow: number, highlight: CellCoords): void {
+    const text = this.#getRowLevelText(physicalRow);
+
+    if (!text) {
+      return;
+    }
+
+    // A row selected by its header highlights a cell, but the press went to the header, so no cell holds
+    // the focus and there is no description to wait for.
+    if (highlight.col === null || highlight.col < 0 || this.hot.selection.isSelectedByRowHeader()) {
+      announce(text, 'polite');
+
+      return;
+    }
+
+    const physicalColumn = this.hot.toPhysicalColumn(highlight.col);
+
+    if (physicalColumn !== null) {
+      this.#levelCell = { physicalRow, physicalColumn };
+      this.#writeLevelDescription(this.#levelCell, text);
+    }
+  }
+
+  /**
+   * Writes the level description onto the elements that show a cell now. A selection change draws with
+   * a fast draw, which runs no cell renderer, so the description cannot wait for a paint: the render the
+   * selection makes right after this is the one the focus follows, and the description has to be on the
+   * cell before that. A cell that is not drawn yet is painted later with the description, by
+   * `#onAfterRenderer`. The master table and the overlay that holds the cell, when it has one, are two
+   * elements. The copies a frozen corner adds sit under that overlay and are not the focus.
+   *
+   * @param {LevelCell} cell The cell, by its physical coordinates.
+   * @param {string} text The description.
+   */
+  #writeLevelDescription(cell: LevelCell, text: string): void {
+    const visualRow = this.hot.toVisualRow(cell.physicalRow);
+    const visualColumn = this.hot.toVisualColumn(cell.physicalColumn);
+
+    if (visualRow === null || visualColumn === null) {
+      return;
+    }
+
+    const master = this.hot.getCell(visualRow, visualColumn);
+    const topmost = this.hot.getCell(visualRow, visualColumn, true);
+
+    [master, topmost === master ? null : topmost].forEach((TD) => {
+      if (TD) {
+        redescribeRenderedCell(
+          this.hot, TD, CELL_DESCRIPTION_RANK.ROW_LEVEL, text, !!this.hot.getSettings().ariaTags,
+        );
+      }
+    });
+  }
+
+  /**
+   * Takes the level description off the cell it was given to, on every copy of it. A paint adds the
+   * description to each copy a frozen corner draws (up to four tables), so the copies are found by the
+   * reference they hold and not by the coordinates of the cell.
+   */
+  #clearLevelDescription(): void {
+    const cell = this.#levelCell;
+
+    this.#levelCell = null;
+
+    if (cell !== null) {
+      findCellsWithLevelDescription(this.hot).forEach((TD) => {
+        redescribeRenderedCell(
+          this.hot, TD, CELL_DESCRIPTION_RANK.ROW_LEVEL, null, !!this.hot.getSettings().ariaTags,
+        );
+      });
+    }
+  }
+
+  /**
+   * Tells whether a highlight sits on the cell that carries the level description.
+   *
+   * @param {CellCoords|undefined} highlight The active highlight.
+   * @returns {boolean}
+   */
+  #isLevelCell(highlight: CellCoords | undefined): boolean {
+    const cell = this.#levelCell;
+
+    return cell !== null && !!highlight && highlight.row !== null && highlight.col !== null &&
+      this.hot.toPhysicalRow(highlight.row) === cell.physicalRow &&
+      this.hot.toPhysicalColumn(highlight.col) === cell.physicalColumn;
+  }
+
+  /**
+   * `afterRenderer` hook callback. Adds the level description to the one cell that carries it. It is
+   * added while the cell is painted, so the description is part of the cell when the focus lands on it.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
+    const cell = this.#levelCell;
+
+    if (cell !== null && this.hot.toPhysicalRow(row) === cell.physicalRow &&
+        this.hot.toPhysicalColumn(column) === cell.physicalColumn) {
+      addCellDescriptionPart(TD, CELL_DESCRIPTION_RANK.ROW_LEVEL, this.#getRowLevelText(cell.physicalRow));
+    }
+  };
+
+  /**
+   * `afterSelection` and `afterSelectionFocusSet` hook callback. Records where the highlight sits and
+   * describes its cell with the level of its row when it reached another row. A highlight that left the
+   * described cell takes the description off it.
+   */
+  #onHighlightChange = () => {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+    const previous = this.#lastHighlight;
+    const current = highlight ? this.#readHighlightPosition(highlight) : null;
+
+    this.#lastHighlight = current;
+
+    if (!this.#isLevelCell(highlight)) {
+      this.#clearLevelDescription();
+    }
+
+    if (highlight && current && current.physicalRow !== null && this.#shouldAnnounceRowLevel(previous, current)) {
+      this.#announceRowLevel(current.physicalRow, highlight);
+    }
+  };
+
+  /**
+   * `afterDeselect` hook callback. Forgets the highlight, so the next selection announces its row, and
+   * takes the description off the cell that carried it.
+   */
+  #onHighlightDeselect = () => {
+    this.#lastHighlight = null;
+    this.#clearLevelDescription();
+  };
 
   /**
    * `afterUpdateSettings` hook callback. The treegrid row attributes are written from
@@ -1478,6 +1852,45 @@ export class NestedRows extends BasePlugin {
     }
 
     return Math.max(minimumWidth, rowHeaderWidth);
+  };
+
+  /**
+   * `afterSelection` hook callback. A selection the user or the app makes while the collapsed rows
+   * stash is open (a removal collapses the parents again a tick later) is theirs, so the rows the
+   * stash recorded for the selection are dropped. A re-lay the operation itself makes (`shift`,
+   * `refresh`) keeps them.
+   */
+  #onAfterSelection = () => {
+    const source = this.hot.selection.getSelectionSource();
+
+    if (source !== 'shift' && source !== 'refresh') {
+      this.collapsingUI?.dropSelectionRecords();
+    }
+  };
+
+  /**
+   * `afterDeselect` hook callback. A drop that repairs a trim (`trim`) or that a structural shift made
+   * (`shift`) belongs to the operation: the states the tree passes through can strand a selection
+   * whose rows all survive, and the stash puts it back. Any other drop is the user's or the app's,
+   * also when a listener of the operation's own hooks makes it, so the selection is not brought back.
+   */
+  #onAfterDeselect = () => {
+    const source = this.hot.selection.getSelectionSource();
+
+    if (source !== 'trim' && source !== 'shift') {
+      this.collapsingUI?.dropSelectionRecords();
+    }
+  };
+
+  /**
+   * `afterSelectionFocusSet` and `beforeKeyDown` hook callback. A focus move inside the selection
+   * (Enter, Tab) is the user's, so the stash does not put the focus back on the row it recorded.
+   * The key press is read as well, because a focus move made while the selection is still in
+   * progress (`alter()` leaves it so) fires no `afterSelectionFocusSet`. A key press that starts an
+   * operation (the context menu's "Remove row") runs before that operation's stash records anything.
+   */
+  #onUserSelectionInput = () => {
+    this.collapsingUI?.dropSelectionRecords();
   };
 
   /**

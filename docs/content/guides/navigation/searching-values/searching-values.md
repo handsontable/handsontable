@@ -17,6 +17,7 @@ vue:
   metaTitle: Searching values | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Enable the [`Search`](@/api/search.md) plugin in Handsontable DataGrid and call [`query()`](@/api/search.md#query) on each keystroke to highlight matching cells across the grid.
 
@@ -233,13 +234,13 @@ The example below searches only for exact matches. To do this, it:
 
 ## Custom callback
 
-You can add a custom callback function, using the [`Search`](@/api/search.md) plugin's [`callback`](@/api/options.md#search) option.
+You can add a custom callback function, using the [`Search`](@/api/search.md) plugin's [`callback`](@/api/options.md#search) option, or pass one to a single [`query()`](@/api/search.md#query) call.
 
 The example below displays the number of matching search results. To do this, it:
 
-- Defines a custom callback function called `searchResultCounter` that counts matches and calls the default callback to preserve highlighting
-- Enables the [`Search`](@/api/search.md) plugin with a configuration object
-- Sets [`callback`](@/api/options.md#search) to `searchResultCounter`
+- Enables the [`Search`](@/api/search.md) plugin
+- Gets the default callback with [`getCallback()`](@/api/search.md#getcallback), which marks the matching cells for highlighting
+- Passes a custom callback to [`query()`](@/api/search.md#query) that calls the default callback and counts the matches
 
 ::: only-for javascript
 
@@ -371,15 +372,25 @@ function callback(instance, row, col, data, testResult) {
 | `data` | `string\|number\|null` | The cell value |
 | `testResult` | `boolean` | `true` if the cell matches the query, `false` otherwise |
 
-The built-in default sets the `isSearchResult` flag on each cell's metadata:
+The built-in default sets the `isSearchResult` flag on the metadata of each matching cell, and clears it on cells that matched an earlier query. It stores metadata for matching cells only, so a query over a large grid does not store metadata for every cell. A non-matching cell that has no stored metadata keeps none, so its `isSearchResult` reads `undefined`. Test the flag as a boolean, not with `=== false`.
+
+If you override the callback to add custom logic (for example, to count results), call the default callback from yours so that cell highlighting still works. Get it with [`getCallback()`](@/api/search.md#getcallback) before you set your own:
 
 ```js
-function defaultCallback(instance, row, col, data, testResult) {
-  instance.getCellMeta(row, col).isSearchResult = testResult;
-}
+const searchPlugin = hot.getPlugin('search');
+const defaultCallback = searchPlugin.getCallback();
+let count = 0;
+
+searchPlugin.query('He', (instance, row, col, data, testResult) => {
+  defaultCallback(instance, row, col, data, testResult);
+
+  if (testResult) {
+    count += 1;
+  }
+});
 ```
 
-If you override the callback to add custom logic (for example, to count results), call the default behavior manually so that cell highlighting still works.
+Avoid calling [`getCellMeta()`](@/api/core.md#getcellmeta) for every cell in a callback: it stores metadata for each cell it reads, so one query over a large grid keeps an object for every cell.
 
 You can set a custom callback in three ways:
 

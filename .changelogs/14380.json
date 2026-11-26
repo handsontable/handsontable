@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the license lock screen so keyboard users can Tab past it, screen readers announce it and no longer read the grid behind it, its links meet text contrast, and typing no longer opens an editor under it or under the loading overlay.",
+  "type": "fixed",
+  "issueOrPR": 14380,
+  "breaking": false,
+  "framework": "none"
+}

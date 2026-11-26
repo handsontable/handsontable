@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 import { type CellValue } from './windowTypes';
+import { chooseConditionWithKeyboard, openMenuWithKeyboard } from './filtersMenuKeyboard';
 
 /**
  * The label a separator row reports in `conditionOptions()`.
@@ -101,6 +102,31 @@ export class FiltersAvailableConditionsPage {
   }
 
   /**
+   * Rebuilds the grid with a long checkbox column whose templates (`'Y'`/`'N'`) come from a `cells()`
+   * function, in a grid short enough that most rows are never rendered. Rows alternate `'Y'`, `'N'`.
+   *
+   * @param {number} rowsCount The number of rows.
+   */
+  async rebuildWithCellTemplates(rowsCount: number): Promise<void> {
+    await this.page.evaluate(count => window.initFiltersAvailableConditionsGrid({
+      data: Array.from({ length: count }, (_, row) => [`Item ${row}`, row % 2 === 0 ? 'Y' : 'N']),
+      colHeaders: ['Product', 'In stock'],
+      columns: [{ type: 'text' }, { type: 'checkbox' }],
+      cells: (row: number, column: number) => (column === 1 ? { checkedTemplate: 'Y', uncheckedTemplate: 'N' } : {}),
+      filters: true,
+      height: 200,
+    }), rowsCount);
+    await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
+   * The number of rows the grid shows.
+   */
+  async rowCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.countRows());
+  }
+
+  /**
    * A single data cell in the master table, by visual row/column.
    */
   cell(row: number, col: number): Locator {
@@ -195,6 +221,54 @@ export class FiltersAvailableConditionsPage {
    */
   conditionInputs(): Locator {
     return this.menu.locator('.htFiltersMenuCondition').first().locator('.htUIInput input:visible');
+  }
+
+  /**
+   * Open the dropdown menu of a column from the keyboard: select a cell of it, then Alt+Shift+ArrowDown.
+   *
+   * @param {number} col The visual column index.
+   */
+  async openMenuWithKeyboard(col: number): Promise<void> {
+    await openMenuWithKeyboard(this.page, this.menu, 0, col);
+  }
+
+  /**
+   * Move the focus from the menu to the first condition select with Tab.
+   */
+  async focusConditionSelectWithKeyboard(): Promise<void> {
+    await this.page.keyboard.press('Tab');
+    await expect(this.conditionSelects.first()).toBeFocused();
+  }
+
+  /**
+   * Choose a condition in the focused select from the keyboard (see `chooseConditionWithKeyboard()` in
+   * `filtersMenuKeyboard.ts`).
+   *
+   * @param {string} label The condition's visible label.
+   */
+  async chooseConditionWithKeyboard(label: string): Promise<void> {
+    await chooseConditionWithKeyboard(this.page, this.conditionsMenu, label);
+  }
+
+  /**
+   * Confirm the menu from the keyboard: Tab to the "OK" button, then Enter. Fails loudly when Tab
+   * never reaches the button.
+   */
+  async confirmMenuWithKeyboard(): Promise<void> {
+    const okButton = this.menu.locator('.htUIButtonOK input');
+
+    for (let i = 0; i < 20; i++) {
+      if (await okButton.evaluate(button => button === document.activeElement)) {
+        await this.page.keyboard.press('Enter');
+        await expect(this.menu).toBeHidden();
+
+        return;
+      }
+
+      await this.page.keyboard.press('Tab');
+    }
+
+    throw new Error('Tab never reached the "OK" button');
   }
 
   /**

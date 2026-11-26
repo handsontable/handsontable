@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `EditableHeaders` plugin, which lets users rename column headers, and optionally row headers, in the grid, with the new `beforeHeaderChange` and `afterHeaderChange` hooks and the `modifyRowHeaderValue` hook.",
+  "type": "added",
+  "issueOrPR": 14348,
+  "breaking": false,
+  "framework": "none"
+}

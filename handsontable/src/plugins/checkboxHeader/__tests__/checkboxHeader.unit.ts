@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { markLongPressReplay } from 'handsontable/helpers/dom/longPress';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
@@ -43,6 +44,24 @@ function createGrid(settings: Record<string, unknown> = {}, doneColumn: Record<s
       container.remove();
     },
   };
+}
+
+/**
+ * Presses the left mouse button on an element and holds it.
+ */
+function pressHold(element: Element, init: MouseEventInit = {}) {
+  const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0, ...init });
+
+  element.dispatchEvent(press);
+
+  return press;
+}
+
+/**
+ * Lets go of the mouse button over an element.
+ */
+function release(element: Element, init: MouseEventInit = {}) {
+  element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0, ...init }));
 }
 
 describe('CheckboxHeader', () => {
@@ -246,6 +265,190 @@ describe('CheckboxHeader', () => {
 
     expect(done()).toEqual([true, true, true, true, true, true]);
     expect(tap.defaultPrevented).toBe(true);
+
+    destroy();
+  });
+
+  describe('a press on the header checkbox acts when the pointer is released over it', () => {
+    const checkboxOf = (hot: Handsontable) =>
+      hot.rootElement.querySelector<HTMLInputElement>('.htCheckboxHeaderInput')!;
+
+    it('should not toggle the column on the press alone, and toggle it on the release over the checkbox', () => {
+      const { hot, done, destroy } = createGrid();
+      const press = pressHold(checkboxOf(hot));
+
+      // The press is still claimed: the browser focus stays off the input and no column is selected.
+      expect(press.defaultPrevented).toBe(true);
+      expect(done()).toEqual([false, true, false, true, false, false]);
+      expect(hot.getSelected()).toBeUndefined();
+
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+      expect(hot.getSelected()).toBeUndefined();
+
+      destroy();
+    });
+
+    it('should toggle the column when the header is rendered again between the press and the release', () => {
+      const { hot, done, destroy } = createGrid();
+
+      pressHold(checkboxOf(hot));
+      hot.render();
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      destroy();
+    });
+
+    it('should not toggle the column when the pointer is released elsewhere: another header, a cell, outside', () => {
+      const { hot, done, destroy } = createGrid();
+      const unchanged = [false, true, false, true, false, false];
+
+      pressHold(checkboxOf(hot));
+      release(hot.getCell(-1, 0, true)!);
+
+      expect(done()).toEqual(unchanged);
+
+      pressHold(checkboxOf(hot));
+      release(hot.getCell(0, 1)!);
+
+      expect(done()).toEqual(unchanged);
+
+      pressHold(checkboxOf(hot));
+      release(document.body);
+
+      expect(done()).toEqual(unchanged);
+
+      // A cancelled press leaves nothing armed: the next click works.
+      pressHold(checkboxOf(hot));
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      destroy();
+    });
+
+    it('should cancel a held press on Escape', () => {
+      const { hot, done, destroy } = createGrid();
+
+      pressHold(checkboxOf(hot));
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([false, true, false, true, false, false]);
+
+      destroy();
+    });
+
+    it('should ignore a press and a release of the secondary button', () => {
+      const { hot, done, destroy } = createGrid();
+
+      pressHold(checkboxOf(hot), { button: 2 });
+      release(checkboxOf(hot), { button: 2 });
+
+      expect(done()).toEqual([false, true, false, true, false, false]);
+
+      destroy();
+    });
+
+    it('should ignore the release of another button than the one that pressed', () => {
+      const { hot, done, destroy } = createGrid();
+
+      pressHold(checkboxOf(hot));
+      release(checkboxOf(hot), { button: 2 });
+
+      expect(done()).toEqual([false, true, false, true, false, false]);
+
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      destroy();
+    });
+
+    it('should toggle the column when the checkbox node is replaced between the press and the release', () => {
+      const { hot, done, destroy } = createGrid();
+      const input = checkboxOf(hot);
+
+      pressHold(input);
+
+      const replacement = input.cloneNode(true) as HTMLInputElement;
+
+      input.replaceWith(replacement);
+      release(replacement);
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      destroy();
+    });
+
+    it('should not let a second press take the synthetic mouseup for the release of the first one', () => {
+      const { hot, done, destroy } = createGrid();
+
+      // The release of the first press is lost: the second press must not act, nor be acted on twice.
+      pressHold(checkboxOf(hot));
+      pressHold(checkboxOf(hot));
+
+      expect(done()).toEqual([false, true, false, true, false, false]);
+
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      release(checkboxOf(hot));
+
+      expect(done()).toEqual([true, true, true, true, true, true]);
+
+      destroy();
+    });
+
+    it('should drop a held press when the grid is destroyed', () => {
+      const { hot, destroy } = createGrid();
+      const input = checkboxOf(hot);
+      const data = hot.getSourceData() as Task[];
+
+      pressHold(input);
+      destroy();
+      release(input);
+
+      expect(data.map(row => row.done)).toEqual([false, true, false, true, false, false]);
+    });
+  });
+
+  it('should toggle on a tap whose event is not a TouchEvent of this window (a grid inside an iframe)', () => {
+    const { hot, done, destroy } = createGrid();
+    const input = hot.rootElement.querySelector('.htCheckboxHeaderInput')!;
+    const tap = Object.assign(new Event('checkbox-header-test-frame-tap', { bubbles: true, cancelable: true }), {
+      touches: [],
+      changedTouches: [],
+    });
+
+    input.dispatchEvent(tap);
+
+    expect(tap instanceof TouchEvent).toBe(false);
+
+    hot.runHooks('beforeOnCellMouseDown', tap, hot._createCellCoords(-1, 1), input.closest('th'));
+
+    expect(done()).toEqual([true, true, true, true, true, true]);
+
+    destroy();
+  });
+
+  it('should claim a long press and not toggle the column: it is replayed while the finger is down', () => {
+    const { hot, done, destroy } = createGrid();
+    const input = hot.rootElement.querySelector('.htCheckboxHeaderInput')!;
+    const longPress = new TouchEvent('checkbox-header-test-long-press', { bubbles: true, cancelable: true });
+
+    input.dispatchEvent(longPress);
+    markLongPressReplay(longPress);
+    hot.runHooks('beforeOnCellMouseDown', longPress, hot._createCellCoords(-1, 1), input.closest('th'));
+
+    expect(done()).toEqual([false, true, false, true, false, false]);
+    expect(longPress.defaultPrevented).toBe(true);
+    expect((longPress as unknown as { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled)
+      .toBe(false);
 
     destroy();
   });

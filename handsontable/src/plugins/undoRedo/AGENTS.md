@@ -227,8 +227,8 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   `instance.updateSettings(...)`, so every wrapper or spy of the public method saw two calls - the Vue
   and Angular wrapper suites and a dropdown-editor Playwright spec failed on it.
 - **The journal keeps the write order, and a step's `changes` field must not.** `applyChanges()` walks
-  its list backwards, so its cell run is recorded with `reversed: true` and `collectChanges()` reads it
-  backwards: `changes` lists the cells in the order they were passed, as it always did. Reordering the
+  its list backwards, so its cell run is recorded with `reversed: true` and `forEachChangedCell()` (`entry.ts`)
+  reads it backwards: `changes` lists the cells in the order they were passed, as it always did. Reordering the
   journal itself would break the replay of a cell written twice in one call.
 - **A replayed insertion can land in part** (`maxRows` clamps it). `alterRuns()` takes the rows that
   did land out again before it reverts the earlier runs. A removal that lands in part cannot be taken
@@ -260,6 +260,35 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   hands the value to a validator. `updatePlugin()` re-reads it only when the payload has an `undo`
   key, drops the steps past a lowered limit at once, and a redo trims too - with `0` a push is
   trimmed away right after it.
+- **Every recorded action pays for two captures and a push, so none of them may walk anything that grows.**
+  A loop of 50,000 `setCellMeta()` calls outside `batch()` took 2.2 s against 28 ms with undo off (DEV-4091),
+  because each capture rebuilt the sorted registry list and looked up every plugin by name, and each push
+  copied the whole undo stack twice (quadratic in a long run). Three rules keep it flat:
+  - `GridStateTracker` resolves the grid plugins that implement `captureState`/`captureSourceStructure`
+    once (`#getCapturingPlugins()`: a grid creates all its plugins in its constructor, and a plugin
+    registered later never gets an instance on it) and reads `plugin.enabled` on every capture, because a plugin can be
+    turned on or off between two actions. The restore walks the same lists, so the order stays the
+    plugin priority order. Do not memoize the exported `getPluginsNames()` instead: it has other callers,
+    and a shared array would be handed out mutable.
+  - The stack hook pairs take their copies only when a listener exists (`#copyForStackHooks()`): the
+    "before" copy is the first argument of BOTH hooks, so it is taken when either hook of the pair
+    listens - gating it on the `before` hook alone handed an `after`-only listener nothing. With no
+    listener nothing can read a copy or veto, so the hooks are not run at all. The inline pairs of
+    `undo()`/`redo()` and the legacy custom-action paths keep their copies: user code runs between the
+    two halves there, and they run once per undo, not once per action. Known limit: while any stack
+    hook listens (an Undo button that follows `afterUndoStackChange`, or DataProvider's
+    `beforeUndoStackChange`), every push still copies the stack - the hooks' signatures require it.
+  - A `change` step of more than `EAGER_CHANGES_LIMIT` cells builds its `changes` field on its first read
+    (`defineLazyChanges()` in `entry.ts`); a smaller one builds it at once, because the deferral costs
+    more than the list there.
+    Built eagerly it held a second copy of every changed cell next to the journal, about half of a bulk
+    write's memory (DEV-3747). The visual rows and columns are resolved WHEN THE STEP IS RECORDED
+    (`indexChangedCells()`: an `Int32Array` of rows, one column per prop) and the values are read from
+    the journal, so a sort or a move made before the first read does not change what the step reports.
+    Never resolve them at read time. On the first read or write the field becomes a plain data property.
+    A step frozen before its first read keeps the accessor: reads work, and an assignment is ignored
+    (the old data property threw a `TypeError` there in strict mode). The 16/17-cell boundary and the
+    frozen assignment are pinned in `__tests__/actions/dataChange.unit.js`.
 - **Every drop of a step announces itself** (`#dropSteps`): the `before`/`after` stack hook pair of
   each stack that changes, not vetoable (the return value is ignored). `#resetHistory` goes through
   it, so a toolbar that follows the hooks never keeps an Undo button for a history that is gone. The
@@ -366,7 +395,9 @@ is `true`, so it runs for every `updateSettings()`). Three rules keep it cheap a
 
 ## The plugin contract (`../base/base.ts`)
 
-Optional methods, found by `typeof plugin.captureState === 'function'`:
+Optional methods, found by `typeof plugin.captureState === 'function'` once, on the first capture
+(`GridStateTracker#getCapturingPlugins()`). Define them on the class: a method added to an instance later
+(in `enablePlugin()`) is never called.
 
 - `captureState(previous)` / `restoreState(state)` - state that lives neither in an index map nor in
   cell meta: MergeCells (merges and their physical anchors), Filters (applied conditions),
@@ -386,6 +417,19 @@ Optional methods, found by `typeof plugin.captureState === 'function'`:
   `context.toRestoredIndex`. Formulas reads
   the peer rewrites from `other` on undo. No context is passed when the restore puts back a state no
   step changed.
+- `getShownRowsTrimmingMaps()` - the row trimming maps whose change only changes which rows are
+  shown (NestedRows: `['nestedRows']`, a collapse or an expand). `GridStateTracker#restore()`
+  restores the row maps inside `Selection#followRecordsWhile('row', …)`, so the selection moves
+  with its rows on undo and redo as it did on the action itself (DEV-509), only when all of these
+  hold (`#readShownRowsFollowers()`): no row or column insert or removal was replayed (`forceOrder`
+  is `false`), no source shape changed (a NestedRows row move renumbers the rows), and every row
+  trimming map the step changed is declared by an enabled plugin, so a batch that also filtered or
+  called `trimRows()` keeps the default repair. The scope sits around `#rows.restore()` because that
+  is where the index cache updates, before the plugin states; the declaring plugins' states are
+  therefore restored FIRST (and again in the usual loop, which changes nothing), so a selection
+  listener the follow runs reads the restored state, as after the action itself. Filters does not
+  declare its map on purpose: its trim takes rows out of the working set, and a selection naming a
+  row that is gone must drop.
 - `getStateColumns(state, other)` - the physical columns whose state differs between the two sides
   of a step, for the `columns` check above. `null` or no method means "cannot tell" and the step
   drops, with every older one. Pagination, NestedRows, and CustomBorders answer `[]`; Filters the
@@ -410,10 +454,18 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
 
 ## Known gaps
 
-- A multi-operation step on a NestedRows grid that MOVES rows (a detach, a row move) and edits cells
-  can put an edit on another row. The cell writes are mapped to the restored tree shape through the
-  step's `insertRows`/`removeRows` entries only; a move is journaled as `metaRows` entries, which
-  `spliceCellsMeta()` also records for a meta-only shift, so they cannot be read as data moves.
+- A multi-operation step on a NestedRows grid that MOVES rows with a row move and edits cells can
+  put an edit on another row. The cell writes are mapped to the restored tree shape through the
+  step's `insertRows`/`removeRows` entries and the `metaRows` entries marked `movesData`; the row
+  move journals plain `metaRows` entries, which `spliceCellsMeta()` also records for a meta-only
+  shift, so they cannot be read as data moves. A detach is mapped: `DataManager#moveCellsMeta()`
+  records its two entries with `movesData: true`, and `restoredCells.ts` reads such a pair as a row
+  removal and insertion, with a row inside the moved block mapped to the same offset on the other
+  side. The formula text Formulas writes back after a detach depends on it (pinned by
+  `__tests__/restoredCells.unit.ts` and `../formulas/__tests__/nestedRowsDetachUndo.unit.js`).
+  `toFinalIndex()` also maps the hide and trim flags a structural restore keeps (`readRemovedFlags()`,
+  `applyKeptFlags()` in `restore.ts`), so in a step that also inserts or removes rows those flags follow
+  the move too.
 - The value maps and the row and column order of a structural step are restored from its snapshot,
   so a size or an order set outside any step after the step (a `manualColumnResize` or
   `manualColumnMove` settings update) is lost on undo. Trims and hides are kept (step 4 of the

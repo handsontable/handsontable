@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "read-only",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T14:48:46.866Z"
+  },
+  "steps": {
+    "arrow-right-read-only": "b 1 b row 2 a column 3",
+    "enter-on-read-only": "b 2 b row 3 a column 3",
+    "type-on-read-only": "",
+    "delete-on-read-only": "",
+    "arrow-down-read-only": "b 3 b row 4 a column 3",
+    "arrow-up-unchanged": "b 2 b row 3 a column 3"
+  }
+}

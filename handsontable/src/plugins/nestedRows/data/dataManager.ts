@@ -31,6 +31,14 @@ export interface RowSetPosition {
 }
 
 /**
+ * Where a row sits in the tree: its 1-based depth, its 1-based position among its reachable siblings,
+ * and how many of them there are.
+ */
+export interface RowTreePosition extends RowSetPosition {
+  level: number;
+}
+
+/**
  * What a row's `__children` held when a shape was taken: a copy of its child list, or the value
  * itself when it was not an array.
  */
@@ -804,6 +812,26 @@ class DataManager {
   }
 
   /**
+   * Gets where the row with the provided physical index sits in the tree, in the terms the treegrid
+   * row attributes and the level announcement share: the 1-based depth (`aria-level`), and the
+   * position and set size {@link DataManager#getRowSetPosition} answers.
+   *
+   * @private
+   * @param {number} row Physical row index.
+   * @returns {RowTreePosition|null} `null` for a row the cache does not know.
+   */
+  getRowTreePosition(row: number): RowTreePosition | null {
+    const setPosition = this.getRowSetPosition(row);
+    const level = setPosition ? this.getRowLevel(row) : null;
+
+    if (!setPosition || level === null) {
+      return null;
+    }
+
+    return { level: level + 1, position: setPosition.position, setSize: setPosition.setSize };
+  }
+
+  /**
    * Forgets the reachable-sibling counts that `getRowSetPosition()` keeps while rows are trimmed.
    * The plugin calls it whenever the row index mapper's cache changes, and `rewriteCache()` calls it
    * when the tree changes.
@@ -1024,9 +1052,9 @@ class DataManager {
 
     const metaManager = this.hot._getMetaManager();
 
-    recordMetaRowsShift(this.hot, false, fromPhysicalRow, amount);
+    recordMetaRowsShift(this.hot, false, fromPhysicalRow, amount, true);
     metaManager.removeRow(fromPhysicalRow, amount);
-    recordMetaRowsShift(this.hot, true, toPhysicalRow, amount);
+    recordMetaRowsShift(this.hot, true, toPhysicalRow, amount, true);
     metaManager.createRow(toPhysicalRow, amount);
   }
 

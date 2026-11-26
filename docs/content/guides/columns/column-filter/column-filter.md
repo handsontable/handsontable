@@ -538,10 +538,21 @@ The following table contains all available filter operators for each built-in da
 | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | All cell types                                                   | Default operators:<br><br>None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to                                                  |
 | text<br>time<br>checkbox<br>dropdown<br>autocomplete<br>password | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
+| checkbox                                                         | The text operators above plus:<br><br>Is checked<br>Is unchecked                                                                              |
 | numeric                                                          | Default operators plus:<br><br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
 | date                                                             | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
+
+On a checkbox column, **Is checked** keeps the cells whose value matches the column's
+[`checkedTemplate`](@/api/options.md#checkedtemplate), and **Is unchecked** keeps the cells whose value
+matches its [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Letter case is ignored, as the
+checkbox does when it draws the value. An empty cell matches neither operator, even though the checkbox
+draws it unchecked, unless the template itself is empty. To find empty cells, use **Is empty**.
+
+When a [`dataProvider`](@/api/options.md#dataprovider) backs the grid, your server evaluates the
+conditions, so a checkbox column offers the text operators only, without **Is checked** and
+**Is unchecked**.
 
 To offer only some of these operators, or to change their order, see
 [Choose the conditions the filter menu offers](#choose-the-conditions-the-filter-menu-offers).
@@ -636,8 +647,20 @@ availableConditions: {
 ```
 
 The data type keys are `text`, `numeric`, `date`, `intl-date`, `intl-time`, and `intl-datetime`. A
-column whose cell type has no list of its own, such as `dropdown` or `checkbox`, uses the `text`
-list.
+column whose cell type has no list of its own, such as `dropdown`, uses the `text` list. A
+`checkbox` column uses the `text` list with **Is checked** and **Is unchecked** added after
+**Is not empty**, and follows the `text` key.
+
+To offer only the operators that suit a checkbox column, give the column its own list:
+
+```js
+columns: [
+  {
+    type: 'checkbox',
+    filters: { availableConditions: ['empty', 'not_empty', 'checked', 'unchecked'] },
+  },
+],
+```
 
 A column's own `availableConditions` replaces the grid-level one for that column. The two are not
 merged:
@@ -662,6 +685,7 @@ The names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes:
 | Name | Operator in the menu |
 | ---- | -------------------- |
 | `empty`, `not_empty` | Is empty, Is not empty |
+| `checked`, `unchecked` | Is checked, Is unchecked (`checkbox` columns) |
 | `eq`, `neq` | Is equal to, Is not equal to |
 | `begins_with`, `ends_with` | Begins with, Ends with |
 | `contains`, `not_contains` | Contains, Does not contain |
@@ -1865,7 +1889,6 @@ To use filtering, you need only the following modules:
 - The [`Filters`](@/api/filters.md) module
 - The [`DropdownMenu`](@/api/dropdownMenu.md) module
 - The [`HiddenRows`](@/api/hiddenRows.md) module
-- The [`AutoColumnSize`](@/api/autoColumnSize.md) module
 - The [`CheckboxCellType`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) module
 
 ```js
@@ -1878,7 +1901,6 @@ import {
   Filters,
   DropdownMenu,
   HiddenRows,
-  AutoColumnSize,
 } from 'handsontable/plugins';
 
 // import the checkbox cell type
@@ -1888,7 +1910,6 @@ import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 registerPlugin(Filters);
 registerPlugin(DropdownMenu);
 registerPlugin(HiddenRows);
-registerPlugin(AutoColumnSize);
 
 // register the checkbox cell type
 registerCellType(CheckboxCellType);
@@ -1925,6 +1946,8 @@ For a reference list of filter-related shortcuts, see [Keyboard shortcuts](@/gui
 
 ## Related keyboard shortcuts
 
+The filters are part of the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md). To open it, press <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> from a data cell, or <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> from a focused column header. To let users move focus onto the headers with the arrow keys, set [`navigableHeaders: true`](@/api/options.md#navigableheaders), as the [Filtering demo](#filtering-demo) does. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
 | <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>⌥</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
@@ -1952,7 +1975,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Filtering) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

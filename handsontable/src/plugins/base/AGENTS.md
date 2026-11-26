@@ -512,13 +512,14 @@ without a priority in registration order. Registering two plugins on the same pr
 | | | 380 | freezeBar |
 | | | 385 | rowSelection |
 | | | 390 | checkboxHeader |
+| | | 400 | editableHeaders |
 | | | 900 | pagination |
 | | | 910 | sheetsBar |
 | | | 920 | viewState |
 | | | 950 | dataProvider |
 | | | 1000 | undoRedo |
 
-Free slots to pick a new number from: 180 and the 400–890 range (plus the odd numbers between the rows
+Free slots to pick a new number from: 180 and the 401–890 range (plus the odd numbers between the rows
 above). `asyncValues` took 340, the gap between the trimming plugins (330) and the overlay plugins (350+);
 it relies on neither side, so a plugin that must enable after trimming and before the overlays can take
 345 (`customBorders` took 335, see below). `900`+ is reserved for plugins that

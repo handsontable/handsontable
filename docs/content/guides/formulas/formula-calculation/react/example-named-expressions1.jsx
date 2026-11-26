@@ -41,6 +41,7 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
+          <label htmlFor="named-expressions-input">Named expression ADDITIONAL_COST</label>
           <input
             id="named-expressions-input"
             type="text"

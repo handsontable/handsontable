@@ -2,8 +2,6 @@ import {
   addClass,
   hasClass,
   removeClass,
-  setAttribute,
-  removeAttribute,
   removeInlineStyle,
 } from '../../../../helpers/dom/element';
 import { BaseRenderer } from './_base';
@@ -12,11 +10,100 @@ import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
   A11Y_COLUMNHEADER,
-  A11Y_GRIDCELL_BUTTON,
-  A11Y_LABEL,
+  A11Y_GRIDCELL,
   A11Y_SCOPE_COL,
   A11Y_TABINDEX,
 } from '../../../../helpers/a11y';
+import {
+  clearStaleAriaAttributes,
+  NO_KEPT_ARIA_ATTRIBUTES,
+  setAttributeIfChanged,
+  syncAriaAttributes,
+} from './ariaAttributes';
+import type { KeptAriaAttributes } from './ariaAttributes';
+
+const ID = 'id';
+const COLINDEX = A11Y_COLINDEX(0)[0];
+const [TABINDEX, TABINDEX_VALUE] = A11Y_TABINDEX(-1);
+const [ROLE, COLUMNHEADER] = A11Y_COLUMNHEADER();
+const [SCOPE, SCOPE_COL] = A11Y_SCOPE_COL();
+// The corner headers are plain grid cells, not column headers, to prevent
+// https://github.com/handsontable/dev-handsontable/issues/1574. They carry no name of their own, so a control
+// rendered into one (the RowSelection "select all" checkbox) names itself.
+const GRIDCELL = A11Y_GRIDCELL()[1];
+
+/**
+ * Lists the accessibility attributes of a column header, in the order a new element gets them.
+ *
+ * @param {string} ariaColIndex The header's `aria-colindex`.
+ * @returns {KeptAriaAttributes}
+ */
+function getColumnHeaderAriaAttributes(ariaColIndex: string): KeptAriaAttributes {
+  return {
+    [COLINDEX]: ariaColIndex,
+    [TABINDEX]: String(TABINDEX_VALUE),
+    [ROLE]: COLUMNHEADER,
+    [SCOPE]: SCOPE_COL,
+  };
+}
+
+/**
+ * Lists the accessibility attributes of a corner header, in the order a new element gets them.
+ *
+ * @param {string} ariaColIndex The header's `aria-colindex`.
+ * @returns {KeptAriaAttributes}
+ */
+function getCornerAriaAttributes(ariaColIndex: string): KeptAriaAttributes {
+  return {
+    [COLINDEX]: ariaColIndex,
+    [TABINDEX]: String(TABINDEX_VALUE),
+    [ROLE]: GRIDCELL,
+  };
+}
+
+/**
+ * Brings a header's accessibility attributes and its `id` to this draw's values: clears the ones the previous
+ * paint of this (pooled) header left, and writes each one that differs. `id` is handled here as well, because
+ * pooled nodes are reused across draws and only the owning overlay's leaf header carries one - a header that
+ * stops being the leaf or owning header (or a corner cell reused as a header) must not keep a stale id a data
+ * cell points at.
+ *
+ * @param {HTMLElement} TH The header.
+ * @param {string} ariaColIndex The header's `aria-colindex`.
+ * @param {boolean} isCorner Whether the header is a corner cell above the row headers.
+ * @param {string} columnHeaderId The id the header carries, empty when it carries none.
+ */
+function writeColumnHeaderAriaAttributes(
+  TH: HTMLElement,
+  ariaColIndex: string,
+  isCorner: boolean,
+  columnHeaderId: string,
+): void {
+  syncAriaAttributes(TH, isCorner
+    ? getCornerAriaAttributes(ariaColIndex)
+    : getColumnHeaderAriaAttributes(ariaColIndex));
+
+  if (isCorner) {
+    // A pooled element that showed a column header (before row headers were turned on) carries its `scope`.
+    TH.removeAttribute(SCOPE);
+  }
+
+  if (columnHeaderId) {
+    setAttributeIfChanged(TH, ID, columnHeaderId);
+  } else {
+    TH.removeAttribute(ID);
+  }
+}
+
+/**
+ * Clears every accessibility attribute and the `id` of a header, for a grid that writes none.
+ *
+ * @param {HTMLElement} TH The header.
+ */
+function clearColumnHeaderAriaAttributes(TH: HTMLElement): void {
+  clearStaleAriaAttributes(TH, NO_KEPT_ARIA_ATTRIBUTES);
+  TH.removeAttribute(ID);
+}
 
 /**
  * Column headers renderer responsible for managing (inserting, tracking, rendering) TH elements belongs to TR.
@@ -74,7 +161,8 @@ export class ColumnHeadersRenderer extends BaseRenderer {
     // Draw-constant, so resolved once rather than per header (mirrors the cells renderer): the id
     // prefix a data cell references through `aria-describedby`, empty without an instance id (DEV-29),
     // and the frozen-column count the ownership check needs (a mapper-walking function in core).
-    const columnHeaderIdPrefix = this.table.isAriaEnabled() ? this.table.getAriaColumnHeaderIdPrefix() : '';
+    const ariaEnabled = this.table.isAriaEnabled();
+    const columnHeaderIdPrefix = ariaEnabled ? this.table.getAriaColumnHeaderIdPrefix() : '';
     const fixedColumnsStart = columnHeaderIdPrefix ? this.table.getFixedColumnsStart() : 0;
     const firstFixedEndColumn = columnHeaderIdPrefix ? this.table.getFirstFixedEndColumn() : Infinity;
 
@@ -107,17 +195,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
         clearAppliedSelection(TH);
         removeInlineStyle(TH);
 
-        // Remove all accessibility-related attributes for the header to start fresh. `id` is stripped
-        // too because it is reused across draws on pooled nodes and only the master overlay's leaf
-        // header re-stamps it below - without the strip a header that stops being the leaf/master
-        // header (or a corner cell reused as a header) would keep a stale id a data cell points at.
-        removeAttribute(TH, [
-          /aria-(.*)/,
-          /role/,
-          /^id$/
-        ]);
-
-        if (this.table.isAriaEnabled()) {
+        if (ariaEnabled) {
           // The leaf header row carries the id a data cell references through `aria-describedby`. Only
           // the overlay that owns the column stamps it, so exactly one header in the grid holds each id
           // (a frozen column is owned by the inline-start overlay, every other column by the master -
@@ -129,23 +207,14 @@ export class ColumnHeadersRenderer extends BaseRenderer {
             this.table.ownsAriaColumnHeaderId(sourceColumnIndex, fixedColumnsStart, firstFixedEndColumn)
             ? `${columnHeaderIdPrefix}${sourceColumnIndex}`
             : '';
+          const ariaColIndex = String(this.table.getAriaColumnHeaderIndex(
+            visibleColumnIndex, renderedColumnIndex >= 0 ? sourceColumnIndex : -1,
+          ));
 
-          setAttribute(TH, [
-            A11Y_COLINDEX(
-              this.table.getAriaColumnHeaderIndex(visibleColumnIndex, renderedColumnIndex >= 0 ? sourceColumnIndex : -1)
-            ),
-            A11Y_TABINDEX(-1),
-            A11Y_COLUMNHEADER(),
-            ...(renderedColumnIndex >= 0 ? [
-              A11Y_SCOPE_COL(),
-              ...(columnHeaderId ? [['id', columnHeaderId] as [string, string]] : []),
-            ] : [
-              // Adding `role=row` to the corner headers to prevent
-              // https://github.com/handsontable/dev-handsontable/issues/1574
-              A11Y_GRIDCELL_BUTTON(),
-              A11Y_LABEL('Select whole grid')
-            ]),
-          ]);
+          writeColumnHeaderAriaAttributes(TH, ariaColIndex, renderedColumnIndex < 0, columnHeaderId);
+
+        } else {
+          clearColumnHeaderAriaAttributes(TH);
         }
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);

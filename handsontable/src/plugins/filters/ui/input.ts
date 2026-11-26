@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass, eventTargetEl } from '../../../helpers/dom/element';
+import { addClass, eventTargetEl, setAttribute } from '../../../helpers/dom/element';
+import { A11Y_LABELED_BY } from '../../../helpers/a11y';
 import { clone, extend } from '../../../helpers/object';
 import type { BaseUIOptions } from './_base';
 import { BaseUI } from './_base';
@@ -79,6 +80,10 @@ export class InputUI extends BaseUI {
       this.#input.type = String(this.options.type ?? 'text');
       this.#input.placeholder = String(this.translateIfPossible(this.options.placeholder) ?? '');
       this.#input.value = String(this.translateIfPossible(this.options.value) ?? '');
+
+      if (typeof this.options.labelledBy === 'string' && this.hot?.getSettings().ariaTags) {
+        setAttribute(this.#input, [A11Y_LABELED_BY(this.options.labelledBy)]);
+      }
     }
   }
 

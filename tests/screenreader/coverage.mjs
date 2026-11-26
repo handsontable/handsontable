@@ -25,9 +25,9 @@
 /** @type {Record<string, ScreenReaderCoverage>} */
 export const SR_PAGE_COVERAGE = {
   grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'virtualization-reading', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop', 'row-selection-corner'] },
-  'shared-demo': { gap: 'the demo-shaped grid as a whole (merged cells, hidden-column indicators, sorting, filters, comments) is read by no scenario' },
-  'complex-demo': { gap: 'four nested header levels over nested rows, merged cells and frozen panes at once: no scenario reads them together' },
-  'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads this page (checkbox-cell reads one read-only checkbox, on the checkbox page)' },
+  'shared-demo': { scenarios: ['shared-demo'] },
+  'complex-demo': { scenarios: ['complex-demo'] },
+  'read-only': { scenarios: ['read-only'] },
   checkbox: { scenarios: ['checkbox-cell', 'checkbox-header'] },
   'nested-headers': { scenarios: ['nested-headers'] },
   'collapsible-headers': { scenarios: ['collapsible-headers'] },
@@ -42,9 +42,10 @@ export const SR_PAGE_COVERAGE = {
   pagination: { scenarios: ['pagination'] },
   dialog: { scenarios: ['dialog'] },
   notification: { scenarios: ['notification'] },
-  'license-bar': { gap: 'the license notice under an unlicensed grid is page text a reader meets, read by no scenario' },
-  'license-powered-by': { gap: 'the Powered by badge under a grid with a sponsored key is a link a reader meets, read by no scenario' },
-  'license-missing-features': { gap: 'the notice naming the features a license key leaves out, and its link, are read by no scenario' },
+  'license-bar': { scenarios: ['license-bar'] },
+  'license-powered-by': { scenarios: ['license-powered-by'] },
+  'license-missing-features': { scenarios: ['license-missing-features'] },
+  'side-layout-slots': { none: 'the layout slots add role-less containers, borders and corner radii, nothing in the accessibility tree: a reader meets the panels\' own content, which the page owns, and the grid the grid page reads' },
   'context-menu': { scenarios: ['context-menu-checkable'] },
   'context-menu-submenu': { scenarios: ['context-menu-submenu'] },
   'dropdown-menu': { scenarios: ['dropdown-menu', 'filters-by-value'] },
@@ -69,6 +70,7 @@ export const SR_PAGE_COVERAGE = {
   'auto-link': { scenarios: ['auto-link'] },
   'row-selection': { scenarios: ['row-selection'] },
   'async-values': { scenarios: ['async-values'] },
+  'editable-headers': { scenarios: ['editable-headers'] },
   'time-editor': { scenarios: ['time-editor'] },
   'intl-date-editor': { scenarios: ['intl-date-editor'] },
   'intl-time-editor': { scenarios: ['intl-time-editor'] },
@@ -108,14 +110,15 @@ export const SR_FEATURE_COVERAGE = {
   dialog: { scenarios: ['dialog', 'loading'] },
   dragToScroll: { none: 'scrolls the grid while a pointer drags and draws nothing a reader meets' },
   dropdownMenu: { scenarios: ['dropdown-menu', 'filters-by-value', 'filters-by-condition'] },
+  editableHeaders: { scenarios: ['editable-headers'] },
   emptyDataState: { scenarios: ['empty-data', 'data-provider-sheets-bar'] },
   exportFile: { none: 'writes data to a file and draws nothing a reader meets' },
   filters: { scenarios: ['filters-by-value', 'filters-by-condition'] },
   formulaBuilder: { scenarios: ['formula-builder', 'formula-bar', 'formula-suggestions', 'formula-function-help'] },
   formulas: { scenarios: ['formula-bar'] },
   freezeBar: { scenarios: ['freeze-bar'] },
-  hiddenColumns: { gap: 'the column positions a reader announces around a hidden column are read by no scenario' },
-  hiddenRows: { gap: 'the row positions a reader announces around a hidden row are read by no scenario' },
+  hiddenColumns: { scenarios: ['shared-demo'] },
+  hiddenRows: { scenarios: ['complex-demo'] },
   importFile: { none: 'reads data from a file and draws nothing a reader meets' },
   loading: { scenarios: ['loading'] },
   manualColumnFreeze: { none: 'adds freeze items to the context menu, which read like every menu item, and moves columns; draws nothing of its own' },
@@ -125,7 +128,7 @@ export const SR_FEATURE_COVERAGE = {
   manualRowResize: { none: 'draws a resize handle on header hover and a guide only while a pointer drags' },
   mergeCells: { scenarios: ['merge-cells'] },
   moveCells: { none: 'drags the selection by its border and draws only during the drag' },
-  multiColumnSorting: { gap: 'a sort on several columns, and each header\'s sort state, are read by no scenario' },
+  multiColumnSorting: { scenarios: ['shared-demo'] },
   multipleSelectionHandles: { gap: 'the phone\'s selection handles are for the mobile readers, whose lanes do not exist yet' },
   nestedHeaders: { scenarios: ['nested-headers'] },
   nestedRows: { scenarios: ['nested-rows'] },
@@ -161,4 +164,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 11;
+export const SR_GAP_LIMIT = 2;

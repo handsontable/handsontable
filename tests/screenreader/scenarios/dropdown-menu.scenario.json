@@ -13,7 +13,7 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["insert column left"], ["menu"]],
-      "note": "Shift+Alt+ArrowDown on the selected cell opens the menu of its column (Color) with the first item highlighted, which is what keeps Escape working for a screen reader. Required: the highlighted item's label and the menu role (NVDA says `menu item`, which holds the word). Finding: VoiceOver says nothing when the column menu opens: 9 of 9 opens on Chromium and 7 of 9 on WebKit over three runs, where the context menu in grid-core is announced. NVDA with Chromium names the menu as a table and says menu in some runs only, as it does for the context menu in grid-core."
+      "note": "Shift+Alt+ArrowDown on the selected cell opens the menu of its column (Color) with the first item highlighted, which is what keeps Escape working for a screen reader. Required: the highlighted item's label and the menu role (NVDA says `menu item`, which holds the word). Finding: VoiceOver says nothing when the column menu opens: 9 of 9 opens on Chromium and 7 of 9 on WebKit over three runs, where the context menu in grid-core is announced. NVDA with Chromium reads the item and its position (`1 of 9`) without the word menu, as in grid-core. The items carry `aria-posinset` and `aria-setsize`, so the readers that name a position agree, as grid-core records: `1 of 9` with NVDA on both browsers, and `2 of 9` for the next item with VoiceOver and WebKit."
     },
     {
       "id": "arrow-down-insert-right",
@@ -43,7 +43,7 @@
       "action": {"press": "Escape"},
       "after": {"hidden": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["red"]],
-      "note": "Escape closes the menu and the focus should return to the grid. Opening the menu from the keyboard selects the whole column and clamps the focus cell to row 0 (filters-menu-focus-order.spec.ts), so the cell that holds the focus is Alice's Color, `Red`, not Bob's `Green` the scenario selected. Finding: NVDA and VoiceOver announce the document on every browser (the recording), as after the context menu: the focus leaves the grid."
+      "note": "Escape closes the menu and the focus returns to the grid. Opening the menu from the keyboard selects the whole column and clamps the focus cell to row 0 (filters-menu-focus-order.spec.ts), so the cell that holds the focus is Alice's Color, `Red`, not Bob's `Green` the scenario selected. Every reader says the cell."
     },
     {
       "id": "arrow-down-in-grid",

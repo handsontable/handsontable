@@ -1486,7 +1486,7 @@ After completing this guide, users can sort rows by clicking column headers, and
 
 ## Related keyboard shortcuts
 
-These header-focused shortcuts work only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+These header-focused shortcuts work only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys, as the [Sorting demo](#sorting-demo) does. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows | macOS | Action | Excel | Sheets |
 | --- | --- | --- | :---: | :---: |
@@ -1498,7 +1498,7 @@ These header-focused shortcuts work only when a column header is focused. Enable
 When a user sorts a column by pressing its header or by using the keyboard shortcuts above, Handsontable announces the result in a polite live region. The message names the column and its new order, for example `Sorted by Age, ascending`, `Sorted by Age, descending`, or `Sorting removed from Age`.
 
 - The name of the column is the text of its header. A column with an empty header is named by its letter, such as `B`.
-- With `MultiColumnSorting`, the message names the column that the user pressed, not the whole sort queue.
+- With `MultiColumnSorting`, the message names the column that the user pressed, not the whole sort queue. While more than one column is sorted, it also says the column's place in the sort, the number that the header shows, for example `Sorted by Age, ascending, sort priority 2`.
 - A sort made through the API (`sort()`, `setSortConfig()`, `clearSort()`) or through the `initialConfig` option is not announced.
 - A [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook that returns `false` without changing the sort states is not announced. A hook that writes the states with `setSortConfig()` and then returns `false`, as server-side sorting does, is announced.
 - A grid with [`ariaTags`](@/api/options.md#ariatags) set to `false` announces nothing, the same as it writes no `aria-sort` attribute.
@@ -1524,7 +1524,7 @@ When a user sorts a column by pressing its header or by using the keyboard short
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `headerAction` | `boolean` | `true` | When `true`, clicking a column header sorts by that column. |
+| `headerAction` | `boolean` | `true` | When `true`, clicking a column header sorts by that column. A click on markup inside an HTML header label sorts too. A click on a link, button, or form field does not. |
 | `sortEmptyCells` | `boolean` | `false` | When `true`, empty cells participate in sorting. When `false`, empty cells are always placed at the end. |
 | `sortFixedRows` | `boolean` | `false` | When `true`, the rows frozen by `fixedRowsTop` and `fixedRowsBottom` are sorted along with the rest of the dataset. When `false`, they keep their position. Grid-level only. |
 | `indicator` | `boolean` | `true` | When `true`, a sort-order arrow icon is shown in the column header. |
@@ -1546,7 +1546,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Column%20sorting) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

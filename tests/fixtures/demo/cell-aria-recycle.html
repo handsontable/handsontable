@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cell ARIA recycle e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Cells and headers are recycled DOM elements: a scroll repaints the same TD and TH elements with
+    other rows and columns. Column B's renderer gives the rows above `CUSTOM_ROWS` its own
+    accessibility attributes (a `checkbox` role, `aria-checked`, its own `aria-describedby`, a stray
+    `aria-x` and a `data-role`), and renders every other row as plain text. The spec scrolls those
+    elements onto plain rows and reads what they carry. `window.customPainted` holds every element the
+    custom branch painted, and `window.entryStates` what each column C cell carried when its renderer
+    started. Column headers A-C get an `aria-x` and a `data-role` from an `afterGetColHeader` listener.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const CUSTOM_ROWS = 20;
+
+    container.className = `ht-theme-${window.htTheme}`;
+    window.customPainted = new WeakSet();
+    window.entryStates = [];
+
+    // The accessibility-related attributes of one element: every attribute whose name contains `aria-` or
+    // `role` (the names the renderers clear on a recycled element), plus `tabindex`, `scope` and `id`.
+    window.readAria = function(element) {
+      const attributes = {};
+
+      element.getAttributeNames().forEach((name) => {
+        if (name.includes('aria-') || name.includes('role') || ['tabindex', 'scope', 'id'].includes(name)) {
+          attributes[name] = element.getAttribute(name);
+        }
+      });
+
+      return attributes;
+    };
+
+    // Column C records what the cell carries when its renderer starts, which must not depend on whether the
+    // element is new or recycled.
+    // The size samplers render cells into a ghost table too; only the grid's own cells are recorded.
+    function recordingRenderer(instance, TD, row, column, prop, value, cellProperties) {
+      if (TD.closest('.ht_master')) {
+        window.entryStates.push({ row, attributes: window.readAria(TD) });
+      }
+
+      Handsontable.renderers.TextRenderer(instance, TD, row, column, prop, value, cellProperties);
+    }
+
+    function customRenderer(instance, TD, row, column, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer(instance, TD, row, column, prop, value, cellProperties);
+
+      if (row < CUSTOM_ROWS) {
+        TD.setAttribute('role', 'checkbox');
+        TD.setAttribute('aria-checked', 'true');
+        TD.setAttribute('aria-describedby', 'custom-description');
+        TD.setAttribute('aria-x', 'stray');
+        TD.setAttribute('data-role', 'custom');
+        window.customPainted.add(TD);
+      }
+    }
+
+    window.buildGrid = function(extraSettings) {
+      if (window.hot) {
+        window.hot.destroy();
+        window.hot = null;
+      }
+
+      window.customPainted = new WeakSet();
+      window.entryStates = [];
+      container.removeAttribute('data-init-error');
+
+      try {
+        window.hot = new Handsontable(container, Object.assign({
+          data: Handsontable.helper.createSpreadsheetData(300, 60),
+          colHeaders: true,
+          rowHeaders: true,
+          width: 600,
+          height: 300,
+          // Column headers A-C get attributes of their own from a header renderer, which a header element
+          // reused for another column must not keep.
+          afterGetColHeader(column, TH) {
+            if (column >= 0 && column < 3) {
+              TH.setAttribute('aria-x', 'header-stray');
+              TH.setAttribute('data-role', 'header-custom');
+            }
+          },
+          cells(row, column) {
+            if (column === 1) {
+              return { renderer: customRenderer };
+            }
+
+            return column === 2 ? { renderer: recordingRenderer } : {};
+          },
+          licenseKey: window.htTestLicenseKey,
+        }, extraSettings));
+        window.hot.rootElement.setAttribute('data-testid', 'grid-root');
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+      }
+    };
+
+    window.buildGrid(JSON.parse(htParams.get('settings') ?? '{}'));
+  </script>
+</body>
+</html>

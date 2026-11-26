@@ -148,7 +148,7 @@ It is side-effect free (as in it does nothing outside of your local copy of this
 `consume` and `sync` write the root `CHANGELOG.md`, and the release workflow copies that version's
 section into `docs/content/guides/upgrade-and-migration/changelog/changelog.md`. **Nothing writes the
 per-major page** `docs/content/guides/upgrade-and-migration/changelog-<N>/changelog-<N>.md`. Someone
-copies the section there by hand, demoting `###` to `####`, and that page is what the docs site and
+copies the section there by hand, keeping the `###` category headings, and that page is what the docs site and
 the version-comparison UI read.
 
 That hand step owns one editorial rule, and it is the reason this section exists: **every new option,

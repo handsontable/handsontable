@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "license-missing-features",
+  "surface": "The license notice naming a feature the grid uses and its key leaves out: Tab out of the grid to its link, the notice's text read with the reader's own cursor, and Shift+Tab back into the grid.",
+  "group": "status",
+  "page": "license-missing-features",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "2.4.4", "4.1.2"],
+  "setup": [{"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "tab-to-sales",
+      "action": {"press": "Tab"},
+      "expect": [["sales"], ["link"]],
+      "note": "The page's grid turns on Filters with a key that lists its features and leaves Filters out (the catalog fixture), so the notice under the grid names it. Tab from the last column leaves the grid for the notice's link, the sales e-mail address. Required: the link's name and role. The reader starts on the page (`start: page`), for the reason the license-bar scenario gives. Finding: VoiceOver with WebKit does not follow the focus out of the grid to the notice's link: it says nothing here, its cursor stays in the grid for the reading steps, and it says nothing when Shift+Tab returns to the grid."
+    },
+    {
+      "id": "read-notice",
+      "action": {"read": "previous"},
+      "expect": [["filters"]],
+      "note": "The reader's own cursor moves back from the link to the notice's text. Required: the feature it names, Filters. NVDA and VoiceOver with Chromium read the sentence (`does not include these features: Filters`)."
+    },
+    {
+      "id": "read-back-to-link",
+      "action": {"read": "next"},
+      "expect": [["sales"]],
+      "note": "The cursor moves forward to the link again."
+    },
+    {
+      "id": "shift-tab-to-grid",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["10"]],
+      "note": "Shift+Tab moves back into the grid, on the Value cell the focus left from, `10`."
+    }
+  ]
+}

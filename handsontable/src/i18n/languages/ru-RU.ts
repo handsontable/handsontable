@@ -13,6 +13,9 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Отмена',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Нет доступных опций',
+  [C.CONTEXTMENU_LABEL]: 'Контекстное меню',
+  [C.DROPDOWNMENU_LABEL]: 'Меню столбца',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Вставить строку ниже',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Вставить столбец слева',
@@ -52,6 +55,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Разделить ячейки',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Копировать',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Копировать с заголовком', 'Копировать с заголовками'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Копировать с заголовком группы',
+    'Копировать с заголовками групп',
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Копировать только заголовок', 'Копировать только заголовки'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Вырезать',
 
   [C.CONTEXTMENU_ITEMS_EXPORT]: 'Экспортировать',
@@ -71,6 +80,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Отсутствует',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Пусто',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Не пусто',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Отмечено',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Не отмечено',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Равно',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Не равно',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Начинается на',
@@ -137,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Лист [name] перемещён на позицию [position] из [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Лист',
 
+  [C.CHECKBOX_CHECKED]: 'Отмечено',
+  [C.CHECKBOX_UNCHECKED]: 'Не отмечено',
+
   [C.LOADING_TITLE]: 'Загрузка...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
 
@@ -147,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Сбросить фильтры',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Загрузка данных',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Подождите.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Данные загружены',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Не удалось загрузить данные',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Не удалось создать строки',
@@ -157,6 +172,9 @@ const dictionary = {
   [C.ROW_SELECTION_SELECT_ROW]: 'Выбрать строку [row]',
   [C.ROW_SELECTION_SELECT_ALL]: 'Выбрать все строки (выбрано [selected] из [total])',
   [C.CHECKBOX_HEADER_CHECK_ALL]: 'Отметить все (отмечено [checked] из [total])',
+  [C.CONTEXTMENU_ITEMS_RENAME_HEADER]: 'Переименовать заголовок',
+  [C.EDITABLE_HEADERS_INPUT_LABEL]: 'Название заголовка',
+  [C.EDITABLE_HEADERS_RENAMED]: 'Заголовок переименован в [value]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Строка [row] выбрана',
   [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Выбор строки [row] снят',
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Выбрано [selected] из [total] строк',
@@ -166,11 +184,51 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Закреплённые строки снизу',
   [C.FREEZE_BAR_COLUMNS_START]: 'Закреплённые столбцы в начале',
   [C.FREEZE_BAR_COLUMNS_END]: 'Закреплённые столбцы в конце',
+  [C.ARMED_PICK_STARTED]: 'Щёлкните или коснитесь цели, чтобы завершить. Нажмите Escape, чтобы отменить.',
+  [C.ARMED_PICK_CANCELED]: 'Отменено.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Изменение ширины столбца. Стрелками влево и вправо меняйте ширину, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Изменение высоты строки. Стрелками вверх и вниз меняйте высоту, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Изменение размера поля комментария. Стрелками меняйте размер, Enter применяет, Escape отменяет.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Ширина: [size] пикселей',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Высота: [size] пикселей',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Уровень [level], [position] из [setSize]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Уровень [level], [position] из [setSize], развёрнуто',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Уровень [level], [position] из [setSize], свёрнуто',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Формула: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'только для чтения',
+  [C.CELL_DESCRIPTION_LINK]: 'ссылка',
+  [C.CELL_DESCRIPTION_MERGED]: 'объединено до строки [row] столбца [column]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута группа столбцов [label]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута группа столбцов [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Сортировка по [label], по возрастанию',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Сортировка по [label], по убыванию',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Сортировка по [label] снята',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Сортировка по [label], по возрастанию, приоритет сортировки [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Сортировка по [label], по убыванию, приоритет сортировки [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Выбор от столбца [startColumn], строки [startRow] до столбца [endColumn], строки [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Все ячейки выбраны',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Столбец [column] выбран',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Столбцы с [startColumn] по [endColumn] выбраны',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Строка [row] выбрана',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Строки с [startRow] по [endRow] выбраны',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Добавлен выбор: [selection]. Всего выборов: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'столбец [column], строка [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'от столбца [startColumn], строки [startRow] до столбца [endColumn], строки [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'все ячейки',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'столбец [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'столбцы с [startColumn] по [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'строка [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'строки с [startRow] по [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Редактор формул',
   [C.FORMULA_BUILDER_INPUT]: 'Ввод формулы',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Адрес ячейки',
@@ -190,6 +248,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Ошибка в [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Ещё [count] ячейка теперь содержит ошибку.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Число других ячеек с ошибкой: [count].',
+  [C.EDITOR_INPUT_LABEL]: '[column], строка [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Комментарий к [column], строка [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Комментарий к [column], [row]',
 };
 
 export default dictionary;

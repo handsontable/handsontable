@@ -13,7 +13,7 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["clear column"], ["menu"]],
-      "note": "The menu of the Price column opens. In this fixture `columns` is set, so Insert column left and right and Remove column are disabled and the keyboard skips them: the first highlighted item is `Clear column` (tree golden of this page). Every reader that speaks names it (the recording). Finding: VoiceOver with Chromium says nothing when the column menu opens, as dropdown-menu records; NVDA with Chromium names a table and no menu."
+      "note": "The menu of the Price column opens. In this fixture `columns` is set, so Insert column left and right and Remove column are disabled and the keyboard skips them: the first highlighted item is `Clear column` (tree golden of this page). Every reader that speaks names it (the recording). Finding: VoiceOver with Chromium says nothing when the column menu opens, as dropdown-menu records; NVDA with Chromium reads the item and its position (`4 of 9`) without the word menu, as in grid-core. The items carry `aria-posinset` and `aria-setsize`, so the readers that name a position agree, as grid-core records: `4 of 9` with NVDA on both browsers, the three disabled items counted, and `4 of 11` with NVDA and with VoiceOver and WebKit when Shift+Tab returns to the item, because the chosen condition shows more of the Filters items and the menu numbers them again."
     },
     {
       "id": "tab-to-condition",

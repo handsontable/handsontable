@@ -47,6 +47,7 @@ import type { Notification } from './notification';
 import type { Pagination } from './pagination';
 import type { RowSelection } from './rowSelection';
 import type { CheckboxHeader } from './checkboxHeader';
+import type { EditableHeaders } from './editableHeaders';
 import type { Search } from './search';
 import type { SheetsBar } from './sheetsBar';
 import type { SelectionHandles } from './selectionHandles';
@@ -103,6 +104,7 @@ export interface PluginTypeMap {
   pagination: Pagination;
   rowSelection: RowSelection;
   checkboxHeader: CheckboxHeader;
+  editableHeaders: EditableHeaders;
   search: Search;
   selectionHandles: SelectionHandles;
   sheetsBar: SheetsBar;

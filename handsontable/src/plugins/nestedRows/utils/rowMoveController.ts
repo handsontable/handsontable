@@ -12,6 +12,7 @@ interface CollapsedRowsStash {
 interface CollapsingUI {
   areChildrenCollapsed(parent: Record<string, unknown> | null): boolean;
   collapsedRowsStash: CollapsedRowsStash;
+  dropSelectionRecords(): void;
 }
 
 interface DataManager {
@@ -153,6 +154,9 @@ export default class RowMoveController {
 
     this.moveCellsMeta(physicalStartIndexes, physicalDropIndex);
 
+    // A row move selects the moved rows itself below, so the stash does not put the selection back
+    // on the rows it was on before (DEV-509).
+    this.collapsingUI.dropSelectionRecords();
     this.collapsingUI.collapsedRowsStash.applyStash(false);
 
     // TODO: Trying to mock real work of the `ManualRowMove` plugin. It was blocked by returning `false` below.

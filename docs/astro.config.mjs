@@ -10,6 +10,7 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
 import { buildPageMarkdown } from './src/lib/added-in.mjs';
+import { buildFrameworkMarkdownRoutes } from './src/lib/markdown-routes.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
@@ -61,8 +62,12 @@ if (!existsSync(symlinkTarget)) {
 // BUILD_MODE env var is set by the deployment pipeline. When set to
 // 'production', production-only 3rd-party scripts (GTM, HotJar) are injected
 // and the "dev" badge next to the logo is hidden.
+// DOCS_SEARCH=true adds the Algolia search to a build that is not production
+// (the staging and pull request previews), so the functional specs can test it.
+// It changes nothing else production mode controls.
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
+const searchEnabled = isProduction || process.env.DOCS_SEARCH === 'true';
 
 // The internal test key for the executed examples of a staging or pull request
 // preview build (DOCS_TEST_LICENSE_KEY=true, never in production). Those builds run
@@ -550,7 +555,8 @@ function commonJsonIntegration() {
  *
  * Scans docs/content/ for .md files, reads their `permalink` frontmatter,
  * and writes cleaned Markdown to public/ (dev) and dist/ (build) for every
- * framework prefix in FRAMEWORK_PREFIXES.
+ * framework prefix in FRAMEWORK_PREFIXES. Each framework's copy keeps only its
+ * own `::: only-for` blocks (src/lib/markdown-routes.mjs).
  *
  * Generated files live under public/ and are gitignored.
  *
@@ -561,7 +567,6 @@ function markdownRoutesIntegration(sidebars) {
   const matter = _require('gray-matter');
   const contentDir = resolve(__dirname, 'content');
   const publicMdDir = resolve(__dirname, 'public', '_md');
-  const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
 
   // One output file = an H1 from the frontmatter title, the "Added in" sentence
   // when the page has `addedIn` (DEV-2877), then the body with its template
@@ -609,12 +614,16 @@ function markdownRoutesIntegration(sidebars) {
         if (!data.permalink) continue;
 
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-        const md = buildMarkdown(data, content);
 
         pageMeta.set(slug, { title: data.title, description: data.description || '' });
 
-        for (const prefix of PREFIXES) {
-          routeMap.set(`${prefix}/${slug}.md`, md);
+        for (const [route, md] of buildFrameworkMarkdownRoutes(
+          slug,
+          content,
+          FRAMEWORK_PREFIXES,
+          (filtered) => buildMarkdown(data, filtered),
+        )) {
+          routeMap.set(route, md);
         }
       }
     }
@@ -1095,7 +1104,7 @@ export default defineConfig({
       plugins: [
         starlightThemeRapide(),
         starlightPageActions(),
-        ...(isProduction
+        ...(searchEnabled
           ? [
               starlightDocSearch({
                 clientOptionsModule: './src/config/docsearch.ts',
@@ -1104,10 +1113,11 @@ export default defineConfig({
           : []),
       ],
 
-      // Algolia DocSearch powers search in production and RC builds.
+      // Algolia DocSearch powers search in production and RC builds, and in any
+      // build with DOCS_SEARCH=true (the staging and pull request previews).
       // Pagefind disabled -- the index is built by the Algolia crawler after each deploy.
-      // Search is hidden in non-production builds via shouldRenderSearch in Header.astro.
-      // RC builds use the production Algolia index; results link to handsontable.com/docs.
+      // Search is hidden in other builds via shouldRenderSearch in Header.astro.
+      // Every build uses the production Algolia index; results link to handsontable.com/docs.
       pagefind: false,
     }),
 
@@ -1189,6 +1199,7 @@ export default defineConfig({
     // env namespace so .astro components can read it at build time.
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
+      'import.meta.env.PUBLIC_DOCS_SEARCH': JSON.stringify(searchEnabled ? 'true' : ''),
       'import.meta.env.PUBLIC_HOT_VERSION': JSON.stringify(HOT_VERSION),
       // Docs-assistant backend base URL, used only off the canonical hosts
       // (handsontable.com and dev.handsontable.com reach the backend through the

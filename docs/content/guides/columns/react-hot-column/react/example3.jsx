@@ -7,7 +7,7 @@ registerAllModules();
 // a renderer component
 const ScoreRenderer = (props) => {
   const { value } = props;
-  const color = value > 60 ? '#2ECC40' : '#FF4136';
+  const color = value > 60 ? 'light-dark(#15803d, #4ade80)' : 'light-dark(#b91c1c, #f87171)';
 
   return <span style={{ color }}>{value}</span>;
 };

@@ -762,7 +762,13 @@ export class UndoRedo extends BasePlugin {
     beforeHook: 'beforeUndoStackChange' | 'beforeRedoStackChange',
     afterHook: 'afterUndoStackChange' | 'afterRedoStackChange',
   ) {
-    const stackCopy = stack.slice();
+    const stackCopy = this.#copyForStackHooks(stack, beforeHook, afterHook);
+
+    if (stackCopy === null) {
+      stack.pop();
+
+      return;
+    }
 
     this.hot.runHooks(beforeHook, stackCopy);
 
@@ -773,6 +779,25 @@ export class UndoRedo extends BasePlugin {
 
     stack.pop();
     this.hot.runHooks(afterHook, stackCopy, stack.slice());
+  }
+
+  /**
+   * Copies a stack for the hook pair that announces its change, or returns `null` when neither hook
+   * has a listener. The copy is the first argument of both hooks, so a listener of the `after` hook
+   * alone needs it too. Without a listener nothing can read a copy or veto the change, and copying
+   * the whole stack on every recorded action made a long run of actions quadratic.
+   *
+   * @param {Array} stack The stack.
+   * @param {string} beforeHook The hook fired before the change.
+   * @param {string} afterHook The hook fired after the change.
+   * @returns {Array|null}
+   */
+  #copyForStackHooks(
+    stack: unknown[],
+    beforeHook: 'beforeUndoStackChange' | 'beforeRedoStackChange',
+    afterHook: 'afterUndoStackChange' | 'afterRedoStackChange',
+  ): unknown[] | null {
+    return this.hot.hasHook(beforeHook) || this.hot.hasHook(afterHook) ? stack.slice() : null;
   }
 
   /**
@@ -790,7 +815,13 @@ export class UndoRedo extends BasePlugin {
     beforeHook: 'beforeUndoStackChange' | 'beforeRedoStackChange',
     afterHook: 'afterUndoStackChange' | 'afterRedoStackChange',
   ) {
-    const stackCopy = stack.slice();
+    const stackCopy = this.#copyForStackHooks(stack, beforeHook, afterHook);
+
+    if (stackCopy === null) {
+      stack.push(step);
+
+      return;
+    }
 
     this.hot.runHooks(beforeHook, stackCopy);
 
@@ -812,20 +843,27 @@ export class UndoRedo extends BasePlugin {
    * @returns {boolean} `true` when the step was stacked.
    */
   #pushStep(step: unknown, source: string | undefined): boolean {
-    const doneActionsCopy = this.doneActions.slice();
+    const doneActionsCopy = this.#copyForStackHooks(this.doneActions, 'beforeUndoStackChange', 'afterUndoStackChange');
 
     // A listener of any hook below can destroy the grid, which clears `this.hot` and the stacks.
-    if (this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source) === false || !this.hot) {
+    if (
+      doneActionsCopy !== null &&
+      (this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source) === false || !this.hot)
+    ) {
       return false;
     }
 
+    // Taken before the push, as it always was. The redo stack is empty after the first step of a run.
     const undoneActionsCopy = this.undoneActions.slice();
 
     this.doneActions.push(step);
     // A step of the legacy `done()` opens no transaction, so the rows are copied here.
     this.#ensureDatasetRows();
     this.#trimUndoStack();
-    this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
+
+    if (doneActionsCopy !== null) {
+      this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
+    }
 
     if (!this.hot) {
       return false;
@@ -923,7 +961,13 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    const stackCopy = stack.slice();
+    const stackCopy = this.#copyForStackHooks(stack, beforeHook, afterHook);
+
+    if (stackCopy === null) {
+      stack.splice(0, count);
+
+      return;
+    }
 
     this.hot.runHooks(beforeHook, stackCopy);
 

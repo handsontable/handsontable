@@ -105,6 +105,7 @@ const cellDefinition: Pick<
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
       editor.input.classList.add('flatpickr-editor');
+      editor.input.setAttribute('aria-label', 'Date');
 
       editor.flatpickr = flatpickr(editor.input, {
         dateFormat: 'Y-m-d',

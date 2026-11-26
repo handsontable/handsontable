@@ -1,12 +1,13 @@
 import {
   addClass,
   eventTargetEl,
+  getComposedEventTargetEl,
   hasClass,
-  HTML_CHARACTERS,
   isBottomMostColumnHeader,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
+import { getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
@@ -54,13 +55,14 @@ import type { HotInstance } from '../../core/types';
 import type { CellChange } from '../../settings';
 import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
-import { spreadsheetColumnLabel } from '../../helpers/data';
-import { htmlToPlainText } from '../../helpers/string';
+import { getColumnLabel } from '../../utils/headerLabel';
 import { announce } from '../../utils/a11yAnnouncer';
 import {
   COLUMN_SORTING_ANNOUNCEMENT_ASCENDING,
   COLUMN_SORTING_ANNOUNCEMENT_DESCENDING,
   COLUMN_SORTING_ANNOUNCEMENT_REMOVED,
+  COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY,
+  COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY,
 } from '../../i18n/constants';
 import { LICENSE } from './feature.generated';
 
@@ -119,6 +121,26 @@ const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
  */
 const SORT_INDICATOR_SLOT_CLASS = 'ht-sort-indicator';
 
+/**
+ * Markup inside a header label that handles a press itself. A press on it does not sort the column.
+ * A listener added with `addEventListener()` to any other element cannot be seen from here.
+ */
+const INTERACTIVE_LABEL_CONTENT_SELECTOR = [
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'summary',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="checkbox"]',
+  '[contenteditable]',
+  '[tabindex]',
+  '[onclick]',
+].join(', ');
+
 registerRootComparator(PLUGIN_KEY, rootComparator);
 markBuiltInRootComparator(rootComparator, positionComparator);
 
@@ -126,6 +148,10 @@ markBuiltInRootComparator(rootComparator, positionComparator);
  * A press on a sortable column header, waiting to be resolved on mouse up.
  */
 export interface HeaderSortPress {
+  /**
+   * The visual row of the pressed header, negative for a header row.
+   */
+  row: number;
   column: number;
   isCtrlPressed: boolean;
   /**
@@ -413,11 +439,11 @@ export class ColumnSorting extends BasePlugin {
     // Primary release signal. On touch devices Walkontable calls its `onMouseUp` directly from
     // `touchend` instead of dispatching a DOM `mouseup`, so a document listener alone would never
     // fire and tapping a header would stop sorting.
-    this.addHook('afterOnCellMouseUp', this.#resolvePendingSort);
-    // Fallback for a release that lands outside any cell - that is the drag case, and the queued
-    // sort still has to be cleared rather than left pending for the next release.
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
-      () => this.#resolvePendingSort());
+    this.addHook('afterOnCellMouseUp', this.#onAfterOnCellMouseUp);
+    // Release that lands outside any cell - that is the drag case, and the queued sort still has to be
+    // cleared rather than left pending for the next release. A release over a header resolves here too,
+    // so which signal arrives first does not matter.
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#onDocumentMouseUp);
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
@@ -607,56 +633,31 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Announces the order a user gesture left a column in.
+   * Announces the order a user gesture left a column in. While more than one column is sorted
+   * (MultiColumnSorting), the message also says the column's place in the sort, the number its header
+   * draws: a reader that does not read the header again after the gesture never says it otherwise.
    *
    * @param {number} column Visual column index.
    * @param {string|undefined} sortOrder The order of the column after the sort, `undefined` when it is not sorted.
    */
   #announceSortOrder(column: number, sortOrder: string | undefined): void {
+    const isAscending = sortOrder === ASC_SORT_STATE;
+    const isSorted = isAscending || sortOrder === DESC_SORT_STATE;
+    const hasPriority = isSorted && (this.columnStatesManager?.getNumberOfSortedColumns() ?? 0) > 1;
     let phrase = COLUMN_SORTING_ANNOUNCEMENT_REMOVED;
 
-    if (sortOrder === ASC_SORT_STATE) {
-      phrase = COLUMN_SORTING_ANNOUNCEMENT_ASCENDING;
+    if (hasPriority) {
+      phrase = isAscending ?
+        COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY : COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY;
 
-    } else if (sortOrder === DESC_SORT_STATE) {
-      phrase = COLUMN_SORTING_ANNOUNCEMENT_DESCENDING;
+    } else if (isSorted) {
+      phrase = isAscending ? COLUMN_SORTING_ANNOUNCEMENT_ASCENDING : COLUMN_SORTING_ANNOUNCEMENT_DESCENDING;
     }
 
-    announce(String(this.hot.getTranslatedPhrase(phrase, { label: this.#getColumnLabel(column) }) ?? ''), 'polite');
-  }
-
-  /**
-   * Reads the name of a column the way a user sees it: the text of the rendered header, so markup and character
-   * references in a header label never reach the announcement. A line break (`<br>`) reads as a space and runs of
-   * whitespace collapse to one. A header that is not rendered (virtualized out) is read from `getColHeader()` and
-   * reduced the same way: tags stripped, character references decoded, `<br>` read as a space. A column without
-   * a label is named by its spreadsheet letter.
-   *
-   * @param {number} column Visual column index.
-   * @returns {string}
-   */
-  #getColumnLabel(column: number): string {
-    const TH = this.hot.getCell(-1, column, true);
-    const headerSpan = TH ? getHeaderSpanElement(TH) : null;
-    let rendered = '';
-
-    if (headerSpan) {
-      const copy = headerSpan.cloneNode(true) as HTMLElement;
-
-      copy.querySelectorAll('br').forEach(lineBreak => lineBreak.replaceWith(' '));
-      rendered = (copy.textContent ?? '').replace(/\s+/g, ' ').trim();
-    }
-
-    if (rendered) {
-      return rendered;
-    }
-
-    const header = String(this.hot.getColHeader(column) ?? '').trim();
-
-    const plainHeader = HTML_CHARACTERS.test(header) ?
-      htmlToPlainText(header.replace(/<br\s*\/?>/gi, ' ')).replace(/\s+/g, ' ').trim() : header;
-
-    return plainHeader !== '' ? plainHeader : spreadsheetColumnLabel(column);
+    announce(String(this.hot.getTranslatedPhrase(phrase, {
+      label: getColumnLabel(this.hot, column),
+      order: (this.columnStatesManager?.getIndexOfColumnInSortQueue(column) ?? 0) + 1,
+    }) ?? ''), 'polite');
   }
 
   /**
@@ -1600,9 +1601,35 @@ export class ColumnSorting extends BasePlugin {
     // span), and a press then targets that child.
     const pressedIndicator = target.closest(`.${SORT_INDICATOR_SLOT_CLASS}`) !== null;
 
-    return (
-      headerActionEnabled && (hasClass(target, HEADER_SPAN_CLASS) || pressedIndicator)
-    );
+    // The same goes for the label: a header label may carry markup (`<b>Age</b> in <i>years</i>`),
+    // and the press targets the innermost element, so the label is matched by ancestor. Markup that is
+    // interactive on its own (a link, a button, a form field) keeps its own behavior and does not sort.
+    const pressedLabel = this.#isPressOnPlainLabelContent(target);
+
+    return headerActionEnabled && (pressedLabel || pressedIndicator);
+  }
+
+  /**
+   * Checks whether a press landed on the header label's own content: the label itself or markup inside it
+   * that does not handle a press on its own.
+   *
+   * The label is looked up from the pressed header cell, never from the page: a host element that happens
+   * to carry the class `colHeader` around the grid must not make every part of a header sort.
+   *
+   * @param {HTMLElement} target The element the press targeted.
+   * @returns {boolean}
+   */
+  #isPressOnPlainLabelContent(target: HTMLElement): boolean {
+    const label = target.closest(`.${HEADER_SPAN_CLASS}`);
+    const header = target.closest('th');
+
+    if (label === null || (header !== null && !header.contains(label))) {
+      return false;
+    }
+
+    const interactive = target.closest(INTERACTIVE_LABEL_CONTENT_SELECTOR);
+
+    return interactive === null || !label.contains(interactive);
   }
 
   /**
@@ -1662,6 +1689,7 @@ export class ColumnSorting extends BasePlugin {
 
     const activeEditor = this.hot.getActiveEditor();
     const press: HeaderSortPress = {
+      row: coords.row,
       column: coords.col,
       isCtrlPressed,
       validation: null,
@@ -1708,13 +1736,46 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Callback for the `afterOnCellMouseUp` hook. Resolves the queued press against the cell the release
+   * landed on.
+   *
+   * @param {MouseEvent} event The release event.
+   * @param {CellCoords} coords Visual coords of the cell the release landed on.
+   */
+  #onAfterOnCellMouseUp = (event: Event, coords: { row: number, col: number }) => {
+    this.#resolvePendingSort(coords);
+  };
+
+  /**
+   * Callback for the document `mouseup`. Resolves the queued press against the header the release landed
+   * on, or cancels it when the release is not over a header. The header is read as coordinates, never as an
+   * element: Walkontable recycles header elements and the frozen overlays clone them.
+   *
+   * @param {MouseEvent} event The release event.
+   */
+  #onDocumentMouseUp = (event: MouseEvent) => {
+    if (this.#pendingHeaderSort === null) {
+      return;
+    }
+
+    const header = getComposedEventTargetEl(event)?.closest('th') ?? null;
+    const coords = getCoordsWithinGrid(this.hot, header);
+
+    this.#resolvePendingSort(coords);
+  };
+
+  /**
    * Resolves a header press on release: sorts, unless ManualColumnMove turned the press into a
-   * drag.
+   * drag, or the release landed away from the pressed header. A click completes on the control it
+   * started on, so a release elsewhere cancels the sort.
    *
    * Safe to call more than once for the same gesture - the queued press is taken first, so
    * whichever release signal arrives first wins and the rest are no-ops.
+   *
+   * @param {CellCoords|null} release Visual coords of the cell the release landed on, `null` when it
+   *   landed outside any cell.
    */
-  #resolvePendingSort = () => {
+  #resolvePendingSort = (release: { row: number | null, col: number | null } | null) => {
     const pending = this.#pendingHeaderSort;
 
     if (pending === null) {
@@ -1728,6 +1789,12 @@ export class ColumnSorting extends BasePlugin {
     // last. Running first, the drag is still in progress; running second, the move has already
     // fired. Either one cancels the sort.
     if (pending.consumedByMove || this.#isColumnBeingDragged()) {
+      this.#stopWaitingForEditor(pending);
+
+      return;
+    }
+
+    if (release === null || release.row !== pending.row || release.col !== pending.column) {
       this.#stopWaitingForEditor(pending);
 
       return;

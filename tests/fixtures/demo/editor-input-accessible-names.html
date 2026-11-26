@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable editor input accessible names e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    E2E fixture for the accessible names of the controls that edit a cell: the cell editors and the
+    comment editor. It loads the bundle under test (from the sanitized allowlist above) and the pl-PL
+    language pack, which neither bundle carries, and leaves the container empty: the page object builds
+    the grid with the settings each test needs and stamps cells as data-testid="cell-<row>-<col>".
+    The closing script tags are split so the HTML parser does not end the writing script block.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+    document.write('<scr' + 'ipt src="/handsontable/dist/languages/pl-PL.js"></scr' + 'ipt>');
+  </script>
+  <script>
+    document.querySelector('[data-testid="grid"]').className = `ht-theme-${window.htTheme}`;
+  </script>
+</body>
+</html>

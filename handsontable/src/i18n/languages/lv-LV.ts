@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Atcelt',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nav pieejamu opciju',
+  [C.CONTEXTMENU_LABEL]: 'Konteksta izvēlne',
+  [C.DROPDOWNMENU_LABEL]: 'Kolonnas izvēlne',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Ievietot rindu augšā',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Ievietot rindu apakšā',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Ievietot kolonnu pa kreisi',
@@ -75,6 +77,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Nekas',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Ir tukšs',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nav tukšs',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Ir atzīmēts',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Nav atzīmēts',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Vienāds ar',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Nav vienāds ar',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Sākas ar',
@@ -141,6 +145,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Lapa [name] pārvietota uz [position]. vietu no [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Lapa',
 
+  [C.CHECKBOX_CHECKED]: 'Atzīmēts',
+  [C.CHECKBOX_UNCHECKED]: 'Nav atzīmēts',
+
   [C.LOADING_TITLE]: 'Ielādē...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Aizvērt',
 
@@ -151,6 +158,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Atiestatīt filtrus',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Ielādē datus',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Lūdzu, uzgaidiet.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Dati ielādēti',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nevarēja ielādēt datus',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nevarēja izveidot rindas',
@@ -161,6 +169,9 @@ const dictionary = {
   [C.ROW_SELECTION_SELECT_ROW]: 'Atlasīt rindu [row]',
   [C.ROW_SELECTION_SELECT_ALL]: 'Atlasīt visas rindas (atlasītas [selected] no [total])',
   [C.CHECKBOX_HEADER_CHECK_ALL]: 'Atzīmēt visu (atzīmētas [checked] no [total])',
+  [C.CONTEXTMENU_ITEMS_RENAME_HEADER]: 'Pārdēvēt galveni',
+  [C.EDITABLE_HEADERS_INPUT_LABEL]: 'Galvenes nosaukums',
+  [C.EDITABLE_HEADERS_RENAMED]: 'Galvene pārdēvēta par [value]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rinda [row] atlasīta',
   [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Rindas [row] atlase atcelta',
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Atlasītas [selected] no [total] rindām',
@@ -170,11 +181,52 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Nofiksētās rindas apakšā',
   [C.FREEZE_BAR_COLUMNS_START]: 'Nofiksētās kolonnas sākumā',
   [C.FREEZE_BAR_COLUMNS_END]: 'Nofiksētās kolonnas beigās',
+  [C.ARMED_PICK_STARTED]: 'Noklikšķiniet vai pieskarieties mērķim, lai pabeigtu. Nospiediet Escape, lai atceltu.',
+  [C.ARMED_PICK_CANCELED]: 'Atcelts.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Kolonnas platuma maiņa. Platumu maina ar kreiso un labo bultiņu taustiņiem, Enter to lieto, Escape atceļ.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Rindas augstuma maiņa. Augstumu maina ar augšupvērsto un lejupvērsto bultiņu taustiņiem, Enter to lieto, Escape ' +
+    'atceļ.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Komentāra lodziņa izmēra maiņa. Izmēru maina ar bultiņu taustiņiem, Enter to lieto, Escape atceļ.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Platums: [size] pikseļi',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Augstums: [size] pikseļi',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Līmenis [level], [position] no [setSize]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Līmenis [level], [position] no [setSize], izvērsts',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Līmenis [level], [position] no [setSize], sakļauts',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'tikai lasāms',
+  [C.CELL_DESCRIPTION_LINK]: 'saite',
+  [C.CELL_DESCRIPTION_MERGED]: 'apvienota līdz rindai [row] kolonnai [column]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta kolonnu grupa [label]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta kolonnu grupa [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Kārtots pēc [label], augošā secībā',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Kārtots pēc [label], dilstošā secībā',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Kārtošana noņemta no [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Kārtots pēc [label], augošā secībā, kārtošanas prioritāte [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Kārtots pēc [label], dilstošā secībā, kārtošanas prioritāte [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Atlasīts no kolonnas [startColumn], rindas [startRow] līdz kolonnai [endColumn], rindai [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Atlasītas visas šūnas',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Kolonna [column] atlasīta',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Kolonnas no [startColumn] līdz [endColumn] atlasītas',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Rinda [row] atlasīta',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Rindas no [startRow] līdz [endRow] atlasītas',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Atlase pievienota: [selection]. Atlašu skaits: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'kolonna [column], rinda [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'no kolonnas [startColumn], rindas [startRow] līdz kolonnai [endColumn], rindai [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'visas šūnas',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'kolonna [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'kolonnas no [startColumn] līdz [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'rinda [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'rindas no [startRow] līdz [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Formulu redaktors',
   [C.FORMULA_BUILDER_INPUT]: 'Formulas ievade',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Šūnas adrese',
@@ -194,6 +246,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Kļūda šūnā [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Vēl [count] šūnā tagad ir kļūda.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Citu šūnu ar kļūdām skaits: [count].',
+  [C.EDITOR_INPUT_LABEL]: '[column], [row]. rinda',
+  [C.COMMENTS_EDITOR_LABEL]: 'Komentārs: [column], [row]. rinda',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentārs: [column], [row]',
 };
 
 export default dictionary;

@@ -36,8 +36,9 @@
     axis only (`overflow-x: clip`), so the holder scrolls the columns inside the
     root's box while the WINDOW scrolls the rows. Frozen rows and columns on
     both axes so every overlay takes part. `initGrid()` rebuilds the grid for
-    the RTL twin and for the legacy `preventOverflow: 'horizontal'` alias
-    (which needs a sized parent instead of a `width`).
+    the RTL twin and for the legacy `preventOverflow: 'horizontal'` and
+    `'vertical'` aliases (which need a parent sized by `width` or `height`
+    instead of a setting).
   -->
   <div id="container">
     <div id="grid" data-testid="grid"></div>
@@ -60,10 +61,13 @@
     window.verticalScrollCount = 0;
 
     /**
-     * Builds (or rebuilds) the grid. `containerWidth` sizes the parent instead of
-     * the grid, for the legacy `preventOverflow: 'horizontal'` leg.
+     * Builds (or rebuilds) the grid. `containerWidth` sizes the grid's parent
+     * instead of the grid, for the legacy `preventOverflow: 'horizontal'` leg.
+     * `containerHeight` sizes the element the grid is built in, for the
+     * `'vertical'` leg, and `containerOverflowY` sets its `overflow-y`
+     * (unset by default: a parent with a height and no overflow).
      */
-    window.initGrid = function(overrides = {}, containerWidth = '') {
+    window.initGrid = function(overrides = {}, containerWidth = '', containerHeight = '', containerOverflowY = '') {
       if (window.hot) {
         window.hot.destroy();
       }
@@ -76,6 +80,10 @@
       grid.setAttribute('data-testid', 'grid');
       grid.className = `ht-theme-${window.htTheme}`;
       container.style.width = containerWidth;
+      // The element core builds the grid in is the parent of the vertical `preventOverflow` leg: it
+      // gets a `height`, and by default no `overflow`.
+      grid.style.height = containerHeight;
+      grid.style.overflowY = containerOverflowY;
       oldGrid.replaceWith(grid);
       window.verticalScrollCount = 0;
 

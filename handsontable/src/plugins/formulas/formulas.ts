@@ -40,6 +40,7 @@ import {
   LINK_SCHEMES,
   LINK_SCHEME_CLASS_NAME,
   createLinkElement,
+  describeLink,
   normalizeSchemesWithFallback,
   resolveLinkUrl,
   unwrapLinks,
@@ -47,7 +48,15 @@ import {
   type LinkScheme,
   type LinkTarget,
 } from '../../utils/cellLinks';
-import { fastInnerText } from '../../helpers/dom/element';
+import { fastInnerText, getCellContentRoot } from '../../helpers/dom/element';
+import { FORMULAS_CELL_DESCRIPTION } from '../../i18n/constants';
+import { CELL_DESCRIPTION_RANK, removeCellDescriptionPart } from '../../utils/cellDescription/cellDescription';
+import {
+  describeFormulaCell,
+  limitFormulaText,
+  undescribeFormulaCell,
+  undescribeFormulaCells,
+} from './formulaCellDescription';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import {
   beginHeldEngineWrite,
@@ -648,6 +657,10 @@ const REF_ERROR_PATTERN = /#REF!/;
 // Class name of the anchor that wraps the content of a HYPERLINK cell, next to the shared ht-link.
 // It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
 const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
+
+const ERROR_VALUE_CLASS_NAME = 'ht-formula-error';
+
+const TEXT_NODE_TYPE = 3;
 
 // `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
 // flood the console on every render pass.
@@ -1384,6 +1397,7 @@ export class Formulas extends BasePlugin {
 
     this.#invalidateHyperlinkCells();
     this.#markCellsThatBecameHyperlinks(changes);
+    this.#markFormulaCellsOfUpdate(changes);
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
     this.#paintGridFromEngineChange(changes);
   };
@@ -1505,6 +1519,39 @@ export class Formulas extends BasePlugin {
       const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(address.col);
 
       if (visualRow >= 0 && visualColumn >= 0 && this.#getHyperlinkHref(visualRow, visualColumn) !== null) {
+        this.hot.markCellChanged(visualRow, visualColumn);
+      }
+    });
+  }
+
+  /**
+   * Marks the updated cells that hold a formula, so a `renderMode: 'onChange'` paint redraws them. The engine
+   * reports a cell whose content was set even when its value did not change, and a formula rewritten to
+   * another text with the same value changes nothing that paint compares, while the hidden text that names
+   * the formula (`#onDescribeFormulaCell`) has to follow the text. Only a grid that paints by change and
+   * writes that text needs it. A formula the engine rewrote without setting the cell (a reference moved by an
+   * insert, a renamed sheet) is not reported, so its description follows on the cell's next paint.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #markFormulaCellsOfUpdate(changes: unknown[]) {
+    const { renderMode, ariaTags } = this.hot.getSettings();
+
+    if (renderMode !== 'onChange' || !ariaTags || !this.rowAxisSyncer || !this.columnAxisSyncer) {
+      return;
+    }
+
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (!address || address.sheet !== this.sheetId) {
+        return;
+      }
+
+      const visualRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(address.row);
+      const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(address.col);
+
+      if (visualRow >= 0 && visualColumn >= 0 && this.isFormulaCellType(visualRow, visualColumn)) {
         this.hot.markCellChanged(visualRow, visualColumn);
       }
     });
@@ -1937,9 +1984,12 @@ export class Formulas extends BasePlugin {
     this.addHook('afterMoveCells', this.#onAfterMoveCells);
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
+    this.addHook('afterRenderer', this.#onIsolateErrorValue);
     // Positive `orderIndex`: must run after every default-order `afterRenderer` listener (this
     // plugin's own above, and AutoLink's) - see `#onPaintFormulaText`'s own doc for why.
     this.addHook('afterRenderer', this.#onPaintFormulaText, 1);
+    // Order 2, after `#onPaintFormulaText` (1), which rewrites the cell while formulas are shown.
+    this.addHook('afterRenderer', this.#onDescribeFormulaCell, 2);
     this.addHook('beforeCopy', this.#onBeforeCopyOrCut);
     this.addHook('beforeCut', this.#onBeforeCopyOrCut);
 
@@ -1992,6 +2042,8 @@ export class Formulas extends BasePlugin {
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
+    this.#unwrapRenderedErrorValues();
+    this.#removeRenderedFormulaDescriptions();
     this.#hyperlinkCells.clear();
 
     // The recorded layout belongs to the engine session being torn down. Nothing reads it before
@@ -3997,6 +4049,27 @@ export class Formulas extends BasePlugin {
   #unwrapRenderedHyperlinks() {
     if (this.hot.rootElement) {
       unwrapLinks(this.hot.rootElement, `a.${HYPERLINK_CLASS_NAME}`);
+    }
+  }
+
+  /**
+   * Unwraps every left-to-right error value span currently in the grid, including the overlay
+   * clones. Disabling the plugin removes the `afterRenderer` hook that would take them out, so a
+   * cell left as it was rendered would keep a wrapper the plugin no longer owns.
+   */
+  #unwrapRenderedErrorValues() {
+    if (this.hot.rootElement) {
+      unwrapLinks(this.hot.rootElement, `span.${ERROR_VALUE_CLASS_NAME}`);
+    }
+  }
+
+  /**
+   * Takes the hidden formula description off every cell currently in the grid, including the overlay
+   * clones. Disabling the plugin removes the `afterRenderer` hook that would take them out.
+   */
+  #removeRenderedFormulaDescriptions() {
+    if (this.hot.rootElement) {
+      undescribeFormulaCells(this.hot.rootElement);
     }
   }
 
@@ -6624,7 +6697,90 @@ export class Formulas extends BasePlugin {
     // that wrapper on every render pass. The nodes are moved, never re-serialized, so a label
     // containing markup stays text.
     wrapCellContent(TD, link);
+    describeLink(this.hot, TD);
   };
+
+  /**
+   * `afterRenderer` hook callback. In a right-to-left grid, wraps the text of a cell whose engine
+   * value is an error in a `span` with `dir="ltr"`. An error value is left-to-right text that starts
+   * and ends with punctuation, and the bidi algorithm places such punctuation by the cell's
+   * direction, so `#DIV/0!` showed as `!DIV/0#`. The span isolates the text and keeps the cell's own
+   * direction, so its alignment and borders stay those of a right-to-left cell. Only the text nodes
+   * move into the span: an element a renderer adds (the dropdown arrow, positioned by
+   * `inset-inline-end`) keeps the cell's direction. The text content is unchanged, so copy and
+   * assistive technology read the same value.
+   *
+   * `layoutDirection` is read once at init, so an LTR grid never holds the span and returns first.
+   * Walkontable recycles TD elements, so in an RTL grid a span from a previous render is taken out
+   * before anything else; `ht-formula-error` is the marker that keeps this idempotent.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The rendered value.
+   */
+  #onIsolateErrorValue = (
+    TD: HTMLTableCellElement,
+    row: number,
+    column: number,
+    prop: string | number,
+    value: unknown,
+  ) => {
+    if (!this.hot.isRtl()) {
+      return;
+    }
+
+    unwrapLinks(TD, `span.${ERROR_VALUE_CLASS_NAME}`);
+
+    if (
+      this.#internalOperationPending ||
+      this.#showFormulasFlag ||
+      typeof value !== 'string' ||
+      !value.startsWith('#') ||
+      !this.#isErrorValueCell(row, column)
+    ) {
+      return;
+    }
+
+    const contentRoot = getCellContentRoot(TD);
+    const textNodes = Array.from(contentRoot.childNodes).filter(node => node.nodeType === TEXT_NODE_TYPE);
+
+    if (textNodes.length === 0) {
+      return;
+    }
+
+    const span = this.hot.rootDocument.createElement('span');
+
+    span.className = ERROR_VALUE_CLASS_NAME;
+    span.dir = 'ltr';
+    contentRoot.insertBefore(span, textNodes[0]);
+    textNodes.forEach(node => span.appendChild(node));
+  };
+
+  /**
+   * Returns `true` when the engine value of the cell is an error. A string that only looks like one
+   * (`'#tag!'`) is not, and stays in the cell's own direction.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {boolean}
+   */
+  #isErrorValueCell(row: number, column: number): boolean {
+    if (!this.#hasOwnSheet()) {
+      return false;
+    }
+
+    const engineCell = this.#toEngineAddress(row, column);
+
+    if (engineCell === null) {
+      return false;
+    }
+
+    this.#flushEvaluation();
+
+    return hasValueProperty(this.engine!.getCellValue(engineCell.address));
+  }
 
   /**
    * `afterRenderer` hook callback, registered with a positive `orderIndex` so it always runs after
@@ -6663,7 +6819,78 @@ export class Formulas extends BasePlugin {
 
     this.#flushEvaluation();
     fastInnerText(TD, String(this.#readableFormula(this.engine!.getCellSerialized(address))));
+    // The text replaced the cell's content, an anchor AutoLink made from the value included.
+    removeCellDescriptionPart(TD, CELL_DESCRIPTION_RANK.LINK);
   };
+
+  /**
+   * `afterRenderer` hook callback. Sets the `data-ht-formula` attribute on the cell of a formula, which
+   * `_formulas.scss` draws as generated content, so that a screen reader that reads the calculated value
+   * goes on to read the formula it came from. The cell's own text is not touched, so its `textContent` and
+   * `innerText` stay the value. A screen reader drops `title` from a cell that has `aria-describedby`, and
+   * an `aria-label` would replace the value instead of adding to it.
+   *
+   * The attribute is removed while the grid writes no ARIA attributes (`ariaTags: false`), while formulas are
+   * shown as text, where the cell already reads as the formula, and when the cell holds no formula of its
+   * own: a value, a spilled cell of an array formula, a language with no phrase for it. While an internal
+   * write runs, or the sheet is missing, the listener leaves the cell as it is, and the next paint of the cell
+   * settles it, so a recycled element can carry the previous cell's text for that long.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta.
+   */
+  #onDescribeFormulaCell = (
+    TD: HTMLTableCellElement,
+    row: number,
+    column: number,
+    prop: string | number,
+    value: unknown,
+    cellProperties: { ariaTags?: boolean },
+  ) => {
+    // An internal write or a missing sheet says nothing about this cell, so what the cell holds stays.
+    if (this.#internalOperationPending || !this.#hasOwnSheet()) {
+      return;
+    }
+
+    const formula = cellProperties.ariaTags && !this.#showFormulasFlag ?
+      this.#readFormulaTextForDescription(row, column) : undefined;
+    // A language registered without this phrase answers `null`, which must not reach the cell as text.
+    const description: string | null = formula === undefined ? null :
+      this.hot.getTranslatedPhrase(FORMULAS_CELL_DESCRIPTION, { formula });
+
+    if (typeof description === 'string' && description !== '') {
+      describeFormulaCell(TD, description);
+
+    } else {
+      undescribeFormulaCell(TD);
+    }
+  };
+
+  /**
+   * Returns the formula text of a cell for its description, cut at `MAX_FORMULA_TEXT_LENGTH`, or `undefined` when
+   * the cell holds no formula of its own. The text needs no recalculation, so it is read without ending a held one.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {string|undefined}
+   */
+  #readFormulaTextForDescription(row: number, column: number): string | undefined {
+    const engineCell = this.#toEngineAddress(row, column);
+
+    if (engineCell === null) {
+      return undefined;
+    }
+
+    // The text is read aloud, never parsed again, so a sheet name the engine writes without quotes needs none
+    // here, and the quoting scan of `#readableFormula()` is not paid on every paint.
+    const formula = this.engine!.getCellFormula(engineCell.address);
+
+    return formula === undefined ? undefined : limitFormulaText(formula);
+  }
 
   /**
    * `beforeCopy`/`beforeCut` hook callback. While formulas are shown, rewrites each copied/cut
@@ -8951,6 +9178,11 @@ export class Formulas extends BasePlugin {
    * `afterDetachChild` hook callback.
    * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
    *
+   * The engine rewrites the references of every row the detach moves, while `#nestedRowsDetachPending`
+   * keeps the source data on the old text. Once the guard is down, the engine's text is written back
+   * into the source data, inside the detach's operation: the undo journal then holds the write, and a
+   * resync or a redo that reloads the sheet from the source data reads the new text.
+   *
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
    * @param {number} finalElementRowIndex The final row index of the detached element.
@@ -8959,6 +9191,8 @@ export class Formulas extends BasePlugin {
                          finalElementRowIndex: number, source?: string) => {
     this.#markStructureChanged();
     this.#syncedContent = null;
+
+    let rowsWritten = false;
 
     try {
       if (isBlockedSource(source)) {
@@ -8995,6 +9229,8 @@ export class Formulas extends BasePlugin {
           });
         });
       });
+
+      rowsWritten = true;
     } finally {
       // Both flags are opened by this span – `#nestedRowsDetachPending` in `#onBeforeDetachChild`
       // and `#internalOperationPending` on the first line of the `try` – so both have to close
@@ -9003,6 +9239,10 @@ export class Formulas extends BasePlugin {
       // `beforeGetCellMeta` listener, or the engine itself.
       this.#internalOperationPending = false;
       this.#nestedRowsDetachPending = false;
+    }
+
+    if (rowsWritten) {
+      this.#syncFormulasToSourceData();
     }
   };
 }

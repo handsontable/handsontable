@@ -615,10 +615,12 @@ export class ManualRowMove extends BasePlugin {
     const selection = this.hot.getSelectedRangeActive();
 
     // A press an earlier listener claimed (the FormulaBuilder reference pick, which runs first with
-    // order index `-1`) owns the gesture, so it arms no move.
+    // order index `-1`) owns the gesture, so it arms no move. Neither does a selection of several
+    // ranges (Ctrl/Cmd+click): there is no one place to put separate rows, and moving the active
+    // range alone would ignore the others. The press then selects as any other press does.
     if (
       !selection || !isHeaderSelection || this.#pressed || event.button !== 0 ||
-      isImmediatePropagationStopped(event)
+      isImmediatePropagationStopped(event) || this.hot.selection.isNonContiguous()
     ) {
       this.#pressed = false;
       this.#dragged = false;
@@ -751,7 +753,9 @@ export class ManualRowMove extends BasePlugin {
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
-    if (this.hot.selection.isSelectedByRowHeader()) {
+    // The class draws the grab cursor on the selected headers, so it stays off while the selection
+    // holds several ranges, which arm no drag.
+    if (this.hot.selection.isSelectedByRowHeader() && !this.hot.selection.isNonContiguous()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 

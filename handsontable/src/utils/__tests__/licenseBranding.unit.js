@@ -8,7 +8,14 @@ jest.mock('../../helpers/mixed', () => ({
   _getLicenseState: jest.fn(),
 }));
 
+// The announcer is module-level state that needs a portal, so its `announce()` is spied on instead.
+jest.mock('../a11yAnnouncer', () => ({
+  ...jest.requireActual('../a11yAnnouncer'),
+  announce: jest.fn(),
+}));
+
 const { _getLicenseState } = require('../../helpers/mixed');
+const { announce } = require('../a11yAnnouncer');
 
 function createMockHotInstance(overrides = {}) {
   // Hook callbacks are stored per name as arrays; `hooks.addHook[name](...)` runs them all in
@@ -98,6 +105,8 @@ function createMockHotInstance(overrides = {}) {
     rootDocument: document,
     rootElement,
     rootOverlaysElement: document.createElement('div'),
+    // The grid box the lock makes `inert`, which sits beside the overlays layer in the real wrapper.
+    rootGridElement: document.createElement('div'),
     guid: 'ht-test-guid',
     // The realm constructors mirror the real `rootWindow` - the event-target checks consult the
     // grid's own realm (iframe-hosted grids), never the library's globals.
@@ -751,7 +760,9 @@ describe('licenseBranding', () => {
 
       expect(lock).not.toBe(null);
       expect(lock.getAttribute('role')).toBe('alertdialog');
-      expect(lock.getAttribute('aria-modal')).toBe('true');
+      // The lock covers the grid, not the page, so it must not tell assistive technology that the
+      // rest of the page is unavailable.
+      expect(lock.hasAttribute('aria-modal')).toBe(false);
       expect(lock.querySelector('.ht-dialog__title').textContent)
         .toBe('Your Handsontable trial license key expired on 2026-09-26.');
       expect(lock.querySelector('.ht-dialog__description').textContent)
@@ -780,8 +791,8 @@ describe('licenseBranding', () => {
     // in a field elsewhere on the page, and grabbing focus at construction would empty that field's
     // caret, scroll the page down to the lock, and - because `listen()` un-listens every other
     // instance - pull the keyboard off a licensed grid as well. The focus scope manager activates the
-    // scope on the first focusin or click inside it, so the Tab trap still engages the moment the user
-    // reaches the lock.
+    // scope on the first focusin or click inside it, so the lock owns the keyboard the moment the user
+    // reaches it.
     it('should mount the lock without ever claiming focus or the keyboard', () => {
       setLifecycle('trial_hard_stop', { licensedUntil: '2026-09-26' });
       const hotInstance = createMockHotInstance();
@@ -805,18 +816,40 @@ describe('licenseBranding', () => {
         'licenseLock', expect.any(HTMLElement), expect.objectContaining({
           shortcutsContextName: 'plugin:licenseLock',
           type: 'modal',
+          // The lock is painted over the grid body, so no shortcut may read or write a cell under it.
+          coversGridBody: true,
         })
       );
     });
 
-    it('should register the Tab focus trap but NO Escape shortcut - the trial lock is not closable', () => {
+    it('should register no Tab trap and no Escape shortcut - the lock covers the grid, not the page', () => {
       const hotInstance = mountTrialLock();
 
-      const tab = findShortcut(hotInstance, 'Tab');
-
-      expect(tab).not.toBe(undefined);
-      expect(tab.group).toBe('licenseLock');
+      // Tab belongs to the browser: it walks the lock's links and then leaves (WCAG 2.1.2). Escape is
+      // absent because the trial lock is not closable.
+      expect(findShortcut(hotInstance, 'Tab')).toBe(undefined);
+      expect(findShortcut(hotInstance, 'Shift+Tab')).toBe(undefined);
       expect(findShortcut(hotInstance, 'Escape')).toBe(undefined);
+    });
+
+    it('should make the grid inert and announce the lock once, when the grid is initialized', () => {
+      announce.mockClear();
+      setLifecycle('trial_hard_stop', { licensedUntil: '2026-09-26' });
+
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      // Nothing happens before `afterInit`: the announcer needs its portal, and the grid is not drawn.
+      expect(hotInstance.rootGridElement.hasAttribute('inert')).toBe(false);
+      expect(announce).not.toHaveBeenCalled();
+
+      hotInstance.hooks.addHookOnce.afterInit();
+
+      expect(hotInstance.rootGridElement.hasAttribute('inert')).toBe(true);
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock').hasAttribute('inert')).toBe(false);
+      expect(announce).toHaveBeenCalledTimes(1);
+      expect(announce).toHaveBeenCalledWith('Your Handsontable trial license key expired on 2026-09-26.', 'polite');
     });
 
     it('should read the license key only at init - no settings-update hook', () => {
@@ -841,7 +874,7 @@ describe('licenseBranding', () => {
 
       expect(lock).not.toBe(null);
       expect(lock.getAttribute('role')).toBe('alertdialog');
-      expect(lock.getAttribute('aria-modal')).toBe('true');
+      expect(lock.hasAttribute('aria-modal')).toBe(false);
       expect(lock.querySelector('.ht-dialog__title').textContent).toBe(title);
       // No corner badge: the badge is the trial's surface, and there is no trial here.
       expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
@@ -863,23 +896,29 @@ describe('licenseBranding', () => {
         expect(lock.textContent).not.toContain('Close');
         // ...and no Escape shortcut is registered, exactly as for the trial lock.
         expect(findShortcut(hotInstance, 'Escape')).toBeUndefined();
-        expect(findShortcut(hotInstance, 'Tab')).not.toBeUndefined();
+        expect(findShortcut(hotInstance, 'Tab')).toBeUndefined();
       }
     );
 
-    it.each(['invalid', 'missing'])(
+    it.each([
+      ['invalid', 'Read more in the documentation on how to install it properly, ' +
+        'or contact us at support@handsontable.com.'],
+      ['missing', 'Use your purchased key to activate the product. Read more about it in the documentation, ' +
+        'or contact us at support@handsontable.com.'],
+    ])(
       'should keep the documentation link of the old bottom bar inside the "%s" modal',
-      (state) => {
+      (state, sentence) => {
         const hotInstance = mountLock(state);
-        const link = hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description a');
+        const description = hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description');
+        const link = description.querySelector('a');
 
-        // Built as a node, so the copy can never become markup - and being a real link, the Tab
-        // trap picks it up along with the button.
+        // Built as a node, so the copy can never become markup - and being a real link, it is in
+        // the Tab order along with the button.
         expect(link).not.toBe(null);
-        expect(link.textContent).toBe('Read more');
+        // The link's own text says where it goes (2.4.4), not "Read more", which reads as plain text.
+        expect(link.textContent).toBe('documentation');
         expect(link.getAttribute('href')).toBe('https://handsontable.com/docs/tutorial-license-key.html');
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description').textContent)
-          .toContain('support@handsontable.com');
+        expect(description.textContent).toBe(sentence);
       }
     );
 
@@ -895,12 +934,13 @@ describe('licenseBranding', () => {
     });
 
     it.each(['invalid', 'missing'])(
-      'should trap focus in the "%s" modal as a modal scope',
+      'should register the "%s" lock as a modal scope that covers the grid body',
       (state) => {
         const hotInstance = mountLock(state);
 
         expect(hotInstance.focusScope.registerScope).toHaveBeenCalledWith(
-          'licenseLock', expect.any(HTMLElement), expect.objectContaining({ type: 'modal' })
+          'licenseLock', expect.any(HTMLElement),
+          expect.objectContaining({ type: 'modal', coversGridBody: true })
         );
         // Registered, not activated: the scope manager activates it when the user first reaches the
         // lock. See "should mount the lock without ever claiming focus or the keyboard" above.

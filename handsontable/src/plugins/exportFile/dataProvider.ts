@@ -331,7 +331,9 @@ class ExportDataProvider {
         if (this.options.exportHiddenRows === false && this._isHiddenRow(row)) {
           continue;
         }
-        headers.push(extractText(this.hot, rowHeaders[row], 'ExportFile.rowHeader'));
+        // A header a user renamed (`EditableHeaders`) is text already: projecting it would parse what they typed.
+        headers.push(this.hot.view?.isPlainTextHeader('row', row) ?
+          rowHeaders[row] : extractText(this.hot, rowHeaders[row], 'ExportFile.rowHeader'));
       }
     }
 
@@ -354,7 +356,8 @@ class ExportDataProvider {
         if (this.options.exportHiddenColumns === false && this._isHiddenColumn(column)) {
           continue;
         }
-        headers.push(extractText(this.hot, colHeaders[column], 'ExportFile.columnHeader'));
+        headers.push(this.hot.view?.isPlainTextHeader('column', column) ?
+          colHeaders[column] : extractText(this.hot, colHeaders[column], 'ExportFile.columnHeader'));
       }
     }
 

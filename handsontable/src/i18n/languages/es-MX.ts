@@ -13,6 +13,9 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Cancelar',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'No hay opciones disponibles',
+  [C.CONTEXTMENU_LABEL]: 'Menú contextual',
+  [C.DROPDOWNMENU_LABEL]: 'Menú de columna',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insertar fila arriba',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Insertar fila abajo',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Insertar columna izquierda',
@@ -77,6 +80,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Ninguna',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Está vacío',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'No está vacío',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Está marcado',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'No está marcado',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Es igual a',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'No es igual a',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Comienza con',
@@ -143,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Hoja [name] movida a la posición [position] de [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Hoja',
 
+  [C.CHECKBOX_CHECKED]: 'Marcado',
+  [C.CHECKBOX_UNCHECKED]: 'Desmarcado',
+
   [C.LOADING_TITLE]: 'Cargando...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Cerrar',
 
@@ -153,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Restablecer filtros',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Cargando datos',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Espere por favor.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Datos cargados',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'No se pudieron cargar los datos',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'No se pudieron crear las filas',
@@ -163,6 +172,9 @@ const dictionary = {
   [C.ROW_SELECTION_SELECT_ROW]: 'Seleccionar fila [row]',
   [C.ROW_SELECTION_SELECT_ALL]: 'Seleccionar todas las filas ([selected] de [total] seleccionadas)',
   [C.CHECKBOX_HEADER_CHECK_ALL]: 'Marcar todo ([checked] de [total] marcadas)',
+  [C.CONTEXTMENU_ITEMS_RENAME_HEADER]: 'Cambiar nombre del encabezado',
+  [C.EDITABLE_HEADERS_INPUT_LABEL]: 'Nombre del encabezado',
+  [C.EDITABLE_HEADERS_RENAMED]: 'Encabezado renombrado a [value]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Fila [row] seleccionada',
   [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Fila [row] deseleccionada',
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] de [total] filas seleccionadas',
@@ -172,11 +184,54 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Filas inmovilizadas en la parte inferior',
   [C.FREEZE_BAR_COLUMNS_START]: 'Columnas inmovilizadas al inicio',
   [C.FREEZE_BAR_COLUMNS_END]: 'Columnas inmovilizadas al final',
+  [C.ARMED_PICK_STARTED]: 'Haga clic o toque el destino para terminar. Presione Escape para cancelar.',
+  [C.ARMED_PICK_CANCELED]: 'Cancelado.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Cambiar el ancho de la columna. Use las flechas izquierda y derecha para cambiar el ancho, Enter para aplicar, ' +
+    'Escape para cancelar.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Cambiar el alto de la fila. Use las flechas arriba y abajo para cambiar el alto, Enter para aplicar, ' +
+    'Escape para cancelar.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Cambiar el tamaño del cuadro de comentario. Use las flechas para cambiar el tamaño, Enter para aplicar, Escape ' +
+    'para cancelar.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Ancho: [size] píxeles',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Alto: [size] píxeles',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivel [level], [position] de [setSize]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Nivel [level], [position] de [setSize], expandido',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Nivel [level], [position] de [setSize], contraído',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Fórmula: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'solo lectura',
+  [C.CELL_DESCRIPTION_LINK]: 'vínculo',
+  [C.CELL_DESCRIPTION_MERGED]: 'combinada hasta la fila [row] columna [column]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Se expandió el grupo de columnas [label]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo el grupo de columnas [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Ordenado por [label], ascendente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Ordenado por [label], descendente',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Se quitó el orden de [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Ordenado por [label], ascendente, prioridad de ordenación [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Ordenado por [label], descendente, prioridad de ordenación [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Selección de la columna [startColumn], fila [startRow] a la columna [endColumn], fila [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Todas las celdas seleccionadas',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Columna [column] seleccionada',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Columnas [startColumn] a [endColumn] seleccionadas',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Fila [row] seleccionada',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Filas [startRow] a [endRow] seleccionadas',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Selección agregada: [selection]. Selecciones: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'columna [column], fila [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'de la columna [startColumn], fila [startRow] a la columna [endColumn], fila [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'todas las celdas',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'columna [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'columnas [startColumn] a [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'fila [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'filas [startRow] a [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Editor de fórmulas',
   [C.FORMULA_BUILDER_INPUT]: 'Entrada de fórmula',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Dirección de celda',
@@ -196,6 +251,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Error en [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] celda más contiene ahora un error.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] celdas más contienen ahora errores.',
+  [C.EDITOR_INPUT_LABEL]: '[column], fila [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Comentario de [column], fila [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Comentario de [column], [row]',
 };
 
 export default dictionary;

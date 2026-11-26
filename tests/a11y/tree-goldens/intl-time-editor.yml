@@ -9,7 +9,7 @@
       - gridcell "#bad-value#"
       - gridcell "four"
       - gridcell
-  - textbox
+  - textbox "C, row 1"
 # portal
 - status
 - status

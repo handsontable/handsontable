@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where a screen reader announced nothing when a cell editor was closed with Escape, and where the focus was lost when Tab or Enter left the `multiselect` editor – the focus now moves to a cell.",
+  "type": "fixed",
+  "issueOrPR": 14386,
+  "breaking": false,
+  "framework": "none"
+}

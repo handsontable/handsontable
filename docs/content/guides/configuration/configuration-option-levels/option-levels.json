@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 186,
+  "total": 191,
   "counts": {
-    "grid": 113,
+    "grid": 116,
     "grid columns cells cell": 65,
-    "grid columns": 7,
+    "grid columns": 9,
     "columns": 1
   },
   "options": [
@@ -93,6 +93,43 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "applyCellsToDataReads",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
+      "name": "ariaDescribedby",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.1.0",
+      "note": null
+    },
+    {
+      "name": "ariaLabel",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.1.0",
+      "note": null
+    },
+    {
+      "name": "ariaLabelledby",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.1.0",
       "note": null
     },
     {
@@ -512,6 +549,16 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "editableHeaders",
+      "category": "EditableHeaders",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

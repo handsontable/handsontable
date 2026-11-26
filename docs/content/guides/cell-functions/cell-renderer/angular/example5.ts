@@ -18,10 +18,12 @@ function safeHtmlRenderer(
   return td;
 }
 
+const toPlainText = (html: string) => new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+
 function coverRenderer(
-  _instance: Handsontable,
+  instance: Handsontable,
   td: HTMLTableCellElement,
-  _row: number,
+  row: number,
   _col: number,
   _prop: string | number,
   value: string,
@@ -30,6 +32,7 @@ function coverRenderer(
   const img = document.createElement('img');
 
   img.src = value;
+  img.alt = toPlainText(String(instance.getDataAtRowProp(row, 'title')));
   img.addEventListener('mousedown', (event) => {
     event.preventDefault();
   });

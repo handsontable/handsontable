@@ -442,4 +442,115 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', { 
     // The clip must not hide the columns: the holder still scrolls them.
     expect(extents.holderScrollWidth).toBeGreaterThan(extents.holderClientWidth);
   });
+
+  // The vertical twin of the two cases above. A parent that declares a `height` and no `overflow`
+  // is no trimming container for the DOM, so before the per-axis owners the column headers followed
+  // the window out of its box. `preventOverflow: 'vertical'` forces the vertical owner to the
+  // grid's root element, whatever the parent's overflow says.
+  test.describe('legacy `preventOverflow: "vertical"` alias in a parent with a height and no overflow', () => {
+    const PARENT_HEIGHT = 300;
+    const options = { width: undefined, preventOverflow: 'vertical' };
+
+    test.beforeEach(async () => {
+      await grid.rebuildInHeightParent(options, `${PARENT_HEIGHT}px`);
+    });
+
+    test('hands the vertical axis to the grid and the rows scroll inside the holder', async () => {
+      const owners = await grid.axisOwners();
+      const state = await grid.verticalState();
+
+      expect(owners.verticalByWindow).toBe(false);
+      // The root takes the parent's height through the wrapper chain.
+      expect(state.rootBottom - state.rootTop).toBe(PARENT_HEIGHT);
+      expect(state.holderClientHeight).toBeGreaterThan(PARENT_HEIGHT / 2);
+      expect(state.holderClientHeight).toBeLessThanOrEqual(PARENT_HEIGHT);
+      // The rows overflow the holder, not the page.
+      expect(state.holderScrollHeight).toBeGreaterThan(state.holderClientHeight);
+    });
+
+    // Controls: an `overflow` on the parent makes it a trimming container for the DOM as well, so
+    // these hold with and without the forced owner (they stay green if the `'vertical'` branch is
+    // removed). They pin that the holder is sized the same whatever the parent's overflow is.
+    for (const overflowY of ['hidden', 'auto', 'clip']) {
+      test(`control: sizes the holder from the root box with \`overflow-y: ${overflowY}\` on the parent`, async () => {
+        await grid.rebuildInHeightParent(options, `${PARENT_HEIGHT}px`, overflowY);
+
+        const state = await grid.verticalState();
+
+        expect(state.rootBottom - state.rootTop).toBe(PARENT_HEIGHT);
+        expect(state.holderClientHeight).toBeGreaterThan(PARENT_HEIGHT / 2);
+        expect(state.holderClientHeight).toBeLessThanOrEqual(PARENT_HEIGHT);
+      });
+    }
+
+    test('keeps the column headers inside the parent while the page scrolls', async () => {
+      // The parent alone is shorter than the viewport, so the page has nothing to scroll and a
+      // header that follows the window would have nowhere to go: give the page a range.
+      await grid.addPageSpacer(2000);
+
+      const atRest = await grid.verticalState();
+
+      // Past the parent's whole box, so a header pinned to the window cannot still fit inside it.
+      const scrollBy = PARENT_HEIGHT + 50;
+
+      await grid.scrollWindowBy(0, scrollBy);
+
+      const scrolled = await grid.verticalState();
+
+      // The page really moved: the root's box went up by the scroll.
+      expect(scrolled.windowScrollY).toBe(scrollBy);
+      expect(Math.abs((atRest.rootTop - scrolled.rootTop) - scrollBy)).toBeLessThanOrEqual(1);
+      // The headers went with the box. A header pinned to the window stays at the top of the screen
+      // while the box is gone above it.
+      expect(Math.abs((scrolled.headerTop - scrolled.rootTop) - (atRest.headerTop - atRest.rootTop)))
+        .toBeLessThanOrEqual(1);
+      expect(scrolled.headerBottom).toBeLessThanOrEqual(scrolled.rootBottom + 1);
+    });
+
+    test('scrolls the rows inside the holder on a wheel and leaves the page where it is', async () => {
+      await grid.addPageSpacer(2000);
+      await grid.watchWheelEvents();
+      await grid.wheelOverGrid(160, 0);
+
+      const [gesture] = await grid.wheelLog();
+      const state = await grid.verticalState();
+
+      expect(gesture.defaultPrevented).toBe(true);
+      expect(state.holderScrollTop).toBe(160);
+      expect(state.windowScrollY).toBe(0);
+    });
+
+    // The option can move after init: the holder is boxed by the parent while it is on, and goes back
+    // to the page's layout when it is switched off, the way the horizontal twin does above.
+    test('moves the vertical axis between the parent and the window with `updateSettings()`', async () => {
+      expect((await grid.axisOwners()).verticalByWindow).toBe(false);
+
+      await grid.updateSettings({ preventOverflow: false });
+
+      const released = await grid.verticalState();
+
+      expect((await grid.axisOwners()).verticalByWindow).toBe(true);
+      expect(released.holderClientHeight).toBeGreaterThan(PARENT_HEIGHT);
+
+      await grid.updateSettings({ preventOverflow: 'vertical' });
+
+      const boxed = await grid.verticalState();
+
+      expect((await grid.axisOwners()).verticalByWindow).toBe(false);
+      expect(boxed.holderClientHeight).toBeGreaterThan(PARENT_HEIGHT / 2);
+      expect(boxed.holderClientHeight).toBeLessThanOrEqual(PARENT_HEIGHT);
+    });
+
+    // Control: without the option the same parent holds nothing. The window owns the axis and the
+    // grid grows past the parent's box, so the layouts above are the option's doing.
+    test('control: without the option the same parent does not hold the rows', async () => {
+      await grid.rebuildInHeightParent({ width: undefined }, `${PARENT_HEIGHT}px`);
+
+      const owners = await grid.axisOwners();
+      const state = await grid.verticalState();
+
+      expect(owners.verticalByWindow).toBe(true);
+      expect(state.holderClientHeight).toBeGreaterThan(PARENT_HEIGHT);
+    });
+  });
 });

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture: nested header labels that wrap</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from query params, each mapped through a fixed allowlist to LITERALS so a
+    // crafted param can never be reflected into the document: no XSS. An ABSENT param keeps the
+    // default so the fixture stays browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+    // `?wrap=true` adds the CSS an application writes to let header labels wrap. `?autoRowSize=true`
+    // turns on AutoRowSize, whose header measure shares the ghost header row with core's pre-draw probe.
+    // `?hideColumn=true` hides the group's second column: AutoRowSize samples it, and a hidden column
+    // has no renderable index, so the ghost row fills it without the header renderer.
+    window.htWrap = htPick('wrap', { true: true, false: false }, 'false');
+    window.htAutoRowSize = htPick('autoRowSize', { true: true, false: false }, 'false');
+    window.htHideColumn = htPick('hideColumn', { true: true, false: false }, 'false');
+    window.htWide = htPick('wide', { true: true, false: false }, 'false');
+
+    if (window.htWrap) {
+      document.write('<style>.handsontable thead th .colHeader { white-space: normal; }</style>');
+    }
+  </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    E2E fixture: a group label much longer than the four 80px columns it spans, over six columns of
+    short data, on a fixed 560 x 300 grid with the default `autoColumnSize`.
+  -->
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.htGroupLabel = 'A very long nested group label that is wider than its columns';
+
+    // The default grid: one group over four columns, then two single columns. `?wide=true`: 32 columns
+    // in groups of eight, with bottom labels that repeat (`c0`, `c1`, `c2`). AutoRowSize samples the
+    // header row by value and skips repeats, so its ghost row holds three of the first group's eight
+    // columns: the label fits one line over the eight drawn columns and wraps over three.
+    const columnCount = window.htWide ? 32 : 6;
+    const nestedHeaders = window.htWide ? [
+      Array.from({ length: columnCount / 8 }, () => ({ label: window.htGroupLabel, colspan: 8 })),
+      Array.from({ length: columnCount }, (_, col) => `c${col % 3}`),
+    ] : [
+      [{ label: window.htGroupLabel, colspan: 4 }, 'X', 'Y'],
+      ['a', 'b', 'c', 'd', 'e', 'f'],
+    ];
+
+    window.htFixtureData = () => Array.from({ length: 5 }, (_, row) => Array.from({ length: columnCount }, (_, col) => `${row}${col}`));
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
+    try {
+      window.hot = new Handsontable(container, {
+        data: window.htFixtureData(),
+        width: 560,
+        height: 300,
+        rowHeaders: true,
+        colWidths: 80,
+        autoRowSize: window.htAutoRowSize,
+        hiddenColumns: window.htHideColumn ? { columns: [1] } : false,
+        nestedHeaders,
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

@@ -37,6 +37,135 @@ export class RowHeightDeviceScalePage {
   }
 
   /**
+   * Navigate to the same grid with row moving switched on.
+   *
+   * `zoom` opens the page already zoomed out, so the grid is built under the inflated border.
+   * `zoomAfter` is what a user does with Ctrl+minus on an open page: the grid is built at 100%, then
+   * the zoom is applied and a `resize` follows. Both default to 100%.
+   *
+   * @param options The zoom the page is built at, and the zoom applied after the grid exists.
+   */
+  async gotoWithRowMove(options: { zoom?: number; zoomAfter?: number } = {}): Promise<void> {
+    const { zoom = 1, zoomAfter = 1 } = options;
+
+    await this.page.goto(
+      `/tests/fixtures/demo/row-height-device-scale.html` +
+      `?theme=${this.theme}&bundle=${this.bundle}&zoom=${zoom}&zoomAfter=${zoomAfter}&rowMove=1`
+    );
+    await expect(this.cell(0, 0)).toBeVisible();
+    await expect(this.lastRow()).toBeAttached();
+  }
+
+  /**
+   * Zooms the page while the grid is hidden, waits until the grid has handled that zoom's `resize`, then
+   * shows the grid again and sends the `resize` the page gets then.
+   *
+   * What a user does with the grid in a closed tab: the zoom changes while nobody sees it, and the
+   * application refreshes the grid once it is shown (`refreshDimensions()` runs on a window resize, and a
+   * container observer skips a hidden grid). The wait is the positive control: the grid's handler of the
+   * first `resize` can run a task after the event, and a grid shown before it ran would never be refreshed
+   * while hidden, which is the case this method exists to set up.
+   *
+   * @param zoom The CSS zoom to apply while the grid is hidden.
+   */
+  async zoomWhileHidden(zoom: number): Promise<void> {
+    await this.page.evaluate(() => {
+      const state = window as unknown as {
+        hiddenRefreshes: number;
+        hot: { addHook(name: string, callback: () => void): void };
+      };
+
+      state.hiddenRefreshes = 0;
+      state.hot.addHook('afterRefreshDimensions', () => {
+        state.hiddenRefreshes += 1;
+      });
+      (document.getElementById('wrap') as HTMLElement).style.display = 'none';
+    });
+    await this.page.evaluate((cssZoom) => {
+      document.documentElement.style.zoom = String(cssZoom);
+      window.dispatchEvent(new Event('resize'));
+    }, zoom);
+    await expect.poll(
+      () => this.page.evaluate(() => (window as unknown as { hiddenRefreshes: number }).hiddenRefreshes)
+    ).toBeGreaterThan(0);
+    await this.page.evaluate(() => {
+      (document.getElementById('wrap') as HTMLElement).style.display = '';
+      window.dispatchEvent(new Event('resize'));
+    });
+  }
+
+  /**
+   * The row header of a visual row, in the clone that holds the row headers.
+   */
+  rowHeader(row: number): Locator {
+    return this.page.getByTestId('grid').locator('.ht_clone_inline_start').getByTestId(`row-header-${row}`);
+  }
+
+  /**
+   * Selects a row by its header, presses that header, and drags it over the upper half of each row
+   * header in `rows`, in order. For each one it returns how far the guideline's bottom edge sits
+   * below the top edge of the header under the pointer: 0 when the line is on the row border.
+   *
+   * The rows are visited in one drag, with the real mouse, because the guideline is only drawn while
+   * the header is held. The result is read right after each move; the plugin positions the line
+   * synchronously from that event.
+   *
+   * @param startRow The visual row whose header is pressed.
+   * @param rows The visual rows to hover, in order.
+   */
+  async guidelineGaps(startRow: number, rows: number[]): Promise<number[]> {
+    const start = this.rowHeader(startRow);
+
+    await start.scrollIntoViewIfNeeded();
+    await start.click();
+
+    const startBox = await start.boundingBox();
+
+    if (!startBox) {
+      throw new Error(`The header of row ${startRow} has no box`);
+    }
+
+    await this.page.mouse.move(startBox.x + 5, startBox.y + startBox.height / 2);
+    await this.page.mouse.down();
+
+    const gaps: number[] = [];
+
+    for (const row of rows) {
+      const header = this.rowHeader(row);
+
+      await header.scrollIntoViewIfNeeded();
+
+      const box = await header.boundingBox();
+
+      if (!box) {
+        throw new Error(`The header of row ${row} has no box`);
+      }
+
+      await this.page.mouse.move(box.x + 5, box.y + box.height / 2 + 6, { steps: 3 });
+      await this.page.mouse.move(box.x + 5, box.y + 3, { steps: 3 });
+
+      gaps.push(await this.page.evaluate((hoveredRow) => {
+        const grid = document.querySelector('[data-testid="grid"]') as HTMLElement;
+        const guideline = grid.querySelector('.ht__manualRowMove--guideline') as HTMLElement | null;
+        const header = grid
+          .querySelector('.ht_clone_inline_start')!
+          .querySelector(`[data-testid="row-header-${hoveredRow}"]`) as HTMLElement;
+
+        // A positive control: a guideline that is not drawn would read as a gap of nothing.
+        if (!guideline || getComputedStyle(guideline).display === 'none') {
+          throw new Error('The guideline is not drawn while the header is held');
+        }
+
+        return guideline.getBoundingClientRect().bottom - header.getBoundingClientRect().top;
+      }, row));
+    }
+
+    await this.page.mouse.up();
+
+    return gaps;
+  }
+
+  /**
    * A data cell in the grid's master table.
    */
   cell(row: number, col: number): Locator {

@@ -12,7 +12,7 @@ import {
   A11Y_SETSIZE,
 } from '../../../helpers/a11y';
 import { createIcon } from '../../../themes/engine/icons';
-import type { RowSetPosition } from '../data/dataManager';
+import type { RowTreePosition } from '../data/dataManager';
 
 /**
  * The treegrid attributes this plugin writes on a row's `TR`. Walkontable recycles `TR` elements
@@ -58,7 +58,7 @@ function clearRowAttributes(TR: HTMLElement) {
 interface NestedRowsDataManager {
   getDataObject(rowIndex: number): Record<string, unknown> | null;
   getRowLevel(rowIndex: number): number;
-  getRowSetPosition(rowIndex: number): RowSetPosition | null;
+  getRowTreePosition(rowIndex: number): RowTreePosition | null;
   hasChildren(rowObject: Record<string, unknown>): boolean;
   cache: { levelCount: number };
 }
@@ -243,18 +243,18 @@ class HeadersUI extends BaseUI {
       return;
     }
 
-    const setPosition = physicalRow === null ? null : this.dataManager!.getRowSetPosition(physicalRow);
+    const treePosition = physicalRow === null ? null : this.dataManager!.getRowTreePosition(physicalRow);
 
-    if (!setPosition || !this.hot.getSettings().ariaTags) {
+    if (!treePosition || !this.hot.getSettings().ariaTags) {
       clearRowAttributes(TR);
 
       return;
     }
 
     writeRowAttributes(TR, [
-      A11Y_LEVEL(this.dataManager!.getRowLevel(physicalRow!) + 1),
-      A11Y_POSINSET(setPosition.position),
-      A11Y_SETSIZE(setPosition.setSize),
+      A11Y_LEVEL(treePosition.level),
+      A11Y_POSINSET(treePosition.position),
+      A11Y_SETSIZE(treePosition.setSize),
     ]);
   }
 

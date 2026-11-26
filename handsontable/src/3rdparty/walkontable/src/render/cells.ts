@@ -1,8 +1,6 @@
 import {
   hasClass,
-  removeAttribute,
   removeInlineStyle,
-  setAttribute,
 } from '../../../../helpers/dom/element';
 import { SharedOrderView } from '../utils/orderView';
 import { clearAppliedSelection } from '../selection/appliedSelection';
@@ -11,8 +9,99 @@ import {
   A11Y_COLINDEX,
   A11Y_DESCRIBED_BY,
   A11Y_GRIDCELL,
-  A11Y_TABINDEX
+  A11Y_TABINDEX,
+  rebuildAccessibilityObject
 } from '../../../../helpers/a11y';
+import {
+  isClearedAriaAttribute,
+  isKeptDescribedBy,
+  setAttributeIfChanged,
+  setAttributeIfMissing,
+} from './ariaAttributes';
+
+const [ROLE, GRIDCELL] = A11Y_GRIDCELL();
+const TABINDEX = A11Y_TABINDEX(-1)[0];
+const TABINDEX_VALUE = String(A11Y_TABINDEX(-1)[1]);
+const COLINDEX = A11Y_COLINDEX(0)[0];
+const DESCRIBED_BY = A11Y_DESCRIBED_BY('')[0];
+
+/**
+ * Checks whether an attribute is one of the cell's own accessibility attributes, which are overwritten with
+ * this draw's values rather than cleared.
+ *
+ * @param {string} name The attribute name.
+ * @param {string} columnHeaderId The id of the cell's column header, empty when the cell has none.
+ * @returns {boolean}
+ */
+function isOwnCellAriaAttribute(name: string, columnHeaderId: string, describedByKept: boolean): boolean {
+  return name === ROLE || name === COLINDEX || (name === DESCRIBED_BY && (columnHeaderId !== '' || describedByKept));
+}
+
+/**
+ * Brings a cell's accessibility attributes to the state its renderer starts from, before the renderer runs:
+ * every attribute the previous paint of this (recycled) element left is cleared, and the cell's own ones are
+ * set to this draw's values, each written only when it differs. A repaint of an element that already holds
+ * exactly that state, which is what a vertical scroll does, makes no DOM write; a horizontal scroll rewrites
+ * the two that follow the column. A fresh element and a recycled one reach the renderer in the same state, so
+ * what a renderer that reads these attributes produces does not depend on the element's history.
+ *
+ * @param {HTMLElement} TD The cell.
+ * @param {boolean} ariaEnabled Whether the grid writes accessibility attributes; without them every one is
+ * cleared.
+ * @param {string} ariaColIndex The cell's `aria-colindex`.
+ * @param {string} columnHeaderId The id of the cell's column header, empty when the cell has none.
+ */
+function prepareCellAriaAttributes(
+  TD: HTMLElement,
+  ariaEnabled: boolean,
+  ariaColIndex: string,
+  columnHeaderId: string,
+): void {
+  const attributeNames = TD.getAttributeNames();
+  // A description reference the cell painter wrote on the previous paint stays: resetting it to the column header
+  // here would make the painter write it again after the renderer, two DOM writes on every repaint of the cell.
+  const describedByKept = ariaEnabled && isKeptDescribedBy(TD.getAttribute(DESCRIBED_BY), columnHeaderId);
+
+  for (let i = 0; i < attributeNames.length; i++) {
+    const name = attributeNames[i];
+
+    if (
+      isClearedAriaAttribute(name) &&
+      !(ariaEnabled && isOwnCellAriaAttribute(name, columnHeaderId, describedByKept))
+    ) {
+      TD.removeAttribute(name);
+    }
+  }
+
+  if (ariaEnabled) {
+    setAttributeIfChanged(TD, ROLE, GRIDCELL);
+    setAttributeIfChanged(TD, TABINDEX, TABINDEX_VALUE);
+    setAttributeIfChanged(TD, COLINDEX, ariaColIndex);
+
+    if (columnHeaderId && !describedByKept) {
+      setAttributeIfChanged(TD, DESCRIBED_BY, columnHeaderId);
+    }
+  }
+}
+
+/**
+ * Restores the cell's own accessibility attributes after its renderer ran. The `role` and the
+ * `aria-describedby` defer to a renderer that set its own, so they are written back only when the renderer
+ * removed them; `aria-colindex` and `tabindex` are core's, and are written back when the renderer changed them.
+ *
+ * @param {HTMLElement} TD The cell.
+ * @param {string} ariaColIndex The cell's `aria-colindex`.
+ * @param {string} columnHeaderId The id of the cell's column header, empty when the cell has none.
+ */
+function restoreCellAriaAttributes(TD: HTMLElement, ariaColIndex: string, columnHeaderId: string): void {
+  setAttributeIfMissing(TD, ROLE, GRIDCELL);
+  setAttributeIfChanged(TD, TABINDEX, TABINDEX_VALUE);
+  setAttributeIfChanged(TD, COLINDEX, ariaColIndex);
+
+  if (columnHeaderId) {
+    setAttributeIfMissing(TD, DESCRIBED_BY, columnHeaderId);
+  }
+}
 
 /**
  * Cell renderer responsible for managing (inserting, tracking, rendering) TD elements.
@@ -34,6 +123,12 @@ export class CellsRenderer extends BaseRenderer {
    * @type {WeakMap}
    */
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
+
+  /**
+   * The offsets the cells' `aria-colindex` and the rows' `aria-rowindex` were counted from on the last draw,
+   * `null` before the first one.
+   */
+  #lastPositionOffsets: string | null = null;
 
   /**
    * Creates a new CellsRenderer instance.
@@ -58,6 +153,35 @@ export class CellsRenderer extends BaseRenderer {
     }
 
     return this.orderViews.get(rootNode)!;
+  }
+
+  /**
+   * Tells whether the offsets that position the cells changed since the last draw that painted cells: the number of
+   * row headers (`aria-colindex`) and of column headers (`aria-rowindex` of the rows). The first draw, a draw with
+   * no cells (the change waits for the draw that shows them), and a grid that writes no ARIA, answer `false`.
+   *
+   * @param {boolean} ariaEnabled Whether the grid writes accessibility attributes.
+   * @param {number} ariaColIndexOffset The offset of the cells' `aria-colindex`.
+   * @param {boolean} hasColumnHeaders Whether the grid has column headers.
+   * @returns {boolean}
+   */
+  #hasPositionOffsetChanged(ariaEnabled: boolean, ariaColIndexOffset: number, hasColumnHeaders: boolean): boolean {
+    if (!ariaEnabled) {
+      this.#lastPositionOffsets = null;
+
+      return false;
+    }
+
+    if (this.table.rowsToRender === 0 || this.table.columnsToRender === 0) {
+      return false;
+    }
+
+    const offsets = `${ariaColIndexOffset},${this.table.columnHeadersCount},${hasColumnHeaders}`;
+    const hasChanged = this.#lastPositionOffsets !== null && this.#lastPositionOffsets !== offsets;
+
+    this.#lastPositionOffsets = offsets;
+
+    return hasChanged;
   }
 
   /**
@@ -87,8 +211,15 @@ export class CellsRenderer extends BaseRenderer {
     // to for screen readers, empty when aria is off, the grid has no column headers, or there is no
     // instance id (DEV-29). `isAriaEnabled()` is checked first so an `ariaTags: false` grid never calls
     // `hasColumnHeaders()`, which fires the public `afterGetColumnHeaderRenderers` hook.
-    const columnHeaderIdPrefix = this.table.isAriaEnabled() && this.table.hasColumnHeaders()
-      ? this.table.getAriaColumnHeaderIdPrefix() : '';
+    const ariaEnabled = this.table.isAriaEnabled();
+    const hasColumnHeaders = ariaEnabled && this.table.hasColumnHeaders();
+    const columnHeaderIdPrefix = hasColumnHeaders ? this.table.getAriaColumnHeaderIdPrefix() : '';
+    const ariaColIndexOffset = ariaEnabled
+      ? ((this.table.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0) + 1
+      : 0;
+    // A reader keeps the position it learned for a cell. When the headers that shift every cell's position
+    // appear or go, each painted cell gets a new accessibility object, once, so the reader counts again.
+    const rebuildAllCells = this.#hasPositionOffsetChanged(ariaEnabled, ariaColIndexOffset, hasColumnHeaders);
 
     for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -134,35 +265,27 @@ export class CellsRenderer extends BaseRenderer {
         removeInlineStyle(TD);
         TD.removeAttribute('dir');
 
-        // Remove all accessibility-related attributes for the cell to start fresh.
-        removeAttribute(TD, [
-          /aria-(.*)/,
-          /role/
-        ]);
+        // `aria-colindex` is incremented by both tbody and thead rows.
+        const ariaColIndex = ariaEnabled ? String(sourceColumnIndex + ariaColIndexOffset) : '';
+        // Point the cell at its column header so a screen reader announces the header label with the
+        // cell - the header is read after the cell's own name, so "C1" becomes "C1, Position". The
+        // header is stamped by whichever overlay owns the column (master or inline-start), so a cell
+        // in any overlay resolves to it (see `ownsAriaColumnHeaderId`). The prefix is grid-wide and
+        // draw-constant, so a bottom-overlay cell - whose own clone renders no header row - still
+        // gets the reference; it is empty when the grid has no column headers, and then no attribute
+        // is written.
+        const columnHeaderId = columnHeaderIdPrefix ? `${columnHeaderIdPrefix}${sourceColumnIndex}` : '';
+
+        prepareCellAriaAttributes(TD, ariaEnabled, ariaColIndex, columnHeaderId);
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
 
-        if (this.table.isAriaEnabled()) {
-          // Point the cell at its column header so a screen reader announces the header label with the
-          // cell - the header is read after the cell's own name, so "C1" becomes "C1, Position". The
-          // header is stamped by whichever overlay owns the column (master or inline-start), so a cell
-          // in any overlay resolves to it (see `ownsAriaColumnHeaderId`). The prefix is grid-wide and
-          // draw-constant, so a bottom-overlay cell - whose own clone renders no header row - still
-          // gets the reference; it is empty when the grid has no column headers, and then no attribute
-          // is written. Defer to a custom cell renderer that set its own `aria-describedby` (the aria
-          // strip above cleared it, so `hasAttribute` is true only when this draw's renderer set one),
-          // the same way the `role` above defers to a renderer-set role.
-          const columnHeaderId = columnHeaderIdPrefix ? `${columnHeaderIdPrefix}${sourceColumnIndex}` : '';
+        if (ariaEnabled) {
+          restoreCellAriaAttributes(TD, ariaColIndex, columnHeaderId);
 
-          setAttribute(TD, [
-            ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
-            A11Y_TABINDEX(-1),
-            // `aria-colindex` is incremented by both tbody and thead rows.
-            A11Y_COLINDEX(sourceColumnIndex + (
-              (this.table.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0
-            ) + 1),
-            ...(columnHeaderId && !TD.hasAttribute('aria-describedby') ? [A11Y_DESCRIBED_BY(columnHeaderId)] : []),
-          ]);
+          if (rebuildAllCells) {
+            rebuildAccessibilityObject(TD);
+          }
         }
       }
 

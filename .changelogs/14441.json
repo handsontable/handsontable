@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a keyboard resize mode (Ctrl/Cmd+Alt+R and the arrow keys) and a click-then-click way to resize columns, rows, and comment boxes without dragging.",
+  "type": "added",
+  "issueOrPR": 14441,
+  "breaking": false,
+  "framework": "none"
+}

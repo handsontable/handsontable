@@ -13,6 +13,9 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuleren',
 
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Geen opties beschikbaar',
+  [C.CONTEXTMENU_LABEL]: 'Contextmenu',
+  [C.DROPDOWNMENU_LABEL]: 'Kolommenu',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Rij boven invoegen',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Rij onder invoegen',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Kolom links invoegen',
@@ -77,6 +80,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Geen',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Is leeg',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Is niet leeg',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Is aangevinkt',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Is niet aangevinkt',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Is gelijk aan',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Is niet gelijk aan',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Begint met',
@@ -143,6 +148,9 @@ const dictionary = {
   [C.SHEETS_BAR_SHEET_MOVED]: 'Blad [name] verplaatst naar positie [position] van [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blad',
 
+  [C.CHECKBOX_CHECKED]: 'Aangevinkt',
+  [C.CHECKBOX_UNCHECKED]: 'Uitgevinkt',
+
   [C.LOADING_TITLE]: 'Laden...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',
 
@@ -153,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filters resetten',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Gegevens laden',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Even geduld.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Gegevens geladen',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Gegevens konden niet worden geladen',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Rijen konden niet worden aangemaakt',
@@ -163,6 +172,9 @@ const dictionary = {
   [C.ROW_SELECTION_SELECT_ROW]: 'Rij [row] selecteren',
   [C.ROW_SELECTION_SELECT_ALL]: 'Alle rijen selecteren ([selected] van [total] geselecteerd)',
   [C.CHECKBOX_HEADER_CHECK_ALL]: 'Alles aanvinken ([checked] van [total] aangevinkt)',
+  [C.CONTEXTMENU_ITEMS_RENAME_HEADER]: 'Kop hernoemen',
+  [C.EDITABLE_HEADERS_INPUT_LABEL]: 'Naam van kop',
+  [C.EDITABLE_HEADERS_RENAMED]: 'Kop hernoemd naar [value]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rij [row] geselecteerd',
   [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Selectie van rij [row] opgeheven',
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] van [total] rijen geselecteerd',
@@ -172,11 +184,52 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Vastgezette rijen onderaan',
   [C.FREEZE_BAR_COLUMNS_START]: 'Vastgezette kolommen aan het begin',
   [C.FREEZE_BAR_COLUMNS_END]: 'Vastgezette kolommen aan het einde',
+  [C.ARMED_PICK_STARTED]: 'Klik of tik op het doel om te voltooien. Druk op Escape om te annuleren.',
+  [C.ARMED_PICK_CANCELED]: 'Geannuleerd.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Kolombreedte wijzigen. Gebruik de pijltoetsen links en rechts om de breedte te wijzigen, ' +
+    'Enter om toe te passen, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Rijhoogte wijzigen. Gebruik de pijltoetsen omhoog en omlaag om de hoogte te wijzigen, Enter om toe te passen, ' +
+    'Escape om te annuleren.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Grootte van het opmerkingenvak wijzigen. Gebruik de pijltoetsen om de grootte te wijzigen, Enter om toe te ' +
+    'passen, Escape om te annuleren.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Breedte: [size] pixels',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Hoogte: [size] pixels',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] van [setSize]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Niveau [level], [position] van [setSize], uitgevouwen',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Niveau [level], [position] van [setSize], samengevouwen',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formule: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'alleen-lezen',
+  [C.CELL_DESCRIPTION_LINK]: 'link',
+  [C.CELL_DESCRIPTION_MERGED]: 'samengevoegd tot rij [row] kolom [column]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Kolomgroep [label] uitgevouwen',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Kolomgroep [label] samengevouwen',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Gesorteerd op [label], oplopend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Gesorteerd op [label], aflopend',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Sortering verwijderd van [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]: 'Gesorteerd op [label], oplopend, sorteerprioriteit [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]: 'Gesorteerd op [label], aflopend, sorteerprioriteit [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Selectie van kolom [startColumn], rij [startRow] tot kolom [endColumn], rij [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Alle cellen geselecteerd',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Kolom [column] geselecteerd',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Kolommen [startColumn] tot [endColumn] geselecteerd',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Rij [row] geselecteerd',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Rijen [startRow] tot [endRow] geselecteerd',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Selectie toegevoegd: [selection]. Aantal selecties: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'kolom [column], rij [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]: 'van kolom [startColumn], rij [startRow] tot kolom [endColumn], rij [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'alle cellen',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'kolom [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'kolommen [startColumn] tot [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'rij [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'rijen [startRow] tot [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Formule-editor',
   [C.FORMULA_BUILDER_INPUT]: 'Formule-invoer',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Celadres',
@@ -196,6 +249,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Fout in [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Nog [count] cel bevat nu een fout.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Nog [count] cellen bevatten nu fouten.',
+  [C.EDITOR_INPUT_LABEL]: '[column], rij [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Opmerking bij [column], rij [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Opmerking bij [column], [row]',
 };
 
 export default dictionary;

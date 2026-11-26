@@ -51,9 +51,11 @@ export class LicenseBrandingPage {
   readonly poweredByText: Locator;
   readonly lock: Locator;
   readonly outsideField: Locator;
+  readonly afterField: Locator;
   readonly lockContactButton: Locator;
   readonly lockSupportButton: Locator;
   readonly lockDocsLink: Locator;
+  readonly lockTitle: Locator;
   readonly corner: Locator;
   readonly cornerHeaderCell: Locator;
 
@@ -78,9 +80,13 @@ export class LicenseBrandingPage {
     // A field the host page owns, above the grid, focused before the grid is
     // constructed: the lock must not take the keyboard away from it.
     this.outsideField = page.getByTestId('outside-field');
+    // A field the host page owns, after the grid: where Tab lands once it leaves the lock.
+    this.afterField = page.getByTestId('after-field');
     this.lockContactButton = this.lock.getByRole('link', { name: 'Contact Sales' });
     this.lockSupportButton = this.lock.getByRole('link', { name: 'Contact Support' });
-    this.lockDocsLink = this.lock.getByRole('link', { name: 'Read more' });
+    this.lockDocsLink = this.lock.getByRole('link', { name: 'documentation' });
+    // Plain text: a press on it focuses the lock and activates no control (the lock's centre can be the docs link).
+    this.lockTitle = this.lock.getByRole('heading');
     // This grid's OWN corner clone, marked by the class the branding stamps on it. A nested grid
     // (the `handsontable` cell type) renders a corner clone of its own inside the same root, and a
     // structural `.ht_clone_top_inline_start_corner` selector would match that one too.
@@ -433,6 +439,87 @@ export class LicenseBrandingPage {
       ));
 
       return Math.round(Math.max(0, ...parts.map(part => part.getBoundingClientRect().right - limit)));
+    });
+  }
+
+  /**
+   * Whether the grid's active editor is open. The editor of a locked grid must never open.
+   */
+  async isEditorOpened(): Promise<boolean> {
+    return this.page.evaluate(() => !!(window as any).hot.getActiveEditor()?.isOpened());
+  }
+
+  /**
+   * Whether an element sits inside an `inert` subtree, which is what takes it out of the accessibility
+   * tree, the Tab order and the pointer's reach.
+   */
+  async isInsideInert(target: Locator): Promise<boolean> {
+    return target.evaluate(element => element.closest('[inert]') !== null);
+  }
+
+  async dataAt(row: number, column: number): Promise<unknown> {
+    return this.page.evaluate(([r, c]) => (window as any).hot.getDataAtCell(r, c), [row, column]);
+  }
+
+  /**
+   * Starts a host-page reset that removes the link color and underline from every anchor, the way a
+   * Tailwind-style preflight does. Added after the grid is built, so it wins any tie in the cascade.
+   */
+  async applyLinkReset(): Promise<void> {
+    await this.page.addStyleTag({ content: 'a { color: inherit; text-decoration: inherit; }' });
+  }
+
+  /**
+   * The colors a reader gets for one element of the lock: its text color, the first opaque background
+   * behind it, the WCAG contrast ratio between the two, and whether it is underlined. Both colors are
+   * normalized through a canvas, so any CSS color syntax the theme resolves to is read the same way.
+   */
+  async lockTextContrast(target: Locator): Promise<{ ratio: number; underlined: boolean }> {
+    return target.evaluate((element) => {
+      const canvas = document.createElement('canvas');
+
+      canvas.width = 1;
+      canvas.height = 1;
+
+      const context = canvas.getContext('2d', { willReadFrequently: true })!;
+      const toRgba = (css: string): number[] => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = '#000';
+        context.fillStyle = css;
+        context.fillRect(0, 0, 1, 1);
+
+        const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+
+        return [r, g, b, a / 255];
+      };
+      const luminance = ([r, g, b]: number[]) => {
+        const channel = (value: number) => {
+          const unit = value / 255;
+
+          return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+        };
+
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+      };
+      let background = [255, 255, 255, 1];
+
+      for (let node: Element | null = element; node; node = node.parentElement) {
+        const color = toRgba(getComputedStyle(node).backgroundColor);
+
+        if (color[3] > 0.99) {
+          background = color;
+          break;
+        }
+      }
+
+      const style = getComputedStyle(element);
+      const foreground = toRgba(style.color);
+      const [lighter, darker] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+
+      return {
+        ratio: (lighter + 0.05) / (darker + 0.05),
+        underlined: style.textDecorationLine.includes('underline'),
+      };
     });
   }
 

@@ -65,15 +65,14 @@
       - gridcell "E9"
       - gridcell "F9"
   - rowgroup:
-    - row "Select whole grid A B C D E F":
-      - gridcell "Select whole grid"
+    - row "A B C D E F":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
       - columnheader "D"
       - columnheader "E"
       - columnheader "F"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -94,11 +93,10 @@
     - row "9":
       - rowheader "9"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
-  - textbox
+    - row:
+      - gridcell
+  - textbox "B, row 2"
 # portal
-- textbox: A comment that has to stay visible while it is resized.
+- textbox "Comment for B, row 2": A comment that has to stay visible while it is resized.
 - status
 - status

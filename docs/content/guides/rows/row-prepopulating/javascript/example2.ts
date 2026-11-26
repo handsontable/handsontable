@@ -29,7 +29,7 @@ function isEmptyRow(instance: Handsontable, row: number) {
 const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
   if (value === null && isEmptyRow(instance, row)) {
     value = templateValues[col];
-    td.style.color = '#999';
+    td.style.color = 'light-dark(#6b6b6b, #949494)';
   } else {
     td.style.color = '';
   }

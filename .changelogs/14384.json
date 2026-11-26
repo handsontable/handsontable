@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the keyboard focus after a context menu, a column menu, or a submenu closes: it now returns to the grid cell or the parent menu row instead of falling to the document.",
+  "type": "fixed",
+  "issueOrPR": 14384,
+  "breaking": false,
+  "framework": "none"
+}

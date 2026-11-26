@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "scenario": "license-powered-by",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T15:16:43.557Z"
+  },
+  "steps": {
+    "tab-to-badge": "link powered by handsontable datagrid",
+    "shift-tab-to-grid": "c c1 column 3 row a1 b1 c1 tree grid 4 columns 11 rows",
+    "tab-to-badge-again": "link powered by handsontable datagrid"
+  }
+}

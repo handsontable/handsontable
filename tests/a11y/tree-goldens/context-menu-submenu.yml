@@ -32,14 +32,13 @@
       - gridcell "D5"
       - gridcell "E5"
   - rowgroup:
-    - row "Select whole grid A B C D E":
-      - gridcell "Select whole grid"
+    - row "A B C D E":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
       - columnheader "D"
       - columnheader "E"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -52,84 +51,45 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
-  - textbox
+    - row:
+      - gridcell
+  - textbox "B, row 2"
 # portal
-- menu:
-  - table:
-    - rowgroup:
-      - row "Insert row above":
-        - menuitem "Insert row above"
-      - row "Insert row below":
-        - menuitem "Insert row below"
-      - row "---------":
-        - menuitem "---------"
-      - row "Insert column left":
-        - menuitem "Insert column left"
-      - row "Insert column right":
-        - menuitem "Insert column right"
-      - row "---------":
-        - menuitem "---------"
-      - row "Remove row":
-        - menuitem "Remove row"
-      - row "Remove column":
-        - menuitem "Remove column"
-      - row "---------":
-        - menuitem "---------"
-      - row "Undo":
-        - menuitem "Undo" [disabled]
-      - row "Redo":
-        - menuitem "Redo" [disabled]
-      - row "---------":
-        - menuitem "---------"
-      - row "Read only":
-        - menuitemcheckbox "Read only"
-      - row "---------":
-        - menuitem "---------"
-      - row "Alignment":
-        - menuitem "Alignment" [expanded]
-      - row "---------":
-        - menuitem "---------"
-      - row "Add comment":
-        - menuitem "Add comment"
-      - row "Delete comment":
-        - menuitem "Delete comment" [disabled]
-      - row "Read-only comment":
-        - menuitemcheckbox "Read-only comment" [disabled]
-      - row "---------":
-        - menuitem "---------"
-      - row "Copy":
-        - menuitem "Copy"
-      - row "Cut":
-        - menuitem "Cut"
-      - row "---------":
-        - menuitem "---------"
-      - row "Merge cells":
-        - menuitem "Merge cells" [disabled]
-      - row "---------":
-        - menuitem "---------"
-      - row "Borders":
-        - menuitem "Borders"
+- menu "Context menu":
+  - menuitem "Insert row above"
+  - menuitem "Insert row below"
+  - separator
+  - menuitem "Insert column left"
+  - menuitem "Insert column right"
+  - separator
+  - menuitem "Remove row"
+  - menuitem "Remove column"
+  - separator
+  - menuitem "Undo" [disabled]
+  - menuitem "Redo" [disabled]
+  - separator
+  - menuitemcheckbox "Read only"
+  - separator
+  - menuitem "Alignment" [expanded]
+  - separator
+  - menuitem "Add comment"
+  - menuitem "Delete comment" [disabled]
+  - menuitemcheckbox "Read-only comment" [disabled]
+  - separator
+  - menuitem "Copy"
+  - menuitem "Cut"
+  - separator
+  - menuitem "Merge cells" [disabled]
+  - separator
+  - menuitem "Borders"
 - status
 - status
-- menu:
-  - table:
-    - rowgroup:
-      - row "Left":
-        - menuitem "Left"
-      - row "Center":
-        - menuitem "Center"
-      - row "Right":
-        - menuitem "Right"
-      - row "Justify":
-        - menuitem "Justify"
-      - row "---------":
-        - menuitem "---------"
-      - row "Top":
-        - menuitem "Top"
-      - row "Middle":
-        - menuitem "Middle"
-      - row "Bottom":
-        - menuitem "Bottom"
+- menu "Alignment":
+  - menuitem "Left"
+  - menuitem "Center"
+  - menuitem "Right"
+  - menuitem "Justify"
+  - separator
+  - menuitem "Top"
+  - menuitem "Middle"
+  - menuitem "Bottom"

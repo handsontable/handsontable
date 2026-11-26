@@ -21,6 +21,7 @@ import type { NotificationConfig } from '../plugins/notification';
 import type { ThemeBuilder } from '../themes/engine/builder';
 import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
 import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
+import type { EditableHeadersSettings, HeaderAxis } from '../plugins/editableHeaders';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
@@ -140,6 +141,8 @@ export type TextExtractorContext =
   | 'ExportFile.columnHeader'
   | 'ExportFile.rowHeader'
   | 'CopyPaste.columnHeader'
+  | 'A11y.columnLabel'
+  | 'A11y.rowLabel'
   | (string & {});
 
 /**
@@ -201,6 +204,7 @@ export interface GridSettings {
   columns?: ColumnSettings[] | ((column: number) => ColumnSettings);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
+  applyCellsToDataReads?: boolean;
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);
   /**
    * How an `autocomplete` or `dropdown` cell labels a `source` entry whose `value` is an object:
@@ -334,6 +338,7 @@ export interface GridSettings {
   dataProvider?: DataProviderConfig | null;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
+  editableHeaders?: boolean | EditableHeadersSettings;
   emptyDataState?: boolean | object;
   filters?: boolean | FiltersSettings;
   filterValueComparator?: (a: unknown, b: unknown) => number;
@@ -403,6 +408,9 @@ export interface GridSettings {
   isEmptyRow?: (row: number) => boolean;
 
   // Layout
+  ariaDescribedby?: string | null;
+  ariaLabel?: string | null;
+  ariaLabelledby?: string | null;
   ariaTags?: boolean;
   injectCoreCss?: boolean;
   layout?: LayoutConfig;
@@ -506,6 +514,7 @@ export interface GridSettings {
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
   afterGetColumnHeaderRenderers?: (renderers: Array<(...args: unknown[]) => unknown>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
+  afterHeaderChange?: (axis: HeaderAxis, visualIndex: number, newValue: string, oldValue: unknown) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(...args: unknown[]) => unknown>) => void;
   afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean, stateChanged: boolean) => void;
@@ -709,6 +718,8 @@ export interface GridSettings {
     actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean) => void | boolean;
+  beforeHeaderChange?: (axis: HeaderAxis, visualIndex: number, newValue: string, oldValue: unknown) =>
+    void | boolean;
   beforeHighlightingColumnHeader?: (column: number, headerLevel: number,
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
@@ -853,6 +864,7 @@ export interface GridSettings {
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
+  modifyRowHeaderValue?: (headerValue: string | number, visualRowIndex: number) => void | string | number;
   modifyRowHeaderWidth?: (rowHeaderWidth: number | number[]) => void | number | number[];
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;

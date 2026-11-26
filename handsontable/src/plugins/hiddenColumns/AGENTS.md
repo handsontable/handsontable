@@ -283,6 +283,40 @@ duplicate trips Sonar CPD on new code.
 
 Non-adjacent hidden columns stay out of the item (hidden `[1]`, select column 3: no Show column).
 
+## Hide column covers every header range of a Ctrl/Cmd+click selection
+
+`hideColumn.ts` used to read `getSelectedRangeActive()` alone, so with columns B and D selected by
+Ctrl/Cmd+clicking their headers it hid D and left B (DEV-538). Its `name()` and `callback()` now read
+`collectHeaderSelectedIndexes(hot, 'col')` (`../../../utils/hiddenIndexes.ts`): the columns of every layer
+selected by its column header, or every layer of a corner select-all, sorted and deduplicated. A cell range
+Ctrl/Cmd+clicked beside them is left out on purpose, because the item hides what the user selected as
+columns. Three rules ride along:
+
+- **The layer flags decide, never the range's geometry.** The helper reads `selection.selectedByColumnHeader`
+  (`selectedByRowHeader` for rows) per layer. Do not add a "starts in the header row" check: with
+  `colHeaders` off, `selectColumns()` and Ctrl+Space anchor the range at row 0 while the flag is set, and
+  such a check dropped the item on every grid without headers (caught in review). The flags are trustworthy
+  because `Selection#removeLayers()` moves them onto the layers that stay when a Ctrl/Cmd+click removes a
+  layer (`mouseEventHandler.ts`); `SelectionRange#removeLayers()` alone left them on the old indexes, so a
+  header range lost its flag and a cell range took one over.
+- **A select-all layer counts only while it is the active layer.** Select-all followed by a Ctrl/Cmd+click on
+  header D hides D alone, as before multi-range hiding; counting the select-all layer there hid every column.
+  Tell a select-all apart with `Selection#isSelectAllLayer()` (both grid-extent sets), never with "both header
+  flags": `selectAll()` sets a header flag only for a header the grid renders, so on a grid with column headers
+  alone the select-all layer carries one flag and read as a plain column range (caught in review). A layer still
+  needs this axis's header flag to count, so Ctrl/Cmd+A on a grid without headers shows no Hide item, as before.
+- **`hidden()` asks the same helper, for any layer.** Asking `isSelectedByColumnHeader()` with no argument
+  reads the most recently added layer, so header B, header D, then a cell range dropped the item while
+  the same three in another order kept it.
+- **`name()` passes a limit of 2 and `hidden()` a limit of 1.** Both only ask "one or more", and the menu
+  renders `name()` on every hover: a corner select-all on a 1M-row grid built and sorted a 1M Set each time.
+
+`showColumn.ts` (and `showRow.ts`) still read the active range only; a Show item over a Ctrl/Cmd+click
+selection reveals the hidden columns next to that range alone. That asymmetry is known and was left out of
+this change on purpose (low impact, and showing needs a decision on what to select afterwards).
+`hideRow.ts` mirrors all of it with `'row'`. Pinned by `tests/e2e/non-contiguous-selection-interop.spec.ts`
+and `utils/__tests__/hiddenIndexes.unit.ts`.
+
 ## Hide column suppresses itself when no column is rendered
 
 `contextMenuItem/hideColumn.ts` `hidden()` used to key on the selection *type* alone

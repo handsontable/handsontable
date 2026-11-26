@@ -50,6 +50,7 @@ describe('built-in plugins', () => {
       'FreezeBar',
       'RowSelection',
       'CheckboxHeader',
+      'EditableHeaders',
       'Pagination',
       'SheetsBar',
       'ViewState',

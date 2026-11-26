@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed slow scrolling in grids with checkbox columns by not copying the language dictionary on every translated phrase lookup.",
+  "type": "fixed",
+  "issueOrPR": 14360,
+  "breaking": false,
+  "framework": "none"
+}

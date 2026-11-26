@@ -105,6 +105,8 @@ Handsontable provides a wide range of [keyboard shortcuts](@/guides/navigation/k
 | <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd>                                                | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↓**</kbd>                                            | Open a column menu  | Any cell        |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                                | Open a column menu  | Column header   |
 | <kbd>**Enter**</kbd>                                                                                    | <kbd>**Enter**</kbd>                                                                                   | Sort data           | Column header   |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd>                                                | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↑**</kbd>                                            | Collapse or expand a column group | Any cell, column header |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> <br> <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**→**</kbd> <br> <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**←**</kbd> | Expand or collapse a parent row; <kbd>**←**</kbd> also moves to the parent row | Any cell, row header |
 | <kbd>**Alt**</kbd>+<kbd>**A**</kbd>                                                                     | <kbd>⌥</kbd>+<kbd>**A**</kbd>                                                                 | Clear filters       | Any cell        |
 | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                                | <kbd>⌃</kbd>+<kbd>**Space**</kbd>*                                                              | Select a column     | Any cell        |
 | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                               | <kbd>⇧</kbd>+<kbd>**Space**</kbd>                                                              | Select a row        | Any cell        |
@@ -127,6 +129,105 @@ Browsers in the last audit: {{$a11y.browsers.sentence}}.
 {{$a11y.notes.mobile}}
 
 {{$a11y.notes.automation}}
+
+## Name and describe the grid
+
+A screen reader reads the name of the grid when the focus enters it. Without a name, it reads only the role, so give each grid a name that says what data it holds. Pick one of these options:
+
+- [`ariaLabelledby`](@/api/options.md#arialabelledby): the `id` of a visible heading or another element that names the grid. Use it when the page already shows a title for the grid.
+- [`ariaLabel`](@/api/options.md#arialabel): the name as text. Use it when the page shows no title for the grid.
+
+To add a longer description, such as instructions or a note about the data, set [`ariaDescribedby`](@/api/options.md#ariadescribedby) to the `id` of the element that holds it. A screen reader reads the description after the name.
+
+::: only-for javascript
+
+```html
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<div id="example"></div>
+```
+
+```js
+const hot = new Handsontable(container, {
+  ariaLabelledby: 'sales-title',
+  ariaDescribedby: 'sales-help',
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<HotTable
+  ariaLabelledby="sales-title"
+  ariaDescribedby="sales-help"
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  ariaLabelledby: 'sales-title',
+  ariaDescribedby: 'sales-help',
+};
+```
+
+```html
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  ariaLabelledby: 'sales-title',
+  ariaDescribedby: 'sales-help',
+});
+```
+
+```html
+<h2 id="sales-title">Quarterly sales</h2>
+<p id="sales-help">Amounts in US dollars. Press Enter to edit a cell.</p>
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+- Handsontable writes the options to the `aria-label`, `aria-labelledby`, and `aria-describedby` attributes of the grid's root element.
+- The options work only while the [`ariaTags`](@/api/options.md#ariatags) option is `true`, which is its default.
+- You can change them with [`updateSettings()`](@/api/core.md#updatesettings). An empty string removes the attribute.
+- Handsontable removes only an attribute it wrote. An attribute that your own code wrote on the grid's root element stays.
+
+## Cell descriptions for screen readers
+
+A screen reader reads the value of the cell it moves onto. Some cells hold more than a value, and the focus stays on the cell, so Handsontable gives the cell an accessible description that a screen reader reads together with the value and the column header. Where the description falls in the announcement depends on the screen reader:
+
+| The cell is | Its description reads |
+| --- | --- |
+| [Read-only](@/guides/cell-features/read-only-cells/read-only-cells.md) | `read only` |
+| A link, made by `autoLink` or a `HYPERLINK` formula (see [Clickable links](@/guides/cell-features/clickable-links/clickable-links.md)) | `link` |
+| A [merged](@/guides/cell-features/merge-cells/merge-cells.md) block | `merged through row 4 column 3` |
+
+A cell that has several of these reads them in the order of the table, separated by commas. A [formula cell](@/guides/formulas/formula-calculation/formula-calculation.md#formula-cells-and-screen-readers) adds its formula to its name, so a read-only formula reads `3 Formula: =SUM(A1:B1)` and is described as `read only`.
+
+- The description appears only while the [`ariaTags`](@/api/options.md#ariatags) option is `true`, which is its default.
+- The description is not part of the cell's accessible name, its text, or its box. `textContent`, `innerText`, the copied text, and the cell's styles do not change. Handsontable adds a hidden element for each distinct description to the grid's root element, and the cell points at it with `aria-describedby`, after the reference to its column header.
+- A merged block names the row and column of its last cell the way the grid numbers them for a screen reader (`aria-rowindex` and `aria-colindex`): the header rows and the row header columns count, and hidden rows and columns do not. The example above is for a grid with one header row and one row header column.
+- A frozen cell is in the DOM twice, in the grid and in its overlay, so a screen reader can read it twice, the way it reads the value.
+- A screen reader that already says `link` for an anchor in the cell says it twice.
+- Each phrase is translated with the grid [language](@/guides/internationalization/language/language.md). To change one, register a dictionary with the `CellDescription:readOnly`, `CellDescription:link`, or `CellDescription:merged` key. The `CellDescription:merged` phrase uses the `[row]` and `[column]` placeholders.
 
 ## Accessible data grid demo
 
@@ -299,7 +400,7 @@ The {{$a11y.report.link}} lists the ones that carry a reference and a success cr
 
 ## Result
 
-Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell, the menus, and a sort that a user makes; a range selection is not announced yet (see [Known limitations](#known-limitations)).
+Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell, a sort that a user makes, and a range, whole columns or rows, or every cell that a user selects. Some screen readers announce the menus as a table (see [Known limitations](#known-limitations)).
 
 ## API reference
 
@@ -309,6 +410,10 @@ For the list of [options](@/guides/configuration/configuration-options/configura
 
 <div class="boxes-list">
 
+- [`ariaDescribedby`](@/api/options.md#ariadescribedby)
+- [`ariaLabel`](@/api/options.md#arialabel)
+- [`ariaLabelledby`](@/api/options.md#arialabelledby)
+- [`ariaTags`](@/api/options.md#ariatags)
 - [`autoWrapCol`](@/api/options.md#autowrapcol)
 - [`autoWrapRow`](@/api/options.md#autowraprow)
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
@@ -339,7 +444,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

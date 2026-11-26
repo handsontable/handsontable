@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the accessible names of the \"Filter by value\" section and its search box in the Filters menu.",
+  "type": "fixed",
+  "issueOrPR": 14353,
+  "breaking": false,
+  "framework": "none"
+}

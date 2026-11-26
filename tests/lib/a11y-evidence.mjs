@@ -154,7 +154,7 @@ export const WCAG_CRITERIA = Object.freeze({
  * fact the keyboard walker sees), but a target counts as evaluating only the check's own criteria
  * unless it says otherwise. `pullRequest` says whether the check is in the short suite
  * (`pull-request`), which a check earns by finishing in under two minutes: the suite a developer runs
- * locally or through a dispatch of the A11y nightly, since a pull request runs the axe scan alone;
+ * locally or through a dispatch of the A11y nightly, and which a pull request runs beside the axe scan;
  * every check runs in the nightly. A `triage` check evidences no criterion: its records are for sorting, not for the report to
  * cite, so its document says `triage: true` with an empty `summary.byCriterion`, and only its records may
  * name no criterion. Each pull request that adds a check adds its entry.
@@ -771,10 +771,16 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
  * @param {string} [input.pagesFile] The page list a finding's annotation goes on: the product catalog, or a site's.
  * @param {string} [input.source] The finding source the catalog files the check's findings under: `checks` for a
  * product check, `<site>-checks` for a site check.
+ * @param {object} [input.prLedger] On a pull request, the findings ledger as the check's baseline (`prLedgerOf()` of
+ * `lib/a11y-pr-ledger.mjs`, built by the script so this module imports nothing that reaches `tests/a11y/`):
+ * `{classify, auditAt, filesRead}`, and then a finding whose ledger row is open is known and does not count, a resolved
+ * row is a regression and a missing one is new, both counted, a warning at most on a page the pull request did not
+ * change; or `{problem}` when the ledger did not load, and then every finding counts, as on any change run, with a note.
  * @returns {{name: string, conclusion: 'success'|'neutral'|'failure', title: string, summary: string, annotations: object[]}} The payload.
  */
 export function buildEvidenceCheckRun({
   doc, check, problems = [], pages = new Map(), runUrl, artifactUrl, scope = 'change', tracked = () => false, pagesFile = PAGES_FILE, source = 'checks',
+  prLedger,
 }) {
   const name = checkRunName(doc?.check ?? check ?? 'unknown');
 
@@ -798,14 +804,18 @@ export function buildEvidenceCheckRun({
   const tooling = doc.problems.length > 0 || doc.summary.errors > 0
     ? (doc.problems.length > 0 ? doc.problems : [`${doc.summary.errors} ${doc.summary.errors === 1 ? 'target' : 'targets'} not measured`])
     : [];
-  const findings = doc.findings.map(finding => ({
+  const classified = prLedger?.classify ? doc.findings.map(finding => ({ finding, ...prLedger.classify(doc.check, finding) })) : null;
+  const considered = classified ? classified.filter(item => item.ledger !== 'known') : doc.findings.map(finding => ({ finding, untouched: false }));
+  const findings = considered.map(({ finding, ledger, untouched }) => ({
     finding,
+    ledger,
+    untouched,
     severity: finding.severity,
     warningOnly: finding.severity !== 'advisory'
-      && (!atTargetLevel(finding) || (scope === 'change' && Boolean(tracked(source, doc.check, finding)))),
+      && (!atTargetLevel(finding) || (scope === 'change' && Boolean(tracked(source, doc.check, finding))) || untouched),
   }));
   const verdict = verdictOf({ findings, tooling });
-  const { annotations, omitted } = capAnnotations(findings.map(({ finding, severity, warningOnly }) => {
+  const { annotations, omitted } = capAnnotations(findings.map(({ finding, ledger, untouched, severity, warningOnly }) => {
     const path = finding.file ?? pagesFile;
     const line = finding.line ?? (finding.file ? 1 : pages.get(finding.page) ?? 1);
 
@@ -814,22 +824,120 @@ export function buildEvidenceCheckRun({
       start_line: line,
       end_line: line,
       annotation_level: annotationLevel({ severity, warningOnly }),
-      title: `${finding.criteria.length > 0 ? `${finding.criteria.join(', ')} ` : ''}${finding.kind}${finding.rule ? ` ${finding.rule}` : ''}`.slice(0, 250),
-      message: `${finding.page} on ${finding.theme}${finding.variant ? ` (${finding.variant})` : ''}: ${findingText(finding)}${locationText(finding)}`,
+      title: `${ledger ? `${LEDGER_LABELS[ledger]}: ` : ''}${finding.criteria.length > 0 ? `${finding.criteria.join(', ')} ` : ''}${finding.kind}${finding.rule ? ` ${finding.rule}` : ''}`.slice(0, 250),
+      message: `${finding.page} on ${finding.theme}${finding.variant ? ` (${finding.variant})` : ''}: ${findingText(finding)}${locationText(finding)}`
+        + `${untouched ? ` (${UNTOUCHED})` : ''}`,
     };
   }), ANNOTATIONS);
   const lead = [
-    renderVerdict(verdict, { scope, listTooling: doc.problems.length === 0 }),
+    renderVerdict(verdict, {
+      scope,
+      listTooling: doc.problems.length === 0,
+      ...(classified ? { counting: 'only a finding the findings ledger does not hold as open counts (a new one, or a regression)' } : {}),
+    }),
+    prLedger?.problem ? `> Known and new findings were not told apart, so every finding counts: ${escape(prLedger.problem)}.` : '',
+    classified ? renderLedgerSection(doc, prLedger, classified) : '',
     omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more are in the summary below and the JSON.` : '',
   ].filter(Boolean).join('\n\n');
+  const headline = classified ? `${ledgerLine(ledgerCounts(classified))} · ${evidenceHeadline(doc)}` : evidenceHeadline(doc);
 
   return {
     name,
     conclusion: verdict.conclusion,
-    title: verdictTitle(verdict, evidenceHeadline(doc)),
+    title: verdictTitle(verdict, headline),
     summary: capSummary(`${lead}\n\n${renderEvidenceSummary(doc, { runUrl, artifactUrl })}`, 'the job summary and the JSON hold the rest'),
     annotations,
   };
+}
+
+const LEDGER_LABELS = { new: 'New', regression: 'Regression', known: 'Known' };
+const LEDGER_CLASSES = ['regression', 'new', 'known'];
+const UNTOUCHED = 'on a page you did not change';
+// How many new and regressed findings the ledger section spells out; the rest are in the annotations and the JSON.
+const LEDGER_ROWS = 30;
+
+/**
+ * The ledger section of a document on a pull request (`renderLedgerSection()`), for the job summary, which a fork's
+ * pull request reads in place of the check runs; empty without the ledger.
+ *
+ * @param {object} doc The evidence document.
+ * @param {object} [prLedger] The pull request's ledger input (`buildEvidenceCheckRun()`).
+ * @returns {string} Markdown, or an empty string.
+ */
+export function ledgerSectionOf(doc, prLedger) {
+  if (!prLedger?.classify) {
+    return '';
+  }
+
+  return renderLedgerSection(doc, prLedger, doc.findings.map(finding => ({ finding, ...prLedger.classify(doc.check, finding) })));
+}
+
+/**
+ * How many findings of each ledger class.
+ *
+ * @param {Array<{ledger: string}>} classified The findings, each with its class.
+ * @returns {{regression: number, new: number, known: number}} The counts.
+ */
+export function ledgerCounts(classified) {
+  return Object.fromEntries(LEDGER_CLASSES.map(name => [name, classified.filter(item => item.ledger === name).length]));
+}
+
+/**
+ * The counts of a pull request's findings by ledger class, as the title and the job summary say them.
+ *
+ * @param {{regression: number, new: number, known: number}} counts The counts (`ledgerCounts()`).
+ * @returns {string} The line.
+ */
+export function ledgerLine(counts) {
+  return `ledger: ${counts.new} new, ${counts.regression} ${counts.regression === 1 ? 'regression' : 'regressions'}, ${counts.known} known`;
+}
+
+/**
+ * The section that says how a pull request's findings read against the findings ledger: the counts, the two limits
+ * of the ledger as a baseline, and the regressions and new findings, regressions first.
+ *
+ * @param {object} doc The evidence document.
+ * @param {object} prLedger The pull request's ledger input (`buildEvidenceCheckRun()`).
+ * @param {Array<{finding: object, ledger: string, untouched: boolean}>} classified The findings, each with its class.
+ * @returns {string} Markdown.
+ */
+export function renderLedgerSection(doc, prLedger, classified) {
+  const counts = ledgerCounts(classified);
+  const audit = prLedger.auditAt ? `the audit of ${escape(String(prLedger.auditAt).slice(0, 10))}` : 'the latest audit';
+  const listed = [...classified.filter(item => item.ledger === 'regression'), ...classified.filter(item => item.ledger === 'new')];
+  const lines = [
+    '#### New and known, by the findings ledger',
+    '',
+    `On a pull request the findings ledger (\`test-health/a11y.json\` on \`gh-pages\`, as of ${audit}) is this check's baseline. A finding `
+      + 'whose ledger row is open is **known** and does not count. A **regression** has a resolved row: a fix has come undone. A **new** '
+      + 'finding has no row. Report-only: no finding fails the job.',
+    '',
+    '| New | Regressions | Known |',
+    '| --: | --: | --: |',
+    `| ${counts.new} | ${counts.regression} | ${counts.known} |`,
+    '',
+    `Two limits. The ledger is as old as ${audit}, so a defect merged to develop since then reads as new on any pull request. `
+      + 'And a row is keyed by the element\'s selector, so a class renamed since then makes a known finding read as new. '
+      + `A new finding on a page whose sources this pull request does not touch is marked *${UNTOUCHED}* and counts as a warning at most.`,
+  ];
+
+  if (!prLedger.filesRead) {
+    lines.push('', 'The pull request\'s changed files were not read, so no finding is marked as on a page you did not change.');
+  }
+  if (listed.length > 0) {
+    lines.push('', '| | Severity | Page | Theme | Where | Kind | |', '| --- | --- | --- | --- | --- | --- | --- |');
+    for (const { finding, ledger, untouched } of listed.slice(0, LEDGER_ROWS)) {
+      const page = finding.variant ? `${finding.page} (${finding.variant})` : finding.page;
+
+      lines.push(`| ${LEDGER_LABELS[ledger]} | ${escape(finding.severity)} | ${escape(page)} | ${escape(finding.theme)} | ${where(finding)} `
+        + `| ${escape(finding.kind)} | ${untouched ? UNTOUCHED : ''} |`);
+    }
+    if (listed.length > LEDGER_ROWS) {
+      lines.push('', `…and ${listed.length - LEDGER_ROWS} more in the annotations and the evidence JSON.`);
+    }
+  }
+
+  return lines.join('\n');
 }
 
 /**
@@ -839,7 +947,7 @@ export function buildEvidenceCheckRun({
  * @param {{criteria: string[]}} finding The finding.
  * @returns {boolean} The verdict.
  */
-function atTargetLevel(finding) {
+export function atTargetLevel(finding) {
   return finding.criteria.some(id => ['A', 'AA'].includes(WCAG_CRITERIA[id]?.level));
 }
 

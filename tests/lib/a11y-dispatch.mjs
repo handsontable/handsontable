@@ -9,7 +9,8 @@
  *   night of a subset would show the checks or lanes it skipped as gone and draw a drop in every
  *   cluster's trend. The short suite (`suite=pull-request`) and the `checks`, `projects` and `groups`
  *   inputs are for a proof run on a branch, and are refused on develop; so is a site workflow's `checks` input
- *   (`siteChecks`, the site checks of `site`).
+ *   (`siteChecks`, the site checks of `site`). The weekly schedule is the same audit: it has no inputs, every
+ *   value arrives empty, and an empty value is no subset.
  * - An entry of a subset is a whole known name, exactly (`namedSubset()`): no spaces, no typo. The lanes
  *   match an entry inside `contains(format(',{0},', inputs.projects), ',<name>,')`, which cannot trim.
  */

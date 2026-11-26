@@ -9,6 +9,13 @@ The `notification` plugin shows toast messages anchored to the grid root. Read t
 `../emptyDataState/` and `../loading/`. The host element is `hot.rootOverlaysElement` — the fixed overlays
 layer, **not** a layout slot.
 
+The overlays layer spans the side layout slots too. Toasts stay off the side panels because
+`NotificationUI#fitToGrid()` fits the host to `hot.rootElement` (see "The layer is fitted to the grid root"
+below), not through CSS: the stylesheet gives `.ht-notification` only `inset: 0`, which the inline
+`left`/`top`/`width`/`height` override. The grid-area variables core writes on the root wrapper
+(`--ht-grid-inset-inline-start`, `--ht-grid-inline-size`) are for the trial license badge only; do not
+put them back on `.ht-notification`, the inline box would override them anyway.
+
 ## Accessibility is the design, not a feature
 
 - Toasts carry `aria-live` and **do not take keyboard focus when they appear**. That is the point of a
@@ -106,6 +113,10 @@ above a pager or any other bottom slot.
 
 - `right` and `bottom` are reset to `auto`, because `inset: 0` would overconstrain the box and RTL would
   silently keep the wrapper's edge.
+- The skip signature uses the root's offset summed up to the host's offset parent (`getOffsetWithin()`),
+  never `gridRoot.offsetLeft`/`offsetTop` alone: those are measured against `.ht-grid`, which is
+  positioned, so they stay 0 when a side panel moves the grid sideways at the same size (a panel moved
+  from `end` to `start`, two panels trading widths), and the toast kept covering the `start` panel.
 - The box is measured against `host.offsetParent` and divided by its scale, so a transformed ancestor does
   not skew it.
 - The height is capped at the wrapper's, which stays at the container's height. A grid that follows its

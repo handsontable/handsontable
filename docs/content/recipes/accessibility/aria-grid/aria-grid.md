@@ -117,9 +117,9 @@ const hot = new Handsontable(container, {
 ```
 
 **What's happening:**
-`autoWrapRow` and `autoWrapCol` are `false` by default, so the selection stops at the grid's edges. When either is `true`, pressing Tab on the last column wraps focus to the first column of the next row, and pressing Tab on the last cell of the grid wraps back to the first cell. For sighted users this is convenient. For screen reader users it is disorienting -- the reader may announce a sudden column or row change that appears to have no cause.
+`autoWrapRow` and `autoWrapCol` are `false` by default, so the arrow keys stop at the grid's edges, and Tab moves the focus out of the grid there. When either is `true`, pressing Tab on the last column wraps focus to the first column of the next row, and pressing Tab on the last cell of the grid wraps back to the first cell. For sighted users this is convenient. For screen reader users it is disorienting -- the reader may announce a sudden column or row change that appears to have no cause.
 
-Keeping both `autoWrapRow` and `autoWrapCol` at `false` makes the grid stop at the boundaries, which matches what screen reader users expect from a navigation region. The example sets them explicitly so a grid-level configuration that turns wrapping on cannot change this.
+Keeping both `autoWrapRow` and `autoWrapCol` at `false` makes the arrow keys stop at the boundaries and lets Tab leave the grid, which matches what screen reader users expect from a navigation region. The example sets them explicitly so a grid-level configuration that turns wrapping on cannot change this.
 
 ## Step 4: Add `aria-label` to cells with a custom renderer
 
@@ -158,7 +158,7 @@ const hot = new Handsontable(container, {
   columnSorting: true,
 
   afterGetColHeader(col, TH) {
-    if (!TH.hasAttribute('aria-sort')) {
+    if (col >= 0 && !TH.hasAttribute('aria-sort')) {
       TH.setAttribute('aria-sort', 'none');
     }
   },
@@ -173,13 +173,15 @@ The `aria-sort` attribute on a column header tells screen readers whether the co
 
 The check `!TH.hasAttribute('aria-sort')` avoids overwriting `aria-sort` when the `ColumnSorting` plugin has already set it. With `columnSorting` enabled and `ariaTags` on, the plugin sets `aria-sort` on every column header it renders: `"none"` before sorting, `"ascending"` or `"descending"` after. The hook is a safety net for a header the plugin does not own, for example one you render yourself. Screen readers do not announce a change of the sort order yet; see the known limitations in the [Accessibility](@/guides/accessibility/accessibility/accessibility.md#known-limitations) guide.
 
+The check `col >= 0` skips the corner above the row headers, where `col` is `-1`. The corner is a plain grid cell, and `aria-sort` is not allowed on a grid cell.
+
 ## How It Works - Complete Flow
 
 1. **Initial render** -- `ariaTags: true` stamps `role="treegrid"`, `role="row"`, and `role="gridcell"` on the DOM. The `ColumnSorting` plugin sets `aria-sort="none"` on each header, and the `afterGetColHeader` hook adds it to any header that has none. The custom renderer sets `aria-label="Column: value"` on each cell.
 2. **User presses Tab** -- Focus moves to the next row in the same column (not the next cell sideways). Screen readers announce the new row.
 3. **User presses Enter** -- Any open editor commits the value and focus moves one row down.
 4. **User clicks a column header** -- The `columnSorting` plugin sorts the data and updates `aria-sort` on the header to `"ascending"` or `"descending"`. The custom renderer re-runs and updates all `aria-label` attributes to reflect the new row order.
-5. **User reaches the grid boundary** -- Tab and Enter stop. No unexpected wrap-around jump occurs.
+5. **User reaches the grid boundary** -- Enter stops on the last row, and Tab moves the focus out of the grid. No unexpected wrap-around jump occurs.
 
 ## Testing with Chrome DevTools Accessibility panel
 

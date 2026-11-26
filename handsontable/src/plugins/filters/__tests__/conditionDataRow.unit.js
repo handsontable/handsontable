@@ -59,9 +59,10 @@ describe('Filters -> the dataRow a condition receives', () => {
    * Builds a grid whose rows sit far below anything a 100px viewport paints, so most of them carry
    * no stored cell meta and the scan has to resolve one for them.
    *
+   * @param {object} [overrides] Settings merged over the defaults.
    * @returns {object} The Handsontable instance.
    */
-  function buildGrid() {
+  function buildGrid(overrides = {}) {
     hot = new Handsontable(container, {
       data: Array.from({ length: ROWS_COUNT }, (_, row) => [`A${row + 1}`, `B${row + 1}`]),
       filters: true,
@@ -72,6 +73,7 @@ describe('Filters -> the dataRow a condition receives', () => {
       autoColumnSize: false,
       autoRowSize: false,
       licenseKey: TEST_LICENSE_KEY,
+      ...overrides,
     });
 
     return hot;
@@ -116,6 +118,25 @@ describe('Filters -> the dataRow a condition receives', () => {
     expect(retained[300].dataRow.meta.className).toBe('marked-300');
     expect(retained[301].dataRow.meta.className).toBe('marked-301');
     expect(retained[302].dataRow.meta.className).toBeUndefined();
+  });
+
+  it('should hand every row its own meta when the read calls the `cells` function', () => {
+    // Even rows get a `valueGetter` from `cells()`, odd rows get nothing, so the read reuses one
+    // scratch object for the odd rows. That object must never reach a condition.
+    const filters = buildGrid({
+      applyCellsToDataReads: true,
+      cells: (row, column) => (column === 0 && row % 2 === 0 ? { valueGetter: value => `X${value}` } : {}),
+    }).getPlugin('filters');
+
+    filters.addCondition(0, CONDITION_NAME, []);
+    filters.filter();
+
+    expect(retained.length).toBe(ROWS_COUNT);
+    expect(new Set(retained.map(({ dataRow }) => dataRow.meta)).size).toBe(ROWS_COUNT);
+    expect(retained[400].valueAtCallTime).toBe('XA401');
+    expect(retained[401].valueAtCallTime).toBe('A402');
+    expect(retained[400].dataRow.meta.row).toBe(400);
+    expect(retained[401].dataRow.meta.row).toBe(401);
   });
 
   it('should not materialize the column read while the scan runs', () => {

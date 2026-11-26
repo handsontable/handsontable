@@ -163,6 +163,12 @@ jobs:
           # then. The visual seed photographs these deploys, so a pull request
           # preview and develop staging must both carry it.
           DOCS_TEST_LICENSE_KEY: 'true'
+          # Renders the Algolia search (production index) without production
+          # mode, so the functional specs in docs.yml test it on the pull
+          # request preview. Develop staging carries it too, because the visual
+          # seed photographs that deploy and a preview must render the same
+          # header.
+          DOCS_SEARCH: 'true'
 
       # Stage the built docs into the directory deployed to Cloudflare Pages.
       - name: Prepare Cloudflare Pages deploy directory

@@ -189,7 +189,7 @@ When `onRowsUpdate` is set, Handsontable skips stacking certain edit sources on 
 
 - Use [`columnSorting`](@/api/options.md#columnsorting) for server-backed sorting. If [`multiColumnSorting`](@/api/options.md#multicolumnsorting) is enabled, the DataProvider plugin does not run (see [Conflicting options](#plugins-and-options-that-conflict-with-dataprovider)); keep it off for server-driven data.
 - Enable [`filters`](@/api/options.md#filters) and export conditions from the UI; when **`fetchRows` is configured**, Handsontable maps those conditions into `queryParameters.filters`, resets to page 1, and refetches (Filters skip client-side row trimming). If Filters are on but `fetchRows` is missing (incomplete `dataProvider` object), filtering stays **client-side** on whatever rows are currently loaded.
-- With a complete `dataProvider` configuration, the column menu does **not** offer **Filter by value** (only the current page is loaded, so value lists would be incomplete). Use condition-based filters (for example text, numeric, or date conditions) for server-side filtering. Programmatic `addCondition(..., 'by_value', ...)` is ignored when server-backed `fetchRows` is active.
+- With a complete `dataProvider` configuration, the column menu does **not** offer **Filter by value** (only the current page is loaded, so value lists would be incomplete). Use condition-based filters (for example text, numeric, or date conditions) for server-side filtering. A `checkbox` column offers the text conditions, without the **Is checked** and **Is unchecked** conditions it has with client-side data. Programmatic `addCondition(..., 'by_value', ...)` is ignored when server-backed `fetchRows` is active.
 
 ## Plugins and options that conflict with DataProvider
 

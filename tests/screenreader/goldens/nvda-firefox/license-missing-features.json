@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "scenario": "license-missing-features",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T15:22:23.684Z"
+  },
+  "steps": {
+    "tab-to-sales": "sales at handsontable dot com link",
+    "read-notice": "the license key for handsontable does not include these features filters they are turned off to",
+    "read-back-to-link": "add them contact link sales at handsontable dot com dot",
+    "shift-tab-to-grid": "table 10 value row 2 column 3"
+  }
+}

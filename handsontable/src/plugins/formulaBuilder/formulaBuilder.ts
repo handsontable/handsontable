@@ -8,8 +8,8 @@ import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
-import { A11Y_DESCRIPTION, A11Y_INVALID } from '../../helpers/a11y';
-import { getDeepActiveElement, isShadowRoot, removeAttribute, setAttribute } from '../../helpers/dom/element';
+import { A11Y_INVALID } from '../../helpers/a11y';
+import { getDeepActiveElement, isShadowRoot, setAttribute } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
@@ -63,10 +63,10 @@ const CELL_MOUSE_HOOK_ORDER = -1;
  */
 const CELL_ERROR_ATTRIBUTE = 'data-hfe-error';
 /**
- * The longest error message, in characters, the plugin puts in a cell's description or an
- * announcement. A screen reader reads a description in full each time the cell gets the focus, and a
- * HyperFormula parse error lists every token it expected (about 300 characters over 14 lines). 120
- * keeps the error code and a sentence of explanation, about one line of speech.
+ * The longest error message, in characters, the plugin puts in the `cellError` announcement it makes
+ * when a commit leaves an error. A HyperFormula parse error lists every token it expected (about 300
+ * characters over 14 lines). 120 keeps the error code and a sentence of explanation, about one line
+ * of speech.
  */
 const MAX_SPOKEN_ERROR_LENGTH = 120;
 /**
@@ -90,10 +90,6 @@ const GRID_SELECTION_SOURCES = ['shift', 'refresh', 'loadData', 'updateData'];
  * The class of the formula bar's address box input `hyperformula-ui` renders.
  */
 const ADDRESS_INPUT_SELECTOR = '.hfe-formula-bar__address-input';
-/**
- * The attribute that carries a cell's error message to assistive technology.
- */
-const CELL_DESCRIPTION_ATTRIBUTE = A11Y_DESCRIPTION('')[0];
 
 /**
  * A selection range in visual coordinates.
@@ -503,12 +499,6 @@ export class FormulaBuilder extends BasePlugin {
    * Removes the listener the Formulas plugin calls before it detaches its engine.
    */
   #removeEngineDetachListener: (() => void) | null = null;
-  /**
-   * The error description the plugin wrote on each cell element. The grid recycles cell elements, and
-   * a renderer may describe a recycled one before the plugin runs, so a description is removed only
-   * while it is still the text the plugin wrote, never an application's.
-   */
-  readonly #describedCells = new WeakMap<HTMLElement, string>();
   /**
    * Whether the grid's init has finished (`afterInit` ran).
    */
@@ -1224,8 +1214,6 @@ export class FormulaBuilder extends BasePlugin {
         this.#keepValidatorInvalid(cellEl, cellProperties);
       }
 
-      this.#describeCellError(cellEl);
-
       return;
     }
 
@@ -1243,7 +1231,6 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#keepValidatorInvalid(cellEl, cellProperties);
-    this.#describeCellError(cellEl);
   };
 
   /**
@@ -1274,39 +1261,6 @@ export class FormulaBuilder extends BasePlugin {
     if (cellProperties.valid === false && this.hot.getSettings().ariaTags) {
       setAttribute(cellEl, [A11Y_INVALID()]);
     }
-  }
-
-  /**
-   * Gives an error cell its message as an accessible description, and removes the one the plugin gave
-   * a recycled cell that no longer shows an error. The error popup also points the cell at its message
-   * (`aria-errormessage`), but only while the popup is open, and screen reader support for that
-   * attribute is uneven, so a user who lands on the cell would otherwise hear only the error code.
-   *
-   * @param {HTMLTableCellElement} cellEl The rendered cell element.
-   */
-  #describeCellError(cellEl: HTMLTableCellElement): void {
-    const message = cellEl.getAttribute(CELL_ERROR_ATTRIBUTE);
-
-    if (message && this.hot.getSettings().ariaTags) {
-      const description = toSpokenErrorMessage(message);
-
-      setAttribute(cellEl, [A11Y_DESCRIPTION(description)]);
-      this.#describedCells.set(cellEl, description);
-
-      return;
-    }
-
-    const written = this.#describedCells.get(cellEl);
-
-    if (written === undefined) {
-      return;
-    }
-
-    if (cellEl.getAttribute(CELL_DESCRIPTION_ATTRIBUTE) === written) {
-      removeAttribute(cellEl, CELL_DESCRIPTION_ATTRIBUTE);
-    }
-
-    this.#describedCells.delete(cellEl);
   }
 
   /**
@@ -2782,16 +2736,13 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Takes the error marks and the descriptions the plugin wrote off every rendered cell. The grid's
-   * render resets classes and ARIA attributes but not `data-*`, and once the plugin is off no
-   * `afterRenderer` clears the mark, so a cell element reused on scroll would carry it to other cells.
+   * Takes the error marks off every rendered cell. The grid's render resets classes and ARIA attributes
+   * but not `data-*`, and once the plugin is off no `afterRenderer` clears the mark, so a cell element
+   * reused on scroll would carry it to other cells.
    */
   #clearCellErrorMarks(): void {
     this.hot.rootElement?.querySelectorAll<HTMLTableCellElement>(`td[${CELL_ERROR_ATTRIBUTE}]`)
-      .forEach((cellEl) => {
-        cellEl.removeAttribute(CELL_ERROR_ATTRIBUTE);
-        this.#describeCellError(cellEl);
-      });
+      .forEach(cellEl => cellEl.removeAttribute(CELL_ERROR_ATTRIBUTE));
   }
 
   /**

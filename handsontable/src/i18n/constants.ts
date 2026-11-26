@@ -11,6 +11,9 @@ export const CONTEXT_MENU_ITEMS_NAMESPACE = 'ContextMenu:items';
 
 const CM_ALIAS = CONTEXT_MENU_ITEMS_NAMESPACE;
 
+export const CONTEXTMENU_LABEL = 'ContextMenu:label';
+export const DROPDOWNMENU_LABEL = 'DropdownMenu:label';
+
 export const CONTEXTMENU_ITEMS_NO_ITEMS = `${CM_ALIAS}.noItems`;
 export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_ALIAS}.insertRowAbove`;
 export const CONTEXTMENU_ITEMS_ROW_BELOW = `${CM_ALIAS}.insertRowBelow`;
@@ -35,6 +38,8 @@ export const CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX = `${CM_ALIAS}.exportFileXlsx`;
 
 export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = `${CM_ALIAS}.freezeColumn`;
 export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = `${CM_ALIAS}.unfreezeColumn`;
+
+export const CONTEXTMENU_ITEMS_RENAME_HEADER = `${CM_ALIAS}.renameHeader`;
 
 export const CONTEXTMENU_ITEMS_MERGE_CELLS = `${CM_ALIAS}.mergeCells`;
 export const CONTEXTMENU_ITEMS_UNMERGE_CELLS = `${CM_ALIAS}.unmergeCells`;
@@ -74,6 +79,8 @@ export const FILTERS_CONDITIONS_NAMESPACE = `${FILTERS_NAMESPACE}conditions`;
 export const FILTERS_CONDITIONS_NONE = `${FILTERS_CONDITIONS_NAMESPACE}.none`;
 export const FILTERS_CONDITIONS_EMPTY = `${FILTERS_CONDITIONS_NAMESPACE}.isEmpty`;
 export const FILTERS_CONDITIONS_NOT_EMPTY = `${FILTERS_CONDITIONS_NAMESPACE}.isNotEmpty`;
+export const FILTERS_CONDITIONS_CHECKED = `${FILTERS_CONDITIONS_NAMESPACE}.isChecked`;
+export const FILTERS_CONDITIONS_UNCHECKED = `${FILTERS_CONDITIONS_NAMESPACE}.isUnchecked`;
 export const FILTERS_CONDITIONS_EQUAL = `${FILTERS_CONDITIONS_NAMESPACE}.isEqualTo`;
 export const FILTERS_CONDITIONS_NOT_EQUAL = `${FILTERS_CONDITIONS_NAMESPACE}.isNotEqualTo`;
 export const FILTERS_CONDITIONS_BEGINS_WITH = `${FILTERS_CONDITIONS_NAMESPACE}.beginsWith`;
@@ -165,6 +172,7 @@ export const EMPTY_DATA_STATE_DESCRIPTION_FILTERS = `${EMPTY_DATA_STATE_NAMESPAC
 export const EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET = `${EMPTY_DATA_STATE_NAMESPACE}buttons.filters.reset`;
 export const EMPTY_DATA_STATE_TITLE_LOADING = `${EMPTY_DATA_STATE_NAMESPACE}title.loading`;
 export const EMPTY_DATA_STATE_DESCRIPTION_LOADING = `${EMPTY_DATA_STATE_NAMESPACE}description.loading`;
+export const EMPTY_DATA_STATE_LOADED = `${EMPTY_DATA_STATE_NAMESPACE}loaded`;
 
 export const DATA_PROVIDER_NAMESPACE = 'DataProvider:';
 export const DATA_PROVIDER_ERRORS_FETCH = `${DATA_PROVIDER_NAMESPACE}errors.fetch`;
@@ -189,14 +197,60 @@ export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
 export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
 export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
 
+export const ARMED_PICK_NAMESPACE = 'ArmedPick:';
+export const ARMED_PICK_STARTED = `${ARMED_PICK_NAMESPACE}started`;
+export const ARMED_PICK_CANCELED = `${ARMED_PICK_NAMESPACE}canceled`;
+
+export const MANUAL_RESIZE_NAMESPACE = 'ManualResize:';
+export const MANUAL_RESIZE_COLUMN_STARTED = `${MANUAL_RESIZE_NAMESPACE}columnStarted`;
+export const MANUAL_RESIZE_ROW_STARTED = `${MANUAL_RESIZE_NAMESPACE}rowStarted`;
+export const MANUAL_RESIZE_COMMENT_STARTED = `${MANUAL_RESIZE_NAMESPACE}commentStarted`;
+export const MANUAL_RESIZE_WIDTH = `${MANUAL_RESIZE_NAMESPACE}width`;
+export const MANUAL_RESIZE_HEIGHT = `${MANUAL_RESIZE_NAMESPACE}height`;
+
+export const CELL_DESCRIPTION_NAMESPACE = 'CellDescription:';
+export const CELL_DESCRIPTION_READ_ONLY = `${CELL_DESCRIPTION_NAMESPACE}readOnly`;
+export const CELL_DESCRIPTION_LINK = `${CELL_DESCRIPTION_NAMESPACE}link`;
+export const CELL_DESCRIPTION_MERGED = `${CELL_DESCRIPTION_NAMESPACE}merged`;
+
+export const FORMULAS_NAMESPACE = 'Formulas:';
+export const FORMULAS_CELL_DESCRIPTION = `${FORMULAS_NAMESPACE}cellDescription`;
+
 export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
 export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
 export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;
+export const NESTED_ROWS_ANNOUNCEMENT_LEVEL = `${NESTED_ROWS_NAMESPACE}announcement.level`;
+export const NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.level.expanded`;
+export const NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.level.collapsed`;
+
+export const COLLAPSIBLE_COLUMNS_NAMESPACE = 'CollapsibleColumns:';
+export const COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED = `${COLLAPSIBLE_COLUMNS_NAMESPACE}announcement.expanded`;
+export const COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED = `${COLLAPSIBLE_COLUMNS_NAMESPACE}announcement.collapsed`;
 
 export const COLUMN_SORTING_NAMESPACE = 'ColumnSorting:';
 export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.ascending`;
 export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.descending`;
 export const COLUMN_SORTING_ANNOUNCEMENT_REMOVED = `${COLUMN_SORTING_NAMESPACE}announcement.removed`;
+export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY =
+  `${COLUMN_SORTING_NAMESPACE}announcement.ascending.priority`;
+export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY =
+  `${COLUMN_SORTING_NAMESPACE}announcement.descending.priority`;
+
+export const SELECTION_NAMESPACE = 'Selection:';
+export const SELECTION_ANNOUNCEMENT_RANGE = `${SELECTION_NAMESPACE}announcement.range`;
+export const SELECTION_ANNOUNCEMENT_ALL = `${SELECTION_NAMESPACE}announcement.all`;
+export const SELECTION_ANNOUNCEMENT_COLUMN = `${SELECTION_NAMESPACE}announcement.column`;
+export const SELECTION_ANNOUNCEMENT_COLUMNS = `${SELECTION_NAMESPACE}announcement.columns`;
+export const SELECTION_ANNOUNCEMENT_ROW = `${SELECTION_NAMESPACE}announcement.row`;
+export const SELECTION_ANNOUNCEMENT_ROWS = `${SELECTION_NAMESPACE}announcement.rows`;
+export const SELECTION_ANNOUNCEMENT_ADDED = `${SELECTION_NAMESPACE}announcement.added`;
+export const SELECTION_ANNOUNCEMENT_ADDED_CELL = `${SELECTION_NAMESPACE}announcement.added.cell`;
+export const SELECTION_ANNOUNCEMENT_ADDED_RANGE = `${SELECTION_NAMESPACE}announcement.added.range`;
+export const SELECTION_ANNOUNCEMENT_ADDED_ALL = `${SELECTION_NAMESPACE}announcement.added.all`;
+export const SELECTION_ANNOUNCEMENT_ADDED_COLUMN = `${SELECTION_NAMESPACE}announcement.added.column`;
+export const SELECTION_ANNOUNCEMENT_ADDED_COLUMNS = `${SELECTION_NAMESPACE}announcement.added.columns`;
+export const SELECTION_ANNOUNCEMENT_ADDED_ROW = `${SELECTION_NAMESPACE}announcement.added.row`;
+export const SELECTION_ANNOUNCEMENT_ADDED_ROWS = `${SELECTION_NAMESPACE}announcement.added.rows`;
 
 export const FORMULA_BUILDER_NAMESPACE = 'FormulaBuilder:';
 export const FORMULA_BUILDER_EDITOR = `${FORMULA_BUILDER_NAMESPACE}labels.formulaEditor`;
@@ -218,3 +272,15 @@ export const FORMULA_BUILDER_CELL_UNAVAILABLE = `${FORMULA_BUILDER_NAMESPACE}ann
 export const FORMULA_BUILDER_CELL_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.cellError`;
 export const FORMULA_BUILDER_DEPENDENT_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellError`;
 export const FORMULA_BUILDER_DEPENDENT_ERRORS = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellErrors`;
+
+export const EDITOR_NAMESPACE = 'Editor:';
+export const EDITOR_INPUT_LABEL = `${EDITOR_NAMESPACE}labels.cellInput`;
+export const EDITOR_INPUT_LABEL_ROW_HEADER = `${EDITOR_NAMESPACE}labels.cellInputWithRowHeader`;
+
+export const COMMENTS_NAMESPACE = 'Comments:';
+export const COMMENTS_EDITOR_LABEL = `${COMMENTS_NAMESPACE}labels.editor`;
+export const COMMENTS_EDITOR_LABEL_ROW_HEADER = `${COMMENTS_NAMESPACE}labels.editorWithRowHeader`;
+
+export const EDITABLE_HEADERS_NAMESPACE = 'EditableHeaders:';
+export const EDITABLE_HEADERS_INPUT_LABEL = `${EDITABLE_HEADERS_NAMESPACE}inputLabel`;
+export const EDITABLE_HEADERS_RENAMED = `${EDITABLE_HEADERS_NAMESPACE}announcement.renamed`;

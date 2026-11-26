@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable frozen edges fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // The fail-loud param block of demo/grid.html: `?theme=`/`?bundle=` map through fixed allowlists
+    // to literals, an absent param keeps the default, an unknown value throws.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // `?edges=` picks which edges are frozen, through the same kind of allowlist: every overlay clone
+    // the grid can build is reachable with one of these. An unknown value throws.
+    window.htEdges = ({
+      none: {},
+      'top-start': { fixedRowsTop: 1, fixedColumnsStart: 1 },
+      'bottom-end': { fixedRowsBottom: 1, fixedColumnsEnd: 1 },
+      all: { fixedRowsTop: 1, fixedColumnsStart: 1, fixedRowsBottom: 1, fixedColumnsEnd: 1 },
+    })[htParams.get('edges') ?? 'none'];
+    if (!window.htEdges) {
+      throw new Error('Unknown ?edges= value: ' + JSON.stringify(htParams.get('edges')));
+    }
+    // `?headers=off` builds the grid without row and column headers. An unknown value throws.
+    window.htHeaders = ({ on: true, off: false })[htParams.get('headers') ?? 'on'];
+    if (window.htHeaders === undefined) {
+      throw new Error('Unknown ?headers= value: ' + JSON.stringify(htParams.get('headers')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A grid whose frozen edges the query picks, so a spec can read every overlay clone the grid builds:
+    the master table, the top, bottom, inline-start and inline-end clones, and the four corners. Six
+    rows by five columns with distinct values, and no size, so nothing scrolls and every clone renders
+    every row and column it can hold.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(6, 5),
+        colHeaders: window.htHeaders,
+        rowHeaders: window.htHeaders,
+        ...window.htEdges,
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      // The page object turns a constructor throw into a red test before any step runs.
+      window.htBuildError = error;
+      container.setAttribute('data-init-error', String(error && error.message ? error.message : error));
+      throw error;
+    }
+  </script>
+</body>
+</html>

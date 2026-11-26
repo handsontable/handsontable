@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Paste extend rows</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const GRID_ROWS = 100;
+    const GRID_COLS = 10;
+    const PASTE_ROWS = 10000;
+
+    // The clipboard text is built once, here, so the measured window holds the paste only.
+    const pasteRows = [];
+
+    for (let row = 0; row < PASTE_ROWS; row++) {
+      const cells = [];
+
+      for (let col = 0; col < GRID_COLS; col++) {
+        cells.push(`P${row}-${col}`);
+      }
+
+      pasteRows.push(cells.join('\t'));
+    }
+
+    window.__pasteText = pasteRows.join('\n');
+    window.__gridRows = GRID_ROWS;
+    window.__gridCols = GRID_COLS;
+    window.__pasteRows = PASTE_ROWS;
+
+    const hot = new Handsontable(document.getElementById('hot'), {
+      data: Handsontable.helper.createSpreadsheetData(GRID_ROWS, GRID_COLS),
+      rowHeaders: true,
+      colHeaders: true,
+      width: 1280,
+      height: 600,
+      autoRowSize: false,
+      autoColumnSize: false,
+      licenseKey: window.htTestLicenseKey,
+    });
+    window.__hot = hot;
+  </script>
+</body>
+</html>

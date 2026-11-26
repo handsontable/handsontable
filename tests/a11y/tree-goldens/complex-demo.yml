@@ -272,27 +272,27 @@
       - gridcell "08/29/2023"
       - gridcell "12:20 PM"
   - rowgroup:
-    - row "Select whole grid A B C":
-      - gridcell "Select whole grid"
+    - row "A B C":
+      - gridcell
       - columnheader "A"
       - columnheader "B" [expanded]
       - columnheader "C"
-    - row "Select whole grid D E F G":
-      - gridcell "Select whole grid"
+    - row "D E F G":
+      - gridcell
       - columnheader "D"
       - columnheader "E" [expanded]
       - columnheader "F" [expanded]
       - columnheader "G"
-    - row "Select whole grid H I J K L M":
-      - gridcell "Select whole grid"
+    - row "H I J K L M":
+      - gridcell
       - columnheader "H"
       - columnheader "I" [expanded]
       - columnheader "J" [expanded]
       - columnheader "K" [expanded]
       - columnheader "L" [expanded]
       - columnheader "M"
-    - row "Select whole grid Active Name Password Age Interest Favorite Product Country City Last Login (date) Last Login (time)":
-      - gridcell "Select whole grid"
+    - row "Active Name Password Age Interest Favorite Product Country City Last Login (date) Last Login (time)":
+      - gridcell
       - columnheader "Active"
       - columnheader "Name"
       - columnheader "Password"
@@ -318,7 +318,6 @@
       - gridcell "New York"
       - gridcell "08/25/2023"
       - gridcell "08:30 AM"
-  - rowgroup
   - rowgroup:
     - row "42 Unchecked false Liam Chen ******* 26 Travel & Adventure Travel Backpack Canada Vancouver 08/31/2023 06:40 PM" [level=1]:
       - rowheader "42"
@@ -441,17 +440,17 @@
         - checkbox "Checked" [checked]
         - text: "true"
   - rowgroup:
-    - row "Select whole grid A":
-      - gridcell "Select whole grid"
+    - row "A":
+      - gridcell
       - columnheader "A"
-    - row "Select whole grid D":
-      - gridcell "Select whole grid"
+    - row "D":
+      - gridcell
       - columnheader "D"
-    - row "Select whole grid H":
-      - gridcell "Select whole grid"
+    - row "H":
+      - gridcell
       - columnheader "H"
-    - row "Select whole grid Active":
-      - gridcell "Select whole grid"
+    - row "Active":
+      - gridcell
       - columnheader "Active"
   - rowgroup:
     - row "1 Checked true" [level=1]:
@@ -459,7 +458,6 @@
       - gridcell "Checked true":
         - checkbox "Checked" [checked]
         - text: "true"
-  - rowgroup
   - rowgroup:
     - row "42 Unchecked false" [level=1]:
       - rowheader "42"

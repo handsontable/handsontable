@@ -14,6 +14,7 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
         type="text"
         name="focusable-text-input"
         placeholder="Focusable top text input"
+        aria-label="Focusable top text input"
       />
 
       <hot-table
@@ -26,6 +27,7 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
         type="text"
         name="focusable-text-input"
         placeholder="Focusable bottom text input"
+        aria-label="Focusable bottom text input"
       />
 
       <div class="debug-info">
@@ -67,17 +69,12 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
       line-height: 1.25rem;
       color: var(--sl-color-text, #333333);
       background: none;
-      border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+      border: 1px solid var(--sl-color-gray-3, #777777);
       border-radius: 0;
-      outline: none;
     }
 
     .placeholder-input::placeholder {
       color: var(--sl-color-gray-3, #777777);
-    }
-
-    .placeholder-input:focus {
-      border-color: var(--sl-color-accent, #1A42E8);
     }
 
     .example-container {

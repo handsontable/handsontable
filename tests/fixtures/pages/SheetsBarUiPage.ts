@@ -153,6 +153,31 @@ export class SheetsBarUiPage {
   }
 
   /**
+   * Puts an element with the given `id` and text on the page, for `ariaLabelledby` to point at.
+   *
+   * @param {string} id The element's `id`.
+   * @param {string} text The element's text.
+   */
+  async addNameElement(id: string, text: string): Promise<void> {
+    await this.page.evaluate(([elementId, elementText]) => {
+      const element = document.createElement('span');
+
+      element.id = elementId;
+      element.textContent = elementText;
+      document.body.prepend(element);
+    }, [id, text]);
+  }
+
+  /**
+   * Calls `updateSettings()` on the grid.
+   *
+   * @param {object} settings The settings to pass.
+   */
+  async updateGridSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(options => (window as any).hot.updateSettings(options), settings);
+  }
+
+  /**
    * Switches sheets through the API.
    *
    * @param {number} position The sheet's position in the declared `sheets`.

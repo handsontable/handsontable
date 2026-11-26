@@ -114,7 +114,7 @@ Create an Angular component that extends `HotCellEditorComponent<T>` (where `T` 
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
-      <input #inputElement type="text" [value]="getValue()" (keydown)="onKeyDown($event)" />
+      <input #inputElement type="text" aria-label="Cell value" [value]="getValue()" (keydown)="onKeyDown($event)" />
     </div>
   `,
 })

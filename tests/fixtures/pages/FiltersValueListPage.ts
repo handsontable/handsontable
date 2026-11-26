@@ -28,6 +28,7 @@ export class FiltersValueListPage {
   readonly fixture: string;
   readonly menu: Locator;
   readonly valueList: Locator;
+  readonly valueListHolder: Locator;
   readonly valueLabels: Locator;
   readonly searchInput: Locator;
   readonly conditionsMenu: Locator;
@@ -57,6 +58,7 @@ export class FiltersValueListPage {
     // closes. Leaving those containers out keeps `menu` one element while a submenu exists.
     this.menu = page.locator('.htDropdownMenu:not([class*="htDropdownMenuSub_"])');
     this.valueList = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody tr');
+    this.valueListHolder = this.menu.locator('.htUIMultipleSelect .ht_master .wtHolder');
     this.valueLabels = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody label');
     this.searchInput = this.menu.locator('.htUIMultipleSelectSearch input');
     // Each of the two condition selects owns a `.htFiltersConditionsMenu` container; only the
@@ -76,12 +78,14 @@ export class FiltersValueListPage {
    * Navigate to the fixture and wait for the grid to render. The active theme and
    * bundle are passed as query params so the fixture loads the matching stylesheet
    * and Handsontable build.
+   *
+   * @param {string} [query] More query params for the fixture, e.g. `aria=off`.
    */
-  async goto(): Promise<void> {
+  async goto(query = ''): Promise<void> {
     assertKnownBundle(this.bundle, '(page, theme, bundle, fixture)');
 
     await this.page.goto(
-      `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}${query ? `&${query}` : ''}`);
     // The bundle first: it is several megabytes and every worker pulls its own copy, so on a cold
     // server the cell assertion alone times out before the grid has a chance to build.
     await awaitBundle(this.page);
@@ -250,6 +254,125 @@ export class FiltersValueListPage {
   }
 
   /**
+   * The width of the value list's one column next to the box that shows it, read in one evaluation.
+   *
+   * @returns {Promise<object>} `column` (the `<col>` width), `box` (the list holder's client width) and
+   *   `scroll` (its scroll width), in CSS pixels.
+   */
+  async listWidth(): Promise<{ column: number; box: number; scroll: number }> {
+    return this.valueListHolder.evaluate(holder => ({
+      column: parseFloat((holder.querySelector('col') as HTMLElement).style.width),
+      box: holder.clientWidth,
+      scroll: holder.scrollWidth,
+    }));
+  }
+
+  /**
+   * Scrolls the value list to its start or its end and reads how far the text of the label starting
+   * with the given prefix runs past the inline-end edge of its cell, which clips it, in pixels. Zero or
+   * less means the text fits. The text itself is measured (a range over its text node), because the
+   * label is as wide as its cell and does not wrap: a column too narrow clips the text inside the label
+   * without moving the label's edge.
+   *
+   * @param {string} labelPrefix The start of the label to read.
+   * @param {object} options Options.
+   * @param {string} options.scrollTo Where to scroll the list first, so the label's row is rendered.
+   * @param {string} options.dir The grid's layout direction, which decides the inline-end edge.
+   * @returns {Promise<number>} The clipped width in pixels, rounded.
+   */
+  async labelTextOverflow(
+    labelPrefix: string,
+    { scrollTo, dir }: { scrollTo: 'start' | 'end'; dir: 'ltr' | 'rtl' }
+  ): Promise<number> {
+    await this.valueListHolder.evaluate((el, edge) => {
+      el.scrollTop = edge === 'end' ? el.scrollHeight : 0;
+    }, scrollTo);
+
+    const handle = await this.page.waitForFunction(([el, prefix, isRtl]) => {
+      const labels = Array.from((el as HTMLElement).querySelectorAll('.htCore tbody label'));
+      const label = labels.find(node => node.textContent?.startsWith(prefix as string));
+
+      if (!label) {
+        return null;
+      }
+
+      // The text sits in a node of its own inside the label, next to the checkbox.
+      const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+      let text: Node | null = walker.nextNode();
+
+      while (text && !text.textContent?.startsWith(prefix as string)) {
+        text = walker.nextNode();
+      }
+
+      if (!text) {
+        return null;
+      }
+
+      const range = document.createRange();
+
+      range.selectNodeContents(text);
+
+      const textBox = range.getBoundingClientRect();
+      const cellBox = (label.closest('td') as HTMLElement).getBoundingClientRect();
+
+      // Wrapped, because an overflow of 0 is falsy and would keep the wait polling.
+      return { overflow: Math.round(isRtl ? cellBox.left - textBox.left : textBox.right - cellBox.right) };
+    }, [await this.valueListHolder.elementHandle(), labelPrefix, dir === 'rtl'] as const, { polling: 50 });
+
+    return (await handle.jsonValue() as { overflow: number }).overflow;
+  }
+
+  /**
+   * Loads the `HtLateFont` face the width fixture's list labels ask for with `?font=late`. It is a system
+   * font drawn at twice its size (`size-adjust`), so it needs no network and the labels get much wider.
+   * Resolves once the face has loaded; the document fires `loadingdone` then. Throws when none of the
+   * local fonts exists, so a missing font fails the test instead of passing it with nothing loaded.
+   */
+  async loadLateFont(): Promise<void> {
+    await this.page.evaluate(async() => {
+      const face = new FontFace(
+        'HtLateFont',
+        'local("DejaVu Sans"), local("Liberation Sans"), local("Arial"), local("Helvetica"), local("Noto Sans")',
+        { sizeAdjust: '200%' },
+      );
+
+      document.fonts.add(face);
+      await face.load();
+    });
+  }
+
+  /**
+   * How many times the `modifyAutoColumnSizeSeed` hook ran for the value list's own cells since the
+   * page loaded. A full AutoColumnSize sweep of the list runs it once per listed value. Only the
+   * width fixture (`filters-value-list-width.html`) keeps this count.
+   *
+   * @returns {Promise<number>} The call count.
+   */
+  async listSeedCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { listSeedCalls: number }).listSeedCalls);
+  }
+
+  /**
+   * How many times the `modifyAutoColumnSizeSeed` hook ran for any other grid since the page loaded,
+   * the outer grid included. Only the width fixture keeps this count.
+   *
+   * @returns {Promise<number>} The call count.
+   */
+  async gridSeedCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { gridSeedCalls: number }).gridSeedCalls);
+  }
+
+  /**
+   * How many ghost tables were inserted into the value list since the page loaded, one per measurement
+   * of its column. Only the width fixture keeps this count.
+   *
+   * @returns {Promise<number>} The insertion count.
+   */
+  async listGhostTables(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { listGhostTables: number }).listGhostTables);
+  }
+
+  /**
    * The "filter by value" list as `[checked, label]` pairs, in display order.
    *
    * @returns {Promise<Array>} One entry per listed value.
@@ -275,7 +398,7 @@ export class FiltersValueListPage {
    * @returns {Promise<Array>} One entry per listed value, in display order.
    */
   async allListedValues(): Promise<{ checked: boolean; label: string }[]> {
-    const holder = this.menu.locator('.htUIMultipleSelect .ht_master .wtHolder');
+    const holder = this.valueListHolder;
     // One evaluation per page, so a row's checkbox and label always come from the same node: Walkontable
     // recycles `<tr>` nodes on scroll. The list table is `role="presentation"` and carries no
     // `aria-rowcount`, so "last item rendered" cannot be read from the DOM; the end is found instead

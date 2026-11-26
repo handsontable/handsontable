@@ -169,6 +169,92 @@ export class NestedRowsPage {
     return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
   }
 
+  /** Select whole rows the way a drag over their row headers does, by visual row. */
+  async selectRows(startRow: number, endRow = startRow): Promise<void> {
+    await this.page.evaluate(([from, to]) => window.hot.selectRows(from, to), [startRow, endRow]);
+  }
+
+  /** Select several ranges at once, each `[fromRow, fromCol, toRow, toCol]` in visual coordinates. */
+  async selectCells(ranges: number[][]): Promise<void> {
+    await this.page.evaluate(coords => window.hot.selectCells(coords as [number, number, number, number][]), ranges);
+  }
+
+  /** Every selection layer as `[fromRow, fromCol, toRow, toCol]`, in visual coordinates. */
+  selectedRanges(): Promise<number[][]> {
+    return this.page.evaluate(() => window.hot.getSelected() ?? []);
+  }
+
+  /**
+   * The first-column text of the rows each selection layer covers: the records the selection is on,
+   * which is what a collapse or an expand must not change.
+   */
+  selectedNames(): Promise<string[][]> {
+    return this.page.evaluate(() => (window.hot.getSelected() ?? []).map(([fromRow, , toRow]) => {
+      const names: string[] = [];
+
+      for (let row = Math.max(Math.min(fromRow, toRow), 0); row <= Math.max(fromRow, toRow); row++) {
+        names.push(String(window.hot.getDataAtCell(row, 0)));
+      }
+
+      return names;
+    }));
+  }
+
+  /** The first-column text of the row the focus is on: the active layer's highlight. */
+  focusedName(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const highlight = window.hot.getSelectedRangeActive()?.highlight;
+
+      return highlight ? String(window.hot.getDataAtCell(highlight.row, 0)) : null;
+    });
+  }
+
+  /**
+   * The first-column text of the rows the grid DRAWS as the focused cell (`td.current` in the master
+   * table), and of the cell that holds the browser focus. Read beside
+   * {@link NestedRowsPage#focusedName}, because the API and the drawn grid can disagree when the
+   * active layer changes after the last render.
+   */
+  drawnFocus(): Promise<{ current: string[]; focused: string | null }> {
+    return this.page.evaluate(() => {
+      const nameOf = (td: Element) => String(window.hot.getDataAtCell(window.hot.getCoords(td as HTMLTableCellElement).row, 0));
+      const active = document.activeElement;
+
+      return {
+        current: [...document.querySelectorAll('.ht_master .htCore td.current')].map(nameOf),
+        focused: active?.tagName === 'TD' ? nameOf(active) : null,
+      };
+    });
+  }
+
+  /** Start recording the rows every `afterSelectionEnd` call reports, as `[fromRow, toRow]`. */
+  async recordSelectionEnds(): Promise<void> {
+    await this.page.evaluate(() => {
+      const log: number[][] = [];
+
+      (window as unknown as { selectionEnds: number[][] }).selectionEnds = log;
+      window.hot.addHook('afterSelectionEnd', (fromRow: number, _fromCol: number, toRow: number) => {
+        log.push([fromRow, toRow]);
+      });
+    });
+  }
+
+  /** The `afterSelectionEnd` calls recorded since {@link NestedRowsPage#recordSelectionEnds}. */
+  selectionEnds(): Promise<number[][]> {
+    return this.page.evaluate(() => (window as unknown as { selectionEnds: number[][] }).selectionEnds);
+  }
+
+  /** Run several public plugin calls inside one `hot.batch()`, each `[method, ...args]`. */
+  async callPluginInBatch(calls: Array<[string, ...unknown[]]>): Promise<void> {
+    await this.page.evaluate((list) => {
+      const plugin = window.hot.getPlugin('nestedRows') as unknown as Record<string, (...a: unknown[]) => unknown>;
+
+      window.hot.batch(() => {
+        list.forEach(([method, ...args]) => plugin[method as string](...args));
+      });
+    }, calls);
+  }
+
   /**
    * Add a child to the parent at the given visual row by calling the plugin's private
    * `dataManager.addChild()` directly. It is the method the "Insert child row" context-menu item ends

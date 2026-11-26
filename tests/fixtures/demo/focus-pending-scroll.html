@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Focus manager pending scroll</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The setting the scenarios vary. An absent param leaves the option off; an unknown value
+    // throws, like the theme and bundle above.
+    const imeFastEditParam = htParams.get('imeFastEdit') ?? '0';
+
+    if (imeFastEditParam !== '0' && imeFastEditParam !== '1') {
+      throw new Error('Unknown ?imeFastEdit= value: ' + JSON.stringify(imeFastEditParam));
+    }
+    window.htImeFastEdit = imeFastEditParam === '1';
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    DEV-4068. A grid shorter than its 100 rows, so a cell far from the top is not rendered, and
+    an input outside it that can hold the browser focus while the grid holder scrolls.
+    `outsideClickDeselects` is off so the selection survives the focus leaving the grid.
+  -->
+  <label for="ext">External field</label>
+  <input id="ext" data-testid="ext" type="text" autocomplete="off">
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.htMakeRows = (count) => {
+      const data = [];
+
+      for (let row = 0; row < count; row++) {
+        const cells = [];
+
+        for (let col = 0; col < 5; col++) {
+          cells.push(`${String.fromCharCode(65 + col)}${row + 1}`);
+        }
+
+        data.push(cells);
+      }
+
+      return data;
+    };
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: window.htMakeRows(100),
+        height: 200,
+        colHeaders: true,
+        rowHeaders: true,
+        imeFastEdit: window.htImeFastEdit,
+        outsideClickDeselects: false,
+        licenseKey: window.htTestLicenseKey,
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-row', String(row));
+          td.setAttribute('data-col', String(col));
+
+          if (td.closest('.ht_master')) {
+            td.setAttribute('data-testid', `cell-${row}-${col}`);
+          }
+        },
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of bulk data reads: `getData()`, `getDataAtCol()`, and `getDataAtRow()` no longer repeat per-column work for every cell, which makes a full read of a 100,000 x 100 grid about 4 times faster.",
+  "type": "changed",
+  "issueOrPR": 14349,
+  "breaking": false,
+  "framework": "none"
+}

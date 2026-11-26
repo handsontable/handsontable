@@ -23,7 +23,7 @@ const RendererComponent = (props: RendererProps) => {
   // - `cellProperties` (the `cellProperties` object for the edited cell)
   return (
     <>
-      <i style={{ color: '#a9a9a9' }}>
+      <i style={{ color: 'light-dark(#6b6b6b, #a9a9a9)' }}>
         Row: {props.row}, column: {props.col},
       </i>{' '}
       value: {props.value}

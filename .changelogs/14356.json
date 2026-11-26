@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed formula error values, such as `#DIV/0!`, showing with their punctuation on the wrong sides in a right-to-left grid.",
+  "type": "fixed",
+  "issueOrPR": 14356,
+  "breaking": false,
+  "framework": "none"
+}

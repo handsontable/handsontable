@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed long nested header group labels that could not wrap: with `white-space: normal` on the header labels, a group label now wraps inside its columns' width, and the header row grows to fit it.",
+  "type": "fixed",
+  "issueOrPR": 14347,
+  "breaking": false,
+  "framework": "none"
+}

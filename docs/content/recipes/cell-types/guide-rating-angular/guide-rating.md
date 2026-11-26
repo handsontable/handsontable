@@ -47,7 +47,7 @@ This guide shows how to create an interactive star rating cell using inline SVG 
 A cell that:
 
 - Displays 5 SVG stars both when editing and viewing
-- Shows filled stars (gold) and unfilled stars (gray)
+- Shows filled stars (amber in the light theme, gold in the dark theme) and unfilled stars (gray)
 - Uses Handsontable DataGrid CSS tokens for theme-aware editor styling
 - Supports mouse hover for preview
 - Allows keyboard input (1-5 keys, arrow keys)
@@ -117,8 +117,8 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
 - `extends HotCellRendererAdvancedComponent<number>` - Inherits base renderer functionality with typed value
 - `value` property - Automatically provided by the base class (1-5 rating)
 - `.rating-cell` - Flex container wrapping the stars (matches the editor layout)
-- `.rating-star` - Base class for each star (gray via CSS token `--ht-background-secondary-color`)
-- `.active` - Filled stars (gold `#facc15`)
+- `.rating-star` - Base class for each star (gray `light-dark(#8c8c8c, #6b6b6b)`)
+- `.active` - Filled stars (amber `light-dark(#b45309, #facc15)`)
 - `[innerHTML]="starSvgMarkup"` - Inline SVG with `fill="currentColor"` so CSS controls the star color
 - `inject(DomSanitizer).bypassSecurityTrustHtml(starSvg)` - Angular sanitizes `[innerHTML]` and strips SVG by default; marking the SVG as trusted allows it to render
 
@@ -140,14 +140,14 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 }
 
 .rating-star {
-  color: var(--ht-background-secondary-color, #e0e0e0);
+  color: light-dark(#8c8c8c, #6b6b6b);
   cursor: default;
   display: inline-flex;
   align-items: center;
 }
 
 .rating-star.active {
-  color: #facc15;
+  color: light-dark(#b45309, #facc15);
 }
 
 .rating-editor {
@@ -182,7 +182,6 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 
 **Handsontable tokens used:**
 
-- `--ht-background-secondary-color` - Inactive star color (adapts to theme)
 - `--ht-accent-color` - Current star highlight in editor
 - `--ht-cell-editor-border-color` / `--ht-cell-editor-border-width` - Editor border
 - `--ht-cell-editor-background-color` - Editor background
@@ -263,7 +262,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 **What's happening:**
 
 - **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/javascript/recipes/cell-types/rating/rating.md) (blue border, padding, background via CSS tokens)
-- **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (gold), `.current` for the selected star (accent color)
+- **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (amber), `.current` for the selected star (accent color)
 - **isCurrentStar(index)** - Template expressions can't call global `parseInt`, so a component method compares the current value with the star index
 - **getValue()** - Method from base class returns current editor value
 - **Event bindings** - `(mouseover)` for hover preview, `(mousedown)` for selection

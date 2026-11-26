@@ -6,15 +6,15 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T10:50:55.307Z"
+    "at": "2026-11-25T11:18:08.614Z"
   },
   "steps": {
-    "open-menu": "table insert column left row 1 column 1 menu",
-    "arrow-down-insert-right": "table insert column right row 2",
-    "arrow-down-remove": "remove column row 4",
-    "arrow-down-clear": "clear column row 6",
-    "arrow-down-read-only": "read only not checked row 8",
-    "close-menu": "handsontable e 2e fixture filters value list document",
-    "arrow-down-in-grid": "table green not selected color row 3 column 3"
+    "open-menu": "insert column left 1 of 9 column menu menu",
+    "arrow-down-insert-right": "insert column right 2 of 9",
+    "arrow-down-remove": "remove column 3 of 9",
+    "arrow-down-clear": "clear column 4 of 9",
+    "arrow-down-read-only": "read only not checked 5 of 9",
+    "close-menu": "table red selected color row 2 column 3",
+    "arrow-down-in-grid": "green not selected color row 3 column 3"
   }
 }

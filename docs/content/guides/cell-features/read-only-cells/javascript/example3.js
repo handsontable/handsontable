@@ -10,7 +10,7 @@ const container = document.querySelector('#example3');
 const dimmedTextRenderer = (instance, td, ...rest) => {
   textRenderer(instance, td, ...rest);
 
-  td.style.opacity = '0.6';
+  td.style.opacity = '0.7';
 };
 
 new Handsontable(container, {

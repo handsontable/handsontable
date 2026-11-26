@@ -14,6 +14,30 @@ import type { NotificationNormalizedOptions, NotificationAction } from './notifi
 const CLOSE_ICON_SLOT_CLASS = `${NOTIFICATION_CLASS_NAME}__close-icon`;
 
 /**
+ * Sums the offsets of an element up its offset-parent chain until `container`, so the result is
+ * where the element sits inside the container. The element's own `offsetLeft` alone is measured
+ * against its nearest positioned ancestor (`.ht-grid` for the grid root), which stays at 0 when
+ * a side panel moves the grid sideways inside the root wrapper.
+ *
+ * @param {HTMLElement} element The element to locate.
+ * @param {Element} container An offset-parent ancestor of the element.
+ * @returns {{left: number, top: number}}
+ */
+function getOffsetWithin(element: HTMLElement, container: Element): { left: number, top: number } {
+  let left = 0;
+  let top = 0;
+  let current: HTMLElement | null = element;
+
+  while (current && current !== container) {
+    left += current.offsetLeft;
+    top += current.offsetTop;
+    current = current.offsetParent as HTMLElement | null;
+  }
+
+  return { left, top };
+}
+
+/**
  * Renders toast containers and individual notification elements. Used only by the Notification plugin.
  */
 export class NotificationUI {
@@ -133,8 +157,9 @@ export class NotificationUI {
       return;
     }
 
+    const { left: offsetLeft, top: offsetTop } = getOffsetWithin(gridRoot, container);
     const signature = [
-      gridRoot.offsetLeft, gridRoot.offsetTop, gridRoot.offsetWidth, gridRoot.offsetHeight,
+      offsetLeft, offsetTop, gridRoot.offsetWidth, gridRoot.offsetHeight,
       (container as HTMLElement).offsetWidth, (container as HTMLElement).offsetHeight,
     ].join(',');
 

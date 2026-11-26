@@ -11,6 +11,9 @@ import {
   removeAttribute,
   setAttribute
 } from '../../helpers/dom/element';
+import { hasTouchList } from '../../helpers/dom/event';
+import { isLongPressReplay } from '../../helpers/dom/longPress';
+import { armPressRelease, getCoordsWithinGrid } from '../../helpers/dom/pointerRelease';
 import { throwWithCause } from '../../helpers/errors';
 import { isPlainObject } from '../../helpers/object';
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
@@ -24,6 +27,15 @@ import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
 import type StateManager from '../nestedHeaders/stateManager';
 import type { ColumnVisibility } from '../nestedHeaders/stateManager/columnVisibility';
 import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
+import { announce } from '../../utils/a11yAnnouncer';
+import { getHeaderLabelText } from '../../utils/headerLabel';
+import { spreadsheetColumnLabel } from '../../helpers/data';
+import { isGridBodyCovered } from '../../shortcuts/guards';
+import {
+  COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED,
+  COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED,
+} from '../../i18n/constants';
+import { findClosestToggleLevel } from './toggleLevel';
 import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
@@ -284,6 +296,23 @@ export class CollapsibleColumns extends BasePlugin {
   #nestedHeadersCheckOwed = false;
 
   /**
+   * The visual columns of the group <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> is collapsing,
+   * set only while that toggle runs, for a press on a data cell and on a column header alike. When
+   * the collapse hides the highlighted column, the selection moves to the first column of this range
+   * that is still shown, in the row it was in, so the same key expands the same group again.
+   *
+   * @type {{ from: number, to: number }|null}
+   */
+  #keyToggleGroupColumns: { from: number, to: number } | null = null;
+
+  /**
+   * Drops the press on an indicator that waits for its release (see `#onBeforeOnCellMouseDown`). The
+   * listeners of a press that is still held go with the event manager when the plugin is disabled or
+   * destroyed.
+   */
+  #disposePress: (() => void) | null = null;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link CollapsibleColumns#enablePlugin} method is called.
    *
@@ -474,11 +503,7 @@ export class CollapsibleColumns extends BasePlugin {
             return;
           }
 
-          if (isCollapsed) {
-            this.expandSection({ row, col: columnIndex });
-          } else {
-            this.collapseSection({ row, col: columnIndex });
-          }
+          this.#toggleSectionByUser({ row, col: columnIndex }, isCollapsed ? 'expand' : 'collapse');
 
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
@@ -489,6 +514,27 @@ export class CollapsibleColumns extends BasePlugin {
         relativeToGroup: hasSortingShortcut ? SHORTCUTS_GROUP_SORTING : SHORTCUTS_GROUP_EDITOR,
         position: 'before',
       });
+
+    context?.addShortcut({
+      keys: [['Shift', 'Alt', 'ArrowUp']],
+      callback: () => {
+        const target = this.#getKeyToggleTarget();
+
+        if (target) {
+          this.#keyToggleGroupColumns = target.groupColumns;
+
+          try {
+            this.#toggleSectionByUser(target.coords, target.action);
+          } finally {
+            this.#keyToggleGroupColumns = null;
+          }
+        }
+
+        return false;
+      },
+      runOnlyIf: (): boolean => this.#getKeyToggleTarget() !== null,
+      group: SHORTCUTS_GROUP,
+    });
   }
 
   /**
@@ -933,6 +979,158 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
+   * Collapses or expands a header group in answer to a user gesture - <kbd>Enter</kbd> on its header,
+   * a press on its indicator, or <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> - and announces
+   * the result to assistive technologies through a polite live region. `aria-expanded` on the header
+   * is read only when the header takes the focus again, and a toggle made from a data cell never moves
+   * the focus there.
+   *
+   * The public methods do not announce: an app calling them knows what it changed and can tell the
+   * user itself, and `collapseAll()` would otherwise queue one message per group. A toggle that
+   * changed nothing (a `beforeColumnCollapse` or `beforeColumnExpand` veto) is silent as well.
+   *
+   * @param {{ row: number, col: number }} coords The header coordinates of the group.
+   * @param {'collapse'|'expand'} action The change to make.
+   */
+  #toggleSectionByUser(coords: { row: number, col: number }, action: 'collapse' | 'expand'): void {
+    const label = this.#getGroupLabel(coords);
+    const wasCollapsed = this.#isGroupCollapsed(coords);
+
+    this.toggleCollapsibleSection([coords], action);
+
+    if (this.#isGroupCollapsed(coords) === wasCollapsed || !this.hot.getSettings().ariaTags) {
+      return;
+    }
+
+    const phrase = action === 'expand' ?
+      COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED : COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED;
+
+    announce(String(this.hot.getTranslatedPhrase(phrase, { label }) ?? ''), 'polite');
+  }
+
+  /**
+   * Tells whether the header group at the coordinates is collapsed.
+   *
+   * @param {{ row: number, col: number }} coords The header coordinates of the group.
+   * @returns {boolean}
+   */
+  #isGroupCollapsed({ row, col }: { row: number, col: number }): boolean {
+    return this.headerStateManager?.getHeaderTreeNodeData(row, col)?.isCollapsed === true;
+  }
+
+  /**
+   * Returns the text that names a header group in an announcement: the text its rendered header
+   * shows, or its declared label when the header is scrolled out of the viewport. A group without a
+   * label is named by the spreadsheet letter of its first column.
+   *
+   * @param {{ row: number, col: number }} coords The header coordinates of the group.
+   * @returns {string}
+   */
+  #getGroupLabel({ row, col }: { row: number, col: number }): string {
+    const nodeData = this.headerStateManager?.getHeaderTreeNodeData(row, col);
+    const column = nodeData?.columnIndex ?? col;
+    const label = getHeaderLabelText(this.hot.getCell(row, column, true), nodeData?.label);
+
+    return label !== '' ? label : spreadsheetColumnLabel(column);
+  }
+
+  /**
+   * Tells whether a header group gets a toggle: it is marked collapsible, spans more than one
+   * column, and touches neither frozen band, where a collapse would change which columns the band
+   * covers.
+   *
+   * @param {boolean|undefined} collapsible The `collapsible` flag of the header.
+   * @param {number|undefined} origColspan The number of columns the header was declared over.
+   * @param {number} column The visual index of the header's first column.
+   * @returns {boolean}
+   */
+  #isGroupToggleable(collapsible: boolean | undefined, origColspan: number | undefined, column: number): boolean {
+    return collapsible === true &&
+      (origColspan ?? 0) > 1 &&
+      column >= (this.hot.getSettings().fixedColumnsStart ?? 0) &&
+      !this.#reachesFixedColumnsEnd(column, origColspan ?? 0);
+  }
+
+  /**
+   * Resolves the header group <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> toggles, or `null`
+   * when the key does not apply. From a data cell it is the group closest to the data among the
+   * headers over the cell's column. From a column header it is that header's own group, or the
+   * closest group above it. The key works with `navigableHeaders` off, where no header can take the
+   * focus. It applies to a single selection range only, and from a data cell only while nothing
+   * covers the grid body.
+   *
+   * The answer also carries the group's visual column range. A header below the group can sit over a
+   * column the collapse hides, as a data cell can, and the selection then has to stay in the group.
+   *
+   * @returns {{ coords: { row: number, col: number }, action: 'collapse'|'expand',
+   * groupColumns: { from: number, to: number } }|null}
+   */
+  #getKeyToggleTarget(): {
+    coords: { row: number, col: number },
+    action: 'collapse' | 'expand',
+    groupColumns: { from: number, to: number },
+  } | null {
+    const stateManager = this.headerStateManager;
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!stateManager || !highlight || this.hot.getSelectedRange()?.length !== 1) {
+      return null;
+    }
+
+    const { row, col } = highlight;
+
+    if (row === null || col === null || col < 0 || (row >= 0 && isGridBodyCovered(this.hot))) {
+      return null;
+    }
+
+    const startLevel = row < 0 ? stateManager.rowCoordsToLevel(row) : stateManager.getLayersCount() - 1;
+    const headerLevel = startLevel === null ? null : findClosestToggleLevel(startLevel, (level) => {
+      const nodeData = stateManager.getHeaderTreeNodeData(level, col);
+
+      return !!nodeData &&
+        this.#isGroupToggleable(nodeData.collapsible, nodeData.origColspan, nodeData.columnIndex);
+    });
+    const nodeData = headerLevel === null ? null : stateManager.getHeaderTreeNodeData(headerLevel, col);
+    const headerRow = headerLevel === null ? null : stateManager.levelToRowCoords(headerLevel);
+
+    if (!nodeData || headerRow === null) {
+      return null;
+    }
+
+    const lastColumn = nodeData.columnIndex + Math.max(nodeData.origColspan, 1) - 1;
+
+    return {
+      coords: { row: headerRow, col: nodeData.columnIndex },
+      action: nodeData.isCollapsed ? 'expand' : 'collapse',
+      groupColumns: { from: nodeData.columnIndex, to: lastColumn },
+    };
+  }
+
+  /**
+   * Returns the column the selection moves to when a toggle hid the highlighted one: the nearest
+   * column that is still shown, or, for the <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> key, the
+   * first column of the toggled group that is still shown. The nearest column can belong to the next group, and the key would then
+   * toggle that group on the next press.
+   *
+   * @param {number} column The visual index of the highlighted column, hidden by the toggle.
+   * @returns {number|null}
+   */
+  #getColumnAfterHide(column: number): number | null {
+    const { columnIndexMapper } = this.hot;
+    const groupColumns = this.#keyToggleGroupColumns;
+
+    if (groupColumns) {
+      for (let groupColumn = groupColumns.from; groupColumn <= groupColumns.to; groupColumn++) {
+        if (!columnIndexMapper.isHidden(this.hot.toPhysicalColumn(groupColumn))) {
+          return groupColumn;
+        }
+      }
+    }
+
+    return columnIndexMapper.getNearestNotHiddenIndex(column, 1, true);
+  }
+
+  /**
    * Checks whether a collapse or expand action is possible for the given filtered coordinates.
    *
    * @param {Array} filteredCoords Header coordinates filtered to header rows only.
@@ -991,7 +1189,7 @@ export class CollapsibleColumns extends BasePlugin {
 
     if (isHidden && hiddenColumnsIndexes.includes(col)) {
       const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
-      const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
+      const nextColumn = col >= 0 ? this.#getColumnAfterHide(col) : col;
 
       if (nextRow !== null && nextColumn !== null) {
         this.hot.selectCell(nextRow, nextColumn);
@@ -1204,10 +1402,7 @@ export class CollapsibleColumns extends BasePlugin {
   #onAfterGetColHeader = (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => {
     const headerSettings = this.headerStateManager?.getHeaderSettings(headerLevel, column);
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
-    const isNodeCollapsible = collapsible === true &&
-      (origColspan ?? 0) > 1 &&
-      column >= (this.hot.getSettings().fixedColumnsStart ?? 0) &&
-      !this.#reachesFixedColumnsEnd(column, origColspan ?? 0) &&
+    const isNodeCollapsible = this.#isGroupToggleable(collapsible, origColspan, column) &&
       !this.hot.view.isColumnHeaderCorner(TH);
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
@@ -1257,7 +1452,9 @@ export class CollapsibleColumns extends BasePlugin {
   };
 
   /**
-   * Indicator mouse event callback.
+   * Indicator mouse event callback. A press on the indicator is claimed at once, so it selects nothing, but
+   * the group toggles when the pointer is released over the same indicator: moving it off before letting go
+   * cancels the toggle. A tap toggles at once, because Walkontable replays it at `touchend`.
    *
    * @param {object} event Mouse event.
    * @param {object} coords Event coordinates.
@@ -1268,13 +1465,22 @@ export class CollapsibleColumns extends BasePlugin {
     const target = eventTargetEl(event)?.closest<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
     if (target) {
-      if (hasClass(target, 'expanded')) {
+      if (hasClass(target, 'expanded') || hasClass(target, 'collapsed')) {
+        // An earlier press whose release was lost would take the synthetic `mouseup` below for its own, so it
+        // is dropped first. The event is fired before this press is armed, so it is not taken for its release.
+        this.#disposePress?.();
+        this.#disposePress = null;
         this.eventManager.fireEvent(target, 'mouseup');
-        this.toggleCollapsibleSection([coords], 'collapse');
 
-      } else if (hasClass(target, 'collapsed')) {
-        this.eventManager.fireEvent(target, 'mouseup');
-        this.toggleCollapsibleSection([coords], 'expand');
+        if (hasTouchList(event)) {
+          // A tap acts at once. A long press is replayed with the finger still down and acts on nothing.
+          if (!isLongPressReplay(event)) {
+            this.#toggleSectionByUser(coords, hasClass(target, 'expanded') ? 'collapse' : 'expand');
+          }
+
+        } else {
+          this.#armIndicatorPress(event, coords);
+        }
       }
 
       // Only the grid's own flag, which makes the table skip selection handling. The shared
@@ -1283,6 +1489,36 @@ export class CollapsibleColumns extends BasePlugin {
       (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
     }
   };
+
+  /**
+   * Waits for the release of a press on an indicator, and toggles the group there when it is over the same
+   * indicator.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   * @param {object} coords The coordinates of the pressed header.
+   */
+  #armIndicatorPress(event: MouseEvent, coords: { row: number; col: number }): void {
+    // The header cell resolves to the same coordinates at the release, whatever node a render put there.
+    const isSameIndicator = (releaseTarget: HTMLElement | null) => {
+      const indicator = releaseTarget?.closest<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`) ?? null;
+      const header = indicator?.closest<HTMLElement>('th') ?? null;
+      const releaseCoords = getCoordsWithinGrid(this.hot, header);
+
+      return !!releaseCoords && releaseCoords.row === coords.row && releaseCoords.col === coords.col;
+    };
+
+    this.#disposePress = armPressRelease(this.eventManager, this.hot.rootDocument, event, {
+      isSame: isSameIndicator,
+      onRelease: () => {
+        this.#disposePress = null;
+        // The state is read again: it is what the user sees at the release.
+        this.#toggleSectionByUser(coords, this.#isGroupCollapsed(coords) ? 'expand' : 'collapse');
+      },
+      onCancel: () => {
+        this.#disposePress = null;
+      },
+    });
+  }
 
   /**
    * Records the collapsed-groups version at the start of a column cache update.

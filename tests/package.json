@@ -9,6 +9,7 @@
     "report": "playwright show-report",
     "lint": "eslint --ext .js,.mjs,.ts a11y e2e fixtures reporters lib scripts screenreader",
     "test:a11y": "playwright test --config playwright.a11y.config.ts",
+    "test:a11y-targets": "playwright test --config playwright.a11y.config.ts discovery-targets.spec.ts --reporter=list",
     "test:a11y-checks": "playwright test --config playwright.a11y-checks.config.ts",
     "test:a11y-docs": "playwright test --config playwright.a11y-docs.config.ts",
     "test:a11y-sites": "playwright test --config playwright.a11y-sites.config.ts",
@@ -27,6 +28,6 @@
     "eslint": "8.57.1",
     "exceljs": "4.4.0",
     "hyperformula": "3.3.0",
-    "hyperformula-ui": "0.3.6"
+    "hyperformula-ui": "0.3.7"
   }
 }

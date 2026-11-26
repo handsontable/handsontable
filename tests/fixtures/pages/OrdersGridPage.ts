@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { assertKnownBundle, awaitBundle } from '../bundle';
+import { pointerEntersBody, pointerLeavesBody } from '../gestures';
 import { FiltersValueListPage } from './FiltersValueListPage';
 
 /**
@@ -26,6 +27,12 @@ type OrdersWindow = {
     getDataAtCell(row: number, column: number): unknown,
     getSourceData(): unknown[][],
     getSelected(): number[][] | undefined,
+    getCell(row: number, column: number): HTMLElement | null,
+    countRows(): number,
+    scrollViewportTo(options: { row: number, verticalSnap: 'top' | 'bottom' }): boolean,
+    render(): void,
+    setCellMeta(row: number, column: number, key: string, value: unknown): void,
+    setDataAtCell(row: number, column: number, value: unknown): void,
     getPlugin(name: 'hiddenColumns'): { getHiddenColumns(): number[] },
     getPlugin(name: 'multiColumnSorting'): { getSortConfig(): Array<{ column: number, sortOrder: string }> },
     getPlugin(name: 'pagination'): {
@@ -214,6 +221,127 @@ export class OrdersGridPage extends FiltersValueListPage {
    */
   async selected(): Promise<number[][] | undefined> {
     return this.page.evaluate(() => (window as unknown as OrdersWindow).hot.getSelected());
+  }
+
+  /**
+   * Renders the grid, the way a resize, a scroll or a data change does. A render rewrites the class
+   * list of every cell and header it draws.
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as OrdersWindow).hot.render());
+  }
+
+  /**
+   * Scrolls the grid to its last row through the API, the way a scroll made without the pointer does,
+   * and waits until the grid no longer draws the given row. The grid reuses the elements of the rows it
+   * stops drawing for the rows it draws next.
+   *
+   * @param {number} row A visual row index the scroll takes out of the rendered rows.
+   */
+  async scrollUntilRowIsNotDrawn(row: number): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as OrdersWindow;
+
+      hot.scrollViewportTo({ row: hot.countRows() - 1, verticalSnap: 'bottom' });
+    });
+
+    await expect.poll(() => this.page.evaluate(
+      checkedRow => (window as unknown as OrdersWindow).hot.getCell(checkedRow, 0) === null, row
+    )).toBe(true);
+  }
+
+  /**
+   * Makes the page body at least as tall as the window, so the pointer cannot end outside it. The
+   * fixture's body is only as tall as the grid, and the filter menu's OK button sits below it: once the
+   * menu closes, the browser reports a `mouseleave` on the body on a frame of its own choosing, which
+   * the CopyPaste plugin answers in Safari. A test that sends the `mouseleave` itself calls this first,
+   * so that its own is the only one.
+   */
+  async fillWindowWithBody(): Promise<void> {
+    await this.page.evaluate(() => {
+      document.body.style.minHeight = '100vh';
+    });
+  }
+
+  /**
+   * Sends the `mouseleave` the page body reports when the pointer ends outside its box
+   * (`pointerLeavesBody()` in `fixtures/gestures.ts`).
+   */
+  async pointerLeavesBody(): Promise<void> {
+    await pointerLeavesBody(this.page);
+  }
+
+  /**
+   * Sends the `mouseenter` the page body reports when the pointer comes back into its box
+   * (`pointerEntersBody()` in `fixtures/gestures.ts`).
+   */
+  async pointerEntersBody(): Promise<void> {
+    await pointerEntersBody(this.page);
+  }
+
+  /**
+   * The text of the browser's own selection, the one its Copy command copies. The grid's cell
+   * selection is not part of it.
+   *
+   * @returns {Promise<string>}
+   */
+  async nativeSelectionText(): Promise<string> {
+    return this.page.evaluate(() => window.getSelection()?.toString() ?? '');
+  }
+
+  /**
+   * Renders one cell's value with the `html` renderer, so that part of its text sits in nested elements.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   * @param {string} html The markup the cell holds.
+   */
+  async renderCellAsHtml(row: number, column: number, html: string): Promise<void> {
+    await this.page.evaluate(({ r, c, value }) => {
+      const { hot } = window as unknown as OrdersWindow;
+
+      hot.setCellMeta(r, c, 'renderer', 'html');
+      hot.setDataAtCell(r, c, value);
+    }, { r: row, c: column, value: html });
+  }
+
+  /**
+   * Gives one cell a renderer that makes it editable in place, the way an application's inline editing does:
+   * the text renderer, then `contenteditable="true"` on the cell.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   */
+  async makeCellEditableInPlace(row: number, column: number): Promise<void> {
+    await this.page.evaluate(({ r, c }) => {
+      type Renderer = (this: unknown, ...args: unknown[]) => void;
+      const { hot } = window as unknown as OrdersWindow;
+      const { Handsontable } = window as unknown as { Handsontable: { renderers: { TextRenderer: Renderer } } };
+
+      hot.setCellMeta(r, c, 'renderer', function(this: unknown, ...args: unknown[]) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        (args[1] as HTMLElement).setAttribute('contenteditable', 'true');
+      });
+      hot.render();
+    }, { r: row, c: column });
+  }
+
+  /**
+   * Selects one cell's text with the browser's own selection, as a user dragging across the text of a cell
+   * the application made editable does.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   */
+  async selectCellText(row: number, column: number): Promise<void> {
+    await this.cell(row, column).evaluate((cell) => {
+      const range = document.createRange();
+      const selection = window.getSelection();
+
+      range.selectNodeContents(cell);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    });
   }
 
   /**

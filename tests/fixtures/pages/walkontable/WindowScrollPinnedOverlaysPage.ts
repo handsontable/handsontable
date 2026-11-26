@@ -225,6 +225,78 @@ export class WindowScrollPinnedOverlaysPage {
   }
 
   /**
+   * Scroll the page with real wheel events, the way {@link WindowScrollPinnedOverlaysPage#wheelScrollHorizontally}
+   * or {@link WindowScrollPinnedOverlaysPage#wheelScrollVertically} does, and list every `style` attribute
+   * change made meanwhile to a clone root or an overlay rail.
+   *
+   * A clone held by its rail stays where the browser holds it, so nothing about it changes from draw to
+   * draw. A style property written to a passing value and back leaves the same state behind, but each
+   * write marks the layout dirty, and a geometry read between them forces a synchronous reflow. A
+   * `MutationObserver` sees each of those writes, where the end state hides them.
+   *
+   * Two more counts come back for the caller's positive controls: the `style` changes of the master's
+   * spreader, which every scroll-driven draw moves, so the same observer is shown to see the draws it
+   * watched; and the rails on the page when the recording started, so a rail class that no longer
+   * matches cannot leave the rail half of the list empty by accident.
+   */
+  async recordCloneStyleChanges(axis: 'horizontal' | 'vertical'): Promise<{
+    cloneChanges: string[], masterSpreaderChanges: number, rails: number,
+  }> {
+    const rails = await this.page.evaluate(() => {
+      type Scope = {
+        htStyleChanges: string[], htStyleObserver: MutationObserver, htStyleRecord: MutationCallback,
+      };
+      const scope = window as unknown as Scope;
+
+      scope.htStyleChanges = [];
+      scope.htStyleRecord = (records) => {
+        records.forEach(({ target }) => {
+          const element = target as HTMLElement;
+          const name = element.matches('.ht_master .wtSpreader') ? 'masterSpreader' : Array.from(element.classList)
+            .find(className => className.startsWith('ht_clone_') || className === 'htOverlayRail');
+
+          if (name) {
+            scope.htStyleChanges.push(name);
+          }
+        });
+      };
+      scope.htStyleObserver = new MutationObserver(scope.htStyleRecord);
+      scope.htStyleObserver.observe(document.querySelector('[data-testid="grid"]')!, {
+        attributes: true,
+        attributeFilter: ['style'],
+        subtree: true,
+      });
+
+      return document.querySelectorAll('.htOverlayRail').length;
+    });
+
+    if (axis === 'horizontal') {
+      await this.wheelScrollHorizontally(60, 20);
+    } else {
+      await this.wheelScrollVertically(60, 20);
+    }
+
+    const changes = await this.page.evaluate(() => {
+      type Scope = {
+        htStyleChanges: string[], htStyleObserver: MutationObserver, htStyleRecord: MutationCallback,
+      };
+      const scope = window as unknown as Scope;
+
+      // Records still queued never reach the callback once the observer disconnects, so hand them to it.
+      scope.htStyleRecord(scope.htStyleObserver.takeRecords(), scope.htStyleObserver);
+      scope.htStyleObserver.disconnect();
+
+      return scope.htStyleChanges;
+    });
+
+    return {
+      cloneChanges: changes.filter(name => name !== 'masterSpreader'),
+      masterSpreaderChanges: changes.filter(name => name === 'masterSpreader').length,
+      rails,
+    };
+  }
+
+  /**
    * Scroll the page sideways and back with real wheel events while recording every painted frame,
    * then report, per pinned clone, how many frames with the page scrolled showed that clone's row
    * headers anywhere but fully at their pinned place.

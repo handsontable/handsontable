@@ -129,6 +129,7 @@ The editor component uses the native HTML5 color input. When the user selects a 
     <input
       class="color-picker-editor"
       type="color"
+      aria-label="Item color"
       [value]="value"
       (input)="onColorChange($event)"
     />

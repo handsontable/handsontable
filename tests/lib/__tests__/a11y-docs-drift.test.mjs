@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareViolations } from '../a11y-baseline.mjs';
 import { DOCS_SCAN, baselineLines, buildCheckRun, pageLines } from '../a11y-check-run.mjs';
-import { DOCS_AUDIT_COMMAND, LEDGER_URL, docsAudit, driftKey, driftNotes, driftOf, isDrift, siteAudit } from '../a11y-docs-drift.mjs';
+import { DOCS_AUDIT_COMMAND, LEDGER_URL, auditIsStale, auditStaleness, docsAudit, driftKey, driftNotes, driftOf, isDrift, siteAudit } from '../a11y-docs-drift.mjs';
 
 // tests/AGENTS.md ("A11y: the docs site scan", baseline drift): a pull request's docs scan reads develop's staging deploy,
 // so a new finding develop's latest docs audit also saw is drift, a warning at most; a grown one, and one the audit did
@@ -106,6 +106,93 @@ test('the notes say how much is drift and the remedy, when nothing could be read
   assert.equal(stale.length, 2);
   assert.match(stale[1], /older than the staging deploy this run read \(2026-11-12 07:25 UTC\).*gh workflow run docs-a11y\.yml --ref develop/);
   assert.equal(driftNotes({ audit, drift: 1, counted: 1, deployedAt: '2026-11-09T00:00:00Z' }).length, 1, 'an audit newer than the deploy is not stale');
+});
+
+test('the audit is stale when a deploy landed after it STARTED, not after it finished', () => {
+  // The shape of the incident: an audit that ran 14 minutes (10:15 to 10:29) and a docs change deployed at 10:25, inside the
+  // run. The scan may have read the pages before the deploy, so the finish time says the audit is newer than the deploy and
+  // the start time says it may not be.
+  const audit = { ...docsAudit(LEDGER), startedAt: '2026-11-10T10:15:00Z', seenAt: '2026-11-10T10:29:01Z' };
+  const during = '2026-11-10T10:25:00Z';
+
+  assert.equal(auditIsStale(audit, during), true, 'a deploy during the audit');
+  assert.equal(auditIsStale(audit, '2026-11-10T10:10:00Z'), false, 'a deploy before the audit started');
+  assert.equal(auditIsStale(audit, null), false, 'no deploy read says nothing');
+  assert.equal(auditIsStale({ ...audit, startedAt: undefined }, during), false, 'with no start time the finish time decides, as before');
+  assert.equal(auditIsStale({ ...audit, startedAt: undefined }, '2026-11-10T10:30:00Z'), true);
+  assert.equal(auditIsStale({ ...audit, startedAt: 'not a time' }, during), false, 'a start time that does not parse falls back to the finish time');
+  assert.equal(auditIsStale({ ...audit, startedAt: 'not a time' }, '2026-11-10T10:30:00Z'), true);
+
+  const [note] = driftNotes({ audit, drift: 0, counted: 0, deployedAt: during });
+
+  assert.match(note, /^The develop docs audit of 2026-11-10 is older than the staging deploy this run read \(2026-11-10 10:25 UTC\)/);
+  assert.match(note, /which landed after the audit started, so a new finding the site gained since reads as this change's/,
+    'the note says the deploy landed after the audit started');
+  assert.match(driftNotes({ audit: { ...audit, startedAt: undefined }, drift: 0, counted: 0, deployedAt: '2026-11-10T10:30:00Z' })[0],
+    /which landed after the audit finished/, 'with no start time the note says finished');
+  assert.deepEqual(driftNotes({ audit, drift: 0, counted: 0, deployedAt: '2026-11-10T10:10:00Z' }), []);
+});
+
+test('the poster reads the audit\'s start only when a deploy time is known, and the start it reads decides the staleness', async() => {
+  const audit = docsAudit(LEDGER);
+  const calls = [];
+  const readStart = startedAt => async runId => {
+    calls.push(runId);
+
+    return startedAt;
+  };
+  const during = '2026-11-10T10:25:00Z';
+
+  // Finished 10:29:01; started 10:15: a deploy at 10:25 is inside the run, which only the start time shows.
+  const started = await auditStaleness({ audit, deployedAt: during, readStart: readStart('2026-11-10T10:15:00Z') });
+
+  assert.equal(started.stale, true);
+  assert.equal(started.audit.startedAt, '2026-11-10T10:15:00Z');
+  assert.deepEqual(calls, ['200'], 'the start is read from the audit\'s run');
+
+  assert.equal((await auditStaleness({ audit, deployedAt: during, readStart: readStart(null) })).stale, false,
+    'an API that does not answer leaves the finish time to decide: 10:25 is before 10:29');
+  assert.equal((await auditStaleness({ audit, deployedAt: '2026-11-10T10:10:00Z', readStart: readStart('2026-11-10T10:15:00Z') })).stale, false,
+    'a deploy before the audit started');
+
+  calls.length = 0;
+  assert.deepEqual(await auditStaleness({ audit, deployedAt: null, readStart: readStart('x') }), { audit, stale: false });
+  assert.deepEqual(await auditStaleness({ audit: null, deployedAt: during, readStart: readStart('x') }), { audit: null, stale: false });
+  assert.deepEqual(calls, [], 'with no deploy time, or no audit, nothing is read');
+});
+
+test('on a stale audit a grown finding the audit saw is drift whatever its node count, and a finding it did not see still counts', () => {
+  const entry = { page: 'js-api-core', theme: 'light', rule: 'link-in-text-block', target: 'a', impact: 'serious', nodes: 3, issue: 'prose-link-color-only' };
+  const finding = overrides => ({ page: 'js-api-core', theme: 'light', rule: 'link-in-text-block', target: 'a', impact: 'serious', help: 'h',
+    helpUrl: 'https://dequeuniversity.com/x', wcag: ['1.4.1'], nodes: 1, ...overrides });
+  const comparison = violations => compareViolations({ baseline: [entry], issues: [{ id: 'prose-link-color-only', title: 'Prose links' }], violations,
+    scanned: [{ page: 'js-api-core', theme: 'light' }, { page: 'js-demo', theme: 'light' }], mode: 'warn', baselineFile: 'a11y/docs/docs-baseline.json' });
+  const audit = docsAudit(LEDGER);
+  // 10 nodes against the 6 the audit recorded (LEDGER's link-in-text-block row of js-api-core), and a label finding on a page
+  // the audit never sighted.
+  const grew = comparison([...Array.from({ length: 10 }, () => finding()), finding({ page: 'js-demo', rule: 'label', target: 'input', wcag: ['4.1.2'] })]);
+  const [grownItem] = grew.grown;
+  const [freshItem] = grew.newViolations;
+
+  assert.equal(driftOf(audit, grew)(grownItem), false, 'on a fresh audit growth past its count is this change\'s');
+  assert.equal(driftOf(audit, grew, { stale: true })(grownItem), true, 'on a stale audit the docs may have grown it since');
+  assert.equal(driftOf(audit, grew, { stale: true })(freshItem), false, 'a finding the audit never saw still counts: a stale audit cannot clear a rule the scan code added');
+  assert.equal(driftOf(null, grew, { stale: true })(grownItem), false, 'with no audit nothing is drift');
+});
+
+test('the note names the grown findings that count, not only how many', () => {
+  const audit = docsAudit(LEDGER);
+  const grown = [
+    { rule: 'js-row-height', page: 'js-row-height', theme: 'light' },
+    { rule: 'link-in-text-block', page: 'js-row-height', theme: 'dark' },
+    { rule: 'label', page: 'js-demo', theme: 'light' },
+    { rule: 'color-contrast', page: 'js-demo', theme: 'dark' },
+  ];
+  const [note] = driftNotes({ audit, drift: 0, counted: 4, grown: grown.length, grownItems: grown });
+
+  assert.match(note, /^4 grown findings count at their severity: js-row-height on js-row-height \(light\), link-in-text-block on js-row-height \(dark\), label on js-demo \(light\) and 1 more: /);
+  assert.match(driftNotes({ audit, drift: 0, counted: 1, grown: 1, grownItems: grown.slice(0, 1) })[0],
+    /^A grown finding counts at its severity: js-row-height on js-row-height \(light\): this run counts more nodes/);
 });
 
 test('the docs check run counts drift as a warning on a change run, a finding the audit did not see at its severity, and everything on an audit', () => {

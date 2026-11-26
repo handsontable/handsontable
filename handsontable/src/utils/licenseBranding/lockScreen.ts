@@ -1,4 +1,7 @@
 import { buildTemplate } from '../../helpers/dom/template';
+import { getDeepActiveElement } from '../../helpers/dom/element';
+import { getOverlayLayerWidth } from '../../core/layout/overlayWidth';
+import { announce } from '../a11yAnnouncer';
 import type { LockContent } from './content';
 import type { HotInstance } from '../../core/types';
 
@@ -11,7 +14,6 @@ const DIALOG_CLASS = 'ht-dialog';
 const LOCK_CLASS = 'ht-license-lock';
 const SCOPE_ID = 'licenseLock';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
-const SHORTCUTS_GROUP = SCOPE_ID;
 
 /**
  * Mounts the license lock screen: a blocking, non-dismissable overlay covering the grid.
@@ -26,8 +28,14 @@ const SHORTCUTS_GROUP = SCOPE_ID;
  * no Escape shortcut - the hard stop is final), and it sits above app dialogs. Its width is pinned
  * to the table's workspace width on every render (the `.ht-dialog` box is otherwise `width: 100%`,
  * which would span the whole root wrapper, not the grid - a minimal copy of the plugin's own
- * sizing); its height is the grid box. It integrates with the focus manager as a modal scope and
- * routes its Tab focus trap through the shortcut manager, exactly like the Dialog plugin.
+ * sizing); its height is the grid box.
+ *
+ * It covers the grid, not the page, so unlike the Dialog plugin it traps no focus: Tab walks the
+ * lock's own links in document order and then leaves for the rest of the page (WCAG 2.1.2). While it
+ * is mounted the grid is `inert`, so assistive technology does not read the data behind it and the
+ * pointer cannot reach it, and its focus scope covers the grid body, so no shortcut or typed key reads
+ * or writes a cell. The clipboard's native `paste` and `cut` listeners are outside that guard by
+ * construction. It announces its title once through the grid announcer.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {LockContent} content The lock copy.
@@ -59,7 +67,6 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
     className: lockClassName,
     attrs: {
       role: 'alertdialog',
-      'aria-modal': 'true',
       'aria-labelledby': titleId,
       'aria-describedby': descriptionId,
       tabindex: '-1',
@@ -121,8 +128,8 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   refs.contactButton.setAttribute('href', content.action.href);
 
   // Built as nodes, never interpolated: the copy is authored here, but keeping it out of `innerHTML`
-  // means no license sentence can ever become markup. The anchor joins the Tab trap for free -
-  // `getFocusableControls` below collects `a[href]` too.
+  // means no license sentence can ever become markup. The anchor is a plain link, so it joins the
+  // browser's Tab order with no help from the lock.
   if (content.docsLink) {
     const link = hotInstance.rootDocument.createElement('a');
 
@@ -135,52 +142,54 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
     refs.description.appendChild(hotInstance.rootDocument.createTextNode(content.docsLink.trailingText));
   }
 
-  // Collects the action anchor and the optional documentation link, in document order.
+  // Collects the action anchor and the optional documentation link, in document order. Only the scope's
+  // `onActivate` needs them: where focus lands when the user reaches the lock.
   const getFocusableControls = () => Array.from(lock.querySelectorAll<HTMLElement>('a[href], button'));
 
   // Match the dialog's sizing: the `.ht-dialog` box is `width: 100%` of the root wrapper, so it is
-  // pinned to the table's workspace width on every render (a minimal copy of the plugin's
-  // `#onAfterViewRender`); the height is the grid box via the CSS `height: 100%`.
+  // pinned on every render to the width the plugin's `#onAfterViewRender` uses (the table plus the
+  // side slots); the height is the grid box via the CSS `height: 100%`.
   const syncWidth = () => {
-    const { view } = hotInstance;
-    const width = view.isHorizontallyScrollableByWindow()
-      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
-
-    lock.style.width = `${width}px`;
+    lock.style.width = `${getOverlayLayerWidth(hotInstance)}px`;
   };
 
   hotInstance.addHook('afterViewRender', syncWidth);
 
-  const shortcutsContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+  // An EMPTY context on purpose: the focus scope switches the shortcut manager to it while focus is
+  // inside the lock, so no grid shortcut fires under the lock. It registers no Tab shortcut either -
+  // the lock traps no focus, so the browser's own Tab order walks its links and leaves.
+  if (!shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME)) {
     shortcutManager.addContext(SHORTCUTS_CONTEXT_NAME);
-
-  // The modal focus trap: Tab cycles through the lock's own controls and never leaves. The focus
-  // scope switches the manager to this context while focus is inside the lock, so these shortcuts
-  // never fire for the grid and the grid's shortcuts never fire under the lock.
-  shortcutsContext.addShortcut({
-    keys: [['Tab'], ['Shift', 'Tab']],
-    callback: (event: KeyboardEvent) => {
-      const controls = getFocusableControls();
-      const index = controls.indexOf(hotInstance.rootDocument.activeElement as HTMLElement);
-      const delta = event.shiftKey ? -1 : 1;
-
-      controls[(index + delta + controls.length) % controls.length]?.focus();
-    },
-    group: SHORTCUTS_GROUP,
-  });
+  }
 
   focusScopeManager.registerScope(SCOPE_ID, lock, {
     shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
     type: 'modal',
+    // The lock is painted over the whole grid body. Without this, a shortcut that reads or writes cell
+    // content asked only whether cells are drawn - and they are, under the lock.
+    coversGridBody: true,
     onActivate: (focusSource: string) => {
       const controls = getFocusableControls();
 
+      // Focus is already on one of the lock's links (Tab walked in, or the user clicked a link): the
+      // activation must not pull it onto the action, which would skip the documentation link. A click
+      // on the lock's own surface focuses the container, which is not a link, so it still lands on
+      // the action.
+      if (controls.includes(getDeepActiveElement(hotInstance.rootDocument) as HTMLElement)) {
+        return;
+      }
+
       if (focusSource === 'tab_from_below') {
         controls[controls.length - 1]?.focus();
+      } else if (focusSource === 'tab_from_above') {
+        // Forward Tab from the page above enters at the FIRST control in document order. Where a lock
+        // carries a documentation link, that link sits inside the description and so comes before the
+        // action: landing on the action would skip it, now that Tab goes on to the page instead of
+        // cycling back to it.
+        controls[0]?.focus();
       } else {
-        // The ACTION, not the first control in document order: where a lock carries a documentation
-        // link, that link sits inside the description and so comes first in the DOM. Tab still
-        // cycles in document order - only the landing point is the button.
+        // A click, or a focus that came from somewhere else: the ACTION, the one thing the lock asks
+        // the user to do.
         refs.contactButton.focus();
       }
     },
@@ -199,12 +208,22 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   // already listening.
   //
   // Nothing is lost by waiting: the focus scope manager activates a scope, and calls `listen()`
-  // itself, on the first focusin or click inside the scope element. So the Tab trap engages the moment
-  // the user actually reaches the lock - by clicking it (it covers the whole grid) or by tabbing in
+  // itself, on the first focusin or click inside the scope element. So the lock owns the keyboard the
+  // moment the user actually reaches it - by clicking it (it covers the whole grid) or by tabbing in
   // through a focus catcher - and not one moment earlier.
   hotInstance.addHookOnce('afterInit', () => {
     syncWidth();
     // The grid underneath is unusable, so it must not look selected. This moves no focus.
     hotInstance.deselectCell();
+    // The lock is painted over the grid, but the data stays in the DOM and in the accessibility
+    // tree. `inert` takes it out of both, and out of the Tab order and the pointer's reach. It sits
+    // on the grid alone: the "Powered by" bar below it is branding, and the lock is in the overlays
+    // layer, outside this subtree. It is behavior, not ARIA, so `ariaTags: false` does not change it.
+    hotInstance.rootGridElement.setAttribute('inert', '');
+    // The lock mounts without moving focus, so a screen reader would not otherwise say anything. The
+    // title alone: the live region is shared by every grid on the page, and the description and the
+    // action are reachable by Tab. Not checked with a real screen reader, which can ignore the first
+    // update of a region added on the same page load.
+    announce(content.title, 'polite');
   });
 }

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed nested headers exposing a header cell with no label, above the bottom header row, as a column header with no name.",
+  "type": "fixed",
+  "issueOrPR": 14395,
+  "breaking": false,
+  "framework": "none"
+}

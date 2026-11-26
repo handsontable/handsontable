@@ -2,6 +2,8 @@ import type { HotInstance } from '../../core/types';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { IndexMapper } from '../../translations';
 import { closest } from '../../helpers/dom/element';
+import { firstRowTopBorderOutsideHeight } from '../../3rdparty/walkontable/src/axisSizing/boxModel';
+import * as C from '../../i18n/constants';
 
 /**
  * The direction a resize drag moves the header edge in. A row is resized vertically, a column
@@ -85,9 +87,10 @@ export interface ResizeAxis {
    */
   isAnchoredAtInlineEnd?(hot: HotInstance, header: HTMLElement): boolean;
   /**
-   * Returns how many pixels the header renders wider than its track, over the freeze line of the end band: the
-   * band's first header reaches over the border of the column before it. `0` for every other header. Optional:
-   * an axis without an end band leaves it out.
+   * Returns how many pixels the header renders larger than its track, over a freeze line: the first header of the
+   * end band reaches over the border of the column before it, and the first row header of the frozen bottom rows is
+   * drawn one pixel above its height, which is the freeze line. `0` for every other header. Optional: an axis
+   * without such a header leaves it out.
    */
   getFreezeLineOverlap?(hot: HotInstance, header: HTMLElement): number;
   /**
@@ -100,6 +103,45 @@ export interface ResizeAxis {
    * Returns the size reported to the resize hooks.
    */
   getHookSize(hot: HotInstance, index: number, newSize: number | null): number | null;
+  /**
+   * The name of the group the keyboard shortcuts of this axis register under.
+   */
+  shortcutsGroup: string;
+  /**
+   * The i18n phrase announced when the keyboard resize starts.
+   */
+  keyboardStartedPhrase: string;
+  /**
+   * The i18n phrase announced with the size every key press sets. `[size]` stands for the pixels.
+   */
+  sizePhrase: string;
+  /**
+   * Returns the header cell of a visual index, or `null` when it is not rendered.
+   */
+  getHeaderCell(hot: HotInstance, visualIndex: number): HTMLElement | null;
+  /**
+   * Tells whether the keyboard resize of this axis answers for the current selection. A column is resized from a
+   * cell or a column header, a row from a row header or a selected row, so the two shortcuts never both claim one
+   * selection.
+   */
+  ownsSelection(hot: HotInstance): boolean;
+}
+
+/**
+ * Tells whether the selection is on a row: a focused row header, or a row selected whole.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @returns {boolean}
+ */
+function isRowSelection(hot: HotInstance): boolean {
+  const highlight = hot.getSelectedRangeLast()?.highlight;
+
+  if (!highlight || highlight.row === null || highlight.row < 0) {
+    return false;
+  }
+
+  return highlight.col === null || highlight.col < 0 ||
+    hot.selection.isSelectedByRowHeader() || hot.selection.isEntireRowSelected();
 }
 
 /**
@@ -125,6 +167,17 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
   afterResizeHook: 'afterRowResize',
   operationName: 'resize_row',
   operationSource: 'manualRowResize.resize_row',
+  shortcutsGroup: 'manualRowResize',
+  keyboardStartedPhrase: C.MANUAL_RESIZE_ROW_STARTED,
+  sizePhrase: C.MANUAL_RESIZE_HEIGHT,
+
+  getHeaderCell(hot, visualIndex) {
+    return hot.getCell(visualIndex, -1, true) ?? null;
+  },
+
+  ownsSelection(hot) {
+    return isRowSelection(hot);
+  },
 
   getIndexMapper(hot) {
     return hot.rowIndexMapper;
@@ -151,6 +204,21 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
       topInlineStartCornerOverlay.clone?.wtTable.TBODY,
       bottomInlineStartCornerOverlay.clone?.wtTable.TBODY,
     ].includes(tbody as HTMLTableSectionElement);
+  },
+
+  getFreezeLineOverlap(hot, header) {
+    // The first row of the bottom start corner is drawn one pixel above its height when the engine puts the freeze
+    // line outside that height (`firstRowTopBorderOutsideHeight()`). That pixel is not part of the size the plugin
+    // stores, so a drag of that header must not store it.
+    const cornerTable = hot.view._wt.wtOverlays.bottomInlineStartCornerOverlay.clone?.wtTable;
+    const row = header.parentElement;
+
+    if (!cornerTable || row === null || row !== cornerTable.TBODY?.firstElementChild) {
+      return 0;
+    }
+
+    return firstRowTopBorderOutsideHeight(cornerTable.name, cornerTable.THEAD, hot.stylesHandler.areCellsBorderBox()) ?
+      1 : 0;
   },
 
   canResizeHeader() {
@@ -209,6 +277,19 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
   afterResizeHook: 'afterColumnResize',
   operationName: 'resize_column',
   operationSource: 'manualColumnResize.resize_column',
+  shortcutsGroup: 'manualColumnResize',
+  keyboardStartedPhrase: C.MANUAL_RESIZE_COLUMN_STARTED,
+  sizePhrase: C.MANUAL_RESIZE_WIDTH,
+
+  getHeaderCell(hot, visualIndex) {
+    return hot.getCell(-1, visualIndex, true) ?? null;
+  },
+
+  ownsSelection(hot) {
+    const highlight = hot.getSelectedRangeLast()?.highlight;
+
+    return !!highlight && highlight.col !== null && highlight.col >= 0 && !isRowSelection(hot);
+  },
 
   getIndexMapper(hot) {
     return hot.columnIndexMapper;

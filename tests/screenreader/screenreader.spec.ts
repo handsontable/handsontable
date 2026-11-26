@@ -7,6 +7,7 @@ import { test as base, expect, type Page, type TestInfo } from '@playwright/test
 import { screenReaderTest, type ScreenReaderPlaywright } from '@guidepup/playwright';
 import { NVDAKeyCodeCommands } from '@guidepup/guidepup';
 import { BUNDLE_POLLING_MS, awaitBundle } from '../fixtures/bundle';
+import { isLicensePreset, presetLicenseQuery } from '../fixtures/licenseTiers';
 import {
   SCENARIO_GROUPS,
   laneOfProject,
@@ -334,6 +335,25 @@ async function runAction(page: Page, root: string, action: ScenarioAction | Setu
   } else {
     throw new Error(`The page does not run the reader primitive ${JSON.stringify(action)}.`);
   }
+}
+
+/**
+ * The license part of a scenario's query: the made-up tiers and the key of the license preset its catalog
+ * page names (`licensePreset` in `a11y/pages.mjs`), which only this side can build, from the build's feature
+ * manifest, as the a11y tier's `fixtureUrl()` does. `undefined` for a page without one.
+ *
+ * @param licensePreset The preset the scenario's catalog page names.
+ * @returns The `presets` and `licenseKey` parameters.
+ */
+function licenseQueryOf(licensePreset: string | undefined): string | undefined {
+  if (licensePreset === undefined) {
+    return undefined;
+  }
+  if (!isLicensePreset(licensePreset)) {
+    throw new Error(`Unknown licensePreset ${JSON.stringify(licensePreset)} in tests/a11y/pages.mjs.`);
+  }
+
+  return presetLicenseQuery(licensePreset);
 }
 
 /**
@@ -909,7 +929,7 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
   const steps: TranscriptStep[] = [];
   const unsupported: TranscriptUnsupportedStep[] = [];
   const lane = laneOfProject(testInfo.project.name);
-  const { root } = scenarioPlace(scenario);
+  const { root, licensePreset } = scenarioPlace(scenario);
   let entering: string[] = [];
   let running = SETUP_STEP;
   let incomplete: TranscriptIncomplete | undefined;
@@ -925,7 +945,7 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
   // leaves the steps captured so far and where it stopped, which is what a red nightly is read from.
   // The error is rethrown, so the test stays red.
   try {
-    await page.goto(scenarioUrl(scenario));
+    await page.goto(scenarioUrl(scenario, { licenseQuery: licenseQueryOf(licensePreset) }));
     await awaitBundle(page);
     await awaitGrid(page, root);
     await reader.enter(scenario.start ?? 'grid');

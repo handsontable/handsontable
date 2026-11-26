@@ -14,23 +14,21 @@
       - gridcell "C2"
       - gridcell "D2"
   - rowgroup:
-    - row "Select whole grid A B C D":
-      - gridcell "Select whole grid"
+    - row "A B C D":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
       - columnheader "D"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
     - row "2":
       - rowheader "2"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
-  - combobox:
+    - row:
+      - gridcell
+  - combobox "D, row 1":
     - option "Option A"
     - option "Option B"
 - text: "Page size:"

@@ -32,6 +32,10 @@ same from any spec that right-clicks a cell that is not fully visible in every a
 
 `Menu#close()` is ignored while the menu is still opening, and a null factory makes the next command rebuild the items — firing the public `beforeContextMenuSetItems` hook again — under a menu that is on screen. `DropdownMenu#executeCommand()` already asks `isClosed()` before rebuilding. The lifecycle behind `isClosed()`: `../../utils/menu/AGENTS.md`.
 
+## After the menu closes, `#onMenuAfterClose` refocuses the grid before the hide hook
+
+The browser focus falls to `document.body` when the menu's own grid is destroyed. `#onMenuAfterClose` calls `returnFocusToGrid()` right after `hot.listen()` and before `afterContextMenuHide`, so a hook listener finds the focus on the cell. The rule and its limits: `../../utils/menu/AGENTS.md`, "Closing a menu returns the browser focus to the grid".
+
 ## Where to look next
 
 - Shared menu library (`Menu`, `registerMenuEntries()`, item state, lifecycle): `handsontable/src/utils/menu/AGENTS.md`.

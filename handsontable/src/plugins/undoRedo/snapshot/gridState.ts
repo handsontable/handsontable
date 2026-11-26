@@ -113,6 +113,16 @@ function areMapsEqual(left: ReadonlyMap<string, unknown>, right: ReadonlyMap<str
 }
 
 /**
+ * The method a plugin implements to take part in a snapshot.
+ */
+type CaptureMethodName = 'captureState' | 'captureSourceStructure';
+
+/**
+ * The grid plugins that implement one capture method, by registered name, in the plugin priority order.
+ */
+type CapturingPlugins = ReadonlyArray<readonly [string, BasePlugin]>;
+
+/**
  * Captures and restores the grid state UndoRedo snapshots. See `GridStateSnapshot`.
  */
 export class GridStateTracker {
@@ -132,6 +142,13 @@ export class GridStateTracker {
    * The previous capture.
    */
   #last: GridStateSnapshot | null = null;
+  /**
+   * The grid plugins that implement each capture method, resolved on the first capture. A grid creates
+   * all its plugins in its constructor (a plugin registered later never gets an instance on it), so the
+   * list never changes. A capture runs twice per recorded action, and walking every registered plugin
+   * there dominated a loop of cheap actions.
+   */
+  #capturingPlugins: Map<CaptureMethodName, CapturingPlugins> | null = null;
 
   /**
    * Starts tracking the grid.
@@ -197,7 +214,7 @@ export class GridStateTracker {
    * @param {GridStateSnapshot} [changedFrom] The snapshot from the other side of the step.
    */
   restoreSourceStructures(snapshot: GridStateSnapshot, changedFrom?: GridStateSnapshot) {
-    this.#forEachEnabledPlugin(snapshot.sourceStructures, (plugin, state, name) => {
+    this.#forEachEnabledPlugin('captureSourceStructure', snapshot.sourceStructures, (plugin, state, name) => {
       if (typeof plugin.restoreSourceStructure === 'function' && changedFrom?.sourceStructures.get(name) !== state) {
         plugin.restoreSourceStructure(state);
       }
@@ -239,16 +256,37 @@ export class GridStateTracker {
     // the grid keeps its columns – the replay left them where the step recorded them.
     const rowCount = this.#hot.countSourceRows();
 
-    this.#rows.restore(snapshot.rows, {
+    const restoreRows = () => this.#rows.restore(snapshot.rows, {
       changedFrom: changedFrom?.rows, forceOrder, length: rowCount,
     });
+    const followers = changedFrom !== undefined && !forceOrder ?
+      this.#readShownRowsFollowers(snapshot, changedFrom) : [];
+
+    // The row maps update their cache here, before any plugin state is restored, so this is the one
+    // place the selection can be told to move with its rows. The plugin states that only change which
+    // rows are shown are put back first (again below, which changes nothing), so a selection listener
+    // the follow runs reads the restored state, as it does after the action itself.
+    if (followers.length > 0) {
+      followers.forEach(({ plugin, state, name }) => {
+        plugin.restoreState?.(state, {
+          other: changedFrom!.plugins.get(name),
+          direction,
+          reordered: forceOrder,
+          toRestoredIndex,
+        });
+      });
+      this.#hot.selection.followRecordsWhile('row', restoreRows);
+    } else {
+      restoreRows();
+    }
+
     this.#columns.restore(snapshot.columns, {
       changedFrom: changedFrom?.columns,
       forceOrder,
       length: rowCount === 0 ? this.#hot.columnIndexMapper.getNumberOfIndexes() : this.#hot.getInitialColumnCount(),
     });
 
-    this.#forEachEnabledPlugin(snapshot.plugins, (plugin, state, name) => {
+    this.#forEachEnabledPlugin('captureState', snapshot.plugins, (plugin, state, name) => {
       if (typeof plugin.restoreState !== 'function') {
         return;
       }
@@ -328,6 +366,7 @@ export class GridStateTracker {
     this.#rows.destroy();
     this.#columns.destroy();
     this.#last = null;
+    this.#capturingPlugins = null;
   }
 
   /**
@@ -389,16 +428,16 @@ export class GridStateTracker {
    * @returns {Map<string, *>}
    */
   #capturePlugins(
-    methodName: 'captureState' | 'captureSourceStructure',
+    methodName: CaptureMethodName,
     previous: ReadonlyMap<string, unknown> | undefined,
   ): ReadonlyMap<string, unknown> {
     const states = new Map<string, unknown>();
 
-    getPluginsNames().forEach((pluginName) => {
-      const plugin: BasePlugin | undefined = this.#hot.getPlugin(pluginName);
-      const capture = plugin?.[methodName];
+    this.#getCapturingPlugins(methodName).forEach(([pluginName, plugin]) => {
+      const capture = plugin[methodName];
 
-      if (plugin === undefined || !plugin.enabled || typeof capture !== 'function') {
+      // Enabled is read on every capture: a plugin can be turned on or off between two actions.
+      if (!plugin.enabled || typeof capture !== 'function') {
         return;
       }
 
@@ -413,24 +452,103 @@ export class GridStateTracker {
   }
 
   /**
+   * Returns the grid plugins that implement a capture method, in the plugin priority order. The lists
+   * are resolved on the first call. A plugin takes part only through the methods its class defines.
+   *
+   * @param {string} methodName `captureState` or `captureSourceStructure`.
+   * @returns {Array}
+   */
+  #getCapturingPlugins(methodName: CaptureMethodName): CapturingPlugins {
+    if (this.#capturingPlugins === null) {
+      const byMethod = new Map<CaptureMethodName, Array<readonly [string, BasePlugin]>>([
+        ['captureState', []],
+        ['captureSourceStructure', []],
+      ]);
+
+      getPluginsNames().forEach((pluginName) => {
+        const plugin: BasePlugin | undefined = this.#hot.getPlugin(pluginName);
+
+        if (plugin === undefined) {
+          return;
+        }
+
+        byMethod.forEach((plugins, method) => {
+          if (typeof plugin[method] === 'function') {
+            plugins.push([pluginName, plugin]);
+          }
+        });
+      });
+
+      this.#capturingPlugins = byMethod;
+    }
+
+    return this.#capturingPlugins.get(methodName) ?? [];
+  }
+
+  /**
+   * Lists the plugins whose state the step changed when the step changed which rows are shown and
+   * nothing else on the row axis: every row trimming map it changed is declared by an enabled plugin
+   * (`getShownRowsTrimmingMaps()`), and it did not reshape the source. Any other trim the step made
+   * (a filter in the same batch) and any reshape (a row move, which renumbers the rows) keep the
+   * default repair, so the list is empty then.
+   *
+   * @param {GridStateSnapshot} snapshot The snapshot to restore.
+   * @param {GridStateSnapshot} changedFrom The snapshot from the other side of the step.
+   * @returns {Array} The plugins to restore before the row maps, with their states and names.
+   */
+  #readShownRowsFollowers(
+    snapshot: GridStateSnapshot,
+    changedFrom: GridStateSnapshot,
+  ): Array<{ plugin: BasePlugin, state: unknown, name: string }> {
+    const isReshaped = Array.from(snapshot.sourceStructures)
+      .some(([name, state]) => changedFrom.sourceStructures.get(name) !== state);
+
+    if (isReshaped) {
+      return [];
+    }
+
+    const declaredMaps = new Set<string>();
+    const followers: Array<{ plugin: BasePlugin, state: unknown, name: string }> = [];
+
+    this.#forEachEnabledPlugin('captureState', snapshot.plugins, (plugin, state, name) => {
+      const mapNames = plugin.getShownRowsTrimmingMaps?.() ?? [];
+
+      mapNames.forEach(mapName => declaredMaps.add(mapName));
+
+      if (mapNames.length > 0 && changedFrom.plugins.get(name) !== state) {
+        followers.push({ plugin, state, name });
+      }
+    });
+
+    const changedTrimmingMaps = Array.from(snapshot.rows.trimming.keys())
+      .filter(mapName => changedFrom.rows.trimming.get(mapName) !== snapshot.rows.trimming.get(mapName));
+
+    if (changedTrimmingMaps.length === 0 || changedTrimmingMaps.some(mapName => !declaredMaps.has(mapName))) {
+      return [];
+    }
+
+    return followers;
+  }
+
+  /**
    * Calls the callback for every plugin a snapshot recorded a state for that is still enabled. A
    * plugin disabled or unregistered since is skipped – its part of the grid is restored anyway.
    *
+   * @param {string} methodName The capture method that recorded the states.
    * @param {Map} states The recorded states, by plugin name.
    * @param {Function} callback Called with the plugin, its state and its name.
    */
   #forEachEnabledPlugin(
+    methodName: CaptureMethodName,
     states: ReadonlyMap<string, unknown>,
     callback: (plugin: BasePlugin, state: unknown, pluginName: string) => void,
   ) {
-    getPluginsNames().forEach((pluginName) => {
-      if (!states.has(pluginName)) {
-        return;
-      }
+    if (states.size === 0) {
+      return;
+    }
 
-      const plugin = this.#hot.getPlugin(pluginName);
-
-      if (plugin?.enabled) {
+    this.#getCapturingPlugins(methodName).forEach(([pluginName, plugin]) => {
+      if (states.has(pluginName) && plugin.enabled) {
         callback(plugin, states.get(pluginName), pluginName);
       }
     });

@@ -34,7 +34,7 @@
 
 /* A row the model could not answer. The tooltip carries the reason. */
 .handsontable tbody td.ai-error {
-  color: #c62828;
+  color: light-dark(#c62828, #f87171);
   font-weight: 600;
 }
 

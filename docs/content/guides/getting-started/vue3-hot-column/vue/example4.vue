@@ -11,7 +11,7 @@ const scoreRenderer: BaseRenderer = (_instance, td, _row, _col, _prop, value) =>
   const score = Number(value);
 
   td.innerHTML = String(value ?? '');
-  td.style.color = score >= 80 ? '#2d7d46' : score < 50 ? '#c0392b' : '';
+  td.style.color = score >= 80 ? 'light-dark(#2d7d46, #4ade80)' : score < 50 ? 'light-dark(#c0392b, #f87171)' : '';
   td.style.fontWeight = score >= 80 ? 'bold' : '';
 
   return td;

@@ -71,7 +71,7 @@ export class AppComponent {
     afterGetColHeader(col: number, TH: HTMLTableCellElement) {
       // Set the initial aria-sort state. The columnSorting plugin updates this
       // attribute automatically when the user sorts a column.
-      if (!TH.hasAttribute('aria-sort')) {
+      if (col >= 0 && !TH.hasAttribute('aria-sort')) {
         TH.setAttribute('aria-sort', 'none');
       }
     },

@@ -21,12 +21,10 @@ import SupportDropdown from './SupportDropdown.astro';
 import FrameworkSwitcher from './FrameworkSwitcher.astro';
 import { validUrlArrays } from 'virtual:valid-urls';
 
-const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
-
-// Hide search in non-production builds (dev / staging) -- results would be
-// stale or empty. The search provider (Algolia or Starlight default) is
-// configured independently of this flag.
-const shouldRenderSearch = isProduction;
+// Search renders in production builds and in builds with DOCS_SEARCH=true
+// (the staging and pull request previews), where astro.config.mjs also adds
+// the Algolia plugin. Both read the production index.
+const shouldRenderSearch = import.meta.env.PUBLIC_DOCS_SEARCH === 'true';
 
 const pathname = Astro.url.pathname;
 
@@ -41,6 +39,8 @@ const currentPrefix = pathname.includes('/react-data-grid/')
 const guidesUrl = `/docs/${currentPrefix}/`;
 const recipesUrl = `/docs/${currentPrefix}/recipes/`;
 const apiUrl = `/docs/${currentPrefix}/api/`;
+// The demo runner, where every example can be browsed, run, and edited live.
+const playgroundUrl = 'https://demos.handsontable.com';
 const changelogUrl = `/docs/${currentPrefix}/changes-between-versions/`;
 const isApiPage = pathname.includes('/api/');
 const isRecipesPage = pathname.includes('/recipes/');
@@ -121,8 +121,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
         type="button"
         class="header-assistant-btn"
         id="header-assistant-btn"
-        aria-label="Open docs assistant"
-        title="Docs assistant"
+        title="Ask AI"
       >
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" /><path d="M9.5 9h.01" /><path d="M14.5 9h.01" /><path d="M9.5 13a3.5 3.5 0 0 0 5 0" /></svg>
         <span>Ask AI</span>
@@ -171,8 +170,8 @@ function getMobileFrameworkHref(fw: { id: string }): string {
         type="button"
         class="header-assistant-btn mobile-assistant-btn"
         id="mobile-assistant-btn"
-        aria-label="Open docs assistant"
-        title="Docs assistant"
+        aria-label="Ask AI"
+        title="Ask AI"
       >
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" /><path d="M9.5 9h.01" /><path d="M14.5 9h.01" /><path d="M9.5 13a3.5 3.5 0 0 0 5 0" /></svg>
       </button>
@@ -217,6 +216,18 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       Updates
     </a>
     <SupportDropdown />
+    <a
+      href={playgroundUrl}
+      class="nav-link"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Playground (opens in new window)"
+      title="Playground"
+    >
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16l13 -8z"/></svg>
+      <span class="nav-link-label">Playground</span>
+      <svg class="nav-link-external-icon" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
+    </a>
     <div class="nav-spacer"></div>
     <FrameworkSwitcher />
     <VersionsDropdown />
@@ -271,6 +282,17 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       >
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
         Updates
+      </a>
+      <a
+        href={playgroundUrl}
+        class="mobile-nav-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Playground (opens in new window)"
+      >
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16l13 -8z"/></svg>
+        Playground
+        <svg class="nav-link-external-icon" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
       </a>
     </div>
     <div class="mobile-nav-frameworks-section">
@@ -336,6 +358,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
 <!-- Mobile navigation: overlay, sidebar delegation, ToC panel, breadcrumbs -->
 <script>
   import { createFocusTrap } from '../scripts/a11y-utils';
+  import { syncSubheaderHeight } from '../lib/subheader-height.mjs';
 
   let cleanupPrevious: (() => void) | null = null;
 
@@ -358,6 +381,9 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     if (subheader && subheader.parentElement !== document.body) {
       document.body.appendChild(subheader);
     }
+    const stopSubheaderSync = subheader
+      ? syncSubheaderHeight(subheader as HTMLElement, document.documentElement)
+      : null;
     if (overlay && overlay.parentElement !== document.body) {
       document.body.appendChild(overlay);
     }
@@ -426,6 +452,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     }
 
     function setOverlay(open: boolean) {
+      const wasOpen = overlayOpen;
       overlayOpen = open;
       if (overlay) overlay.hidden = !open;
       if (menuBtn) {
@@ -447,11 +474,12 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       } else {
         overlayTrapCleanup?.();
         overlayTrapCleanup = null;
-        menuBtn?.focus();
+        if (wasOpen) menuBtn?.focus();
       }
     }
 
-    function setToc(open: boolean) {
+    function setToc(open: boolean, restoreFocus = true) {
+      const wasOpen = tocOpen;
       tocOpen = open;
       if (tocPanel) tocPanel.hidden = !open;
       if (tocToggle) tocToggle.setAttribute('aria-expanded', String(open));
@@ -470,7 +498,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       } else {
         tocTrapCleanup?.();
         tocTrapCleanup = null;
-        tocToggle?.focus();
+        if (wasOpen && restoreFocus) tocToggle?.focus();
       }
     }
 
@@ -480,15 +508,29 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       setToc(false);
     }
 
-    // --- Sidebar aria-hidden on tablet collapse (Phase 3B) ---
-    function updateSidebarAriaHidden() {
+    // --- Sidebar hidden and inert on tablet collapse ---
+    const tabletQuery = window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)');
+
+    function updateSidebarHidden() {
       if (!sidebarPane) return;
-      const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
-      if (collapsed) {
+      const hidden = document.body.hasAttribute('data-sidebar-collapsed') && tabletQuery.matches;
+      if (hidden) {
         sidebarPane.setAttribute('aria-hidden', 'true');
       } else {
         sidebarPane.removeAttribute('aria-hidden');
       }
+      if (hidden && sidebarPane.contains(document.activeElement)) {
+        sidebarToggle?.focus();
+      }
+      sidebarPane.inert = hidden;
+    }
+
+    function updateSidebarToggleExpanded() {
+      if (!sidebarToggle) return;
+      const open = tabletQuery.matches
+        ? !document.body.hasAttribute('data-sidebar-collapsed')
+        : isSidebarOpen();
+      sidebarToggle.setAttribute('aria-expanded', String(open));
     }
 
     // --- Populate ToC from desktop starlight-toc ---
@@ -542,38 +584,37 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     }, { signal });
 
     // --- Sidebar toggle ---
-    const isTablet = () => window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)').matches;
+    const isTablet = () => tabletQuery.matches;
 
     sidebarToggle?.addEventListener('click', () => {
       setOverlay(false);
-      setToc(false);
+      setToc(false, false);
       if (isTablet()) {
         // Tablet: collapse/expand sidebar via data attribute
         document.body.toggleAttribute('data-sidebar-collapsed');
-        const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
-        sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
-        updateSidebarAriaHidden();
+        updateSidebarToggleExpanded();
+        updateSidebarHidden();
       } else {
         // Mobile: delegate to Starlight's mobile menu
         if (starlightBtn) starlightBtn.click();
-        requestAnimationFrame(() => {
-          sidebarToggle.setAttribute('aria-expanded', String(isSidebarOpen()));
-        });
+        requestAnimationFrame(updateSidebarToggleExpanded);
       }
     }, { signal });
 
     // Observe body attribute to sync sidebar toggle state (e.g. Escape key)
-    const observer = new MutationObserver(() => {
-      const open = isSidebarOpen();
-      sidebarToggle?.setAttribute('aria-expanded', String(open));
-    });
+    const observer = new MutationObserver(updateSidebarToggleExpanded);
     observer.observe(document.body, { attributes: true, attributeFilter: ['data-mobile-menu-expanded'] });
 
-    // Also observe data-sidebar-collapsed for aria-hidden sync
+    // Also observe data-sidebar-collapsed, and the tablet range, for the hidden and expanded state
     const collapseObserver = new MutationObserver(() => {
-      updateSidebarAriaHidden();
+      updateSidebarHidden();
+      updateSidebarToggleExpanded();
     });
     collapseObserver.observe(document.body, { attributes: true, attributeFilter: ['data-sidebar-collapsed'] });
+    tabletQuery.addEventListener('change', () => {
+      updateSidebarHidden();
+      updateSidebarToggleExpanded();
+    }, { signal });
 
     // --- ToC toggle ---
     tocToggle?.addEventListener('click', () => {
@@ -609,11 +650,13 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     setToc(false);
     setInertBehind(false);
     updateBreadcrumbs();
-    updateSidebarAriaHidden();
+    updateSidebarHidden();
+    updateSidebarToggleExpanded();
 
     // Store cleanup for view transitions
     cleanupPrevious = () => {
       controller.abort();
+      stopSubheaderSync?.();
       observer.disconnect();
       collapseObserver.disconnect();
       overlayTrapCleanup?.();
@@ -729,6 +772,31 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     transition: color 0.15s, border-color 0.15s, background-color 0.15s;
     white-space: nowrap;
     position: relative;
+  }
+
+  /* The "opens in a new window" mark after an external link's label, as in the Support menu. */
+  .nav-link-external-icon {
+    margin-left: -0.25rem;
+    opacity: 0.6;
+  }
+
+  /*
+   * Tablets: the row runs out of room once Playground is in it, and the version
+   * selector is pushed off the edge. Playground drops its label first; its
+   * aria-label keeps the name and the title shows it on hover.
+   */
+  @media (max-width: 74.99rem) {
+    .nav-link-label {
+      display: none;
+    }
+  }
+
+  /* Narrow tablets (below 920px, 820px and 834px iPads included): tighter links. */
+  @media (max-width: 57.49rem) {
+    .nav-link {
+      gap: 0.35rem;
+      padding-inline: 0.5rem;
+    }
   }
 
   .nav-link:first-child {

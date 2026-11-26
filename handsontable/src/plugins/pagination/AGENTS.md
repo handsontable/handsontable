@@ -18,6 +18,23 @@ A `'hiding'` map affects the **renderable** tier, so paginated-away rows keep th
 (The DeepWiki page groups filtering with hiding and pagination; it is wrong. See
 `../../../.ai/INDEX-MAPPING.md`.)
 
+## A page change writes the hiding map once
+
+`#computeAndApplyState()` builds the map's values in `#buildPagedRowsValues()` and writes them with one
+`setValues()` call. Do not go back to a `setValueAtIndex()` per hidden row. Each write fires a `change`
+hook through the hiding collection and the index mapper, even inside a batch. At 100,000 rows that was
+about 99,950 hooks per page change, plus the `clear()` one, and doubled its cost (about 22 ms against 11 ms per page change,
+measured on a 100,000 x 20 grid with `pageSize: 50`). `performance-tests/scenarios/pagination-next-page/`
+guards it. Size the array from the map's own `getLength()`:
+`BooleanMap#setValues()` resizes the map to the array it gets. Two traps come with it:
+
+- **The `clear()` at the top is load-bearing.** Outside a batch, its `change` rebuilds the index mapper's
+  cache. That rebuild is why the `getRenderableIndexes()` read that follows includes the rows this
+  plugin hid for the previous page. Without the clear, the next page is cut out of the previous page's
+  rows.
+- **`getRenderableIndexes()` returns the mapper's cache array by reference.** Read it, never modify it.
+  The old code `splice()`d the page out of it, which changed the mapper's own cache until the next rebuild.
+
 ## The per-render recompute fires no execution hooks (DEV-4193)
 
 `#computeAndApplyState()` stores the map inside `batchExecution(…, true)`, which fires the four execution
@@ -253,6 +270,15 @@ navigation button `display: block`, which sizes the button's content box to the 
 painting the disabled `GrayText` border on first/prev after they were re-enabled - the computed
 `border-color` was already right, only the paint was stale. `tests/e2e/icon-elements-misc.spec.ts`
 compares the button's paint after a page change with a fresh paint of it.
+
+**The navigation button has a 24 px floor, and the icon is centered by auto margins.** The classic theme
+draws a 12 px icon, so icon plus padding plus border came to 22 px, under the 24 px target WCAG 2.2 2.5.8
+asks for. `_pagination.scss` sets `min-width` and `min-height` to `--ht-icon-button-hit-area-size` (24 px in
+every theme; do not add a token for it). A block icon sits at the inline start of a wider button, so the
+`.ht-icon` carries `margin-inline: auto`, which centers it in both directions of text without making the
+button flex. The sheets bar buttons have the same floor (`_sheets-bar.scss`). Pinned by
+`tests/e2e/bar-button-target-size.spec.ts`: first and previous are disabled on page 1, so the spec pages
+forward first, as axe skips disabled buttons.
 
 ## Styling: the label spans declare their own text metrics
 

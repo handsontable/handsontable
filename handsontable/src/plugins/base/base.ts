@@ -1096,6 +1096,19 @@ export class BasePlugin {
   restoreState?(state: unknown, context?: PluginRestoreContext): void;
 
   /**
+   * Names the row trimming maps of this plugin whose change only changes which rows are shown (a
+   * collapse, an expand), not which rows the user works with. When an undo or a redo changes no
+   * other trimming map, does not reshape the source and replays no row or column insert or removal,
+   * UndoRedo restores the row maps inside `Selection#followRecordsWhile()`, so the selection moves
+   * with its rows, as it did on the action itself. Leave it out for a trim that takes rows out of the
+   * user's working set (a filter, `trimRows`): a selection naming a row that is gone must drop.
+   *
+   * @private
+   * @returns {string[]}
+   */
+  getShownRowsTrimmingMaps?(): readonly string[];
+
+  /**
    * Returns the physical columns a step addresses through this plugin's state: the columns whose
    * state differs between `state` and `other`, the plugin's states on the two sides of the step.
    * UndoRedo asks when a `columns` settings update changes which field a column shows, and keeps

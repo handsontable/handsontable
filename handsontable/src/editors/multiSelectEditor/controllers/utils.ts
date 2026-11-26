@@ -108,6 +108,8 @@ export function createSearchInputElement({ root }: { root: Document }): HTMLInpu
     ['size', 3],
     ['placeholder', SEARCH_INPUT_PLACEHOLDER],
     ['id', SEARCH_INPUT_CLASS],
+    // Makes the element recognizable by Handsontable as its own component's element.
+    ['data-hot-input', ''],
   ]);
   addClass(inputElement, SEARCH_INPUT_CLASS);
 
@@ -240,6 +242,8 @@ export function createListItemElement({
   checkboxElement.dataset.value = itemValue;
   checkboxElement.dataset.index = String(indexWithinList);
   checkboxElement.dataset.disabled = (disabled && !checked) ? 'true' : 'false';
+  // Makes the element recognizable by Handsontable as its own component's element.
+  checkboxElement.dataset.hotInput = '';
 
   if (itemKey) {
     checkboxElement.dataset.key = itemKey;

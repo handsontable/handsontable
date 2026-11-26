@@ -67,9 +67,9 @@ export class AppComponent {
     colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
     height: 'auto',
     columns: [
-      { data: 'title', renderer: ColorRendererComponent, rendererProps: { textColor: 'blue' } },
-      { data: 'description', renderer: ColorRendererComponent, rendererProps: { textColor: 'orange' } },
-      { data: 'rate', renderer: ColorRendererComponent, rendererProps: { textColorFn: (value: string) => +value <= 5 ? 'red' : 'inherit' } },
+      { data: 'title', renderer: ColorRendererComponent, rendererProps: { textColor: 'light-dark(#1d4ed8, #60a5fa)' } },
+      { data: 'description', renderer: ColorRendererComponent, rendererProps: { textColor: 'light-dark(#b35900, #fbbf24)' } },
+      { data: 'rate', renderer: ColorRendererComponent, rendererProps: { textColorFn: (value: string) => +value <= 5 ? 'light-dark(#c92a2a, #f87171)' : 'inherit' } },
     ],
     autoWrapRow: true,
     autoWrapCol: true,

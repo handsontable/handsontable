@@ -37,11 +37,11 @@ export function Thread({
 }: Props) {
   const [draft, setDraft] = useState('');
   // The next message goes to Support, not to the bot. It lasts for one message: sending it, or closing
-  // the chip, puts the input back to the bot.
+  // the strip, puts the input back to the bot.
   const [toSupport, setToSupport] = useState(false);
   const [backToBotNotice, setBackToBotNotice] = useState(false);
 
-  // The chip cannot outlive the conversation it belongs to (a cleared thread, a thread too old to poll).
+  // The strip cannot outlive the conversation it belongs to (a cleared thread, a thread too old to poll).
   useEffect(() => {
     if (!canWriteToSupport) setToSupport(false);
   }, [canWriteToSupport]);
@@ -164,19 +164,24 @@ export function Thread({
           submit();
         }}
       >
-        <div className={`da-input-wrap${toSupport ? ' has-support-chip' : ''}`}>
+        <div className={`da-input-wrap${toSupport ? ' has-support-strip' : ''}`}>
           {toSupport && (
-            <span className="da-support-chip">
-              {SUPPORT_UI.chip}
-              <button
-                type="button"
-                className="da-support-chip-remove"
-                aria-label={SUPPORT_UI.chipRemove}
-                onClick={stopSupportReply}
-              >
-                <IconClose width={10} height={10} />
-              </button>
-            </span>
+            <div className="da-support-strip">
+              <span className="da-support-strip-title">{SUPPORT_UI.stripTitle}</span>
+              <span className="da-support-strip-actions">
+                <button type="button" className="da-support-strip-back" onClick={stopSupportReply}>
+                  {SUPPORT_UI.stripBack}
+                </button>
+                <button
+                  type="button"
+                  className="da-support-strip-remove"
+                  aria-label={SUPPORT_UI.stripRemove}
+                  onClick={stopSupportReply}
+                >
+                  <IconClose width={10} height={10} />
+                </button>
+              </span>
+            </div>
           )}
           <textarea
             ref={composerRef}

@@ -248,6 +248,10 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 </script>
 
 <script>
+  import '../scripts/docs-search-keyboard';
+</script>
+
+<script>
   import '../scripts/version-comparison-bootstrap';
 </script>
 
@@ -267,6 +271,10 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
     btn.classList.add('copied');
     setTimeout(() => btn.classList.remove('copied'), 3000);
   });
+</script>
+
+<script>
+  import '../scripts/scrollable-blocks';
 </script>
 
 <script>
@@ -309,6 +317,6 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
     const option = btn.dataset.option ?? '';
     const plugin = btn.dataset.plugin ?? 'Handsontable';
     const question = `Tell me what ${option} in ${plugin} is responsible for and give me an example use case.`;
-    window.dispatchEvent(new CustomEvent('docs-assistant:ask', { detail: { question } }));
+    window.dispatchEvent(new CustomEvent('docs-assistant:ask', { detail: { question, opener: btn } }));
   });
 </script>

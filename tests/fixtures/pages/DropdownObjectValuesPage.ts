@@ -117,6 +117,45 @@ export class DropdownObjectValuesPage {
   }
 
   /**
+   * The option showing exactly `label` in the open list.
+   */
+  option(label: string): Locator {
+    return this.page.locator('.handsontableEditor .ht_master tbody').getByText(label, { exact: true });
+  }
+
+  /**
+   * The option the list highlights, which is the one its selection sits on.
+   */
+  highlightedOption(): Locator {
+    return this.page.locator('.handsontableEditor .ht_master tbody td.current');
+  }
+
+  /**
+   * Presses a mouse button (the left one by default) over an option and keeps it down.
+   */
+  async pressOption(label: string, button: 'left' | 'right' = 'left'): Promise<void> {
+    await this.option(label).hover();
+    await this.page.mouse.down({ button });
+  }
+
+  /**
+   * Moves the pointer over an option and releases a mouse button (the left one by default) there.
+   */
+  async releaseOnOption(label: string, button: 'left' | 'right' = 'left'): Promise<void> {
+    await this.option(label).hover();
+    await this.page.mouse.up({ button });
+  }
+
+  /**
+   * Moves the pointer onto the page margin, away from every cell of the grid and the list, and
+   * releases the left mouse button there.
+   */
+  async releaseOutsideGrid(): Promise<void> {
+    await this.page.mouse.move(4, 4);
+    await this.page.mouse.up();
+  }
+
+  /**
    * Reports which source entry the cell stores: `entry:<key>` when it equals that entry in full,
    * `other:<json>` for any other object, `null`, or `<type>:<value>` for a primitive.
    */

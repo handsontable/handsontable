@@ -1,7 +1,10 @@
 import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
 import type { HotInstance } from '../../../core/types';
+import type { SelectionState } from '../../../selection/types';
 import type { NestedRows } from '../nestedRows';
-import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { hasTouchList, stopImmediatePropagation } from '../../../helpers/dom/event';
+import { armPressRelease, getCoordsWithinGrid } from '../../../helpers/dom/pointerRelease';
+import { isLongPressReplay } from '../../../helpers/dom/longPress';
 import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
@@ -21,6 +24,16 @@ const actionDictionary = new Map([
     afterHook: 'afterRowExpand',
   }],
 ]);
+
+/**
+ * The row object under each corner of one selection layer. A corner on a header keeps its negative
+ * row number.
+ */
+interface SelectionRecords {
+  from: RowObject | number;
+  to: RowObject | number;
+  highlight: RowObject | number;
+}
 
 /**
  * Class responsible for the UI for collapsing and expanding groups.
@@ -63,6 +76,21 @@ class CollapsingUI extends BaseUI {
    * Whether this stash holds the selection's grid-tracking grow (see `collapsedRowsStash.stash()`).
    */
   #holdsGridTrackingFits = false;
+  /**
+   * Whether a collapse is putting a selection it stranded back on a row that is still shown (see
+   * `#restoreSelection()`).
+   */
+  #isRestoringSelection = false;
+  /**
+   * The row objects each selection layer was on when the stash opened, or `null` (see
+   * `#captureSelectionRecords()`). A header keeps its negative row number.
+   */
+  #selectionRecords: { layers: SelectionRecords[], state: SelectionState } | null = null;
+  /**
+   * Drops the press on a button that waits for its release (see `toggleState()`). The listeners of a press
+   * that is still held go with the plugin's event manager when it is disabled or destroyed.
+   */
+  #disposePress: (() => void) | null = null;
 
   /**
    * Initializes the collapsing UI component and sets up the stash mechanism for preserving collapsed row state across operations.
@@ -77,7 +105,22 @@ class CollapsingUI extends BaseUI {
     this.collapsedRows = [];
     this.collapsedRowsStash = {
       stash: (forceRender = false) => {
-        this.lastCollapsedRows = this.collapsedRows.slice(0);
+        // Read before anything changes, and only by the stash that opens the bracket: a second
+        // `stash()` before `applyStash()` runs on a grid the first one already expanded.
+        if (this.lastCollapsedRows === undefined) {
+          this.#selectionRecords = this.#captureSelectionRecords();
+          this.lastCollapsedRows = this.collapsedRows.slice(0);
+        } else {
+          // The bracket is already open, so the parents it stashed are expanded and no longer in
+          // `collapsedRows`. Replacing the stash with `collapsedRows` lost them: an `alter()` removing
+          // several groups stashes once per group, and the parents stayed expanded. Only a parent
+          // collapsed since the bracket opened is added.
+          this.collapsedRows.forEach((row) => {
+            if (!this.lastCollapsedRows!.includes(row)) {
+              this.lastCollapsedRows!.push(row);
+            }
+          });
+        }
 
         // The expand below is transient: `applyStash()` collapses the same parents again, after the
         // insert, removal or move it brackets - for a removal a tick later. A whole-column selection
@@ -114,6 +157,8 @@ class CollapsingUI extends BaseUI {
           // A re-collapse that threw drops the held grows: applying them runs the selection hooks.
           this.releaseGridTrackingFits(isCollapsed);
         }
+
+        this.#restoreSelectionRecords();
       },
       trimStash: (realElementIndex: number, amount: number) => {
         rangeEach(realElementIndex, realElementIndex + amount - 1, (i: number) => {
@@ -125,6 +170,110 @@ class CollapsingUI extends BaseUI {
         });
       }
     };
+  }
+
+  /**
+   * Records the row OBJECT under every corner of the selection, so `applyStash()` can put the
+   * selection back on the same rows once the operation the stash brackets is done (DEV-509).
+   *
+   * An insert, a removal or a detach changes the tree, so neither the visual nor the physical row
+   * of a selected record survives it: the stash expands every parent, the operation shifts the
+   * selection by a number measured in that expanded space (a removed parent counts as one row,
+   * whatever its subtree), and the re-collapse runs afterwards, for a removal a tick later. The row
+   * object is the one thing that stays the same.
+   *
+   * @returns {object|null} The row objects of each layer and the selection itself, or `null` when
+   * there is no selection or a corner names no row.
+   */
+  #captureSelectionRecords(): { layers: SelectionRecords[], state: SelectionState } | null {
+    const ranges = this.hot.getSelectedRange();
+
+    if (!ranges || ranges.length === 0) {
+      return null;
+    }
+
+    const toRecord = (row: number | null): RowObject | number | null => {
+      if (row === null || row < 0) {
+        return row;
+      }
+
+      const physicalRow = this.hot.toPhysicalRow(row);
+
+      return physicalRow === null ? null : this.dataManager.getDataObject(physicalRow) ?? null;
+    };
+    const records = ranges.map(({ from, to, highlight }) => ({
+      from: toRecord(from.row),
+      to: toRecord(to.row),
+      highlight: toRecord(highlight.row),
+    }));
+    const isResolved = records.every(({ from, to, highlight }) => from !== null && to !== null && highlight !== null);
+
+    return isResolved ?
+      { layers: records as SelectionRecords[], state: this.hot.selection.exportSelection() } : null;
+  }
+
+  /**
+   * Forgets the rows the stash recorded for the selection. The plugin calls it when the user or the
+   * app changes the selection while the stash is open (a new selection, a focus move, a drop that
+   * is not a trim's repair), when it is disabled, and before a row move, which selects the moved
+   * rows itself. The selection is then theirs, and `applyStash()` must not move it or bring it back.
+   */
+  dropSelectionRecords(): void {
+    this.#selectionRecords = null;
+  }
+
+  /**
+   * Puts the selection back on the rows it was on when the stash opened. It does nothing when one of
+   * those rows is gone or hidden by a collapse (the operation removed it, or the selection was inside
+   * the removed rows): what the operation left is then the answer, as before.
+   */
+  #restoreSelectionRecords(): void {
+    const records = this.#selectionRecords;
+
+    this.#selectionRecords = null;
+
+    if (records === null || !this.hot.selection || !this.plugin.enabled) {
+      return;
+    }
+
+    const toVisualRow = (record: RowObject | number): number | null => {
+      if (typeof record === 'number') {
+        return record;
+      }
+
+      const physicalRow = this.dataManager.getRowIndex(record);
+
+      return physicalRow === null ? null : this.hot.toVisualRow(physicalRow);
+    };
+    const layers: Array<{ from: number, to: number, highlight: number } | null> = [];
+    const gridTrackingLayers = new Set(records.state.rowExtentSpansGrid);
+
+    for (let index = 0; index < records.layers.length; index++) {
+      // A layer whose row extent tracks the grid keeps its extent through the grid-tracking repair, so
+      // its corners do not decide the restore: a whole column ends on the last row, and a removal of
+      // that row must not cancel the move of the other layers. Its focus still names a row and moves
+      // with it (`relayRows()` reads only `highlight` for such a layer); a focus row that is gone
+      // leaves the layer to the default repair.
+      if (gridTrackingLayers.has(index)) {
+        const highlight = toVisualRow(records.layers[index].highlight);
+
+        layers.push(highlight === null ? null : { from: highlight, to: highlight, highlight });
+
+        continue;
+      }
+
+      const from = toVisualRow(records.layers[index].from);
+      const to = toVisualRow(records.layers[index].to);
+      const highlight = toVisualRow(records.layers[index].highlight);
+
+      if (from === null || to === null || highlight === null) {
+        return;
+      }
+
+      layers.push({ from, to, highlight });
+    }
+
+    this.hot.selection.relayRows(layers, records.state);
   }
 
   /**
@@ -616,10 +765,23 @@ class CollapsingUI extends BaseUI {
     }
 
     if (actionPossible) {
-      if (isCollapse) {
-        this.#collapseMultipleChildren(parents, false, true);
+      const changeCollapsedRows = () => {
+        if (isCollapse) {
+          this.#collapseMultipleChildren(parents, false, true);
+        } else {
+          this.#expandMultipleChildren(parents, false, true);
+        }
+      };
+
+      // A collapse or an expand the user asked for changes which rows are shown, not which rows are
+      // selected, so the selection follows its records across the trim (DEV-509): rows B, C, and D
+      // selected and B expanded leaves B, its children, C, and D selected, where the visual
+      // coordinates alone would leave B and its first two children. Gated on `shouldRunHooks` like
+      // the anchor above: a replay of a state chosen earlier leaves the selection to its caller.
+      if (shouldRunHooks) {
+        this.hot.selection.followRecordsWhile('row', changeCollapsedRows);
       } else {
-        this.#expandMultipleChildren(parents, false, true);
+        changeCollapsedRows();
       }
     }
 
@@ -702,6 +864,18 @@ class CollapsingUI extends BaseUI {
     const current = this.getCollapsedParents();
 
     return current.length === snapshot.length && current.every((row, index) => row === snapshot[index]);
+  }
+
+  /**
+   * Tells whether a collapse is, right now, putting a selection it stranded back on a row that is
+   * still shown. That move repairs a selection the user already had, so the plugin announces no row
+   * level for it, whichever entry point collapsed: a user gesture announces the collapse itself, and
+   * the public methods announce nothing.
+   *
+   * @returns {boolean}
+   */
+  isRestoringSelection(): boolean {
+    return this.#isRestoringSelection;
   }
 
   /**
@@ -821,7 +995,13 @@ class CollapsingUI extends BaseUI {
       const visualRow = this.hot.toVisualRow(physicalRow);
 
       if (visualRow !== null) {
-        this.hot.selectCell(visualRow, anchor.column);
+        this.#isRestoringSelection = true;
+
+        try {
+          this.hot.selectCell(visualRow, anchor.column);
+        } finally {
+          this.#isRestoringSelection = false;
+        }
 
         return;
       }
@@ -917,7 +1097,10 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
-   * Toggle collapsed state. Callback for the `beforeOnCellMousedown` hook.
+   * Toggle collapsed state. Callback for the `beforeOnCellMousedown` hook. A press on the button is
+   * claimed at once, so it selects nothing, but the row toggles when the pointer is released over the same
+   * button: moving it off before letting go cancels the toggle. A tap toggles at once, because Walkontable
+   * replays it at `touchend`.
    *
    * @private
    * @param {MouseEvent} event `mousedown` event.
@@ -933,10 +1116,58 @@ class CollapsingUI extends BaseUI {
     // By ancestor, not by the target's own class: the button hosts a real icon element whose
     // markup a theme `icons` renderer may extend, and the press may then target that markup.
     if (eventTargetEl(event)!.closest(`.${HeadersUI.CSS_CLASSES.button}`) !== null) {
-      this.plugin.toggleParentByUser(row, this.areChildrenCollapsed(row) ? 'expand' : 'collapse');
+      if (hasTouchList(event)) {
+        // A tap acts at once. A long press is replayed with the finger still down and acts on nothing.
+        if (!isLongPressReplay(event)) {
+          this.#toggleByUser(row);
+        }
+
+      } else {
+        this.#armPress(event as MouseEvent, row);
+      }
 
       stopImmediatePropagation(event);
     }
+  }
+
+  /**
+   * Toggles a parent the way the button does.
+   *
+   * @param {number} physicalRow Physical row index of the parent.
+   */
+  #toggleByUser(physicalRow: number) {
+    this.plugin.toggleParentByUser(physicalRow, this.areChildrenCollapsed(physicalRow) ? 'expand' : 'collapse');
+  }
+
+  /**
+   * Waits for the release of a press on a button, and toggles the row there when it is over the button of
+   * the same row.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   * @param {number} physicalRow Physical row index of the pressed parent.
+   */
+  #armPress(event: MouseEvent, physicalRow: number) {
+    // The header resolves to the same row at the release, whatever node a render put there.
+    const isSameButton = (releaseTarget: HTMLElement | null) => {
+      const button = releaseTarget?.closest<HTMLElement>(`.${HeadersUI.CSS_CLASSES.button}`) ?? null;
+      const header = button?.closest<HTMLElement>('th') ?? null;
+      const coords = getCoordsWithinGrid(this.hot, header);
+
+      return !!coords && coords.col !== null && coords.col < 0 && coords.row !== null &&
+        this.translateTrimmedRow(coords.row) === physicalRow;
+    };
+
+    this.#disposePress?.();
+    this.#disposePress = armPressRelease(this.plugin.eventManager, this.hot.rootDocument, event, {
+      isSame: isSameButton,
+      onRelease: () => {
+        this.#disposePress = null;
+        this.#toggleByUser(physicalRow);
+      },
+      onCancel: () => {
+        this.#disposePress = null;
+      },
+    });
   }
 
   /**

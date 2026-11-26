@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "editable-headers",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-23T12:10:39.253Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "price menu pop up column 3 row name price stock",
+    "f2-open-field": "price contents selected header name edit text",
+    "type-name": "ost",
+    "enter-save": "cost menu pop up column 3 row name cost stock header renamed to cost",
+    "f2-open-again": "cost contents selected header name edit text",
+    "escape-cancel": "cost menu pop up column 3 row name cost stock"
+  }
+}

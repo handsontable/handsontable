@@ -14,11 +14,13 @@ import {
   isHTMLElement,
   isInternalElement,
   isShadowRoot,
+  setAttribute,
 } from '../../helpers/dom/element';
 import { sanitizeHTML } from '../../utils/sanitizer';
 import { warnOnce } from '../../helpers/console';
 import { extractText, getTextExtractor } from '../../utils/textExtractor';
 import { isSafari, isMacOS } from '../../helpers/browser';
+import { A11Y_HIDDEN } from '../../helpers/a11y';
 import { GRID_SCOPE, GRID_CLIPBOARD_KEYS } from '../../shortcuts/contexts/constants';
 import { normalizeKeys, getEventKeyCombinations } from '../../shortcuts/utils';
 import copyItem from './contextMenuItem/copy';
@@ -324,6 +326,13 @@ export class CopyPaste extends BasePlugin {
    */
   #processedClipboardEvents: WeakSet<object> = new WeakSet();
   /**
+   * The cell or header the Safari `mouseleave` workaround made editable, until the workaround is taken
+   * off it. A render drops the `aria-hidden` the workaround set, and this is the element it is put back on.
+   *
+   * @type {HTMLElement | null}
+   */
+  #safariEditableElement: HTMLElement | null = null;
+  /**
    * Flag that is used to prevent copying when the native shortcut was not pressed.
    *
    * @type {boolean}
@@ -470,6 +479,9 @@ export class CopyPaste extends BasePlugin {
       );
 
       this.addHook('afterSelection', this.#onSafariAfterSelection);
+      // `afterViewRender`, not `afterRender`: a scroll draws the cells without a full render, and
+      // only this hook follows every draw.
+      this.addHook('afterViewRender', this.#onSafariAfterViewRender);
     }
 
     super.enablePlugin();
@@ -484,8 +496,17 @@ export class CopyPaste extends BasePlugin {
    *  - [`fragmentSelection`](@/api/options.md#fragmentselection)
    */
   updatePlugin(): void {
+    // The Safari `mouseleave` workaround outlives an update: the pointer is still outside the body, so
+    // no `mouseleave` would put it back, and the draw that follows has to find the element it restores
+    // `aria-hidden` on. `disablePlugin()` would take the workaround off.
+    const safariEditableElement = this.#safariEditableElement;
+
+    this.#safariEditableElement = null;
+
     this.disablePlugin();
     this.enablePlugin();
+
+    this.#safariEditableElement = safariEditableElement;
 
     super.updatePlugin();
   }
@@ -498,6 +519,15 @@ export class CopyPaste extends BasePlugin {
 
     this.#pastePlan = null;
     this.#appliedPasteRange = null;
+
+    // The listeners that take the Safari `mouseleave` workaround off are gone, so it is taken off here.
+    const safariEditableElement = this.#safariEditableElement;
+
+    this.#safariEditableElement = null;
+
+    if (safariEditableElement?.hasAttribute('contenteditable')) {
+      removeContentEditableFromElementAndDeselect(safariEditableElement);
+    }
   }
 
   /**
@@ -940,34 +970,124 @@ export class CopyPaste extends BasePlugin {
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
         if (currentlySelectedCell) {
+          const previousElement = this.#safariEditableElement;
+
+          // A selection change made while the grid did not listen leaves the workaround on the cell it
+          // was on. Nothing tracks that cell once the reference moves, so it is cleaned here.
+          if (previousElement && previousElement !== currentlySelectedCell &&
+              previousElement.hasAttribute('contenteditable')) {
+            removeContentEditableFromElementAndDeselect(previousElement);
+          }
+
           makeElementContentEditableAndSelectItsContent(currentlySelectedCell);
+          this.#safariEditableElement = currentlySelectedCell;
         }
       }
     }
   }
 
   /**
-   * Remove the `contenteditable` attribute from the highlighted cell and deselect its content.
+   * Remove the `contenteditable` attribute from the highlighted cell and deselect its content. The cell
+   * the workaround made editable is cleaned as well: after a selection change it is no longer the
+   * highlighted one, and it would stay editable with nothing left to take the workaround off it.
    */
   #removeContentEditableFromHighlightedCell() {
     // If the instance is not listening, the workaround is not needed.
-    if (this.hot.isListening()) {
-      const activeSelectedRange = this.hot.getSelectedRangeActive();
-
-      if (activeSelectedRange) {
-        const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
-
-        if (highlightRow === null || highlightColumn === null) {
-          return;
-        }
-
-        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
-
-        if (currentlySelectedCell?.hasAttribute('contenteditable')) {
-          removeContentEditableFromElementAndDeselect(currentlySelectedCell);
-        }
-      }
+    if (!this.hot.isListening()) {
+      return;
     }
+
+    const editableElement = this.#safariEditableElement;
+
+    this.#safariEditableElement = null;
+
+    if (editableElement?.hasAttribute('contenteditable')) {
+      removeContentEditableFromElementAndDeselect(editableElement);
+    }
+
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!highlight || highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    const currentlySelectedCell = this.hot.getCell(highlight.row, highlight.col, true);
+
+    if (currentlySelectedCell?.hasAttribute('contenteditable')) {
+      removeContentEditableFromElementAndDeselect(currentlySelectedCell);
+    }
+  }
+
+  /**
+   * Puts the `aria-hidden` of the Safari `mouseleave` workaround back on the highlighted cell after a
+   * draw. The draw clears the attribute and keeps `contenteditable`, so until the pointer came back
+   * into the body the cell was exposed to assistive technology as an editable region. Only the element
+   * the workaround itself made editable is touched: a cell an application's renderer made editable is
+   * left alone.
+   *
+   * An element that is no longer the highlighted cell loses the workaround. The grid reuses its
+   * elements, so after a scroll the kept one can draw another cell, which would stay editable and
+   * exposed. The selection of the document goes with it while it still lies in that element, because
+   * without the marker attribute the workaround's selection would show. A selection made elsewhere is
+   * kept.
+   */
+  #restoreAriaHiddenOnEditableCell() {
+    const element = this.#safariEditableElement;
+
+    // Most draws have no kept element. This runs on every draw in Safari, scroll draws included.
+    if (!element) {
+      return;
+    }
+
+    if (!element.hasAttribute('contenteditable')) {
+      this.#safariEditableElement = null;
+
+      return;
+    }
+
+    if (this.#getHighlightedElement() !== element) {
+      this.#safariEditableElement = null;
+      removeContentEditableFromElementAndDeselect(element, true, this.#isSelectionInside(element));
+
+      return;
+    }
+
+    if (!element.hasAttribute('aria-hidden')) {
+      setAttribute(element, [A11Y_HIDDEN()]);
+    }
+  }
+
+  /**
+   * Checks whether the selection of the document starts or ends inside the provided element. The
+   * Safari `mouseleave` workaround selects the element's contents, and a draw that reuses the element
+   * for another cell keeps that selection on the new contents.
+   *
+   * @param {HTMLElement} element The element to check.
+   * @returns {boolean}
+   */
+  #isSelectionInside(element: HTMLElement): boolean {
+    const selection = element.ownerDocument.defaultView?.getSelection();
+
+    if (!selection || selection.rangeCount === 0) {
+      return false;
+    }
+
+    return element.contains(selection.anchorNode) || element.contains(selection.focusNode);
+  }
+
+  /**
+   * Gets the element of the highlighted cell or header, when it is rendered.
+   *
+   * @returns {HTMLElement | null}
+   */
+  #getHighlightedElement(): HTMLElement | null {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!highlight || highlight.row === null || highlight.col === null) {
+      return null;
+    }
+
+    return this.hot.getCell(highlight.row, highlight.col, true);
   }
 
   /**
@@ -1048,6 +1168,7 @@ export class CopyPaste extends BasePlugin {
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
     // Captured before `beforeCopy`, which may reshape the array. Identity is what survives that.
     const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
+    const plainTextHeaders = this.#readPlainTextHeaders(headerRows);
     const dataSnapshot = this.hot.hasHook('beforeCopy') ? this.#snapshotRangedData(rangedData) : null;
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
@@ -1061,7 +1182,8 @@ export class CopyPaste extends BasePlugin {
         event,
         rangedData,
         this.#reconcileSourceData(rangedData, dataSnapshot, rangedSourceData),
-        headerRows
+        headerRows,
+        plainTextHeaders
       );
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
@@ -1426,20 +1548,69 @@ export class CopyPaste extends BasePlugin {
    * `a<b` as HTML would destroy it. Matching on identity keeps the projection on the rows that are
    * still headers, whatever the listener did to the array around them.
    *
+   * A header a user renamed (`EditableHeaders`) is left as it is: it is text already, and projecting it would parse
+   * what they typed. Such a cell is skipped only while it still holds the value it was copied with, at its position,
+   * so a `beforeCopy` listener that reshaped the row gets the usual projection.
+   *
    * @param {Array[]} rangedData The copied data.
    * @param {Set} headerRows The row arrays that were column headers when the copy was assembled.
+   * @param {Map} [plainTextHeaders] Per header row, the renamed cells by their position, with their copied value.
    * @returns {Array[]} The data with its header rows projected into text.
    */
-  #extractHeaderText(rangedData: unknown[][], headerRows: Set<unknown[]>): unknown[][] {
+  #extractHeaderText(
+    rangedData: unknown[][],
+    headerRows: Set<unknown[]>,
+    plainTextHeaders: Map<unknown[], Map<number, unknown>> = new Map()
+  ): unknown[][] {
     if (headerRows.size === 0 || getTextExtractor(this.hot) === false) {
       return rangedData;
     }
 
-    return rangedData.map(row => (
-      headerRows.has(row)
-        ? row.map(value => extractText(this.hot, value, 'CopyPaste.columnHeader'))
-        : row
-    ));
+    return rangedData.map((row) => {
+      if (!headerRows.has(row)) {
+        return row;
+      }
+
+      const plainCells = plainTextHeaders.get(row);
+
+      return row.map((value, index) => (
+        plainCells?.has(index) && plainCells.get(index) === value ?
+          value : extractText(this.hot, value, 'CopyPaste.columnHeader')
+      ));
+    });
+  }
+
+  /**
+   * Records, per copied column header row, the cells that hold a header a user renamed, with their value, before
+   * `beforeCopy` may reshape the rows.
+   *
+   * @param {Set} headerRows The row arrays that are column headers.
+   * @returns {Map} The renamed cells by row, each a map of the position to the copied value.
+   */
+  #readPlainTextHeaders(headerRows: Set<unknown[]>): Map<unknown[], Map<number, unknown>> {
+    const result = new Map<unknown[], Map<number, unknown>>();
+
+    if (headerRows.size === 0 || !this.hot.view) {
+      return result;
+    }
+
+    const { columns } = normalizeRanges(this.copyableRanges);
+
+    headerRows.forEach((row) => {
+      const plainCells = new Map<number, unknown>();
+
+      columns.forEach((column: number, index: number) => {
+        if (this.hot.view.isPlainTextHeader('column', column)) {
+          plainCells.set(index, row[index]);
+        }
+      });
+
+      if (plainCells.size > 0) {
+        result.set(row, plainCells);
+      }
+    });
+
+    return result;
   }
 
   /**
@@ -1506,14 +1677,16 @@ export class CopyPaste extends BasePlugin {
    * @param {Array} rangedData Ranged data to set to the clipboard.
    * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
    * @param {Set} [headerRows] The row arrays of `rangedData` that are column headers.
+   * @param {Map} [plainTextHeaders] The renamed header cells, which `#extractHeaderText()` leaves as they are.
    */
   #setClipboardData(
     event: ClipboardEvent,
     rangedData: unknown[][],
     rangedSourceData: unknown[][],
-    headerRows: Set<unknown[]> = new Set()
+    headerRows: Set<unknown[]> = new Set(),
+    plainTextHeaders: Map<unknown[], Map<number, unknown>> = new Map()
   ) {
-    const projectedData = this.#extractHeaderText(rangedData, headerRows);
+    const projectedData = this.#extractHeaderText(rangedData, headerRows, plainTextHeaders);
     const textPlain = stringify(projectedData);
 
     if (event && event.clipboardData) {
@@ -1734,6 +1907,13 @@ export class CopyPaste extends BasePlugin {
    */
   #onSafariAfterSelection = () => {
     this.#removeContentEditableFromHighlightedCell();
+  };
+
+  /**
+   * `afterViewRender` hook callback triggered only on Safari.
+   */
+  #onSafariAfterViewRender = () => {
+    this.#restoreAriaHiddenOnEditableCell();
   };
 
   /**

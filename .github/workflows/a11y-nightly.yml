@@ -1,19 +1,21 @@
 name: A11y nightly
 
-# Every accessibility check on develop, on a dispatch: the axe scan and every check beyond axe
-# (a11y.yml with `checks: true` and `nightly: true`; tests/AGENTS.md, "A11y: the checks beyond axe").
-# Manual trigger only, no schedule: the accessibility program runs one audit, fixes, and re-audits
-# (.ai/CI.md), so a cron would spend the compute on nights nobody reads. The tiers come back with the
-# schedule, not before: axe on a pull request (test.yml today), a semi-lite set on a nightly, the full
-# set on a release candidate and a stable release. The name stays: the ledger, the Slack text and the
-# docs know this workflow as the A11y nightly.
-# This is the only run of the checks beyond axe: the pull-request Tests pipeline runs the axe scan
-# alone, because the checks are report-only and the accessibility program is still building its
-# picture, so a pull request learned nothing from them it could act on. The evidence is kept 30 days,
-# which is what the Accessibility Conformance Report cites per criterion. A plain dispatch runs every
-# check (the audit, on develop); a dispatch may ask for the short suite (`suite: pull-request`), the one
-# a developer runs locally, or name the checks to run (`checks: keyboard-walker`), the proof run of a
-# change to one check from its branch.
+# Every accessibility check on develop, once a week on a schedule and on a dispatch: the axe scan and
+# every check beyond axe (a11y.yml with `checks: true` and `nightly: true`; tests/AGENTS.md, "A11y: the
+# checks beyond axe"). The schedule is the weekly audit: while the accessibility debt is being fixed,
+# the findings ledger needs an audit a week to show what each fix cleared, and when; a run every night
+# would spend seven times the compute (tests/AGENTS.md, "A11y: the audit and the proof runs"). The
+# weekly schedule ends when the debt epic closes, and the tiers then decide the cadence: axe and the
+# short suite on a pull request (test.yml today), a semi-lite set on a nightly, the full set on a release
+# candidate and a stable release. The name stays: the ledger, the Slack text and the docs know this
+# workflow as the A11y nightly.
+# This is the only run of every check beyond axe, and the only one the findings ledger records. A pull
+# request runs the axe scan and the short suite (test.yml), report-only, and reads this audit's ledger to
+# tell its new findings from the known ones; the two weekly-only checks (forced-colors-motion,
+# axe-discovery) run here alone. The evidence is kept 30 days, which is what the Accessibility
+# Conformance Report cites per criterion. The schedule and a plain dispatch run every check (the audit,
+# on develop); a dispatch may ask for the short suite (`suite: pull-request`), or name the checks to run
+# (`checks: keyboard-walker`), the proof run of a change to one check from its branch.
 # Each check's verdict is its `A11y / <check> report` check run and the job summary, by the severity rule
 # (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a critical or serious finding, neutral with
 # a warning on a moderate or minor one, green on none. The run is an audit, so every open finding counts,
@@ -21,16 +23,24 @@ name: A11y nightly
 # every scan runs to the end. Then the `verdict` job reads the check runs this run posted and fails the
 # run when any is red, so the run's own conclusion says what its checks found; on a subset dispatch it
 # expects the named checks only. Only `CI Gate` is required, and it is not in this run, so a red nightly
-# blocks no merge.
+# blocks no merge. A run that ends red on its `verdict` job alone is the audit's answer, never a broken
+# build: it stays red while a critical or serious finding is open, on the schedule as on a dispatch.
 #
 # Triage. A finding is about the product: record it, never fix it in the check's change. A target
 # that was not measured, or one flagged flaky, is a finding against the check: fix the measurement.
 on:
-  # From any ref: a dispatch on develop with no inputs is the audit (test-health.yml collects it into
-  # the findings ledger), and a dispatch from a feature branch is how a new check proves itself before
+  # The weekly audit: Monday 01:12 UTC, on develop (a schedule runs on the default branch, at its
+  # latest commit), five minutes after screenreader-nightly.yml and before docs-a11y.yml and
+  # website-a11y.yml, so the four read one commit; the reasons for the hour are in
+  # screenreader-nightly.yml. `inputs` holds nothing on a schedule, so the run is a dispatch on develop
+  # with no inputs: every check, and test-health.yml collects it into the findings ledger.
+  schedule:
+    - cron: '12 1 * * 1'
+  # From any ref: a dispatch on develop with no inputs is the audit too (the ledger collects it the
+  # same way), and a dispatch from a feature branch is how a new check proves itself before
   # it merges (the short suite and the `checks` input are for a branch: the check-inputs job refuses
   # them on develop, and refuses an entry that is no check id, before the build). Never dispatch two
-  # screen reader runs at once; this workflow has no such limit.
+  # screen reader runs at once; this workflow has no such limit, so its scheduled run waits for nothing.
   workflow_dispatch:
     inputs:
       suite:
@@ -102,10 +112,12 @@ jobs:
     uses: ./.github/workflows/a11y.yml
     with:
       checks: true
-      # Every check on a plain dispatch; a dispatch may ask for the short suite instead.
+      # Every check on the schedule (`inputs` holds nothing there) and on a plain dispatch; a dispatch may
+      # ask for the short suite instead.
       nightly: ${{ inputs.suite != 'pull-request' }}
       # A subset dispatch names its checks; empty (the audit, the pull_request trigger) runs the suite.
-      check-ids: ${{ inputs.checks }}
+      # `|| ''` hands the module a string on every event, the schedule included.
+      check-ids: ${{ inputs.checks || '' }}
     # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
   # The run's verdict: the worst of the check runs this run posted (tests/scripts/a11y-run-verdict.mjs),
@@ -138,17 +150,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_SHA: ${{ github.sha }}
-          # Every check on a plain dispatch, as the a11y job runs them; a subset dispatch names its checks, and
-          # the verdict expects those only (the same `checks` input the a11y job reads as A11Y_CHECKS), read
-          # as the check-inputs job read them.
+          # Every check on the schedule and a plain dispatch, as the a11y job runs them; a subset dispatch names
+          # its checks, and the verdict expects those only (the same `checks` input the a11y job reads as
+          # A11Y_CHECKS), read as the check-inputs job read them.
           A11Y_SUITE: ${{ inputs.suite == 'pull-request' && 'pull-request' || 'nightly' }}
           A11Y_CHECKS: ${{ inputs.checks }}
         run: node tests/scripts/a11y-run-verdict.mjs --prefix "A11y / " --ref "$GITHUB_REF" --a11y-suite "$A11Y_SUITE" --a11y-checks "$A11Y_CHECKS"
 
   # Optional Slack ping, develop only, when the run never reached the checks (the UMD build failed or
   # the called workflow could not start). The checks job carries `continue-on-error`, so a red check is
-  # never reported here, and neither is the `verdict` job's red: their verdict is the check runs. The
-  # same webhook as the other nightlies.
+  # never reported here, and neither is the `verdict` job's red, on the schedule as on a dispatch: their
+  # verdict is the check runs, and an audit with an open critical or serious finding is red by design,
+  # not a broken build. The same webhook as the other nightlies.
   notify:
     name: Notify Slack
     needs: [ a11y ]

@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Anuluj',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Brak dostępnych opcji',
+  [C.CONTEXTMENU_LABEL]: 'Menu kontekstowe',
+  [C.DROPDOWNMENU_LABEL]: 'Menu kolumny',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Wstaw wiersz powyżej',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Wstaw wiersz poniżej',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Wstaw kolumnę z lewej',
@@ -78,6 +80,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Brak',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Komórka jest pusta',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Komórka nie jest pusta',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Jest zaznaczone',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Nie jest zaznaczone',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Jest równe',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Jest różne od',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Tekst zaczyna się od',
@@ -157,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtry',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Wczytywanie danych',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Proszę czekać.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Dane wczytane',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nie udało się wczytać danych',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nie udało się utworzyć wierszy',
@@ -167,6 +172,9 @@ const dictionary = {
   [C.ROW_SELECTION_SELECT_ROW]: 'Zaznacz wiersz [row]',
   [C.ROW_SELECTION_SELECT_ALL]: 'Zaznacz wszystkie wiersze (zaznaczono [selected] z [total])',
   [C.CHECKBOX_HEADER_CHECK_ALL]: 'Zaznacz wszystkie (zaznaczono [checked] z [total])',
+  [C.CONTEXTMENU_ITEMS_RENAME_HEADER]: 'Zmień nazwę nagłówka',
+  [C.EDITABLE_HEADERS_INPUT_LABEL]: 'Nazwa nagłówka',
+  [C.EDITABLE_HEADERS_RENAMED]: 'Zmieniono nazwę nagłówka na [value]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Zaznaczono wiersz [row]',
   [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Odznaczono wiersz [row]',
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Zaznaczono [selected] z [total] wierszy',
@@ -176,11 +184,51 @@ const dictionary = {
   [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zablokowane wiersze na dole',
   [C.FREEZE_BAR_COLUMNS_START]: 'Zablokowane kolumny na początku',
   [C.FREEZE_BAR_COLUMNS_END]: 'Zablokowane kolumny na końcu',
+  [C.ARMED_PICK_STARTED]: 'Kliknij lub dotknij cel, aby zakończyć. Naciśnij Escape, aby anulować.',
+  [C.ARMED_PICK_CANCELED]: 'Anulowano.',
+  [C.MANUAL_RESIZE_COLUMN_STARTED]:
+    'Zmiana szerokości kolumny. Strzałkami w lewo i w prawo zmieniasz szerokość, Enter zatwierdza, Escape anuluje.',
+  [C.MANUAL_RESIZE_ROW_STARTED]:
+    'Zmiana wysokości wiersza. Strzałkami w górę i w dół zmieniasz wysokość, Enter zatwierdza, Escape anuluje.',
+  [C.MANUAL_RESIZE_COMMENT_STARTED]:
+    'Zmiana rozmiaru pola komentarza. Strzałkami zmieniasz rozmiar, Enter zatwierdza, Escape anuluje.',
+  [C.MANUAL_RESIZE_WIDTH]: 'Szerokość: [size] pikseli',
+  [C.MANUAL_RESIZE_HEIGHT]: 'Wysokość: [size] pikseli',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Poziom [level], [position] z [setSize]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Poziom [level], [position] z [setSize], rozwinięty',
+  [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Poziom [level], [position] z [setSize], zwinięty',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formuła: [formula]',
+  [C.CELL_DESCRIPTION_READ_ONLY]: 'tylko do odczytu',
+  [C.CELL_DESCRIPTION_LINK]: 'link',
+  [C.CELL_DESCRIPTION_MERGED]: 'scalona do wiersza [row] kolumny [column]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto grupę kolumn [label]',
+  [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto grupę kolumn [label]',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Posortowano według [label], rosnąco',
   [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING]: 'Posortowano według [label], malejąco',
   [C.COLUMN_SORTING_ANNOUNCEMENT_REMOVED]: 'Usunięto sortowanie z [label]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING_PRIORITY]:
+    'Posortowano według [label], rosnąco, priorytet sortowania [order]',
+  [C.COLUMN_SORTING_ANNOUNCEMENT_DESCENDING_PRIORITY]:
+    'Posortowano według [label], malejąco, priorytet sortowania [order]',
+  [C.SELECTION_ANNOUNCEMENT_RANGE]:
+    'Zaznaczenie od kolumny [startColumn], wiersza [startRow] do kolumny [endColumn], wiersza [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ALL]: 'Zaznaczono wszystkie komórki',
+  [C.SELECTION_ANNOUNCEMENT_COLUMN]: 'Zaznaczono kolumnę [column]',
+  [C.SELECTION_ANNOUNCEMENT_COLUMNS]: 'Zaznaczono kolumny od [startColumn] do [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ROW]: 'Zaznaczono wiersz [row]',
+  [C.SELECTION_ANNOUNCEMENT_ROWS]: 'Zaznaczono wiersze od [startRow] do [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED]: 'Dodano zaznaczenie: [selection]. Liczba zaznaczeń: [count]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_CELL]: 'kolumna [column], wiersz [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_RANGE]:
+    'od kolumny [startColumn], wiersza [startRow] do kolumny [endColumn], wiersza [endRow]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ALL]: 'wszystkie komórki',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMN]: 'kolumna [column]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_COLUMNS]: 'kolumny od [startColumn] do [endColumn]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROW]: 'wiersz [row]',
+  [C.SELECTION_ANNOUNCEMENT_ADDED_ROWS]: 'wiersze od [startRow] do [endRow]',
   [C.FORMULA_BUILDER_EDITOR]: 'Edytor formuł',
   [C.FORMULA_BUILDER_INPUT]: 'Pole formuły',
   [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Adres komórki',
@@ -200,6 +248,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Błąd w [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Jeszcze [count] komórka zawiera teraz błąd.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Liczba innych komórek z błędem: [count].',
+  [C.EDITOR_INPUT_LABEL]: '[column], wiersz [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Komentarz do [column], wiersz [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentarz do [column], [row]',
 };
 
 export default dictionary;

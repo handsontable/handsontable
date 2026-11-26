@@ -45,7 +45,7 @@ const container = document.querySelector('#example1');
 // Persistent status line below the grid -- always visible, never blinks
 const statusEl = document.createElement('div');
 
-statusEl.style.cssText = 'padding:8px; text-align:center; color:#666; font-size:13px;';
+statusEl.style.cssText = 'padding:8px; text-align:center; font-size:13px;';
 statusEl.textContent = 'Scroll table to load more records';
 container.insertAdjacentElement('afterend', statusEl);
 

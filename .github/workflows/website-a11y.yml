@@ -19,15 +19,27 @@ name: Website a11y
 # then follows the worst of them. A red scan or checks job is a tooling failure (a page that did not
 # answer, a bot challenge, an island that never hydrated, a state the keyboard did not reach).
 #
-# On demand, no schedule. A pull request that changes the scan itself runs it (its own files below): that
-# run is the change's proof, and a workflow that exists only on a branch cannot be dispatched. The checks
-# run on a dispatch or a call only (a dispatch from a branch is a change's proof; `checks` names a
-# subset). A dispatch on develop is the audit, recorded in the findings ledger (`test-health.yml`,
-# `isA11yRun`), and runs every check: the `check-inputs` job refuses a subset there. A dispatch from a
-# branch and a pull request's run are not recorded. Another workflow that runs every accessibility scan
-# at once calls this one (`workflow_call`), and lists the `website` source for its own name in
-# `SOURCES_OF_WORKFLOW` (.github/scripts/lib/a11y-ledger.mjs).
+# Once a week on a schedule, and on demand. A pull request that changes the scan itself runs it (its own
+# files below): that run is the change's proof, and a workflow that exists only on a branch cannot be
+# dispatched. The checks run on the schedule, a dispatch or a call only (a dispatch from a branch is a
+# change's proof; `checks` names a subset). The scheduled run and a dispatch on develop are the audit,
+# recorded in the findings ledger (`test-health.yml`, `isA11yRun`), and run every check: the
+# `check-inputs` job refuses a subset there. A dispatch from a branch and a pull request's run are not
+# recorded. The schedule is the weekly audit: while the accessibility debt is being fixed, the ledger
+# needs an audit a week to show what each fix cleared, and when (tests/AGENTS.md, "A11y: the audit and
+# the proof runs"). It ends when the debt epic closes, and the tiers then decide the cadence. A run that
+# ends red on its `verdict` job alone is the audit's answer, never a broken build, and nothing here posts
+# to Slack. The guard above holds on every event: a scheduled run reads production through the same
+# `guardSite()`, so it sends no form and books no call either. Another workflow that runs every
+# accessibility scan at once calls this one (`workflow_call`), and lists the `website` source for its own
+# name in `SOURCES_OF_WORKFLOW` (.github/scripts/lib/a11y-ledger.mjs).
 on:
+  # The weekly audit: Monday 01:22 UTC, on develop (a schedule runs on the default branch), five minutes
+  # after docs-a11y.yml, the last of the four audit workflows; the reasons for the hour are in
+  # screenreader-nightly.yml. `inputs` holds nothing on a schedule, so the run reads production and runs
+  # every check, as a dispatch on develop with no inputs does.
+  schedule:
+    - cron: '22 1 * * 1'
   workflow_dispatch:
     inputs:
       base-url:
@@ -56,6 +68,8 @@ on:
       - 'tests/lib/a11y-report.*'
       - 'tests/lib/a11y-suites.*'
       - 'tests/lib/a11y-check-run.*'
+      - 'tests/lib/a11y-baseline-guard.*'
+      - 'tests/lib/a11y-pr-comment.*'
       - 'tests/lib/a11y-docs-drift.*'
       - 'tests/lib/a11y-issues.*'
       - 'tests/lib/a11y-evidence.*'
@@ -64,6 +78,7 @@ on:
       - 'tests/lib/a11y-verdict.*'
       - 'tests/lib/a11y-verdict-inputs.*'
       - 'tests/lib/github-check-run.*'
+      - 'tests/lib/github-rest.*'
       - 'tests/lib/website-pages.*'
       - 'tests/scripts/a11y-check-run.mjs'
   workflow_call:
@@ -89,7 +104,8 @@ concurrency:
 
 jobs:
   # Refuses a subset on develop (the dispatch there is the audit, which runs every check) and an entry of
-  # `checks` that is no website site check, before a runner is spent (tests/lib/a11y-dispatch.mjs).
+  # `checks` that is no website site check, before a runner is spent (tests/lib/a11y-dispatch.mjs). The
+  # schedule has no inputs, so it passes as a dispatch on develop with none does.
   check-inputs:
     name: Check the dispatch inputs
     runs-on: ubuntu-26.04
@@ -185,7 +201,8 @@ jobs:
         run: node tests/scripts/a11y-check-run.mjs --suite website
 
   # The website site checks beyond axe: one Playwright project per check of SITE_CHECKS
-  # (tests/lib/a11y-site-checks.mjs), against the same deploy as the scan. On a dispatch or a call only.
+  # (tests/lib/a11y-site-checks.mjs), against the same deploy as the scan. On the schedule, a dispatch or a
+  # call only.
   checks:
     name: website checks
     needs: [ check-inputs ]

@@ -197,6 +197,7 @@ Create the input element, initialize Flatpickr, and prepare the dark theme.
 init(editor) {
   editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
   editor.input.classList.add('flatpickr-editor');
+  editor.input.setAttribute('aria-label', 'Date');
 
   editor.flatpickr = flatpickr(editor.input, {
     dateFormat: 'Y-m-d',
@@ -236,6 +237,7 @@ When the user selects a date or closes the calendar (e.g., Escape), Flatpickr fi
 ### The CSS class
 ```typescript
 editor.input.classList.add('flatpickr-editor');
+editor.input.setAttribute('aria-label', 'Date');
 ```
 Adds a CSS class to style the input element using Handsontable's CSS custom properties (tokens). See the CSS file for details.
 
@@ -423,6 +425,7 @@ const cellDefinition = {
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
       editor.input.classList.add('flatpickr-editor');
+      editor.input.setAttribute('aria-label', 'Date');
       editor.flatpickr = flatpickr(editor.input, {
         dateFormat: 'Y-m-d',
         disableMobile: true,

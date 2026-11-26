@@ -31,8 +31,8 @@ name: Screen reader
 # steps' timeouts, for a runner that hangs outside them.
 #
 # Build-dependent like a11y.yml: it downloads the UMD build artifact the caller's Build module uploads.
-# The caller is screenreader-nightly.yml (a dispatch from any ref, never a cron); the pull-request Tests
-# pipeline does not call it. A subset dispatch names its `projects` and `groups`: a lane job none of
+# The caller is screenreader-nightly.yml (its weekly schedule, or a dispatch from any ref); the pull-request
+# Tests pipeline does not call it. A subset dispatch names its `projects` and `groups`: a lane job none of
 # whose projects is named skips itself (a job-level `if` reads `inputs`, never `matrix`), and the matrix
 # `exclude` drops the browser of a project and the group that is not named, so both axes stay literal.
 # An entry is a whole name, no spaces (the caller's check-inputs job refuses anything else before the

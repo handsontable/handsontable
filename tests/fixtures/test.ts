@@ -76,7 +76,8 @@ const LICENSE_PAGES = /\/(?:license-branding|license-bar|license-capabilities|xl
 
 /**
  * Whether a page in this frame asks for a license state on purpose: one of the license pages, or a page
- * opened with a `?license=` query other than `test` (`trusted-types.html?license=invalid`).
+ * opened with a `?license=` query other than `test` (`side-layout-slots.html?license=trial`,
+ * `trusted-types.html?license=invalid`).
  *
  * @param {string} url The frame's URL.
  * @returns {boolean}

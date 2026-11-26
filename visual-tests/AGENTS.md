@@ -444,6 +444,9 @@ These things about this pipeline are worth knowing before changing it.
   approving one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
   WebKit, where the poisoned record carried a stray browser text-selection highlight on a column header;
   `test-runner.ts` now resets that selection before every capture (engine-gated — see Determinism below).
+  A selected header label on a WebKit filter capture comes from CopyPaste's Safari `mouseleave` workaround,
+  which can land after that reset; the core stylesheet paints its selection transparent
+  (`handsontable/src/plugins/copyPaste/AGENTS.md`).
   **`visual.handsontable.com` is behind a
   CDN, so reading a golden record back can hand you a stale copy** — during that investigation it served
   the superseded image for nearly an hour after `develop` had reseeded, which reads exactly like a
@@ -583,7 +586,8 @@ does for you):
   index only if it is frozen, since the corner overlay renders exactly that prefix.
 - **The fixture drops a stray native selection before every capture, and under a focused text control
   the reset is engine-gated.** `clearNativeTextSelection()` in `test-runner.ts` removes the browser's own
-  text-selection highlight (a header label a click sequence left selected). With an input or textarea
+  text-selection highlight (a range a click sequence left behind; a selected header label is CopyPaste's
+  Safari workaround instead, which the core stylesheet paints transparent). With an input or textarea
   focused the engines split, measured on #13468: WebKit keeps painting a selection made before the
   control took focus and the Selection API cannot see it (one collapsed range at the control's parent,
   stray or not), so there the ranges are removed and the control's own selection is put back with

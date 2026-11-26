@@ -199,8 +199,9 @@ export class Pagination extends BasePlugin {
    * @type {HiddenMap | null}
    */
   #pagedRowsMap: {
-    setValueAtIndex(index: number, value: boolean): boolean; getValueAtIndex(index: number): unknown;
-    getValues(): unknown[];
+    getValueAtIndex(index: number): unknown;
+    setValues(values: boolean[]): void;
+    getLength(): number;
     clear(): void;
   } | null = null;
   /**
@@ -1063,6 +1064,57 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Builds the values of the hiding map for the current page: `true` for every renderable row outside the
+   * page. The map is written with one `setValues()` call, because a write per row fires a `change` hook
+   * per row, which costs time proportional to the total row count on every page change.
+   *
+   * The renderable indexes array is the index mapper's own cache, so it is read and never modified.
+   *
+   * @param {number[]} renderableIndexes Physical indexes of the renderable rows, in visual order.
+   * @returns {boolean[] | null} The map values, or `null` when there is nothing to hide: no map, no renderable
+   * row, or no row outside the current page.
+   */
+  #buildPagedRowsValues(renderableIndexes: number[]): boolean[] | null {
+    if (!this.#pagedRowsMap || renderableIndexes.length === 0) {
+      return null;
+    }
+
+    const rowsCount = renderableIndexes.length;
+    const pageState = this.#calcStrategy?.getState(this.#currentPage);
+    // A fractional page size gives a fractional window. Cut it at whole rows, as `Array#splice` did.
+    const pageStart = Math.trunc(pageState?.startIndex ?? 0) || 0;
+    const pageSize = Math.trunc(pageState?.pageSize ?? 0) || 0;
+    const rowsBeforePage = Math.min(pageStart, rowsCount);
+    const firstRowAfterPage = Math.max(pageStart + pageSize, rowsBeforePage);
+
+    if (rowsBeforePage === 0 && firstRowAfterPage >= rowsCount) {
+      return null;
+    }
+
+    const mapLength = this.#pagedRowsMap.getLength();
+    const values = new Array<boolean>(mapLength).fill(false);
+
+    // `setValues()` resizes the map to the array, so a row index past the map's end must not extend it.
+    for (let index = 0; index < rowsBeforePage; index += 1) {
+      const physicalRow = renderableIndexes[index];
+
+      if (physicalRow < mapLength) {
+        values[physicalRow] = true;
+      }
+    }
+
+    for (let index = firstRowAfterPage; index < rowsCount; index += 1) {
+      const physicalRow = renderableIndexes[index];
+
+      if (physicalRow < mapLength) {
+        values[physicalRow] = true;
+      }
+    }
+
+    return values;
+  }
+
+  /**
    * Applies the current pagination state to the internal index mapper and updates the UI.
    *
    * @param {boolean} [firesExecutionHooks=true] `false` for the recompute an `'auto'` page size does on each
@@ -1125,19 +1177,11 @@ export class Pagination extends BasePlugin {
 
     this.#currentPage = clamp(this.#currentPage, 1, totalPages ?? 1);
 
-    if (!externalPagedMode && renderableIndexes.length > 0) {
-      const pageState = this.#calcStrategy?.getState(this.#currentPage);
+    const pagedRowsValues = externalPagedMode ? null : this.#buildPagedRowsValues(renderableIndexes);
 
-      if (pageState) {
-        const { startIndex, pageSize } = pageState;
-
-        renderableIndexes.splice(startIndex, pageSize);
-      }
-    }
-
-    if (!externalPagedMode && renderableIndexes.length > 0) {
+    if (pagedRowsValues !== null) {
       const storePagedRows = () => {
-        renderableIndexes.forEach((index: number) => this.#pagedRowsMap?.setValueAtIndex(index, true));
+        this.#pagedRowsMap?.setValues(pagedRowsValues);
       };
 
       // The recompute an `'auto'` page size does on each render is bookkeeping, like the sizes the auto-size

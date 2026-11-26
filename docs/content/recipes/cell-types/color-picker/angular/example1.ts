@@ -45,7 +45,7 @@ export class ColorRendererComponent extends HotCellRendererAdvancedComponent<str
   selector: 'example1-color-picker-editor',
   template: `
     <div #editorContainer style="width:100%;height:100%;position:relative;">
-      <input #colorInput class="color-picker-editor" type="text" readonly />
+      <input #colorInput class="color-picker-editor" type="text" readonly aria-label="Open color picker" />
     </div>
   `,
   styles: `

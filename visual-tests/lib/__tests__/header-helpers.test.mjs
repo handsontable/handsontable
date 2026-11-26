@@ -187,13 +187,18 @@ test('both helpers assert the header is highlighted before they return', () => {
 test('the corner cell is still excluded from the column-header role', () => {
   // COLUMN_HEADER_CELLS filters on `role="columnheader"` so that the row-header corner — which sits in
   // the same header row, one per `rowHeadersCount` — does not take index 0 and shift every column by
-  // one. The engine gives that corner `gridcell button` instead. Mirrored by hand here because a
+  // one. The engine gives that corner a plain `gridcell` instead. Mirrored by hand here because a
   // Playwright helper cannot import the engine's constants (the precedent is scrollbar-proximity.test.mjs).
+  const renderer = read('handsontable/src/3rdparty/walkontable/src/render/columnHeaders.ts');
+
+  assert.match(renderer, /= A11Y_GRIDCELL\(\)\[1\];/,
+    'the column headers renderer no longer takes the corner role from A11Y_GRIDCELL — re-point this mirror');
+
   const a11y = read('handsontable/src/helpers/a11y.ts');
-  const corner = a11y.match(/export const A11Y_GRIDCELL_BUTTON = \(\): \[string, string\] => \['role', '([^']+)'\];/);
+  const corner = a11y.match(/export const A11Y_GRIDCELL = \(\): \[string, string\] => \['role', '([^']+)'\];/);
   const header = a11y.match(/export const A11Y_COLUMNHEADER = \(\): \[string, string\] => \['role', '([^']+)'\];/);
 
-  assert.ok(corner, 'A11Y_GRIDCELL_BUTTON is no longer a plain role literal in handsontable/src/helpers/a11y.ts');
+  assert.ok(corner, 'A11Y_GRIDCELL is no longer a plain role literal in handsontable/src/helpers/a11y.ts');
   assert.ok(header, 'A11Y_COLUMNHEADER is no longer a plain role literal in handsontable/src/helpers/a11y.ts');
   assert.notEqual(corner[1], header[1],
     'the grid corner now carries the same role as a column header, so COLUMN_HEADER_CELLS matches it too '

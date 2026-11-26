@@ -320,23 +320,34 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
   test.describe('a key that cannot be read, and no key at all', () => {
     // DEV-2562: the two install faults BLOCK from 18.1 on (the specification's S4.5 shape). Their
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
+    const INVALID = {
+      title: 'The license key for Handsontable is invalid.',
+      description: 'Read more in the documentation on how to install it properly, or contact us at support@handsontable.com.',
+    };
     const FAULTS = [
-      { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
+      { key: 'tampered', ...INVALID },
       // A current key protects its text, so a key whose text was edited is an unreadable key as well.
-      { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
-      { key: 'missing', title: 'The license key for Handsontable is missing.' },
+      { key: 'edited-prose', ...INVALID },
+      {
+        key: 'missing',
+        title: 'The license key for Handsontable is missing.',
+        description: 'Use your purchased key to activate the product. Read more about it in the documentation, ' +
+          'or contact us at support@handsontable.com.',
+      },
       // PRO-1356: Handsontable 19.0 no longer recognizes the non-commercial key, so it locks the
       // grid as an invalid key does.
-      { key: 'non-commercial', title: 'The license key for Handsontable is invalid.' },
+      { key: 'non-commercial', ...INVALID },
     ] as const;
 
-    for (const { key, title } of FAULTS) {
+    for (const { key, title, description } of FAULTS) {
       test(`blocks the grid with a non-closable modal, and no bar, for a "${key}" key`, async ({ page }) => {
         await license.goto(INSTANT.duringTrial, { key });
 
         await expect(license.lock).toBeVisible();
         await expect(license.lock).toHaveAttribute('role', 'alertdialog');
         await expect(license.lock).toContainText(title);
+        // The link is read in its sentence: the lock's description is the whole text, "documentation" inside it (2.4.4).
+        await expect(license.lock).toHaveAccessibleDescription(description);
         // The bar is withdrawn: one surface says it, not two. And no badge - that is the trial's.
         await expect(license.bar).toHaveCount(0);
         await expect(license.badge).toHaveCount(0);
@@ -348,7 +359,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
         // Focus is not taken at init; it lands on the action once the user reaches the lock.
         await expect(license.outsideField).toBeFocused();
 
-        await license.lock.click();
+        await license.lockTitle.click();
 
         await expect(license.lockSupportButton).toBeFocused();
 
@@ -358,15 +369,32 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       });
     }
 
-    test('keeps the documentation link inside the modal focus trap', async ({ page }) => {
+    // DEV-4127: the lock covers the grid, not the page, so Tab must be able to leave it (WCAG 2.1.2).
+    test('lets Tab leave the lock past its last control, and Shift+Tab before its first', async ({ page }) => {
       await license.goto(INSTANT.duringTrial, { key: 'missing' });
 
-      // Focus has to be brought in first — the lock never claims it on its own.
-      await license.lock.click();
+      // Focus has to be brought in first - the lock never claims it on its own.
+      await license.lockTitle.click();
 
       await expect(license.lockSupportButton).toBeFocused();
 
-      // Tab cycles the modal's own controls - the button and the link - and never leaves.
+      // The action is the last control of the lock, so the next Tab is the page after the grid.
+      await page.keyboard.press('Tab');
+
+      await expect(license.afterField).toBeFocused();
+
+      // The documentation link is the first control, so Shift+Tab from it is the page before the grid.
+      await license.lockDocsLink.focus();
+      await page.keyboard.press('Shift+Tab');
+
+      await expect(license.outsideField).toBeFocused();
+    });
+
+    test('enters at the first control when Tab comes from the page above', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      // The documentation link comes first in the lock, so a forward Tab must not skip it.
+      await license.outsideField.focus();
       await page.keyboard.press('Tab');
 
       await expect(license.lockDocsLink).toBeFocused();
@@ -374,6 +402,82 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await page.keyboard.press('Tab');
 
       await expect(license.lockSupportButton).toBeFocused();
+    });
+
+    test('walks the lock\'s own controls in document order before it leaves', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      await license.lockDocsLink.focus();
+      await page.keyboard.press('Tab');
+
+      await expect(license.lockSupportButton).toBeFocused();
+    });
+
+    test('announces the lock through the polite live region of the grid announcer', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      await expect(page.locator('[role="status"][aria-live="polite"]'))
+        .toHaveText('The license key for Handsontable is missing.');
+      await expect(page.locator('[role="status"][aria-live="assertive"]')).toHaveText('');
+    });
+
+    test('hides the grid from assistive technology and the pointer while it is locked', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      await expect(page.locator('.ht-grid')).toHaveAttribute('inert', '');
+      // The lock is outside the inert subtree, so it stays operable.
+      await expect(license.lock).not.toHaveAttribute('inert', /.*/);
+
+      // What `inert` is for: the data is out of the accessibility tree, the Tab order and the pointer's
+      // reach. Playwright's role queries do not apply `inert`, so the subtree is checked directly.
+      expect(await license.isInsideInert(page.locator('.ht-grid .htCore td').first())).toBe(true);
+    });
+
+    test('keeps the Powered by bar of an `attribution-bar` trial lock operable beside the inert grid', async () => {
+      await license.goto(INSTANT.trialHardStop, { key: 'trial-attribution-bar' });
+
+      await expect(license.poweredByLink).toBeVisible();
+      expect(await license.isInsideInert(license.poweredByLink)).toBe(false);
+    });
+
+    test('takes no key press that would navigate or edit the cells behind it', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      // The API can still lay a selection and make the grid listen; the keyboard must not use it.
+      await license.selectCell(0, 0);
+
+      // One key at a time, each judged alone: arrows must not move the selection, Enter and a printable
+      // key must not open the editor, Delete must not clear the cell.
+      for (const key of ['ArrowDown', 'ArrowRight', 'Enter', 'F2', 'x', 'Delete']) {
+        await page.keyboard.press(key);
+
+        expect(await license.isEditorOpened(), `${key} opened an editor`).toBe(false);
+        expect(await license.dataAt(0, 0), `${key} changed the cell`).toBe('A1');
+        expect(await license.selectedRanges(), `${key} moved the selection`).toEqual([[0, 0, 0, 0]]);
+      }
+    });
+
+    // DEV-4127: WCAG 1.4.3 and 1.4.1. The link sits in the description, so it is judged against the
+    // description's own background, and it must not rely on color alone.
+    test('keeps the description and its link at 4.5:1, and the link underlined', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      const description = await license.lockTextContrast(license.lock.locator('.ht-dialog__description'));
+      const link = await license.lockTextContrast(license.lockDocsLink);
+
+      expect(description.ratio).toBeGreaterThanOrEqual(4.5);
+      expect(link.ratio).toBeGreaterThanOrEqual(4.5);
+      expect(link.underlined).toBe(true);
+    });
+
+    test('keeps the link underlined and readable under a host-page link reset', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+      await license.applyLinkReset();
+
+      const link = await license.lockTextContrast(license.lockDocsLink);
+
+      expect(link.ratio).toBeGreaterThanOrEqual(4.5);
+      expect(link.underlined).toBe(true);
     });
 
     test('keeps the modal copy inside a grid narrower than its longest token', async () => {

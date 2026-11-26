@@ -1,0 +1,169 @@
+# The accessibility digest: once a week, what improved and what declined in the accessibility findings ledger.
+#
+# The ledger (`test-health/a11y.json` on `gh-pages`, `.github/scripts/lib/a11y-ledger.mjs`) says what is open, and its
+# page says how the findings fared over time:
+#
+#   https://handsontable.github.io/handsontable/test-health/#a11y-fix-title
+#
+# Nothing told anyone when that changed. This workflow compares two published states of the ledger, the file as it is
+# now and as it was a week before, and posts the difference to Slack: findings resolved and fix tasks cleared, new
+# findings and findings that came back, the triage queue, what is outstanding per surface, and the page's headline
+# numbers (`.github/scripts/a11y-digest.mjs`; tests/AGENTS.md, "A11y: the weekly digest").
+#
+# It reads and never writes: both states come from `gh-pages` through the API, the job's token is read-only, and the
+# only thing that leaves the job is the Slack message. It runs no audit and does not wait for one. The digest names the
+# night of each workflow it compared, and a workflow with no new night in the window is named as not audited.
+#
+# No ClickUp token, on purpose: a task's status, owner and closed date are not read here. The digest links the fix
+# tasks by the ids the catalog names (`tests/a11y/issues.json`).
+
+name: A11y digest
+
+on:
+  # Mondays, 08:00 UTC: after the weekly audit and its collection by test-health.yml. The audit's four workflows start
+  # shortly after 01:00 UTC; the screen reader run may wait up to 180 minutes for an earlier one and then takes about
+  # two and a half hours, so its night can land as late as about 06:45. A night that lands later still is not lost: the
+  # window of a scheduled digest starts where the previous one started. A schedule fires on the default branch only.
+  schedule:
+    - cron: '0 8 * * 1'
+  # On demand, from any ref. A dispatch is a dry run unless it turns `dry-run` off: it prints the digest to the run's
+  # summary and posts nothing.
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Print the digest to the run summary and post nothing'
+        type: boolean
+        default: true
+      days:
+        description: 'How many days back the state to compare with is taken from (a dispatch only)'
+        type: string
+        default: '7'
+  # A pull request that touches the digest runs it once, as a dry run, against the published ledger: the job has no
+  # other run before it merges, and a broken step would first show on a Monday. The list is this file, the catalog the
+  # job reads, and every module its script imports, directly or not; `a11y-digest.test.mjs` walks the imports and
+  # fails when one is missing here.
+  pull_request:
+    paths:
+      - '.github/workflows/a11y-digest.yml'
+      - 'tests/a11y/issues.json'
+      - '.github/scripts/a11y-digest.mjs'
+      - '.github/scripts/lib/a11y-digest.mjs'
+      - '.github/scripts/lib/a11y-ledger.mjs'
+      - 'tests/a11y/docs/constants.mjs'
+      - 'tests/a11y/pages.mjs'
+      - 'tests/a11y/website/constants.mjs'
+      - 'tests/lib/a11y-baseline.mjs'
+      - 'tests/lib/a11y-evidence.mjs'
+      - 'tests/lib/a11y-issues.mjs'
+      - 'tests/lib/a11y-site-checks.mjs'
+      - 'tests/lib/a11y-subset.mjs'
+      - 'tests/lib/a11y-verdict.mjs'
+      - 'tests/lib/screenreader-matrix.mjs'
+      - 'tests/lib/screenreader-scenario.mjs'
+      - 'tests/lib/screenreader-transcript.mjs'
+
+permissions:
+  contents: read
+  actions: read   # the previous scheduled run's start time, where a scheduled digest's window begins
+
+# A newer push replaces a pull request's dry run. The schedule and a dispatch on develop share a group too, and neither
+# cancels the other: a dry-run dispatch started while the Monday run is in flight would cancel that week's post, and a
+# scheduled start would cancel a dispatch that was posting. They queue instead.
+concurrency:
+  group: a11y-digest-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PAGE_URL: https://handsontable.github.io/handsontable/test-health/#a11y-fix-title
+  # The address a fix task's id is appended to in the message. Slack is where the team reads it.
+  TRACKER_URL: https://app.clickup.com/t/9015210959/
+
+jobs:
+  digest:
+    name: Digest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    env:
+      # An Incoming Webhook for the accessibility channel. An absent secret is an empty string, so the post step skips
+      # itself and the digest stays on the run's summary: the hook is optional.
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_A11Y_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: .nvmrc
+
+      # The published file now, and the same file at the last gh-pages commit before the window began. Through the
+      # API, so there is no Pages cache between the job and the file and no clone of gh-pages. The raw media type,
+      # because the file is over the 1 MB the default one returns. No commit that old (a ledger younger than the
+      # window) leaves no earlier state, and the digest says where things stand.
+      #
+      # Where the window begins: on a schedule, where the previous successful scheduled digest started, so the windows
+      # of two digests meet and a night that lands minutes after one digest is in the next one's. A fixed "7 days
+      # ago" would open a gap whenever this run starts later in its Monday than the last one did, and a night landing
+      # in the gap would be in neither digest. With no earlier scheduled run, and on a dispatch, it is `days` ago.
+      - name: Read the two ledger states from gh-pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DAYS: ${{ inputs.days || '7' }}
+        run: |
+          case "$DAYS" in
+            ''|*[!0-9]*) echo "::error title=A11y digest::days must be a whole number, got '${DAYS}'"; exit 1 ;;
+          esac
+          since=''
+          if [ "$GITHUB_EVENT_NAME" = 'schedule' ]; then
+            since=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/a11y-digest.yml/runs?event=schedule&status=success&per_page=1" --jq '.workflow_runs[0].run_started_at // empty')
+          fi
+          if [ -z "$since" ]; then
+            since=$(date -u -d "${DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          # The window in whole days, for the digest's wording: at least one, at most a year.
+          window=$(( ($(date -u +%s) - $(date -u -d "$since" +%s) + 43200) / 86400 ))
+          if [ "$window" -lt 1 ]; then window=1; fi
+          if [ "$window" -gt 366 ]; then window=366; fi
+          echo "WINDOW_DAYS=${window}" >> "$GITHUB_ENV"
+          gh api -H 'Accept: application/vnd.github.raw' "repos/${GITHUB_REPOSITORY}/contents/test-health/a11y.json?ref=gh-pages" > "$RUNNER_TEMP/after.json"
+          before_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits?sha=gh-pages&path=test-health/a11y.json&until=${since}&per_page=1" --jq '.[0].sha // empty')
+          if [ -n "$before_sha" ]; then
+            gh api -H 'Accept: application/vnd.github.raw' "repos/${GITHUB_REPOSITORY}/contents/test-health/a11y.json?ref=${before_sha}" > "$RUNNER_TEMP/before.json"
+            echo "Comparing gh-pages now with ${before_sha}, the last state published before ${since}."
+          else
+            echo "No state of test-health/a11y.json was published before ${since}: a first digest."
+          fi
+
+      # The text goes to a payload file, never through a YAML string: a cluster title can hold any character.
+      - name: Build the digest
+        run: |
+          node .github/scripts/a11y-digest.mjs \
+            --after "$RUNNER_TEMP/after.json" \
+            --before "$RUNNER_TEMP/before.json" \
+            --catalog tests/a11y/issues.json \
+            --days "$WINDOW_DAYS" \
+            --page-url "$PAGE_URL" \
+            --tracker-url "$TRACKER_URL" \
+            --payload "$RUNNER_TEMP/slack-payload.json" \
+            > "$RUNNER_TEMP/digest.txt"
+          {
+            echo '## Accessibility digest'
+            echo
+            echo 'The message as Slack gets it (Slack markup):'
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/digest.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Only with the webhook, from the schedule, or from a dispatch that turned the dry run off. The event is named
+      # on both sides on purpose: `inputs.dry-run` is null on any other event, and null equals false in an expression.
+      - name: Post the digest to Slack
+        if: >-
+          env.SLACK_WEBHOOK_URL != ''
+          && (github.event_name == 'schedule'
+              || (github.event_name == 'workflow_dispatch' && inputs.dry-run == false))
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: ${{ runner.temp }}/slack-payload.json

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "page": "editable-headers",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "textbox",
+        "name": "Header name"
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Stock",
+        "cell": [
+          -1,
+          2
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

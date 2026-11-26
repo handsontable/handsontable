@@ -1224,8 +1224,9 @@ class Border {
    * the bottom clone starts. The bottom clone's first row draws its own top border one pixel above the height the
    * row calculators count, over the lined-up row's bottom border, so that border's pixel is the freeze line.
    *
-   * That holds while the clone's first row has no height of its own. With one, the clone is as tall as counted
-   * and the lined-up row keeps its own border in view above the clone, so the row is treated as any other
+   * That holds whenever the clone is taller than counted, which is every grid with border-box cells. With
+   * content-box cells and a first row that has a height of its own, the clone is as tall as counted and the
+   * lined-up row keeps its own border in view above the clone, so the row is treated as any other
    * (`Overlays#bottomCloneCoversLinedUpRow` says which, once per draw).
    *
    * @private

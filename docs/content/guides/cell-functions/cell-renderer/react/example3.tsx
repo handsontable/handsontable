@@ -5,8 +5,8 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const data = [
-  ['A1', '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-  ['A2', '/docs/img/examples/javascript-the-good-parts.jpg'],
+  ['Professional JavaScript for Web Developers', '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+  ['JavaScript: The Good Parts', '/docs/img/examples/javascript-the-good-parts.jpg'],
 ];
 
 const ExampleComponent = () => {
@@ -22,6 +22,7 @@ const ExampleComponent = () => {
             const img = document.createElement('img');
 
             img.src = value;
+            img.alt = String(instance.getDataAtCell(row, 0));
 
             img.addEventListener('mousedown', (event) => {
               event.preventDefault();

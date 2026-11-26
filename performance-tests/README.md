@@ -79,15 +79,21 @@ Each scenario measures a specific user interaction pattern:
 | **sorting** | 100000 x 100 | `columnSorting.sort()` | Hook timing: beforeColumnSort -> afterColumnSort |
 | **cell-editing** | 5000 x 10 | selectCell + Enter + type + Enter x 20 | Sequential cell edits |
 | **initial-load** | 100000 x 100 | `new Handsontable(...)` | Grid construction only |
+| **initial-load-autosize** | 100000 x 50 | `new Handsontable(...)` with the default `autoColumnSize` | The synchronous part of the column sweep. Past its cell budget only the columns on screen are measured before the constructor returns, so the window must not grow with the column count |
 | **source-data-validator-load** | 100000 x 100 | `new Handsontable(...)` with `sourceDataValidator` | Same fixture as initial-load plus the one option |
 | **column-autosize-refill** | 2000 x 200 | `manualColumnResize.setManualSize(2, 320)` + `render()` | 25px columns (~72 rendered), 40 wrapped rows shrink and the row band is refilled in several passes within the draw |
 | **undo-edit** | 100000 x 100 | `undo()` of one `setDataAtCell()` | Hook timing: beforeUndo -> afterUndo. Must not scale with the grid: one journaled cell, every index map shared |
 | **undo-sort** | 100000 x 100 | `undo()` of a `columnSorting.sort()` | Hook timing: beforeUndo -> afterUndo. The index-map restore path (the 100000-row order) |
 | **undo-remove-rows** | 100000 x 100 | `undo()` of `alter('remove_row', 1000, 100)` | Hook timing: beforeUndo -> afterUndo. The structural path: physical-order replay, rows re-created, maps restored |
+| **set-cell-meta-loop** | 10000 x 50 | 50000 `setCellMeta()` calls outside `batch()` | One undo step per call; the undo stack is cleared between iterations. The meta write is cheap and draws nothing, so the window is the per-step undo bookkeeping (state capture, stack push), which must not grow with the stack |
 | **sheetsbar-structural-ops** | 10 sheets x 10000 x 10 | `alter('insert_row_above', 100, 1)` then `alter('remove_row', 100, 1)` in the visible sheet | SheetsBar workbook on one shared HyperFormula engine. Each wrapped structural engine call lists the formulas of the other sheets that name the visible one; the per-sheet cache skips a sheet with none, so the warmup scan fills it and the window measures the cached path |
+| **paste-extend-rows** | 100 x 10, pasted to 10099 x 10 | `copyPaste.paste()` of a 10000 x 10 block on the last row | Hook timing: beforePaste -> afterPaste. The paste writes past the last row, so the grid creates the 9999 missing rows in one batch; creating them one at a time made this paste quadratic |
 | **validate-cells** | 5000 x 20, columns alternating `text` and `numeric` | `validateCells()`, awaited to its callback | Every validated cell queues one core microtask; dropping each one from an array made this pass quadratic (about 5 s at this size, about 20 s at 10000 x 20). The data is `createSpreadsheetData` strings, so every `numeric` cell fails validation on purpose and the window covers the invalid path too |
+| **get-data** | 100000 x 100 | `getData()` | A full-grid bulk read. The per-column and per-call work of a cell read must be done once per column or per call, not once per cell |
+| **pagination-next-page** | 100000 x 20, `pagination: { pageSize: 50 }` | `nextPage()` x 20 | Each page change hides every row off the page. The hiding map must be written once, not with one `change` hook per hidden row, which doubled the cost of a page change at this size. The undo stack is cleared between iterations |
+| **search-query** | 100000 x 20, `search: true` | `search.query('A99')` | A query over every cell of a freshly loaded grid (the data is reloaded between iterations). It must keep cell meta for its matches only: storing one per scanned cell kept about 170 MB and doubled the query time. The spec fails a run that stores more than 20000 |
 
-Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Thirteen scenarios (filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort, undo-remove-rows, row-selection-select-all, row-selection-deselect-all, checkbox-header-toggle, checkbox-column-set-data, sheetsbar-structural-ops, validate-cells) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
+Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Seventeen scenarios (filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort, undo-remove-rows, row-selection-select-all, row-selection-deselect-all, checkbox-header-toggle, checkbox-column-set-data, sheetsbar-structural-ops, paste-extend-rows, validate-cells, get-data, pagination-next-page, search-query) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
 
 ## Project structure
 
@@ -471,7 +477,7 @@ and lists only the scenarios that need attention; the full table and the hook ti
 under `<details>`. A quiet run:
 
 ```
-## ⚡ Performance: ✅ all 19 scenarios within tolerance
+## ⚡ Performance: ✅ all 20 scenarios within tolerance
 
 <sub>Gate: a scenario fails above +10% and +2 ms of active time, or +5% of JS heap (…), and is
 watched above +5%. …</sub>
@@ -480,13 +486,13 @@ watched above +5%. …</sub>
 
 📊 **[Full interactive report →](https://handsontable.github.io/handsontable/performance-reports/my-branch/)**
 
-<details><summary>All 19 scenarios</summary> … </details>
+<details><summary>All 20 scenarios</summary> … </details>
 ```
 
 A regression, in block mode:
 
 ```
-## ⚡ Performance: ❌ 1 of 19 scenarios regressed
+## ⚡ Performance: ❌ 1 of 20 scenarios regressed
 
 Waiting for approval: if the slowdown is intended, a reviewer approves the pending
 `performance-approval` deployment on the [workflow run](…); otherwise push a fix. …

@@ -37,6 +37,7 @@ import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { CheckboxHeader } from './checkboxHeader';
+import { EditableHeaders } from './editableHeaders';
 import { RowSelection } from './rowSelection';
 import { Search } from './search';
 import { SelectionHandles } from './selectionHandles';
@@ -100,6 +101,7 @@ declare module './registry' {
     pagination: typeof Pagination;
     rowSelection: typeof RowSelection;
     checkboxHeader: typeof CheckboxHeader;
+    editableHeaders: typeof EditableHeaders;
     search: typeof Search;
     selectionHandles: typeof SelectionHandles;
     sheetsBar: typeof SheetsBar;
@@ -158,6 +160,7 @@ export function registerAllPlugins() {
   registerPlugin(Pagination);
   registerPlugin(RowSelection);
   registerPlugin(CheckboxHeader);
+  registerPlugin(EditableHeaders);
   registerPlugin(Search);
   registerPlugin(SelectionHandles);
   registerPlugin(SheetsBar);
@@ -212,6 +215,7 @@ export {
   Pagination,
   RowSelection,
   CheckboxHeader,
+  EditableHeaders,
   Search,
   SelectionHandles,
   SheetsBar,

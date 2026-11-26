@@ -2,9 +2,9 @@ import type { default as MetaManagerInstance } from '..';
 import type { HotInstance } from '../../../core/types';
 import type { CellProperties } from '../../../settings';
 import { Hooks } from '../../../core/hooks';
-import { hasOwnProperty, extend } from '../../../helpers/object';
+import { hasOwnProperty } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
-import { applyRequestedTypeEditor, extendByMetaType, normalizeEditorSetting } from '../utils';
+import { applyRequestedTypeEditor, applyTransientCellSettings } from '../utils';
 import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
 import { colToPropOrIndex } from '../../../helpers/columnProp';
 
@@ -155,10 +155,7 @@ export class DynamicCellMetaMod {
    */
   extendTransientCellMeta(cellMeta: Record<string, unknown>) {
     this.#runMetaExtension(cellMeta, (cellSettings) => {
-      const normalizedSettings = normalizeEditorSetting(cellSettings);
-
-      extend(cellMeta, normalizedSettings);
-      extendByMetaType(cellMeta, normalizedSettings, cellMeta, cellSettings.editor === true);
+      applyTransientCellSettings(cellMeta, cellSettings);
     });
   }
 

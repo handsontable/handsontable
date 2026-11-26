@@ -122,7 +122,7 @@ export function evidencePart(transcript, scenario) {
       theme: scenarioTheme(scenario),
       state: null,
       variant: scenario.id,
-      url: scenarioUrl(scenario),
+      url: scenarioUrl(scenario, { licenseQuery: null }),
     },
     durationMs: transcript.durationMs,
     criteria: [...scenario.criteria],
@@ -196,7 +196,7 @@ export function buildScreenreaderEvidence({ project, lane, group, transcripts, s
   const failures = [
     ...scenarios.filter(scenario => !written.has(scenario.id)).map(scenario => ({
       title: `${project} ${scenario.id}`,
-      target: { page: scenarioPageId(scenario), theme: scenarioTheme(scenario), state: null, variant: scenario.id, url: scenarioUrl(scenario) },
+      target: { page: scenarioPageId(scenario), theme: scenarioTheme(scenario), state: null, variant: scenario.id, url: scenarioUrl(scenario, { licenseQuery: null }) },
       error: 'the run left no transcript for this scenario',
     })),
     // A transcript an attempt after the first wrote passed only on a retry: the document flags its target, as

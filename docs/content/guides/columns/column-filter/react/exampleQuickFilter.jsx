@@ -239,7 +239,7 @@ const ExampleComponent = () => {
               </ul>
             )}
           </div>
-          <input id="filterField" type="text" placeholder="Filter" onKeyUp={handleFilter} />
+          <input id="filterField" type="text" placeholder="Filter" aria-label="Filter" onKeyUp={handleFilter} />
         </div>
       </div>
       <HotTable

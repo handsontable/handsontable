@@ -845,9 +845,125 @@ test('a fenced code block inside an aside stays a markdown fence between its par
   assert.ok(html.includes('<p>First paragraph with <code>code</code>.</p>'), 'first paragraph is its own <p>');
   assert.ok(html.includes('<p>Second paragraph, <strong>bold</strong>:</p>'), 'second paragraph is its own <p>');
   assert.ok(html.includes('<p>Closing paragraph.</p>'), 'text after the fence is its own <p>');
-  assert.ok(html.indexOf('</aside>') > close, 'the aside closes after the fence');
-  assert.equal(html.match(/<aside /g).length, 1, 'one aside');
-  assert.equal(html.match(/<\/aside>/g).length, 1, 'aside closed once');
+  assert.ok(html.indexOf('</div>\n</div>') > close, 'the aside closes after the fence');
+  assert.equal(html.match(/<div role="note" /g).length, 1, 'one callout');
+  assert.ok(!html.includes('<aside'), 'no aside element');
+});
+
+test('titles each framework variant of a page after the page and its framework', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-title-'));
+  const contentDir = join(root, 'content');
+  const pageDir = join(contentDir, 'guides', 'migration');
+
+  mkdirSync(pageDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(join(pageDir, 'migration.md'), [
+    '---',
+    'title: Migrating from 10.0 to 11.0',
+    'metaTitle: Migrate from 10.0 to 11.0 - JavaScript Data Grid | Handsontable',
+    'permalink: /migration',
+    'head:',
+    '  - tag: meta',
+    '    attrs:',
+    '      name: robots',
+    '      content: noindex',
+    '---',
+    '',
+    'Body.',
+    '',
+  ].join('\n'));
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const titlesOf = id => store.get(id).data.head.filter(entry => entry.tag === 'title').map(entry => entry.content);
+
+    assert.deepEqual(titlesOf('javascript-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for JavaScript']);
+    assert.deepEqual(titlesOf('react-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for React']);
+    assert.deepEqual(titlesOf('angular-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for Angular']);
+    assert.deepEqual(titlesOf('vue-data-grid/migration'), ['Migrating from 10.0 to 11.0 | Handsontable DataGrid for Vue']);
+    assert.deepEqual(
+      store.get('vue-data-grid/migration').data.head.filter(entry => entry.tag === 'meta').map(entry => entry.attrs.name),
+      ['robots'],
+      'the page\'s own head entries stay'
+    );
+    assert.equal(store.get('404').data.title, 'Page not found', 'the not-found title holds the page\'s heading');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('titles a page after its framework metaTitle when it names that framework', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-metatitle-'));
+  const contentDir = join(root, 'content');
+  const apiDir = join(contentDir, 'api');
+  const guideDir = join(contentDir, 'guides', 'introduction');
+
+  mkdirSync(apiDir, { recursive: true });
+  mkdirSync(guideDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(join(apiDir, 'introduction.md'), [
+    '---',
+    'title: Introduction',
+    'metaTitle: API reference | Handsontable DataGrid for JavaScript',
+    'permalink: /api',
+    'react:',
+    '  metaTitle: API reference | Handsontable DataGrid for React',
+    'angular:',
+    '  metaTitle: API reference | Handsontable DataGrid for Angular',
+    '---',
+    '',
+    'Body.',
+    '',
+  ].join('\n'));
+  writeFileSync(join(guideDir, 'introduction.md'), [
+    '---',
+    'title: Introduction',
+    'metaTitle: Documentation | Handsontable DataGrid for JavaScript',
+    'permalink: /introduction',
+    'react:',
+    '  metaTitle: Documentation | Handsontable DataGrid for React',
+    'angular:',
+    '  metaTitle: Documentation | Handsontable DataGrid for Angular',
+    'vue:',
+    '  metaTitle: Documentation | Handsontable DataGrid for Vue',
+    '---',
+    '',
+    'Body.',
+    '',
+  ].join('\n'));
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const titleOf = id => store.get(id).data.head.filter(entry => entry.tag === 'title').map(entry => entry.content);
+
+    assert.deepEqual(titleOf('javascript-data-grid/api'), ['API reference | Handsontable DataGrid for JavaScript']);
+    assert.deepEqual(titleOf('react-data-grid/api'), ['API reference | Handsontable DataGrid for React']);
+    assert.deepEqual(titleOf('angular-data-grid/api'), ['API reference | Handsontable DataGrid for Angular']);
+    assert.deepEqual(
+      titleOf('vue-data-grid/api'),
+      ['Introduction | Handsontable DataGrid for Vue'],
+      'a framework with no metaTitle of its own falls back to the title'
+    );
+    assert.deepEqual(titleOf('javascript-data-grid/introduction'), ['Documentation | Handsontable DataGrid for JavaScript']);
+    assert.deepEqual(titleOf('vue-data-grid/introduction'), ['Documentation | Handsontable DataGrid for Vue']);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a callout is a note named by its title, not a complementary landmark', async () => {
+  const html = await loadPageWithBody('::: warning Source data format\nKeep one object per row.\n:::\n\n::: tip\nShort.\n:::');
+
+  assert.ok(html.includes('<div role="note" class="starlight-aside starlight-aside--caution" aria-label="Source data format">'));
+  assert.ok(html.includes('<div role="note" class="starlight-aside starlight-aside--tip" aria-label="Tip">'));
+  assert.ok(html.includes('<p class="starlight-aside__title" aria-hidden="true">Source data format</p>'));
+  assert.ok(!html.includes('<aside'), 'no aside element, so no complementary landmark');
 });
 
 test('an aside without a fence keeps its single-paragraph HTML', async () => {
@@ -877,7 +993,7 @@ test('a longer fence in an aside is not closed by a shorter fence line inside it
 
   assert.ok(open > 0 && close > open, 'outer four-backtick fence is kept whole');
   assert.deepEqual(lines.slice(open + 1, close), ['```js', 'inner();', '```'], 'inner fence lines stay inside');
-  assert.ok(html.indexOf('</aside>') > close, 'the aside closes after the outer fence');
+  assert.ok(html.indexOf('</div>\n</div>') > close, 'the aside closes after the outer fence');
 });
 
 test('a fenced block that is the whole aside body keeps the aside well formed', async () => {
@@ -885,8 +1001,8 @@ test('a fenced block that is the whole aside body keeps the aside well formed', 
   const lines = html.split('\n');
 
   assert.ok(lines.includes('~~~js') && lines.includes('hot.render();'), 'tilde fence is kept as markdown');
-  assert.equal(html.match(/<aside /g).length, 1);
-  assert.equal(html.match(/<\/aside>/g).length, 1);
+  assert.equal(html.match(/<div role="note" /g).length, 1);
+  assert.ok(html.trimEnd().endsWith('</div>\n</div>'), 'the callout closes after the content');
   assert.ok(!html.includes('<p></p>'), 'no empty paragraph for a body that is only a fence');
 });
 
@@ -896,7 +1012,7 @@ test('an unclosed fence in an aside is closed before the aside ends', async () =
   const open = lines.indexOf('```js');
 
   assert.deepEqual(lines.slice(open, open + 3), ['```js', 'hot.render();', '```'], 'the fence gets its closing line');
-  assert.ok(html.indexOf('</aside>') > html.lastIndexOf('```'), 'the aside closes after the fence');
+  assert.ok(html.indexOf('</div>\n</div>') > html.lastIndexOf('```'), 'the aside closes after the fence');
   assert.ok(html.includes('After the aside.'), 'text after the aside is kept outside the fence');
 });
 
@@ -937,12 +1053,12 @@ test('the real markdown renderer highlights an aside fence and keeps the aside m
     'After the aside.',
   ].join('\n'));
   const { code } = await (await createMarkdownProcessor({})).render(markdown);
-  const aside = code.match(/<aside[\s\S]*<\/aside>/)[0];
+  const aside = code.match(/<div role="note"[\s\S]*?<\/div>\s*<\/div>\s*(?=<p>After the aside)/)[0];
 
   assert.match(aside, /<p>Before the code:<\/p>\s*<pre[^>]*data-language="js"/, 'paragraph, then a highlighted block');
   assert.ok(!aside.includes('```'), 'no literal fence markers in the aside');
-  assert.ok(!/<pre[\s\S]*<\/aside>[\s\S]*<\/pre>/.test(code), 'the aside markup is not inside the code block');
-  assert.match(code, /<\/aside>\s*<p>After the aside\.<\/p>/, 'the page continues after the aside');
+  assert.ok(!/<pre[\s\S]*<\/div>\s*<\/div>[\s\S]*<\/pre>/.test(code), 'the aside markup is not inside the code block');
+  assert.match(code, /<\/div>\s*<\/div>\s*<p>After the aside\.<\/p>/, 'the page continues after the aside');
 });
 
 /**
@@ -961,7 +1077,7 @@ async function renderAsidePage(body) {
 test('a fence closed by a line indented up to three spaces keeps the aside and the page intact', async () => {
   const code = await renderAsidePage(['::: tip', 'Text.', '```js', 'a();', '  ```', ':::', '', 'After the aside.'].join('\n'));
 
-  assert.match(code, /<\/pre>\s*<\/div>\s*<\/aside>\s*<p>After the aside\.<\/p>/, 'the aside closes after the code block');
+  assert.match(code, /<\/pre>\s*<\/div>\s*<\/div>\s*<p>After the aside\.<\/p>/, 'the aside closes after the code block');
   assert.equal(code.match(/<pre/g).length, 1, 'one code block, no second fence');
 });
 
@@ -969,6 +1085,105 @@ test('a fence opened by a line indented up to three spaces keeps the aside and t
   const code = await renderAsidePage(['::: tip', 'Text.', '  ```js', 'a();', '```', 'Tail.', ':::', '', 'After the aside.'].join('\n'));
 
   assert.match(code, /<pre[^>]*data-language="js"/, 'the indented opener is a highlighted block');
-  assert.match(code, /<p>Tail\.<\/p>\s*<\/div>\s*<\/aside>\s*<p>After the aside\.<\/p>/, 'text after the fence stays prose');
+  assert.match(code, /<p>Tail\.<\/p>\s*<\/div>\s*<\/div>\s*<p>After the aside\.<\/p>/, 'text after the fence stays prose');
   assert.equal(code.match(/<pre/g).length, 1, 'the closer does not open a second fence');
+});
+
+test('the initial load gives the event loop a turn after each content file', async () => {
+  const { contentDir, root } = createFixture();
+  const pageCount = 20;
+
+  for (let index = 0; index < pageCount; index += 1) {
+    const pageDir = join(contentDir, 'guides', `page-${index}`);
+
+    mkdirSync(pageDir, { recursive: true });
+    writeFileSync(
+      join(pageDir, `page-${index}.md`),
+      `---\ntitle: Page ${index}\npermalink: /page-${index}\n---\n\nBody ${index}.\n`
+    );
+  }
+
+  let turns = 0;
+  let loading = true;
+
+  const countTurn = () => {
+    if (loading) {
+      turns += 1;
+      setImmediate(countTurn);
+    }
+  };
+
+  try {
+    const { ctx } = createContext();
+
+    setImmediate(countTurn);
+    await frameworkLoader({ contentDir }).load(ctx);
+    loading = false;
+
+    assert.ok(turns >= pageCount, `the event loop turned ${turns} times for ${pageCount} pages`);
+  } finally {
+    loading = false;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a file edited during the initial load is reloaded after the load', async () => {
+  const { contentDir, root, introMd } = createFixture();
+
+  for (let index = 0; index < 20; index += 1) {
+    const pageDir = join(contentDir, 'guides', `page-${index}`);
+
+    mkdirSync(pageDir, { recursive: true });
+    writeFileSync(
+      join(pageDir, `page-${index}.md`),
+      `---\ntitle: Page ${index}\npermalink: /page-${index}\n---\n\nBody ${index}.\n`
+    );
+  }
+
+  let loading = true;
+  let editedDuringLoad = false;
+
+  try {
+    const { ctx, store, watcher } = createContext();
+
+    const editIntroOnceLoaded = () => {
+      if (!loading) {
+        return;
+      }
+
+      if (!store.has('javascript-data-grid/intro')) {
+        setImmediate(editIntroOnceLoaded);
+
+        return;
+      }
+
+      writeFileSync(
+        introMd,
+        [
+          '---',
+          'title: Introduction',
+          'permalink: /intro',
+          '---',
+          '',
+          'Intro body v2 EDITED.',
+          '',
+        ].join('\n')
+      );
+      watcher.emit('change', introMd);
+      editedDuringLoad = true;
+    };
+
+    setImmediate(editIntroOnceLoaded);
+    await frameworkLoader({ contentDir }).load(ctx);
+    loading = false;
+
+    assert.equal(editedDuringLoad, true, 'the edit has to land while the load is still running');
+
+    await sleep(300);
+
+    assert.match(renderedHtmlOf(store, 'javascript-data-grid/intro'), /Intro body v2 EDITED\./);
+  } finally {
+    loading = false;
+    rmSync(root, { recursive: true, force: true });
+  }
 });

@@ -36,8 +36,10 @@
 # by their schedule or a dispatch, go to `test-health/a11y.json`: one row per
 # finding across nights (first and last seen, nights seen, new / persisting /
 # flapping / resolved), sorted into root-cause clusters by
-# `tests/a11y/issues.json`, 90 days. The page's "Accessibility" section draws
-# them. The branch alone is not the rule: `Tests` uploads the same artifacts
+# `tests/a11y/issues.json`, 90 days, and a per-night history of each cluster's
+# open, new, resolved and returned findings, two years, which the page's fix
+# progress reads after the rows are gone. The page's "Accessibility" section
+# draws them. The branch alone is not the rule: `Tests` uploads the same artifacts
 # from a pull request's own code, and a fork's pull request from the fork's
 # `develop` reports `develop` as its branch; a fork cannot start a schedule or
 # a dispatch here. A dispatch of this workflow with a nightly's run id backfills
@@ -74,8 +76,8 @@ on:
     # are triaged. Its durations artifacts are never recorded (a schedule event is not a develop push).
     # 'A11y nightly' and 'Screen reader nightly' feed the accessibility findings ledger (a11y.json), on
     # develop: every check's evidence and the axe findings, and every reader lane's transcripts.
-    # 'Docs a11y' and 'Website a11y' add the docs site's and the website's findings, from a dispatch on develop (they
-    # have no schedule).
+    # 'Docs a11y' and 'Website a11y' add the docs site's and the website's findings. All four run on develop once a
+    # week on a schedule, or on a dispatch there.
     workflows: ['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y', 'Website a11y']
     types: [completed]
   workflow_dispatch:

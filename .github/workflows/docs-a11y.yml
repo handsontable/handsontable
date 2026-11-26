@@ -14,17 +14,27 @@ name: Docs a11y
 # (a page that did not answer, an example that never loaded, a color scheme that did not apply, a menu the
 # keyboard did not open).
 #
-# On demand, no schedule: a full scan takes several minutes, more than a docs pull request should wait
-# for, so a change to the docs never starts it. A pull request that changes the scan itself does (its
-# own files below): that run is the change's proof, and a workflow that exists only on a branch cannot
-# be dispatched. The checks run on a dispatch or a call only: a full run is twenty minutes of runner time,
-# and a dispatch from a branch is a change's proof (`checks` names a subset). A dispatch on develop is the
-# audit, recorded in the findings ledger (`test-health.yml`, `isA11yRun`), and runs every check: the
-# `check-inputs` job refuses a subset there. A dispatch from a branch and a pull request's run are not
-# recorded. Another workflow that runs
+# Once a week on a schedule, and on demand: a full scan takes several minutes, more than a docs pull
+# request should wait for, so a change to the docs never starts it. A pull request that changes the scan
+# itself does (its own files below): that run is the change's proof, and a workflow that exists only on a
+# branch cannot be dispatched. The checks run on the schedule, a dispatch or a call only: a full run is
+# twenty minutes of runner time, and a dispatch from a branch is a change's proof (`checks` names a
+# subset). The scheduled run and a dispatch on develop are the audit, recorded in the findings ledger
+# (`test-health.yml`, `isA11yRun`), and run every check: the `check-inputs` job refuses a subset there. A
+# dispatch from a branch and a pull request's run are not recorded. The schedule is the weekly audit:
+# while the accessibility debt is being fixed, the ledger needs an audit a week to show what each fix
+# cleared, and when (tests/AGENTS.md, "A11y: the audit and the proof runs"). It ends when the debt epic
+# closes, and the tiers then decide the cadence. A run that ends red on its `verdict` job alone is the
+# audit's answer, never a broken build, and nothing here posts to Slack. Another workflow that runs
 # every accessibility scan at once calls this one (`workflow_call`), and lists the `docs` source for
 # its own name in `SOURCES_OF_WORKFLOW` (.github/scripts/lib/a11y-ledger.mjs).
 on:
+  # The weekly audit: Monday 01:17 UTC, on develop (a schedule runs on the default branch), five minutes
+  # after a11y-nightly.yml, so the four audit workflows read one commit; the reasons for the hour are in
+  # screenreader-nightly.yml. `inputs` holds nothing on a schedule, so the run reads the develop staging
+  # deploy and runs every check, as a dispatch on develop with no inputs does.
+  schedule:
+    - cron: '17 1 * * 1'
   workflow_dispatch:
     inputs:
       base-url:
@@ -54,6 +64,8 @@ on:
       - 'tests/lib/a11y-report.*'
       - 'tests/lib/a11y-suites.*'
       - 'tests/lib/a11y-check-run.*'
+      - 'tests/lib/a11y-baseline-guard.*'
+      - 'tests/lib/a11y-pr-comment.*'
       - 'tests/lib/a11y-docs-drift.*'
       - 'tests/lib/a11y-issues.*'
       - 'tests/lib/a11y-evidence.*'
@@ -62,8 +74,10 @@ on:
       - 'tests/lib/a11y-verdict.*'
       - 'tests/lib/a11y-verdict-inputs.*'
       - 'tests/lib/github-check-run.*'
+      - 'tests/lib/github-rest.*'
       - 'tests/lib/website-pages.*'
       - 'tests/scripts/a11y-check-run.mjs'
+      - 'tests/scripts/a11y-docs-new-pages.mjs'
       - 'docs/tests/paths.js'
   workflow_call:
     inputs:
@@ -88,7 +102,8 @@ concurrency:
 
 jobs:
   # Refuses a subset on develop (the dispatch there is the audit, which runs every check) and an entry of
-  # `checks` that is no docs site check, before a runner is spent (tests/lib/a11y-dispatch.mjs).
+  # `checks` that is no docs site check, before a runner is spent (tests/lib/a11y-dispatch.mjs). The
+  # schedule has no inputs, so it passes as a dispatch on develop with none does.
   check-inputs:
     name: Check the dispatch inputs
     runs-on: ubuntu-26.04
@@ -138,6 +153,19 @@ jobs:
         name: Install pnpm
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
+      # A pull request's run reads the staging deploy of develop, which has none of the pages the pull request
+      # adds to the docs page list. Those are left out of the scan and named in the summary, instead of failing on
+      # every head until the merge. Not when a dispatch or a call names a deploy: that one may hold them. The base
+      # is the first parent of the checked-out merge commit, the develop tip the merge was built on, never the
+      # payload's base.sha, which a re-run leaves behind (.ai/CI.md, the diff-scoped gate trap). Anything that
+      # cannot be read leaves the list empty, so every page is scanned, as before (the script says why).
+      - name: Name the pages this pull request adds
+        if: ${{ github.event_name == 'pull_request' && env.DOCS_A11Y_BASE_URL == '' }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --no-tags --depth=2 origin "$GITHUB_SHA" || echo "::warning::The merge commit's parent was not fetched, so no new page is skipped."
+          BASE=$(git rev-list --parents -n 1 "$GITHUB_SHA" | awk 'NF == 3 { print $2 }')
+          echo "DOCS_A11Y_SKIP_PAGES=$([ -n "$BASE" ] && node tests/scripts/a11y-docs-new-pages.mjs --base "$BASE")" >> "$GITHUB_ENV"
       # The reporter (tests/reporters/a11y.ts, suite `docs`) writes the job summary, the HTML report,
       # comparison.json and a11y-findings.json, and decides the exit status from the mode. The step times
       # out before the job, so the uploads below still run.
@@ -185,7 +213,8 @@ jobs:
         run: node tests/scripts/a11y-check-run.mjs --suite docs
 
   # The docs site checks beyond axe: one Playwright project per check of SITE_CHECKS
-  # (tests/lib/a11y-site-checks.mjs), against the same deploy as the scan. On a dispatch or a call only.
+  # (tests/lib/a11y-site-checks.mjs), against the same deploy as the scan. On the schedule, a dispatch or a
+  # call only.
   checks:
     name: docs checks
     needs: [ check-inputs ]

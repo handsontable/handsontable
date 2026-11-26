@@ -54,8 +54,8 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>    | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>   | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Save and close editor                                         | &check; | &check; |
 | Alphanumeric keys                            | Alphanumeric keys                           | Enter the editing mode of the active cell and enter the pressed key's value into the cell      | &check; | &check; |
-| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell to the right by default<sup>\*</sup> (in RTL layout, the next cell is to the left; if there's only one column available, move one cell down) — direction set by [`tabMoves`](@/api/options.md#tabmoves)   | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell to the left by default<sup>\*</sup> (in RTL layout, the previous cell is to the right; if there's only one column available, move one cell up) — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
+| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell to the right by default<sup>\*</sup> (in RTL layout, the next cell is to the left; if there's only one column available, move one cell down) — direction set by [`tabMoves`](@/api/options.md#tabmoves); at the grid's edge, move the focus out of the grid   | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell to the left by default<sup>\*</sup> (in RTL layout, the previous cell is to the right; if there's only one column available, move one cell up) — direction set by [`tabMoves`](@/api/options.md#tabmoves); at the grid's edge, move the focus out of the grid | &check; | &check; |
 | <kbd>**Home**</kbd>                          | <kbd>**Home**</kbd>                         | Move to the first non-frozen cell of the current row<sup>\*</sup>                               | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Home**</kbd>      | <kbd>⌘</kbd>+<kbd>**Home**</kbd>      | Move to the first non-frozen cell of the grid<sup>\*</sup>                                      | &cross; | &check; |
 | <kbd>**End**</kbd>                           | <kbd>**End**</kbd>                          | Move to the last non-frozen cell of the current row<sup>\*</sup>                                | &cross; | &check; |
@@ -209,7 +209,7 @@ These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugi
 
 | Windows                              | macOS                                | Action                              |  Excel  | Sheets  |
 | ------------------------------------ | ------------------------------------ | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells (does nothing while several ranges are selected) | &cross; | &cross; |
 
 ### Undo and redo keyboard shortcuts
 
@@ -238,23 +238,26 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 These keyboard shortcuts work in [column groups](@/guides/columns/column-groups/column-groups.md), also known as "nested headers". To activate them, enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
 
-The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> shortcut works from a data cell or a focused column header, with or without `navigableHeaders`. The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                              |  Excel  | Sheets  |
 | -------------------- | -------------------- | ----------------------------------- | :-----: | :-----: |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↑**</kbd> | Collapse or expand the collapsible column group closest to the data, over the current column. From a focused column header, toggle that header's group | &cross; | &cross; |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the column group | &cross; | &cross; |
 
 ### Row parent-child keyboard shortcuts
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
 
-These shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> shortcuts work from any data cell of the row or from its row header, with or without `navigableHeaders`. The other shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                                                                                                 |
 | -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
 | <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
 | <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**→**</kbd> | Expand the current row, if it is a collapsed parent row |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**←**</kbd> | Collapse the current row, if it is an expanded parent row. Otherwise, move the selection to the parent row, in the same column |
 
 In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
@@ -306,8 +309,9 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments/co
 | Windows                                                 | macOS                                                      | Action                                                                     |  Excel  | Sheets  |
 |---------------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------------------| :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>⌥</kbd>+<kbd>**M**</kbd> | Add or edit a comment                                                      | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment                                          | &cross; | &check; |
-| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving                                    | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd> | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**R**</kbd> | Resize the comment box with the arrow keys (<kbd>**Enter**</kbd> keeps the size, <kbd>**Escape**</kbd> cancels), while the comment has the focus | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment, and return the focus to the cell     | &cross; | &check; |
+| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving and return the focus to the cell. Also hides a comment shown on hover, wherever the focus is. The page still receives the key | &cross; | &cross; |
 | <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                         | Save and exit the current comment, move the selection to the next cell     | &cross; | &cross; |
 | <kbd>**Shift + Tab**</kbd>                              | <kbd>**Shift + Tab**</kbd>                                 | Save and exit the current comment, move the selection to the previous cell | &cross; | &cross; |
 
@@ -334,6 +338,21 @@ These shortcuts work only when a column header is focused. Enable [`navigableHea
 | Windows              | macOS                | Action                                                                                         |  Excel  | Sheets  |
 | -------------------- | -------------------- | ---------------------------------------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | Check every checkbox in the column, or uncheck them when all of them are already checked      | &cross; | &cross; |
+
+### Editable headers keyboard shortcuts
+
+These keyboard shortcuts work when you rename a column header or a row header in the grid. To activate them, enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin with the [`editableHeaders`](@/api/options.md#editableheaders) option.
+
+<kbd>**F2**</kbd> and <kbd>**Enter**</kbd> start renaming only when a header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. On a header whose <kbd>**Enter**</kbd> sorts the column, <kbd>**Enter**</kbd> keeps sorting it; use <kbd>**F2**</kbd> instead.
+
+| Windows              | macOS                | Action                                                          |  Excel  | Sheets  |
+| -------------------- | -------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**F2**</kbd>    | <kbd>**F2**</kbd>    | Start renaming the focused header                               | &cross; | &cross; |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Start renaming the focused header                               | &cross; | &cross; |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Save the new header name                                        | &cross; | &cross; |
+| <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Cancel renaming the header                                     | &cross; | &cross; |
+| <kbd>**Tab**</kbd>   | <kbd>**Tab**</kbd>   | Save the new header name, and move to the next header or cell   | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Save the new header name, and move to the previous header or cell | &cross; | &cross; |
 
 ### Formulas keyboard shortcuts
 
@@ -371,6 +390,23 @@ These keyboard shortcuts work in the formula editor of the [`FormulaBuilder`](@/
 Point mode is on in a formula when a reference is valid at the caret, for example right after `=`, an operator, an argument separator, or an opening parenthesis.
 
 
+### Column and row resize keyboard shortcuts
+
+These keyboard shortcuts resize a column or a row without dragging. To activate them, enable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin, the [`ManualRowResize`](@/api/manualRowResize.md) plugin, or both.
+
+<kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd> starts the resize. The handle and the guide show the new size, and the arrow keys, <kbd>**Enter**</kbd>, and <kbd>**Escape**</kbd> work until you end the resize. Any other key cancels the resize and does what it normally does. The shortcut resizes the column of the selected cell or the focused column header. To resize a row, select the whole row or focus its row header first. When you select whole columns or rows, the resize applies to all of them.
+
+| Windows                                                                           | macOS                                                                     | Action                                                                                                      |  Excel  | Sheets  |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**R**</kbd>                           | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**R**</kbd>                                | Start resizing the column of the selected cell or header, or the selected row                               | &cross; | &cross; |
+| <kbd>**←**</kbd> / <kbd>**→**</kbd>                                               | <kbd>**←**</kbd> / <kbd>**→**</kbd>                                       | While you resize a column, change the width by 10 pixels                                                    | &cross; | &cross; |
+| <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                               | <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                       | While you resize a row, change the height by 10 pixels                                                      | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**arrow**</kbd>                                         | <kbd>⇧</kbd>+<kbd>**arrow**</kbd>                                         | Change the size by 1 pixel                                                                                  | &cross; | &cross; |
+| <kbd>**Enter**</kbd>                                                              | <kbd>**Enter**</kbd>                                                      | Keep the new size. The resize is one undo step, and the resize hooks run as they do after a drag.          | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                                             | <kbd>**Escape**</kbd>                                                     | Cancel the resize and keep the old size                                                                     | &cross; | &cross; |
+
+In a right-to-left layout, the horizontal arrows swap. A screen reader announces the size at each key press, in pixels.
+
 ### Freeze bar keyboard shortcuts
 
 These keyboard shortcuts work when the [`FreezeBar`](@/api/freezeBar.md) plugin is enabled. The first two work in the grid. The rest work on a freeze bar that has the focus.
@@ -385,7 +421,7 @@ These keyboard shortcuts work when the [`FreezeBar`](@/api/freezeBar.md) plugin 
 | <kbd>**End**</kbd>                                       | <kbd>**End**</kbd>                                     | Freeze as many columns or rows as fit in the grid, and leave room to scroll.                                     | &cross; | &cross; |
 | <kbd>**Escape**</kbd>                                    | <kbd>**Escape**</kbd>                                  | Move the focus back to the selected cell.                                                                        | &cross; | &cross; |
 
-In a right-to-left layout, the horizontal arrows swap. <kbd>**Escape**</kbd> also cancels a drag of a freeze bar.
+In a right-to-left layout, the horizontal arrows swap. <kbd>**Escape**</kbd> also cancels a drag of a freeze bar, and a click on a freeze bar or a selection handle that waits for the click that finishes it.
 
 
 ## API reference
@@ -448,7 +484,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

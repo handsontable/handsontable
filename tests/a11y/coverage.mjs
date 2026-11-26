@@ -42,6 +42,7 @@ export const PLUGIN_COVERAGE = {
   dialog: { pages: ['dialog', 'loading'] },
   dragToScroll: { none: 'scrolls the grid while a pointer drags and draws nothing of its own' },
   dropdownMenu: { pages: ['dropdown-menu', 'filters-conditions'] },
+  editableHeaders: { pages: ['editable-headers'] },
   emptyDataState: { pages: ['empty-data'] },
   exportFile: { none: 'writes data to a file and draws no element of its own' },
   filters: { pages: ['dropdown-menu', 'filters-conditions'] },
@@ -49,7 +50,10 @@ export const PLUGIN_COVERAGE = {
     pages: ['formula-builder', 'formula-builder-suggestions', 'formula-builder-function-help', 'formula-builder-tokens',
       'formula-builder-named-expression'],
   },
-  formulas: { none: 'computes cell values; a formula is edited in the text editor or the formula builder editor' },
+  formulas: {
+    none: 'computes cell values; a formula is edited in the text editor or the formula builder editor, and the ' +
+      'hidden text that names a formula cell is asserted by e2e/formulas-cell-description.spec.ts (axe cannot see it)',
+  },
   freezeBar: { pages: ['freeze-bar'] },
   hiddenColumns: { pages: ['shared-demo'] },
   hiddenRows: { pages: ['complex-demo'] },

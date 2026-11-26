@@ -76,6 +76,8 @@ export const A11Y_PAGES = [
     surface: 'the license bar naming the features a license key leaves out, and its sales link' },
   { id: 'license-powered-by', fixture: 'license-branding.html', query: 'key=sponsored-attribution-bar', state: 'none',
     surface: 'the "Powered by Handsontable DataGrid" bar of a key with the attribution-bar flag, its link and text contrast' },
+  { id: 'side-layout-slots', fixture: 'side-layout-slots.html', query: 'panels=both', state: 'none',
+    surface: 'panels docked in the start and end layout slots and a button in the top slot: the slot borders, corner radii and the frame around them' },
   // Menus, opened from the keyboard.
   { id: 'context-menu', fixture: 'context-menu-checked-items.html', state: 'context-menu',
     surface: 'the context menu opened with Shift+F10: items, checkable items, separators' },
@@ -128,6 +130,8 @@ export const A11Y_PAGES = [
     surface: 'the row selection checkboxes and their select-all checkbox' },
   { id: 'async-values', fixture: 'async-values.html', cell: [0, 1], state: 'async-pending',
     surface: 'a cell whose value is pending: the indicator, the message and aria-busy' },
+  { id: 'editable-headers', fixture: 'editable-headers.html', cell: [-1, 1], state: 'header-editor',
+    surface: 'the input that renames a column header (EditableHeaders), with the header menu buttons' },
   { id: 'time-editor', fixture: 'date-editor.html', cell: [0, 4], state: 'editor',
     surface: 'the open time editor' },
   { id: 'intl-date-editor', fixture: 'intl-date-editor-ime-fast-edit.html', cell: [0, 0], state: 'editor',
@@ -195,6 +199,7 @@ export function stateSteps(page) {
     'formula-function-help': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUM("`,
     'formula-error-range': `${select}, then press Shift+ArrowUp and Shift+ArrowLeft`,
     'formula-named-suggestion': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUMM"`,
+    'header-editor': `select the column header of column ${col} (hot.selectCell(${row}, ${col}), with navigableHeaders on), then press F2`,
   }[page.state];
 
   return before && steps ? `${before}, then ${steps}` : steps;

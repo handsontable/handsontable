@@ -33,6 +33,7 @@ Current recipes:
 
 - [External search box](@/recipes/filtering-and-search/external-search-box/external-search-box.md)
 - [Highlight search matches](@/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md)
+- [Filter rows with a search box](@/recipes/filtering-and-search/search-as-filter/search-as-filter.md)
 
 </div>
 

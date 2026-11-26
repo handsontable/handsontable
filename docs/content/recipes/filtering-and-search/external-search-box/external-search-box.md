@@ -103,7 +103,7 @@ searchInput.addEventListener('input', () => {
 
 `query()` updates each cell's `isSearchResult` metadata. `hot.render()` applies the updated highlight state.
 
-## Step 4 (optional): Debounce for large datasets
+## Step 4: Debounce for large datasets (optional)
 
 If you search very large tables, debounce the input callback to reduce render frequency:
 

@@ -10,6 +10,9 @@ const {
 /**
  * Register phrase formatter.
  *
+ * A formatter may receive the phrase propositions stored in the registered language dictionary, so it must
+ * return a new value instead of mutating its input.
+ *
  * @param {string} name Name of formatter.
  * @param {Function} formatterFn Function which will be applied on phrase propositions. It will transform them if it's possible.
  */

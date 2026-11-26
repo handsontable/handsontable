@@ -95,8 +95,9 @@ export const AGENT_LABEL = 'Handsontable Support';
 /** Text of the controls a reader uses to answer Support instead of the bot (SU-1118). */
 export const SUPPORT_UI = {
   replyButton: 'Reply to Support',
-  chip: 'To Support',
-  chipRemove: 'Stop writing to Support',
+  stripTitle: 'Writing to Support',
+  stripBack: 'Back to bot',
+  stripRemove: 'Stop writing to Support',
   placeholder: 'Write to Support...',
   composerLabel: 'Write to Support',
   sentNote: 'Sent to Support. Please wait for a reply.',

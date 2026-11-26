@@ -22,12 +22,11 @@
       - gridcell "B5"
       - gridcell "C5"
   - rowgroup:
-    - row "Select whole grid A B C":
-      - gridcell "Select whole grid"
+    - row "A B C":
+      - gridcell
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -40,49 +39,28 @@
     - row "5":
       - rowheader "5"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
-  - textbox
+    - row:
+      - gridcell
+  - textbox "B, row 2"
 # portal
-- menu:
-  - table:
-    - rowgroup:
-      - row "Insert row above":
-        - menuitem "Insert row above"
-      - row "Insert row below":
-        - menuitem "Insert row below"
-      - row "---------":
-        - menuitem "---------"
-      - row "Insert column left":
-        - menuitem "Insert column left"
-      - row "Insert column right":
-        - menuitem "Insert column right"
-      - row "---------":
-        - menuitem "---------"
-      - row "Remove row":
-        - menuitem "Remove row"
-      - row "Remove column":
-        - menuitem "Remove column"
-      - row "---------":
-        - menuitem "---------"
-      - row "Undo":
-        - menuitem "Undo" [disabled]
-      - row "Redo":
-        - menuitem "Redo" [disabled]
-      - row "---------":
-        - menuitem "---------"
-      - row "Read only":
-        - menuitemcheckbox "Read only"
-      - row "---------":
-        - menuitem "---------"
-      - row "Alignment":
-        - menuitem "Alignment"
-      - row "---------":
-        - menuitem "---------"
-      - row "Copy":
-        - menuitem "Copy"
-      - row "Cut":
-        - menuitem "Cut"
+- menu "Context menu":
+  - menuitem "Insert row above"
+  - menuitem "Insert row below"
+  - separator
+  - menuitem "Insert column left"
+  - menuitem "Insert column right"
+  - separator
+  - menuitem "Remove row"
+  - menuitem "Remove column"
+  - separator
+  - menuitem "Undo" [disabled]
+  - menuitem "Redo" [disabled]
+  - separator
+  - menuitemcheckbox "Read only"
+  - separator
+  - menuitem "Alignment"
+  - separator
+  - menuitem "Copy"
+  - menuitem "Cut"
 - status
 - status

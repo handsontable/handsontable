@@ -145,17 +145,17 @@
       - gridcell "I13"
       - gridcell "J13"
   - rowgroup:
-    - row "Select whole grid Info Details Extra":
-      - gridcell "Select whole grid"
+    - row "Info Details Extra":
+      - gridcell
       - columnheader "Info"
       - columnheader "Details"
       - columnheader "Extra"
-      - columnheader
-      - columnheader
-      - columnheader
-      - columnheader
-    - row "Select whole grid L0 L1 L2 L3 L4 L5 L6 L7 L8 L9":
-      - gridcell "Select whole grid"
+      - gridcell
+      - gridcell
+      - gridcell
+      - gridcell
+    - row "L0 L1 L2 L3 L4 L5 L6 L7 L8 L9":
+      - gridcell
       - columnheader "L0"
       - columnheader "L1"
       - columnheader "L2"
@@ -166,7 +166,6 @@
       - columnheader "L7"
       - columnheader "L8"
       - columnheader "L9"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -195,11 +194,10 @@
     - row "13":
       - rowheader "13"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
-  - rowgroup
+    - row:
+      - gridcell
+    - row:
+      - gridcell
 # portal
 - status
 - status

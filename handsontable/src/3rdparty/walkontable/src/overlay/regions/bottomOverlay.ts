@@ -119,8 +119,9 @@ export class BottomOverlay extends Overlay {
       const masterHolderRect = geometryReader.getBoundingClientRect(wtTable.holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
 
-      // Held at the viewport's bottom edge by the browser, never by this listener (DEV-126).
-      overlayRoot.style.bottom = '';
+      // Held at the viewport's bottom edge by the browser, never by this listener (DEV-126). The rail
+      // writes the clone's insets itself: clearing `bottom` here first, only for the rail to set it
+      // back, would force a reflow on the width read below on every draw.
       rail?.pin({
         isRtl: this.isRtl(),
         width: wtTable.getTotalWidth(),

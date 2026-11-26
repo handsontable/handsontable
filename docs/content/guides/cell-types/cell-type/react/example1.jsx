@@ -24,12 +24,15 @@ const ExampleComponent = () => {
   const yellowRenderer = (instance, td, ...rest) => {
     textRenderer(instance, td, ...rest);
     td.style.backgroundColor = 'yellow';
+    td.style.color = '#1f2937';
   };
 
   const greenRenderer = (instance, td, ...rest) => {
     textRenderer(instance, td, ...rest);
 
     td.style.backgroundColor = 'green';
+
+    td.style.color = '#ffffff';
   };
 
   return (

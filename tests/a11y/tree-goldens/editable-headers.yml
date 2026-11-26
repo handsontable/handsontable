@@ -1,0 +1,47 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "A0 B0 C0":
+      - gridcell "A0"
+      - gridcell "B0"
+      - gridcell "C0"
+    - row "A1 B1 C1":
+      - gridcell "A1"
+      - gridcell "B1"
+      - gridcell "C1"
+    - row "A2 B2 C2":
+      - gridcell "A2"
+      - gridcell "B2"
+      - gridcell "C2"
+    - row "A3 B3 C3":
+      - gridcell "A3"
+      - gridcell "B3"
+      - gridcell "C3"
+    - row "A4 B4 C4":
+      - gridcell "A4"
+      - gridcell "B4"
+      - gridcell "C4"
+  - rowgroup:
+    - row "Name Price Stock":
+      - gridcell
+      - columnheader "Name"
+      - columnheader "Price" [selected]
+      - columnheader "Stock"
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row:
+      - gridcell
+  - textbox "Header name": Price
+# portal
+- status
+- status

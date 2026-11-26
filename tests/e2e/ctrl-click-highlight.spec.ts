@@ -168,6 +168,62 @@ test.describe('Ctrl+click inside a multiple selection', { tag: THEMES_TAG }, () 
     expect(await grid.allSelectedBounds()).toEqual([{ top: 1, start: 1, bottom: 1, end: 1 }]);
   });
 
+  test('moves the focus onto a re-clicked cell while an earlier layer holds the focus', async({ page }) => {
+    // The click removes the stale copy of (1,1) from the middle of the layers, which shifts the layer
+    // indexes the selection keeps for the focus. The focus must still land on the cell just clicked.
+    await grid.initGrid({
+      selectionMode: 'multiple',
+      disableVisualSelection: 'area',
+      moveCells: false,
+      selectionHandles: false,
+      autoWrapRow: true,
+    });
+
+    await grid.selectLayers([[0, 0, 0, 0], [1, 1, 1, 1], [2, 2, 2, 2]]);
+    // Each layer is one cell, so the next step wraps out of the last layer onto the first one.
+    await page.keyboard.press('Enter');
+
+    expect(await grid.focusCell()).toEqual({ row: 0, col: 0 });
+
+    await grid.ctrlClickCell(1, 1);
+
+    expect(await grid.focusCell()).toEqual({ row: 1, col: 1 });
+    expect(await grid.selectedLayerCount()).toBe(3);
+    expect(await grid.allSelectedBounds()).toEqual([
+      { top: 0, start: 0, bottom: 0, end: 0 },
+      { top: 2, start: 2, bottom: 2, end: 2 },
+      { top: 1, start: 1, bottom: 1, end: 1 },
+    ]);
+  });
+
+  test('moves the focus to the last layer when a ctrl+click deselects a cell an earlier layer held', async({
+    page,
+  }) => {
+    await grid.initGrid({
+      selectionMode: 'multiple',
+      disableVisualSelection: 'area',
+      moveCells: false,
+      selectionHandles: false,
+      autoWrapRow: true,
+    });
+
+    await grid.selectLayers([[0, 0, 0, 0], [1, 1, 1, 1], [2, 2, 2, 2]]);
+    // Enter wraps from the last layer to the first, then moves on to the second.
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+
+    expect(await grid.focusCell()).toEqual({ row: 1, col: 1 });
+
+    // (1,1) holds the focus, so the click takes it out of the selection.
+    await grid.ctrlClickCell(1, 1);
+
+    expect(await grid.allSelectedBounds()).toEqual([
+      { top: 0, start: 0, bottom: 0, end: 0 },
+      { top: 2, start: 2, bottom: 2, end: 2 },
+    ]);
+    expect(await grid.focusCell()).toEqual({ row: 2, col: 2 });
+  });
+
   test('deselects the only selected cell whether the two clicks are fast or slow', async() => {
     // The two cadences differ only in what the second mouseup reports: separate clicks send
     // `detail: 1` twice, a double-click sends 1 then 2. Keying the rule on `detail` made only the

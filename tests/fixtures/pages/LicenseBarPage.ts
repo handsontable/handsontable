@@ -59,6 +59,52 @@ export class LicenseBarPage {
   }
 
   /**
+   * Gives the grid the page's width (`width: '100%'`), as a page narrower than the fixture's pixel
+   * width does for a reader at 320 px.
+   */
+  async fitGridToViewport(): Promise<void> {
+    await this.page.evaluate(() => {
+      const root = document.querySelector('.ht-root-wrapper') as (Element & {
+        __hotInstance?: { updateSettings(settings: object): void };
+      }) | null;
+
+      root!.__hotInstance!.updateSettings({ width: '100%' });
+    });
+    // The new width settles over the next frames (the bar wraps, the height is re-applied).
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+  }
+
+  /**
+   * How many lines the notice text takes: the bar's content height over its line height.
+   */
+  async barLineCount(): Promise<number> {
+    return this.bar.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+
+      return Math.round((element.getBoundingClientRect().height - padding) / parseFloat(style.lineHeight));
+    });
+  }
+
+  /**
+   * How many pixels the page scrolls sideways (WCAG 1.4.10 asks for none at 320 px).
+   */
+  async pageSidewaysScrollPx(): Promise<number> {
+    return this.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  }
+
+  /**
+   * How many pixels of the grid's own box (`.ht-wrapper`, which clips) its content reaches past:
+   * the header row of a grid the bottom bar left too little room reads as cut off.
+   */
+  async gridBoxClippedPx(): Promise<number> {
+    return this.page.locator('.ht-wrapper').first()
+      .evaluate(element => element.scrollHeight - element.clientHeight);
+  }
+
+  /**
    * The bottom slot's horizontal overflow state: how many pixels of content
    * exceed the slot's visible width, and whether the slot is set up to
    * scroll (rather than clip or spill) that excess.

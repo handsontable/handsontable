@@ -116,7 +116,7 @@ The loading indicator is created in JavaScript and inserted below the grid conta
 const loadingIndicator = document.createElement('div');
 
 loadingIndicator.style.cssText =
-  'display:none; padding:8px; text-align:center; color:#666; font-size:13px;';
+  'display:none; padding:8px; text-align:center; font-size:13px;';
 loadingIndicator.textContent = 'Loading more tasks...';
 container.insertAdjacentElement('afterend', loadingIndicator);
 ```

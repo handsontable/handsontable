@@ -382,4 +382,41 @@ describe('ViewportRowsCalculator', () => {
     expect(partiallyVisibleCalc.endRow).toBe(4);
     expect(partiallyVisibleCalc.count).toBe(5);
   });
+
+  describe('rowBandStartOffsetFn', () => {
+    const baseOptions = {
+      viewportHeight: 100,
+      scrollOffset: 400,
+      totalRows: 1000,
+      rowHeightFn: () => allRows20(),
+      overrideFn: undefined,
+      horizontalScrollbarHeight: undefined,
+    };
+
+    it('should publish the band start the function resolves, not the raw cache offset', () => {
+      const rowBandStartOffsetFn = jest.fn((row: number) => (row * 20) - 1);
+      const calc = createViewportRowsCalculator({ ...baseOptions, rowBandStartOffsetFn });
+      const renderedCalc = calc.getResultsFor('rendered');
+
+      expect(renderedCalc.startRow).toBe(20);
+      expect(rowBandStartOffsetFn).toHaveBeenCalledWith(20);
+      expect(renderedCalc.startPosition).toBe(399);
+    });
+
+    it('should keep the cache offset when no function is given', () => {
+      const calc = createViewportRowsCalculator(baseOptions);
+
+      expect(calc.getResultsFor('rendered').startPosition).toBe(400);
+    });
+
+    it('should leave the start position of the visible bands to the cache', () => {
+      const calc = createViewportRowsCalculator({
+        ...baseOptions,
+        rowBandStartOffsetFn: (row: number) => (row * 20) - 1,
+      });
+
+      expect(calc.getResultsFor('fullyVisible').startPosition).toBe(400);
+      expect(calc.getResultsFor('partiallyVisible').startPosition).toBe(400);
+    });
+  });
 });

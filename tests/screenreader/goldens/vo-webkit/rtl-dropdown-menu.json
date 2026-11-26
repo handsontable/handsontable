@@ -6,13 +6,13 @@
     "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-10T12:59:37.081Z"
+    "at": "2026-11-25T11:28:29.176Z"
   },
   "steps": {
-    "open-menu": "insert column left menu item group table 1 column 10 rows",
-    "end-to-alignment": "alignment collapsed menu item group table 1 column 10 rows",
-    "open-submenu": "alignment expanded menu item group 1 of 1",
-    "close-submenu": "narrow header with a menu button e2e fixture web content",
-    "close-menu": ""
+    "open-menu": "insert column left menu item group 1 of 6 menu column menu 6 items",
+    "end-to-alignment": "alignment collapsed menu item group 6 of 6",
+    "open-submenu": "alignment expanded menu item group 6 of 6",
+    "close-submenu": "alignment collapsed menu item group 6 of 6",
+    "close-menu": "longer header text b1 table 5 columns"
   }
 }
