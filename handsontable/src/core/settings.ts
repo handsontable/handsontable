@@ -408,9 +408,9 @@ export interface GridSettings {
   isEmptyRow?: (row: number) => boolean;
 
   // Layout
-  ariaDescribedby?: string;
-  ariaLabel?: string;
-  ariaLabelledby?: string;
+  ariaDescribedby?: string | null;
+  ariaLabel?: string | null;
+  ariaLabelledby?: string | null;
   ariaTags?: boolean;
   injectCoreCss?: boolean;
   layout?: LayoutConfig;

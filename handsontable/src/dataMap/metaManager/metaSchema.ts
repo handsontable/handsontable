@@ -630,7 +630,7 @@ export default (): Record<string, unknown> => {
      * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|null}
      * @default undefined
      * @category Core
      * @configScope grid
@@ -662,7 +662,7 @@ export default (): Record<string, unknown> => {
      * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|null}
      * @default undefined
      * @category Core
      * @configScope grid
@@ -694,7 +694,7 @@ export default (): Record<string, unknown> => {
      * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|null}
      * @default undefined
      * @category Core
      * @configScope grid
