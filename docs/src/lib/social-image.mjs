@@ -12,9 +12,9 @@ import { SITE_URL } from '../agent-note.mjs';
 export const SOCIAL_IMAGE = {
   file: 'handsontable-docs-cover.png',
   url: `${SITE_URL}/docs/handsontable-docs-cover.png`,
-  width: 1200,
-  height: 630,
-  alt: 'Handsontable Documentation',
+  width: 1160,
+  height: 600,
+  alt: 'Handsontable DataGrid: read the docs',
 };
 
 /**
