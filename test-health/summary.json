@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T02:16:17.099Z",
+  "generatedAt": "2026-11-26T03:59:53.391Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 468,
     "needsTicket": 7,
     "quarantined": 1,
-    "entries": 2371
+    "entries": 2372
   },
   "rows": [
     {
@@ -265,11 +265,11 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 521,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 17,
-      "count30": 21,
-      "countAll": 21,
-      "runs30": 14,
-      "flakyRuns30": 14,
+      "count7": 18,
+      "count30": 22,
+      "countAll": 22,
+      "runs30": 15,
+      "flakyRuns30": 15,
       "branches30": 13,
       "nightlyRuns30": 0,
       "openBranches30": 13,
@@ -282,8 +282,8 @@
       "isolation": [],
       "quarantine": "DEV-4110 until 2026-12-18 — read before the scroll settles",
       "lastSeen": {
-        "seenAt": "2026-11-25T16:46:47Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45651023086",
+        "seenAt": "2026-11-26T03:59:10Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45749970701",
         "branch": "develop",
         "leg": "e2e-webkit",
         "status": "flaky",
