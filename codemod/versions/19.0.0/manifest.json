@@ -2,6 +2,7 @@
   "version": "19.0.0",
   "from": "18.1",
   "status": "draft",
+  "published": true,
   "guide": {
     "url": "https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0",
     "source": "docs/content/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md"
@@ -29,16 +30,8 @@
       "reason": "It changes what an editor writes on a confirm without typing, for every grid, and no pattern in your code marks it."
     },
     {
-      "guide": "a-sanitizer-that-returns-a-trustedhtml-skips-paste-normalization",
-      "reason": "It affects a sanitizer that returns a TrustedHTML, and the tool does not follow what a sanitizer function returns."
-    },
-    {
-      "guide": "tohtml-puts-headers-through-your-sanitizer",
-      "reason": "It changes the output of toHTML() only for header markup that your sanitizer strips, which no pattern in your code shows."
-    },
-    {
-      "guide": "character-references-in-grid-copy-and-cell-text",
-      "reason": "It depends on character references inside the text you give to titles, labels, and cell text, which the tool does not read."
+      "guide": "html-output-changes-for-trustedhtml-paste-tohtml-headers-and-character-references",
+      "reason": "It depends on what your sanitizer returns for paste, on header markup that it strips from toHTML() output, and on character references in the text of titles, labels, and cells, none of which the tool reads."
     },
     {
       "guide": "cmdctrl--click-on-a-selected-cell-moves-the-highlight",
@@ -97,8 +90,8 @@
       "reason": "The TypeScript compiler reports it, and a hook passed to HotColumn never ran, so only code that passes one is affected."
     },
     {
-      "guide": "colwidths-addresses-columns-by-physical-index",
-      "reason": "It applies when columns can move or be inserted or removed, which depends on how users and code treat the grid at run time."
+      "guide": "colwidths-rowheights-and-minrowheights-address-columns-and-rows-by-physical-index",
+      "reason": "It applies when columns or rows can move, sort, filter, trim, or collapse, or you insert or remove them, which depends on how users and code treat the grid at run time."
     },
     {
       "guide": "an-auto-sized-column-is-no-longer-capped-at-the-width-of-the-grid",
@@ -135,10 +128,6 @@
     {
       "guide": "the-minimum-browser-versions-are-higher",
       "reason": "It concerns the browsers your app supports, and the tool does not compare them with the new minimum: it reads no browserslist key of a package.json, no .browserslistrc file, and no bundler target."
-    },
-    {
-      "guide": "rowheights-and-minrowheights-address-rows-by-physical-index",
-      "reason": "It applies when rows can move, sort, filter, trim, or collapse, or you insert or remove rows, which depends on how users and code treat the grid at run time."
     },
     {
       "guide": "turning-loading-off-turns-the-dialog-plugin-off",

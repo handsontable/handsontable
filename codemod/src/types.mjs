@@ -99,7 +99,10 @@
  * @typedef {object} Manifest
  * @property {string} version Semver, equal to the directory name.
  * @property {'released'|'draft'} status Release state.
- * @property {{url: string, source: string}} guide Public URL and repository path of the migration guide.
+ * @property {boolean} published `true` for a draft whose packages are already on npm, so a range it writes matches a
+ * published version. Always `false` for a released manifest, whose rule needs no such flag.
+ * @property {{url: string, source: string}|null} guide Public URL and repository path of the migration guide, or
+ * `null` for a draft manifest whose guide page does not exist yet (a released manifest always has one).
  * @property {Array<{guide?: string, title?: string, reason: string}>} notAutomated Parts of the migration that have no rule,
  * with the reason.
  * Empty for a manifest that lists none.

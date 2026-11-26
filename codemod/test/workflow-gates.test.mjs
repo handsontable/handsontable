@@ -71,8 +71,11 @@ describe('the workflows that run the codemod suite', { skip: !IN_MONOREPO && !ex
     for (const name of await readdir(versions)) {
       const file = join(versions, name, 'manifest.json');
 
-      if (existsSync(file)) {
-        sources.push([name, JSON.parse(await readFile(file, 'utf8')).guide.source]);
+      const guide = existsSync(file) ? JSON.parse(await readFile(file, 'utf8')).guide : null;
+
+      // A draft with no guide page yet has no file for the filter to cover.
+      if (guide) {
+        sources.push([name, guide.source]);
       }
     }
 

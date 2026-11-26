@@ -10,7 +10,7 @@ import {
 import { transformFile } from '../src/runner.mjs';
 import { KIND_ORDER, registry } from '../src/transforms/index.mjs';
 import { anchorsOf, checkAnchors, slugOf } from './helpers/guide-anchors.mjs';
-import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
+import { guidePath, skipWithoutGuides, withGuide } from './helpers/guide-source.mjs';
 
 const schema = JSON.parse(await readFile(join(PACKAGE_ROOT, 'src', 'manifest.schema.json'), 'utf8'));
 
@@ -84,7 +84,11 @@ describe('every shipped manifest', () => {
   it('points every guide source at an existing file and builds a public URL', async(context) => {
     const manifests = await loadManifests();
 
-    for (const manifest of manifests) {
+    for (const manifest of manifests.filter(item => item.status === 'released')) {
+      assert.ok(manifest.guide, `${manifest.version} is released and has no guide`);
+    }
+
+    for (const manifest of withGuide(manifests)) {
       assert.match(manifest.guide.url, /^https:\/\/handsontable\.com\/docs\/javascript-data-grid\/[^/]+$/);
     }
 
@@ -92,7 +96,7 @@ describe('every shipped manifest', () => {
       return;
     }
 
-    for (const manifest of manifests) {
+    for (const manifest of withGuide(manifests)) {
       assert.ok((await readFile(guidePath(manifest), 'utf8')).length > 0, manifest.guide.source);
     }
   });
@@ -104,7 +108,7 @@ describe('every shipped manifest', () => {
       return;
     }
 
-    for (const manifest of manifests) {
+    for (const manifest of withGuide(manifests)) {
       checkAnchors(manifest, await readFile(guidePath(manifest), 'utf8'), context);
     }
   });

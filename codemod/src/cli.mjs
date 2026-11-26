@@ -128,7 +128,11 @@ function renderList(rows, notAutomated = []) {
     lines.push('', `Changes with no rule, to read in the guide: ${parts.join(', ')}.`);
   }
 
-  lines.push('', `${rows.length} rules: ${count('rewrite')} rewrite, ${count('report')} report`
+  if (lines.length > 0) {
+    lines.push('');
+  }
+
+  lines.push(`${rows.length} rules: ${count('rewrite')} rewrite, ${count('report')} report`
     + `${missing > 0 ? `, ${missing} not implemented` : ''}.`);
 
   return `${lines.join('\n')}\n`;
@@ -139,21 +143,22 @@ function renderList(rows, notAutomated = []) {
  * manual line says how many steps have a TODO marker in the code and how many are in the report only, and names the
  * search for the markers only when there is at least one.
  *
- * @param {{changedFiles: string[], report: import('./report.mjs').Report, usedDraft: boolean, to: string}} result The
+ * @param {{changedFiles: string[], report: import('./report.mjs').Report, draftRangeVersion: string|null}} result The
  * outcome of the run.
  * @param {(text: string) => void} stdout Standard output writer.
  * @returns {void}
  */
-function nextSteps(result, stdout) {
+export function nextSteps(result, stdout) {
   const { manual, marked } = result.report.counts();
 
   if (result.changedFiles.some(file => posix.basename(file) === 'package.json')) {
     stdout('Next: install the new package ranges with your package manager. The tool does not install anything.\n');
 
-    if (result.usedDraft) {
-      // A draft migration follows a release candidate, and a range without a prerelease tag never matches one.
-      stdout(`Next: the range ^${result.to} matches no published version yet, because a release candidate never `
-        + 'matches it. Until the release, install the candidate with: npm install handsontable@rc\n');
+    if (result.draftRangeVersion) {
+      // A draft migration that bumps a package follows a release candidate, and a range without a prerelease tag never
+      // matches one. A draft with no dependency rule writes no range, so a run that only includes it says nothing.
+      stdout(`Next: the range ^${result.draftRangeVersion} matches no published version yet, because a release `
+        + 'candidate never matches it. Until the release, install the candidate with: npm install handsontable@rc\n');
     }
   }
 

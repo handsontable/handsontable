@@ -16,6 +16,14 @@ How versions are chosen:
 
 ### Added
 
+- A manifest of a draft migration may leave out `guide` until its guide page exists, and a draft with no rules is
+  valid. A released manifest still needs `guide`, and a rule or a `notAutomated` item of a manifest with no `guide`
+  cannot name a guide anchor (the loader says so). `--list` and a run say "has no rules yet" for a selected migration
+  with no rule.
+- `versions/19.1.0/`, a draft migration from 19.0 with no rules and no guide. It is the place for the rules of changes
+  that ship after 19.0 and holds the name `19.1.0` until the version of that release is decided. A default run ignores
+  it. `--include-draft` runs it, and it changes and reports nothing.
+- A draft manifest may set `published: true` when its packages are on npm. The 19.0 draft does.
 - The package carries the repository's `LICENSE.txt`, and its `license` field points at it.
 - `detect` `call` matchers take `receiver: "grid"`: a confirmed grid instance, or a receiver the file does not show,
   never one it shows to be another object. `19.0.0/update-settings-data-provider` uses it, so an `updateSettings()` call
@@ -53,7 +61,17 @@ How versions are chosen:
 
 ### Changed
 
-- The 19.0 draft follows `19.0.0-rc1`. Its exports diff is made from `handsontable` 18.1.2 and `19.0.0-rc1` (the
+- The 19.0 draft follows the released Handsontable 19.0.0. The `guide` anchors of its rules and the `notAutomated`
+  entries follow the released migration guide (changes grouped under six headings, with numbered `###` changes), the
+  entries for the merged sections are merged (`HTML output changes for TrustedHTML paste, toHTML() headers, and
+  character references`, and `colWidths, rowHeights, and minRowHeights address columns and rows by physical index`),
+  and `19.0.0/sr-sp-language-code` and `19.0.0/auto-row-size-use-headers` link their sections. The exports diff is made
+  from the published packages `handsontable` 18.1.3 and 19.0.0, with the three wrappers. The removed names are the same
+  as in the diff against `19.0.0-rc1`. The migration stays a draft until the released guide is in the repository.
+- The "Next:" note about release candidates is printed only for a draft whose packages are not on npm yet
+  (`published` is not set) and whose rules bump or add a package, and it names the range of that draft. A run from 18.1
+  with `--include-draft` no longer says that `^19.0.0` or `^19.1.0` matches no published version.
+- The 19.0 draft followed `19.0.0-rc1`. Its exports diff is made from `handsontable` 18.1.2 and `19.0.0-rc1` (the
   three wrappers too), where it compared 18.1.2 with the `experimental` build. The lists of removed exports and removed
   namespace members are the same, and the new type `AppliedCellChange` is the one added name. The `notAutomated` list
   gained the section "A change that waits for its validator stays on its record", and the snapshot of the guide

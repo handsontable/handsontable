@@ -320,6 +320,11 @@ function validateHeader(raw, dirName) {
     problems.push(`"status" must be one of ${STATUSES.join(', ')}`);
   }
 
+  if ('published' in raw && (typeof raw.published !== 'boolean' || raw.status !== 'draft')) {
+    problems.push('"published" must be a boolean and belongs to a draft manifest only: it says that the packages of '
+      + 'the version are on npm, which a released manifest always means');
+  }
+
   if (typeof raw.from !== 'string' || !FROM_PATTERN.test(raw.from)) {
     problems.push('"from" must name the version line the migration starts from, such as "17" or "18.0"');
   } else if (SEMVER.test(dirName)
@@ -327,8 +332,13 @@ function validateHeader(raw, dirName) {
     problems.push(`"from" (${raw.from}) must be below the version "${dirName}"`);
   }
 
-  if (!FIELD_TYPES.object(raw.guide) || !FIELD_TYPES.string(raw.guide.url) || !FIELD_TYPES.string(raw.guide.source)) {
-    problems.push('"guide" must be an object with string fields "url" and "source"');
+  // Only a draft may leave the guide out: the page of the release that follows a draft does not exist until its
+  // release is planned. A released manifest always names its guide.
+  if ('guide' in raw || raw.status !== 'draft') {
+    if (!FIELD_TYPES.object(raw.guide) || !FIELD_TYPES.string(raw.guide.url) || !FIELD_TYPES.string(raw.guide.source)) {
+      problems.push('"guide" must be an object with string fields "url" and "source"'
+        + `${raw.status === 'draft' ? '' : ' (only a draft manifest may leave it out)'}`);
+    }
   }
 
   if ('include' in raw && !FIELD_TYPES.strings(raw.include)) {
@@ -450,6 +460,25 @@ export async function loadManifest(dir) {
     rules.push(rule);
   });
 
+  // A manifest with no guide has no page for an anchor to point into, so an anchor in it is a mistake: it would
+  // link a section of a page that is not there.
+  if (!('guide' in raw)) {
+    rawRules.forEach((rule, index) => {
+      if (FIELD_TYPES.object(rule) && 'guide' in rule) {
+        problems.push(`${label} rules[${index}]${typeof rule.id === 'string' ? ` (${rule.id})` : ''}: names the guide `
+          + `anchor ${JSON.stringify(rule.guide)}, but the manifest has no "guide": add the "guide" of the manifest `
+          + 'first, or drop the anchor');
+      }
+    });
+
+    (Array.isArray(raw.notAutomated) ? raw.notAutomated : []).forEach((item, index) => {
+      if (FIELD_TYPES.object(item) && 'guide' in item) {
+        problems.push(`${label} notAutomated[${index}]: names the guide anchor ${JSON.stringify(item.guide)}, but the `
+          + 'manifest has no "guide": add the "guide" of the manifest first, or use a "title"');
+      }
+    });
+  }
+
   const guideUrl = raw.guide?.url ?? null;
 
   const loadedRules = await Promise.all(rules.map(async(rule) => {
@@ -484,7 +513,8 @@ export async function loadManifest(dir) {
     version: dirName,
     from: raw.from,
     status: raw.status,
-    guide: raw.guide,
+    published: raw.published === true,
+    guide: raw.guide ?? null,
     inlineScriptChecks: raw.inlineScriptChecks ?? [],
     notAutomated: raw.notAutomated ?? [],
     rules: loadedRules,

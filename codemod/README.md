@@ -250,26 +250,29 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 
 ### Draft migrations
 
-A draft migration is one whose guide is still being written. It is not in the table above, a normal run never
-selects it, and `--to` defaults to the newest released migration, or to the newest draft with `--include-draft`.
-To run it, or to list its rules, pass `--include-draft`. The rules and messages of a draft can change before its release.
+A draft migration is one that is not final yet. It is not in the table above, a normal run never selects it, and
+`--to` defaults to the newest released migration, or to the newest draft with `--include-draft`. To run it, or to list
+its rules, pass `--include-draft`. The rules and messages of a draft can change before its release.
 
-The 18.1 to 19.0 migration is a draft:
+Two migrations are drafts:
 
 ```bash
 handsontable-codemod migrate --from 18.1 --to 19.0 --include-draft --dry-run
 handsontable-codemod migrate --list --from 18.1 --to 19.0 --include-draft
 ```
 
-Its manifest lists the sections of the guide that no rule covers, with the reason, under `notAutomated`. `--list`
-prints how many there are on the line before the counts.
+- **18.1 to 19.0.** Handsontable 19.0.0 is released, and the type changes of this draft come from the difference
+  between the published packages 18.1.3 and 19.0.0. It stays a draft only until the released migration guide is in
+  this repository: the `guide` anchors of its rules follow the guide of the release, and the repository still holds an
+  earlier copy. Its manifest lists the changes of the guide that no rule covers, with the
+  reason, under `notAutomated`. `--list` prints how many there are on the line before the counts. A run writes `^19.0.0`
+  for `handsontable` and the three wrappers, which is a published range.
+- **The release after 19.0.** Its migration is a draft too, held under `19.1.0` until the version number of that release
+  is decided. It has no rules yet, so a run that includes it changes and reports nothing, and `--list` says so.
 
-The 19.0 draft follows `19.0.0-rc1`, the first release candidate (the `rc` tag on npm): every rewrite was checked
-against that package, and the type changes it covers come from the difference between 18.1.2 and `19.0.0-rc1`. The
-19.0 scope is frozen, but the draft stays a draft until 19.0 is released as stable. A run writes `^19.0.0` for
-`handsontable` and the three wrappers, and no published version satisfies that range yet, because a release
-candidate never matches it. Until then, install the candidate with `npm install handsontable@rc`. A run that includes a
-draft migration and rewrites a `package.json` prints this advice under its "Next:" lines.
+A run that includes a draft whose packages are not on npm yet, and that rewrites a `package.json`, prints a note under its
+"Next:" lines: a range without a prerelease tag never matches a release candidate, so install the candidate with
+`npm install handsontable@rc` until the release.
 
 ### 17.x to 18.0
 

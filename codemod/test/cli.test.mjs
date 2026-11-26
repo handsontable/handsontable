@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { access, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
-import { main } from '../src/cli.mjs';
+import { main, nextSteps } from '../src/cli.mjs';
 import { loadManifests } from '../src/manifest.mjs';
+import { run } from '../src/runner.mjs';
 import { isolatedGitEnv } from './helpers/git-env.mjs';
 
 const BIN = fileURLToPath(new URL('../bin/handsontable-codemod.mjs', import.meta.url));
@@ -43,6 +44,28 @@ async function cli(argv, cwd) {
       await rm(own, { recursive: true, force: true });
     }
   }
+}
+
+/**
+ * Write one version directory with a manifest into a temporary versions directory.
+ *
+ * @param {string} root Versions directory.
+ * @param {string} version Version directory name.
+ * @param {object} manifest Fields that replace the defaults of a valid manifest.
+ * @returns {Promise<void>}
+ */
+async function writeVersion(root, version, manifest) {
+  const dir = join(root, version);
+
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, 'manifest.json'), JSON.stringify({
+    version,
+    from: '18',
+    status: 'released',
+    guide: { url: 'https://example.com/guide', source: 'docs/guide.md' },
+    rules: [],
+    ...manifest,
+  }));
 }
 
 /**
@@ -289,19 +312,23 @@ describe('cli', () => {
     }
   });
 
-  it('points at the release candidate when a draft migration rewrote a package.json', async() => {
+  it('prints no release candidate advice for the published 19.0 draft, and writes no 19.1 range', async() => {
     const dir = await makeProject(false);
     const input = '{ "dependencies": { "handsontable": "^18.1.0" } }\n';
 
     try {
       await writeFile(join(dir, 'package.json'), input);
 
+      // Two drafts are in range: 19.0.0 (published, bumps the packages) and 19.1.0 (no rules yet). The run ends at
+      // 19.1.0, and the range it writes comes from the 19.0.0 rule.
       const draft = await cli(['migrate', '--from', '18.1', '--include-draft', '--allow-dirty'], dir);
 
       assert.equal(draft.code, 0, draft.err);
       assert.match(draft.out, /^Next: install the new package ranges/m);
-      assert.match(draft.out,
-        /^Next: the range \^19\.0\.0 matches no published version yet.*npm install handsontable@rc$/m);
+      assert.doesNotMatch(draft.out, /matches no published version|@rc/);
+      assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^19\.0\.0"/);
+      assert.doesNotMatch(await readFile(join(dir, 'package.json'), 'utf8'), /19\.1/);
+      assert.match(draft.err, /The draft migration 19\.1\.0 has no rules yet/);
 
       await writeFile(join(dir, 'package.json'), '{ "dependencies": { "handsontable": "^17.1.0" } }\n');
 
@@ -312,6 +339,57 @@ describe('cli', () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+
+  describe('the release candidate advice of nextSteps()', () => {
+    const report = { counts: () => ({ manual: 0, marked: 0 }) };
+    const lines = (result) => {
+      let out = '';
+
+      nextSteps({ changedFiles: ['package.json'], report, draftRangeVersion: null, ...result }, (text) => {
+        out += text;
+      });
+
+      return out;
+    };
+
+    it('names the range of the unpublished draft that wrote it, and nothing for a run without one', () => {
+      assert.match(lines({ draftRangeVersion: '19.1.0' }),
+        /^Next: the range \^19\.1\.0 matches no published version yet.*npm install handsontable@rc$/m);
+      assert.doesNotMatch(lines({}), /matches no published version/);
+      assert.doesNotMatch(lines({ changedFiles: ['a.css'], draftRangeVersion: '19.1.0' }), /matches no published/);
+    });
+
+    it('is decided by the run: a draft with a bump that is not published, and only that one', async() => {
+      for (const [published, rules, expected] of [
+        [false, [{ bump: { handsontable: '19.1.0' } }], '19.1.0'],
+        [true, [{ bump: { handsontable: '19.1.0' } }], null],
+        [false, [{ reportMissing: [{ name: 'numbro' }] }], null],
+        [false, [], null],
+      ]) {
+        const root = await mkdtemp(join(tmpdir(), 'codemod-cli-versions-'));
+        const dir = await makeProject(false);
+
+        try {
+          await writeVersion(root, '18.1.0', { from: '18.0' });
+          await writeVersion(root, '19.1.0', {
+            from: '18.1',
+            status: 'draft',
+            ...(published ? { published } : {}),
+            rules: rules.map((rule, index) => ({ id: `19.1.0/d${index}`, kind: 'dependency', safe: true, ...rule })),
+          });
+          await writeFile(join(dir, 'package.json'), '{ "dependencies": { "handsontable": "^18.1.0" } }\n');
+
+          const result = await run({ cwd: dir, from: '18.1', includeDraft: true, versionsDir: root, allowDirty: true });
+
+          assert.equal(result.usedDraft, true);
+          assert.equal(result.draftRangeVersion, expected, JSON.stringify({ published, rules }));
+        } finally {
+          await rm(root, { recursive: true, force: true });
+          await rm(dir, { recursive: true, force: true });
+        }
+      }
+    });
   });
 
   it('says to install when it edited a package.json, and not otherwise', async() => {

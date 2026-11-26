@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { loadManifests } from '../src/manifest.mjs';
-import { anchorListOf, headingTextOf, slugOf } from './helpers/guide-anchors.mjs';
+import { anchorListOf, changeAnchorsOf, headingTextOf, slugOf } from './helpers/guide-anchors.mjs';
 
 const DIR = fileURLToPath(new URL('./helpers/site-anchors/', import.meta.url));
 const fixtures = await Promise.all((await readdir(DIR)).filter(name => name.endsWith('.json')).sort()
@@ -12,8 +12,9 @@ const fixtures = await Promise.all((await readdir(DIR)).filter(name => name.ends
 
 describe('slugOf() gives the ids the built docs site gave', () => {
   it('has a fixture for every migration guide of the package', async() => {
-    const pages = (await loadManifests()).map(manifest => manifest.guide.source.split('/').pop()
-      .replace('.md', '').replace('migrating-', 'migration-'));
+    // A draft with no guide (the migration after 19.0 has no page yet) has no page to snapshot.
+    const pages = (await loadManifests()).filter(manifest => manifest.guide)
+      .map(manifest => manifest.guide.source.split('/').pop().replace('.md', '').replace('migrating-', 'migration-'));
 
     assert.deepEqual(fixtures.map(item => item.page).sort(), [...pages].sort());
   });
@@ -60,7 +61,7 @@ describe('headingTextOf() and slugOf()', () => {
 
 describe('the anchors of the manifests are ids of the built site', () => {
   it('every rule and every notAutomated section of every manifest names a heading id of its guide', async(context) => {
-    for (const manifest of await loadManifests()) {
+    for (const manifest of (await loadManifests()).filter(item => item.guide)) {
       const page = manifest.guide.source.split('/').pop().replace('.md', '').replace('migrating-', 'migration-');
       const fixture = fixtures.find(item => item.page === page);
       const ids = new Set(fixture.headings.map(heading => heading.id));
@@ -82,12 +83,49 @@ describe('the anchors of the manifests are ids of the built site', () => {
     }
   });
 
-  it('the two rows of the 19.0 draft that name a key with tags in the heading use the id of the site', async() => {
-    const draft = (await loadManifests()).find(manifest => manifest.version === '19.0.0');
-    const anchors = (draft.notAutomated ?? []).map(item => item.guide);
+  it('the two rows of the 19.0 migration that name a key with tags in the heading use the id of the site', async() => {
+    const released = (await loadManifests()).find(manifest => manifest.version === '19.0.0');
+    const anchors = (released.notAutomated ?? []).map(item => item.guide);
 
     assert.ok(anchors.includes('cmdctrl--click-on-a-selected-cell-moves-the-highlight'));
     assert.ok(anchors.includes('cmdctrl--arrow-keys-on-a-row-header-expand-and-collapse-row-groups'));
     assert.equal(anchors.filter(anchor => /kbd/.test(anchor ?? '')).length, 0, 'a tag name leaked into an anchor');
+  });
+});
+
+describe('changeAnchorsOf()', () => {
+  const heading = (level, markdown) => ({ level, markdown, id: markdown.toLowerCase().replace(/\W+/g, '-') });
+
+  it('reads the numbered h2 headings of a flat guide, and not their subsections', () => {
+    const flat = [heading(2, '1. First'), heading(3, 'Who is affected'), heading(2, '2. Second'),
+      heading(3, '1. Step')];
+
+    assert.deepEqual(changeAnchorsOf(flat), ['1-first', '2-second']);
+  });
+
+  it('reads the numbered h3 headings under the unnumbered groups of a grouped guide', () => {
+    const grouped = [
+      heading(2, 'Before you upgrade'), heading(3, '1. Stop'), heading(3, '2. Check'),
+      heading(2, 'Changes in every grid'), heading(3, '1. Undo'),
+      heading(2, 'Also new in 19.0'), heading(3, '1. A new plugin'),
+    ];
+
+    assert.deepEqual(changeAnchorsOf(grouped), ['1-stop', '2-check', '1-undo']);
+  });
+
+  it('skips an h3 that has no number, an h3 above any group, and a guide with no change', () => {
+    const loose = [heading(3, '1. Loose'), heading(2, 'Group'), heading(3, 'Who is affected')];
+
+    assert.deepEqual(changeAnchorsOf(loose), []);
+    assert.deepEqual(changeAnchorsOf([]), []);
+  });
+
+  it('finds every change of the shipped guides in their snapshots', () => {
+    const counts = Object.fromEntries(fixtures.map(item => [item.page, changeAnchorsOf(item.headings).length]));
+
+    // 62 changes in the first five groups of the 19.0 guide, and the numbered h2 headings of the flat 18.x guides.
+    assert.equal(counts['migration-from-18.1-to-19.0'], 62);
+    assert.ok(counts['migration-from-17.1-to-18.0'] > 0);
+    assert.ok(counts['migration-from-18.0-to-18.1'] > 0);
   });
 });

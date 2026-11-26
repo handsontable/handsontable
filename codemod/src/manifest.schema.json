@@ -4,7 +4,9 @@
   "title": "Handsontable codemod version manifest",
   "description": "Documentation of versions/<semver>/manifest.json. The validator in src/manifest.mjs is the enforcing copy; test/manifest.test.mjs pins the kind list and the required fields of each kind against this file.",
   "type": "object",
-  "required": ["version", "from", "status", "guide"],
+  "required": ["version", "from", "status"],
+  "if": { "properties": { "status": { "const": "released" } }, "required": ["status"] },
+  "then": { "required": ["guide"] },
   "properties": {
     "version": {
       "type": "string",
@@ -20,8 +22,13 @@
       "enum": ["released", "draft"],
       "description": "A draft manifest runs only with --include-draft."
     },
+    "published": {
+      "type": "boolean",
+      "description": "Draft only. true: the packages of this version are on npm, so a range the manifest writes matches a published version and a run prints no advice about release candidates. Leave it out for a draft whose version is not published."
+    },
     "guide": {
       "type": "object",
+      "description": "The migration guide page. A released manifest needs it. A draft may leave it out until the page exists, and then no rule and no notAutomated item may name a guide anchor.",
       "required": ["url", "source"],
       "properties": {
         "url": { "type": "string", "description": "Public URL of the migration guide." },

@@ -250,6 +250,7 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
+      "guide": "the-sr-sp-language-code-is-deprecated",
       "files": ["js"],
       "requires": "hot-file",
       "match": {
@@ -409,7 +410,7 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
-      "inGuide": false,
+      "guide": "the-autorowsize-plugins-settings-no-longer-include-useheaders",
       "files": ["js"],
       "requires": "hot-file",
       "match": { "call": "getSetting", "argMatches": "^useHeaders$", "receiver": { "plugin": "autoRowSize" } },

@@ -158,3 +158,42 @@ export function anchorListOf(markdown) {
 export function anchorsOf(markdown) {
   return new Set(anchorListOf(markdown));
 }
+
+/**
+ * Whether the Markdown of a heading starts with a list number (`12. Title`).
+ *
+ * @param {{markdown: string}} heading A heading of a snapshot.
+ * @returns {boolean} `true` for a numbered heading.
+ */
+function isNumbered(heading) {
+  return /^\d+\.\s/.test(heading.markdown);
+}
+
+/**
+ * The anchors of the changes that a migration guide lists, read from a snapshot of its headings. A flat guide (the 18.x
+ * ones) has a numbered `##` heading per change. A grouped guide (19.0) has unnumbered `##` groups ("Before you
+ * upgrade") and a numbered `###` heading per change under each. A group named "Also new ..." lists additions that
+ * need no migration, so its numbered headings are not changes. A guide that has no numbered heading of either shape
+ * has no changes.
+ *
+ * @param {Array<{level: number, markdown: string, id: string}>} headings The headings of a snapshot, in order.
+ * @returns {string[]} The anchor of each change, in document order.
+ */
+export function changeAnchorsOf(headings) {
+  if (headings.some(heading => heading.level === 2 && isNumbered(heading))) {
+    return headings.filter(heading => heading.level === 2 && isNumbered(heading)).map(heading => heading.id);
+  }
+
+  const anchors = [];
+  let counted = false;
+
+  for (const heading of headings) {
+    if (heading.level === 2) {
+      counted = !/^Also new\b/.test(heading.markdown);
+    } else if (heading.level === 3 && counted && isNumbered(heading)) {
+      anchors.push(heading.id);
+    }
+  }
+
+  return anchors;
+}

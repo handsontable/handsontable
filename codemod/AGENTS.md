@@ -180,12 +180,17 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   into a dash outside a code span, as the site does, and `test/guide-anchors.test.mjs` holds it to the heading ids of
   the built site, kept in `test/helpers/site-anchors/*.json` (one file per migration guide, read from the rendered page,
   never from the Markdown). When a guide gains headings, fetch the built page, extract the ids of its `h2` to `h6`, and
-  refresh the file. The test also checks every manifest anchor against these ids (a diagnostic for a draft).
+  refresh the file (the 19.0 file was made from the released guide, which was not on the site yet, by rendering the
+  Markdown with the Astro processor and the rehype plugins of `docs/astro.config.mjs`, and the same ids came out of
+  `slugOf()`; refresh it from the live page once that is published). The test also checks every manifest anchor against
+  these ids (a diagnostic for a draft).
   A missing anchor fails for a `released` manifest. For a `draft` one it is a test diagnostic (a line in the test
   output), because the guide of a draft is still edited by other people and a renamed heading there must not fail this
   package's CI. `test/draft-manifest.test.mjs` pins both halves with a temporary manifest and guide, and also pins
-  that a draft stays out of a default run and of the default `--to`, that every `h2` section of the 19.0.0 guide has a
-  rule or a `notAutomated` entry and no entry names a section the guide lacks (read from the snapshot of the headings in
+  that a draft stays out of a default run and of the default `--to`, that every change of the 19.0.0 guide has a
+  rule or a `notAutomated` entry and no entry names a section the guide lacks (a change is a numbered `h2` of a flat
+  guide, or a numbered `h3` under an unnumbered `h2` group of a grouped one, never one under "Also new":
+  `changeAnchorsOf()` in `test/helpers/guide-anchors.mjs`; read from the snapshot of the headings in
   `test/helpers/site-anchors/`, not from the live guide, which other people edit: refreshing the snapshot is what makes a
   new section need a rule or an entry, and the test prints the live guide's distance from the snapshot as a diagnostic), and that every rule of a
   draft is named by the `report.json` of some fixture. `type-rules.test.mjs` reads one guide of its own (the first
@@ -494,10 +499,14 @@ project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `
 
 1. Create `versions/<major.minor.patch>/manifest.json` with `version` (equal to the directory name), `from` (the
    version line it migrates from: `"17"` for 18.0.0, `"18.0"` for 18.1.0; it must be below `version`), `status`
-   (`released` or `draft`), `guide: { url, source }`, and `rules`. `guide.source` is the repository path of the
-   migration guide page. `guide.url` is `https://handsontable.com/docs/javascript-data-grid/<permalink>`
+   (`released` or `draft`), `guide: { url, source }`, and `rules`. A `draft` may leave `guide` out until the guide
+   page exists (the next version is one: see "The next version (19.1.0 draft)"); a `released` manifest always has it. A
+   manifest with no `guide` has nothing for an anchor to point into, so no rule and no `notAutomated` item may carry a
+   `guide` anchor (the loader rejects it). `guide.source` is the repository path of the migration guide page. `guide.url` is `https://handsontable.com/docs/javascript-data-grid/<permalink>`
    without a trailing slash, with the permalink read from the guide's frontmatter. Put the rules in
-   `rules/*.json` files and list them in `include`.
+   `rules/*.json` files and list them in `include`. A draft whose packages are already on npm sets `published: true`,
+   which switches off the "Next:" advice about release candidates for its range (see "The 19.0 draft"); a released
+   manifest must not set it.
 2. Generate the exports diff when the release changed the typings: run `tools/derive-type-map.mjs` on the two
    packed releases and save the result as `versions/<version>/exports-diff.generated.json`.
    `test/type-rules.test.mjs` loops over every diff file and fails until every removed export and every removed
@@ -515,11 +524,12 @@ project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `
    `released` one, so a migration under work stays `draft` until its guide is final. A draft has no row in the
    README table (`readme.test.mjs` counts the released ones only) and gets a "Draft migrations" note instead.
    **Flipping a draft to `released` makes the anchors binding**: every `guide` anchor of a rule must then be a heading
-   of the guide, or the manifest test fails. The flip also needs three more changes: the "Supported migrations"
+   of the guide, or the manifest test fails. The flip also needs these changes: the "Supported migrations"
    row of the README, and the kind table counts; a fresh `exports-diff.generated.json` made from the released
-   tarballs (the draft's diff compares the last release with `19.0.0-rc1`, so the flip needs a diff made from
-   `19.0.0`, and a release candidate that changed the typings since needs its removed names covered first); and the removal of the draft-only test of that manifest
-   (`is what the 19.0.0 manifest is until its guide is final` in `draft-manifest.test.mjs`).
+   tarballs when the draft's diff was made from a release candidate (the 19.0 diff already is); and the removal of the
+   draft-only test of that manifest (`is what the 19.0.0 manifest is until its guide is final` in
+   `draft-manifest.test.mjs`). A draft that has no `guide` yet also needs one, and its anchors.
+   The 19.0 flip has its own list in "The 19.0 draft".
    `notAutomated` (optional, top level) lists the guide sections that no rule covers, as `{ guide, reason }`, or
    `{ title, reason }` for a change the guide has no section for (a row of the deprecation table). It changes
    nothing in a run. `--list` prints how many there are, on the line before the counts, so the last line is always the
@@ -529,10 +539,29 @@ project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `
 
 ### The 19.0 draft
 
-`versions/19.0.0/` is a draft (`status: "draft"`, `from: "18.1"`). Its guide is not final, so its `guide` anchors are not
-binding yet (see step 6), and its exports diff compares 18.1.2 with `19.0.0-rc1` (the first release candidate, the `rc` tag
-on npm; the three wrappers are packed from the same two releases). The 19.0 scope is frozen, so a new section of the
-guide is a fix and not new scope. The status stays `draft` until 19.0 is released as stable. The rules:
+`versions/19.0.0/` is a draft (`status: "draft"`, `from: "18.1"`, `published: true`). Handsontable 19.0.0 is released and
+its packages are on npm, so the exports diff compares the published 18.1.3 with 19.0.0 (the three wrappers are packed
+from the same two releases; the difference is only the version labels against the diff of `19.0.0-rc1`, so the removed
+names did not change). What keeps it a draft is the guide: the released guide
+(`migrating-from-18.1-to-19.0`, restructured into six unnumbered `##` groups with numbered `###` changes under them) is on
+`release/19.0.0` and not yet in this branch, which still holds the older flat guide with numbered `##` sections. The
+`guide` anchors of the rules and the `notAutomated` entries follow the released guide, and the snapshot in
+`test/helpers/site-anchors/migration-from-18.1-to-19.0.json` was made from it, so `manifest.test.mjs` and `detect.test.mjs`
+print a diagnostic for each anchor the old file lacks. That is expected until the release is merged back into `develop`.
+
+**What the flip still needs, once the released guide is on `develop`:**
+
+1. Set `"status": "released"` in the manifest, and drop `published` (a released manifest is published by definition and
+   the loader rejects the field on one).
+2. Add the README row `18.1 to 19.0` and update the kind table counts (`readme.test.mjs` says which).
+3. Delete the draft-only test `is what the 19.0.0 manifest is until its guide is final` in `draft-manifest.test.mjs`.
+4. Pin the tests about 18.x behavior that a default run now carries past 18.1 (`to: '18.1'`, or the 18.x manifests), and
+   update the ones about "what a default run does" to include 19.0. `--include-draft` is then needed only for 19.1.0.
+5. Check that every `guide` anchor is a heading of the guide file in the repository (`manifest.test.mjs` fails for a
+   released manifest), and re-read the live page once the docs are published to refresh the snapshot.
+6. Update the texts that call 19.0 a draft: the README section "Draft migrations", this section, and the changelog.
+
+The 19.0 scope is frozen, so a new change in the guide is a fix and not new scope. The rules:
 
 - **Rewrites (`safe: true`):** the four package ranges, `columnHeaders` to `colHeaders` in the export calls, the four
   resize-state methods (removed in 19.0), the two `Formulas` shortcut methods (no-ops), and the two type aliases
@@ -550,11 +579,12 @@ guide is a fix and not new scope. The status stays `draft` until 19.0 is release
 
 Traps of this draft:
 
-- The `dependency` rule writes `^19.0.0` while only `19.0.0-rc1` exists, and that range matches no published version
-  (`npm view 'handsontable@^19.0.0' version` finds none, because a range without a prerelease tag skips every
-  prerelease). It stays: the wrappers of the candidate declare `handsontable: ^19.0.0` as their own peer range, so the
-  range is what the release carries, and a prerelease range would be wrong the day 19.0.0 ships. A run on a project that
-  must install the candidate says `npm install handsontable@rc`, as the README does.
+- The `dependency` rule writes `^19.0.0`, which matches the published 19.0.0. The "Next:" advice about release
+  candidates (a range without a prerelease tag never matches one) is therefore wrong for this draft, and the manifest says
+  `published: true`: the advice (`draftRangeVersion` of the result of `run()`) is printed only for a selected draft that
+  is not `published` and whose `dependency` rules bump or add a package. A draft with no such rule (19.1.0) never
+  prints it. Before 19.0.0 shipped, the same range matched no version, because the wrappers of the candidate declared
+  `handsontable: ^19.0.0` and a range without a prerelease tag skips every prerelease.
 - A rule that exists in two migrations (`resize-state-methods`, `export-column-headers`, `helper-sanitize`) is repeated
   with its own id, because a run from 18.1 never loads the 18.0 manifest. A chained run from 17.x therefore leaves one
   TODO per version on a call that stays (the first sentence names the version of the rule).
@@ -575,10 +605,10 @@ Traps of this draft:
   (`receiver: { plugin: "customBorders" }`) and nothing else. The guide section is about the color a menu border stores,
   and a comparison with `'#000'` has no precise pattern (the string is a common color). So the rule asks the reader of
   the borders to check whether the code reads `color` as a hex string.
-- `19.0.0/auto-row-size-use-headers` has `inGuide: false`: the develop guide has no section for the removed default key
-  `useHeaders` of the `AutoRowSize` plugin yet. It reports `getSetting('useHeaders')` on an `autoRowSize` plugin receiver
-  (`argMatches: "^useHeaders$"`), and never the same read on `autoColumnSize`, which keeps the key. When the guide gets
-  a section, replace `inGuide` with the `guide` anchor.
+- `19.0.0/auto-row-size-use-headers` links the released guide's section "The `AutoRowSize` plugin's settings no longer
+  include `useHeaders`" (the older guide has none, so its anchor is a diagnostic until the merge-back). It reports
+  `getSetting('useHeaders')` on an `autoRowSize` plugin receiver (`argMatches: "^useHeaders$"`), and never the same read
+  on `autoColumnSize`, which keeps the key.
 - `19.0.0/loading-without-dialog` uses the `pluginRegistration` matcher: the `registerPlugin()` calls (any callee named
   `registerPlugin`, or a local name of that import) whose argument is `Loading` imported from `handsontable/plugins` or
   `handsontable/plugins/loading` under any local name, or a member of a namespace import of either, and no such call
@@ -596,6 +626,19 @@ Traps of this draft:
   regex, `rowHeights`) cannot change the exact `report.json` of another rule's fixture.
 - `19.0.0/helper-sanitize` has no `namespaceType` rule for `Handsontable.helper.sanitize`. `type-rules.test.mjs`
   counts a `callUnwrap` rule whose `callee` equals the removed member as its cover.
+
+### The next version (19.1.0 draft)
+
+`versions/19.1.0/` is the place for the rules of changes that ship after 19.0. It is a draft (`from: "19.0"`) with
+no rules and no `guide`: the version number of the next release is not decided (the minimum is the next minor, as
+`.ai/BREAKING-CHANGES.md` says), and its migration guide page does not exist. Add the rule files and the `include` list to
+`manifest.json` like any version, with `guide`-less rules (`inGuide: false` is not needed: a manifest with no guide gives
+every rule no link). If the release becomes a major, rename the directory, the `version`, the `from` line stays `19.0`,
+and the id prefix of every rule (`validateRule()` requires the prefix to equal the version). When the guide page exists,
+add `guide: { url, source }` to the manifest and the `guide` anchors to the rules, and refresh the snapshot in
+`test/helpers/site-anchors/` (`guide-anchors.test.mjs` then needs one for it). To flip it, follow step 6 of "How to add a
+version". A run that includes it with no `--to` ends at 19.1.0 and says "has no rules yet" on standard error. It writes
+no range, and prints no "Next:" advice about release candidates, because it has no `dependency` rule.
 
 ## How to add a rule
 

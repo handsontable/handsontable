@@ -2,12 +2,12 @@
   "generatedBy": "codemod/tools/derive-type-map.mjs (typescript 6.0.3)",
   "old": {
     "name": "handsontable",
-    "version": "18.1.2",
+    "version": "18.1.3",
     "entryPointCount": 152
   },
   "new": {
     "name": "handsontable",
-    "version": "19.0.0-rc1",
+    "version": "19.0.0",
     "entryPointCount": 169
   },
   "rules": [],
@@ -1810,12 +1810,12 @@
     "@handsontable/react-wrapper": {
       "old": {
         "name": "@handsontable/react-wrapper",
-        "version": "18.1.2",
+        "version": "18.1.3",
         "entryPointCount": 1
       },
       "new": {
         "name": "@handsontable/react-wrapper",
-        "version": "19.0.0-rc1",
+        "version": "19.0.0",
         "entryPointCount": 1
       },
       "entryPoints": {
@@ -1828,7 +1828,7 @@
     "@handsontable/vue3": {
       "old": {
         "name": "@handsontable/vue3",
-        "version": "18.1.2",
+        "version": "18.1.3",
         "entryPointCount": 0,
         "typesDeclaredButMissing": [
           "@handsontable/vue3 -> ./index.d.ts"
@@ -1836,7 +1836,7 @@
       },
       "new": {
         "name": "@handsontable/vue3",
-        "version": "19.0.0-rc1",
+        "version": "19.0.0",
         "entryPointCount": 1
       },
       "entryPoints": {
@@ -1880,12 +1880,12 @@
     "@handsontable/angular-wrapper": {
       "old": {
         "name": "@handsontable/angular-wrapper",
-        "version": "18.1.2",
+        "version": "18.1.3",
         "entryPointCount": 1
       },
       "new": {
         "name": "@handsontable/angular-wrapper",
-        "version": "19.0.0-rc1",
+        "version": "19.0.0",
         "entryPointCount": 1
       },
       "entryPoints": {

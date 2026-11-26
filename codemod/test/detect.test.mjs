@@ -55,7 +55,8 @@ describe('shipped detect rules', () => {
       const manifest = await loadManifest(join(VERSIONS_DIR, version));
       const rules = manifest.rules.filter(item => item.kind === 'detect');
 
-      assert.ok(rules.length > 0);
+      // A draft that has no rules yet has nothing to check.
+      assert.ok(rules.length > 0 || (manifest.status === 'draft' && manifest.rules.length === 0));
 
       for (const item of rules) {
         assert.deepEqual(validateDetectRule(item), [], item.id);
@@ -63,18 +64,24 @@ describe('shipped detect rules', () => {
         assert.doesNotMatch(item.message, /—/, item.id);
       }
 
-      if (skipWithoutGuides(context, [manifest])) {
+      if (!manifest.guide || skipWithoutGuides(context, [manifest])) {
         return;
       }
 
       const anchors = anchorsOf(await readFile(guidePath(manifest), 'utf8'));
+      const anchored = [
+        ...rules.filter(candidate => candidate.guide),
+        ...manifest.rules.filter(candidate => candidate.kind === 'custom' && candidate.guide),
+      ];
 
-      for (const item of rules.filter(candidate => candidate.guide)) {
-        assert.ok(anchors.has(item.guide), `${item.id} anchor ${item.guide}`);
-      }
-
-      for (const item of manifest.rules.filter(candidate => candidate.kind === 'custom' && candidate.guide)) {
-        assert.ok(anchors.has(item.guide), `${item.id} anchor ${item.guide}`);
+      for (const item of anchored) {
+        // The guide of a draft is edited by other people, so a missing anchor is a diagnostic there, as in
+        // `checkAnchors()`, and fails for a released manifest.
+        if (manifest.status === 'draft' && !anchors.has(item.guide)) {
+          context.diagnostic(`draft ${version}: ${item.id} anchor ${item.guide} is not a heading of the guide`);
+        } else {
+          assert.ok(anchors.has(item.guide), `${item.id} anchor ${item.guide}`);
+        }
       }
     });
   }

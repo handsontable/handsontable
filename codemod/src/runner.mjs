@@ -1179,7 +1179,9 @@ export async function resolvePlan({
   const oldest = oldestCovered(manifests);
 
   if (fromBound && oldest && compareVersions(fromBound, oldest) < 0) {
-    const guideBase = manifests[0].guide.url.slice(0, manifests[0].guide.url.lastIndexOf('/') + 1);
+    // The guides of the earlier steps sit next to the guides of the manifests. A draft manifest may have none.
+    const guideUrl = manifests.find(manifest => manifest.guide)?.guide.url ?? '';
+    const guideBase = guideUrl.slice(0, guideUrl.lastIndexOf('/') + 1);
     const steps = uncoveredSteps(fromBound, oldest, guideBase);
     const list = steps.map(step => `  ${step.from} to ${step.to}: ${step.url}`).join('\n');
     const note = `Handsontable ${fromText} is older than the oldest version this tool migrates from `
@@ -1204,6 +1206,10 @@ export async function resolvePlan({
     notes.push(`Skipped draft migrations: ${skippedDrafts.map(manifest => manifest.version).join(', ')}. `
       + 'Use --include-draft to run them.');
   }
+
+  selected.filter(manifest => manifest.rules.length === 0).forEach(manifest => notes.push(
+    `The ${manifest.status} migration ${manifest.version} has no rules yet, so it changes and reports nothing.`
+  ));
 
   if (selected.length === 0) {
     throw new UsageError(nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts }));
@@ -1288,7 +1294,7 @@ function nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts
     const where = wheres.length > 1 ? `${wheres.slice(0, -1).join(', ')} and ${wheres.at(-1)}` : wheres[0];
     const subject = where === 'node_modules/handsontable' ? 'The installed handsontable package is'
       : `${where} already name${wheres.length > 1 ? '' : 's'}`;
-    const guide = /migration-from-(\d+\.\d+)-to-/.exec(manifests[0]?.guide.url ?? '');
+    const guide = /migration-from-(\d+\.\d+)-to-/.exec(manifests.find(manifest => manifest.guide)?.guide.url ?? '');
 
     parts.push(`${subject} ${fromText}, so there is nothing to migrate to ${toText}. To run the migration again, `
       + `pass --from <your previous version>, for example --from ${guide ? guide[1] : manifests[0]?.from}.`);
@@ -1376,9 +1382,11 @@ export function describeRules(plan, registry = defaultRegistry) {
  * `beforeRename(file)` runs after the temporary file of a write is complete, before it replaces the original.
  * @returns {Promise<{changedFiles: string[], report: Report, diffs: Array<{file: string, diff: string}>,
  * exitCode: number, notes: string[], error: string|null, from: string, to: string, usedDraft: boolean,
- * interrupted: boolean, inGit: boolean}>} The outcome.
+ * draftRangeVersion: string|null, interrupted: boolean, inGit: boolean}>} The outcome.
  * `exitCode` is 0 on success, 1 when a file could not be parsed, read, or transformed, and 2 for a usage error or a
- * refused dirty tree. `usedDraft` is `true` when a draft migration was in the run. `interrupted` is `true` when
+ * refused dirty tree. `usedDraft` is `true` when a draft migration was in the run. `draftRangeVersion` is the newest
+ * unpublished draft version in the run whose `dependency` rules bump or add a package, so it writes a range that no
+ * published version satisfies, or `null`. `interrupted` is `true` when
  * `signal` stopped the run before every file was visited, and `inGit` says whether the project is in a git repository,
  * which decides how the caller tells the user to undo what an interrupted run wrote.
  */
@@ -1416,6 +1424,7 @@ export async function run({
     from: '',
     to: '',
     usedDraft: false,
+    draftRangeVersion: null,
     interrupted: false,
     inGit: false,
   };
@@ -1428,6 +1437,13 @@ export async function run({
     result.from = resolved.fromText;
     result.to = resolved.selected[resolved.selected.length - 1].version;
     result.usedDraft = resolved.selected.some(manifest => manifest.status === 'draft');
+    // Only a draft that bumps or adds a package, and whose packages are not on npm yet (`published`), can write a range
+    // that no published version satisfies.
+    const writesRange = rule => rule.kind === 'dependency'
+      && (Object.keys(rule.bump ?? {}).length > 0 || (rule.add ?? []).length > 0);
+
+    result.draftRangeVersion = resolved.selected.filter(manifest => manifest.status === 'draft' && !manifest.published
+      && manifest.rules.some(writesRange)).map(manifest => manifest.version).pop() ?? null;
     report.notes.push(...resolved.reportNotes);
 
     let repo;

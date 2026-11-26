@@ -8,7 +8,7 @@ import { main } from '../src/cli.mjs';
 import { UsageError } from '../src/errors.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
 import { resolvePlan } from '../src/runner.mjs';
-import { anchorListOf, checkAnchors, missingAnchors } from './helpers/guide-anchors.mjs';
+import { anchorListOf, changeAnchorsOf, checkAnchors, missingAnchors } from './helpers/guide-anchors.mjs';
 import { guidePath } from './helpers/guide-source.mjs';
 
 const GUIDE = '## 1. Keep this\n\n## Rename me later\n';
@@ -115,42 +115,57 @@ describe('a draft manifest', () => {
   });
 
   it('says a --to on a draft line was skipped as a draft, not that no migration is known', async() => {
-    for (const to of ['19', '19.0', '19.0.0']) {
-      const { notes, reportNotes } = await resolvePlan({ cwd: tmpdir(), from: '17.1', to });
+    await withTempDir(async(root) => {
+      await writeVersion(root, '18.1.0', { from: '18.0', rules: [{ ...rule, id: '18.1.0/a' }] });
+      await writeVersion(root, '19.0.0', { from: '18.1', status: 'draft', rules: [rule] });
 
-      assert.deepEqual(reportNotes, [`${to} is a draft migration${to === '19.0.0' ? '' : ' (19.0.0)'} and was skipped. `
-        + 'The run stops at 18.1.0. Add --include-draft to run it.'], to);
-      assert.ok(notes.some(note => /Skipped draft migrations: 19\.0\.0/.test(note)), to);
-      assert.ok(!notes.some(note => /is known/.test(note)), to);
-    }
+      for (const to of ['19', '19.0', '19.0.0']) {
+        const { notes, reportNotes } = await resolvePlan({ cwd: root, from: '18.0', to, versionsDir: root });
 
-    const beyond = await resolvePlan({ cwd: tmpdir(), from: '17.1', to: '20' });
+        assert.deepEqual(reportNotes, [`${to} is a draft migration${to === '19.0.0' ? '' : ' (19.0.0)'} and was `
+          + 'skipped. The run stops at 18.1.0. Add --include-draft to run it.'], to);
+        assert.ok(notes.some(note => /Skipped draft migrations: 19\.0\.0/.test(note)), to);
+        assert.ok(!notes.some(note => /is known/.test(note)), to);
+      }
 
-    assert.deepEqual(beyond.reportNotes, ['No migration for 20 is known. Migrated up to 18.1.0.']);
+      const beyond = await resolvePlan({ cwd: root, from: '18.0', to: '20', versionsDir: root });
+
+      assert.deepEqual(beyond.reportNotes, ['No migration for 20 is known. Migrated up to 18.1.0.']);
+    });
   });
 
   it('names the draft and --include-draft for a --only that selects a rule of a draft', async() => {
-    const only = ['19.0.0/*'];
-    const error = await resolvePlan({ cwd: tmpdir(), from: '17.1', only }).catch(failure => failure);
+    await withTempDir(async(root) => {
+      await writeVersion(root, '18.1.0', { from: '18.0', rules: [{ ...rule, id: '18.1.0/a' }] });
+      await writeVersion(root, '19.0.0', { from: '18.1', status: 'draft', rules: [rule] });
 
-    assert.ok(error instanceof UsageError);
-    assert.match(error.message, /^Unknown rule id: 19\.0\.0\/\*\. That rule belongs to the draft migration 19\.0\.0/);
-    assert.match(error.message, /Add --include-draft to run it\./);
+      const only = ['19.0.0/*'];
+      const error = await resolvePlan({ cwd: root, from: '18.0', only, versionsDir: root }).catch(failure => failure);
 
-    const exact = await resolvePlan({ cwd: tmpdir(), from: '17.1', only: ['19.0.0/export-column-headers'] })
-      .catch(failure => failure);
+      assert.ok(error instanceof UsageError);
+      assert.match(error.message, /^Unknown rule id: 19\.0\.0\/\*\. That rule belongs to the draft migration 19\.0\.0/);
+      assert.match(error.message, /Add --include-draft to run it\./);
 
-    assert.match(exact.message, /draft migration 19\.0\.0/);
+      const exact = await resolvePlan({ cwd: root, from: '18.0', only: ['19.0.0/a'], versionsDir: root })
+        .catch(failure => failure);
 
-    const typo = await resolvePlan({ cwd: tmpdir(), from: '17.1', only: ['19.0.0/no-such-rule'] })
-      .catch(failure => failure);
+      assert.match(exact.message, /draft migration 19\.0\.0/);
 
-    assert.match(typo.message, /^Unknown rule id: 19\.0\.0\/no-such-rule\. Run with --list/);
-    assert.doesNotMatch(typo.message, /draft/);
+      const typo = await resolvePlan({ cwd: root, from: '18.0', only: ['19.0.0/no-such-rule'], versionsDir: root })
+        .catch(failure => failure);
 
-    const stale = await resolvePlan({ cwd: tmpdir(), from: '18.1', to: '19.0', includeDraft: true, only });
+      assert.match(typo.message, /^Unknown rule id: 19\.0\.0\/no-such-rule\. Run with --list/);
+      assert.doesNotMatch(typo.message, /draft/);
 
-    assert.ok(stale.plan.versions.length === 1);
+      const stale = await resolvePlan({ cwd: root,
+        from: '18.1',
+        to: '19.0',
+        includeDraft: true,
+        only,
+        versionsDir: root });
+
+      assert.ok(stale.plan.versions.length === 1);
+    });
   });
 
   it('keeps every shipped draft out of a default run, and selects it with includeDraft', async() => {
@@ -189,6 +204,131 @@ describe('a draft manifest', () => {
     assert.equal(listed.code, 0);
     assert.ok(rows.length > 20, `${rows.length} rules listed`);
     assert.match(listed.out.trimEnd().split('\n').pop(), /^\d+ rules: \d+ rewrite, \d+ report\.$/);
+  });
+});
+
+describe('a draft manifest with no guide yet', () => {
+  const rule = { id: '19.1.0/a', kind: 'optionRemove', name: 'a', safe: true };
+  const draft = { from: '19.0', status: 'draft', guide: undefined };
+
+  it('loads as a draft with a null guide, no rules, and rules with no guide link', async() => {
+    await withTempDir(async(root) => {
+      const empty = await loadManifest(await writeVersion(root, '19.1.0', draft));
+      const withRule = await loadManifest(await writeVersion(join(root, 'b'), '19.1.0', {
+        ...draft,
+        rules: [rule, { ...rule, id: '19.1.0/b', inGuide: false }],
+        notAutomated: [{ title: 'A change the page will describe', reason: 'No pattern shows it.' }],
+      }));
+
+      assert.equal(empty.guide, null);
+      assert.equal(empty.status, 'draft');
+      assert.deepEqual(empty.rules, []);
+      assert.deepEqual(withRule.rules.map(item => item.guideUrl), [null, null]);
+      assert.equal(withRule.notAutomated.length, 1);
+    });
+  });
+
+  it('is rejected as released, whether the guide is missing or null', async() => {
+    await withTempDir(async(root) => {
+      const missing = await writeVersion(root, '19.1.0', { ...draft, status: 'released' });
+      const none = await writeVersion(join(root, 'b'), '19.1.0', { ...draft, status: 'released', guide: null });
+
+      for (const dir of [missing, none]) {
+        await assert.rejects(loadManifest(dir),
+          /"guide" must be an object with string fields "url" and "source" \(only a draft manifest may leave it out\)/);
+      }
+    });
+  });
+
+  it('is rejected when a draft names a guide that is not an object', async() => {
+    await withTempDir(async(root) => {
+      const dir = await writeVersion(root, '19.1.0', { ...draft, guide: 'docs/guide.md' });
+
+      await assert.rejects(loadManifest(dir), /"guide" must be an object with string fields "url" and "source"$/m);
+    });
+  });
+
+  it('is rejected when a rule or a notAutomated item names an anchor, with a message that says why', async() => {
+    await withTempDir(async(root) => {
+      const ruleDir = await writeVersion(root, '19.1.0', { ...draft, rules: [{ ...rule, guide: 'some-section' }] });
+      const itemDir = await writeVersion(join(root, 'b'), '19.1.0', {
+        ...draft,
+        notAutomated: [{ guide: 'some-section', reason: 'It is a behavior change.' }],
+      });
+
+      await assert.rejects(loadManifest(ruleDir),
+        /19\.1\.0\/a\): names the guide anchor "some-section", but the manifest has no "guide"/);
+      await assert.rejects(loadManifest(itemDir),
+        /notAutomated\[0\]: names the guide anchor "some-section", but the manifest has no "guide"/);
+    });
+  });
+
+  it('takes the anchor once the manifest names a guide', async() => {
+    await withTempDir(async(root) => {
+      const dir = await writeVersion(root, '19.1.0', {
+        ...draft,
+        guide: { url: 'https://example.com/guide', source: 'docs/guide.md' },
+        rules: [{ ...rule, guide: 'some-section' }],
+      });
+
+      assert.equal((await loadManifest(dir)).rules[0].guideUrl, 'https://example.com/guide#some-section');
+    });
+  });
+
+  it('accepts `published` on a draft only, and only as a boolean', async() => {
+    await withTempDir(async(root) => {
+      assert.equal((await loadManifest(await writeVersion(root, '19.1.0', { ...draft, published: true }))).published,
+        true);
+      assert.equal((await loadManifest(await writeVersion(join(root, 'b'), '19.1.0', draft))).published, false);
+      await assert.rejects(loadManifest(await writeVersion(join(root, 'c'), '19.1.0', { ...draft, published: 'yes' })),
+        /"published" must be a boolean and belongs to a draft manifest only/);
+      await assert.rejects(loadManifest(await writeVersion(join(root, 'd'), '19.1.0', {
+        ...draft,
+        status: 'released',
+        published: true,
+        guide: { url: 'https://example.com/guide', source: 'docs/guide.md' },
+      })), /"published" must be a boolean and belongs to a draft manifest only/);
+    });
+  });
+
+  it('is what the shipped 19.1.0 manifest is: a draft from 19.0, with no guide and no rules', async() => {
+    const manifest = (await loadManifests()).find(item => item.version === '19.1.0');
+
+    assert.equal(manifest.status, 'draft');
+    assert.equal(manifest.from, '19.0');
+    assert.equal(manifest.guide, null);
+    assert.deepEqual(manifest.rules, []);
+    assert.deepEqual(manifest.notAutomated, []);
+  });
+
+  it('stays out of a default run, and --list --include-draft prints it with zero rules', async() => {
+    const normal = await resolvePlan({ cwd: tmpdir(), from: '19.0' }).catch(error => error);
+    const upTo = await resolvePlan({ cwd: tmpdir(), from: '19.0', to: '19.1' }).catch(error => error);
+
+    assert.ok(normal instanceof UsageError);
+    assert.match(normal.message, /Nothing to migrate from 19\.0 to 1[89]\.\d+\.0\./);
+    assert.match(normal.message, /Known migrations: .*19\.1\.0 \(draft\)/);
+    assert.ok(upTo instanceof UsageError);
+    assert.match(upTo.message, /Only draft migrations are in range, add --include-draft to run them\./);
+
+    const listed = await cli(['migrate', '--list', '--from', '19.0', '--include-draft']);
+
+    assert.equal(listed.code, 0);
+    assert.equal(listed.out, '0 rules: 0 rewrite, 0 report.\n');
+    assert.match(listed.err, /The draft migration 19\.1\.0 has no rules yet, so it changes and reports nothing\./);
+  });
+
+  it('is a default run of nothing that changes a file and ends at 19.1.0 with --include-draft', async() => {
+    await withTempDir(async(root) => {
+      await writeVersion(root, '18.1.0', { from: '18.0', rules: [{ ...rule, id: '18.1.0/a' }] });
+      await writeVersion(root, '19.1.0', { ...draft, from: '18.1' });
+
+      const plan = await resolvePlan({ cwd: root, from: '18.0', includeDraft: true, versionsDir: root });
+
+      assert.equal(plan.toText, '19.1.0');
+      assert.deepEqual(plan.selected.map(manifest => manifest.version), ['18.1.0', '19.1.0']);
+      assert.ok(plan.notes.some(note => /19\.1\.0 has no rules yet/.test(note)));
+    });
   });
 });
 
@@ -309,37 +449,39 @@ describe('notAutomated', () => {
     assert.match(old.out, /^Changes with no rule, to read in the guide: 1 in 18\.0\.0\.$/m);
   });
 
-  describe('the map of the 19.0.0 guide: every section has a rule or a notAutomated entry, and nothing is listed twice',
+  describe('the map of the 19.0.0 guide: every change has a rule or a notAutomated entry, and nothing is listed twice',
     () => {
-      // The headings of the guide as the built site gave them (see guide-anchors.test.mjs). The live guide is edited by
-      // other people, and a new section there must not fail this package's CI, so the checks below read the snapshot,
-      // which only changes when someone refreshes it. A refresh that adds a section then needs a rule or an entry.
+      // The headings of the guide as the docs build gave them (see guide-anchors.test.mjs). The live guide is edited by
+      // other people, and a new change there must not fail this package's CI, so the checks below read the snapshot,
+      // which only changes when someone refreshes it. A refresh that adds a change then needs a rule or an entry.
+      // The guide is grouped: unnumbered `##` groups hold the numbered `###` changes (`changeAnchorsOf()`).
       const SNAPSHOT = new URL('./helpers/site-anchors/migration-from-18.1-to-19.0.json', import.meta.url);
 
       /**
        * The 19.0.0 manifest and the ids of the headings in the snapshot of its guide.
        *
-       * @returns {Promise<{manifest: object, sections: string[], headings: string[], covered: Set<string>}>} The data.
+       * @returns {Promise<{manifest: object, changes: string[], headings: string[], covered: Set<string>}>} The data.
        */
       async function mapOf() {
         const manifest = (await loadManifests()).find(item => item.version === '19.0.0');
         const snapshot = JSON.parse(await readFile(SNAPSHOT, 'utf8'));
-        const sections = snapshot.headings.filter(heading => heading.level === 2).map(heading => heading.id);
+        const changes = changeAnchorsOf(snapshot.headings);
         const headings = snapshot.headings.map(heading => heading.id);
         const covered = new Set([
           ...manifest.rules.map(rule => rule.guide),
           ...manifest.notAutomated.map(item => item.guide),
         ].filter(Boolean));
 
-        return { manifest, sections, headings, covered };
+        return { manifest, changes, headings, covered };
       }
 
-      it('has a rule or a notAutomated entry for every h2 section of the guide', async() => {
-        const { sections, covered } = await mapOf();
+      it('has a rule or a notAutomated entry for every change of the guide', async() => {
+        const { changes, covered } = await mapOf();
 
-        assert.equal(sections.length >= 50, true, 'the snapshot holds the sections of the guide');
-        assert.deepEqual(sections.filter(anchor => !covered.has(anchor)), [],
-          'sections with neither a rule nor a notAutomated entry (the map of what the tool leaves to the user)');
+        assert.equal(changes.length >= 50, true, 'the snapshot holds the changes of the guide');
+        assert.equal(new Set(changes).size, changes.length, 'two changes share an anchor');
+        assert.deepEqual(changes.filter(anchor => !covered.has(anchor)), [],
+          'changes with neither a rule nor a notAutomated entry (the map of what the tool leaves to the user)');
       });
 
       it('names no section that the guide does not have, in a rule or in an entry', async() => {
@@ -362,7 +504,7 @@ describe('notAutomated', () => {
         assert.ok(manifest.notAutomated.every(item => item.reason.endsWith('.') && !/[–—]/.test(item.reason)));
       });
 
-      it('says, as a diagnostic, how far the live guide has moved from the snapshot', async(context) => {
+      it('says, as a diagnostic, how far the guide file has moved from the snapshot', async(context) => {
         const { manifest, headings, covered } = await mapOf();
 
         context.diagnostic(`${manifest.notAutomated.length} entries, ${covered.size} sections with a rule or an entry`);
@@ -374,8 +516,9 @@ describe('notAutomated', () => {
         const live = anchorListOf(await readFile(guidePath(manifest), 'utf8'));
         const added = live.filter(anchor => !headings.includes(anchor) && !covered.has(anchor));
 
-        // Not an assertion: another team edits the guide. Refresh the snapshot and cover what is new.
-        context.diagnostic(`${added.length} headings of the live guide are not in the snapshot and have no rule or `
+        // Not an assertion: another team edits the guide. Refresh the snapshot and cover what is new. Until the released
+        // 19.0 guide is merged back, the file holds the older flat guide, so the count here is large.
+        context.diagnostic(`${added.length} headings of the guide file are not in the snapshot and have no rule or `
           + `entry${added.length > 0 ? `: ${added.join(', ')}` : ''}`);
       });
     });
@@ -383,7 +526,8 @@ describe('notAutomated', () => {
 
 describe('the fixtures of every shipped draft', () => {
   it('give every rule of the manifest a fixture that names it', async() => {
-    const drafts = (await loadManifests()).filter(manifest => manifest.status === 'draft');
+    // A draft with no rule yet (the migration after 19.0) has no fixture directory either.
+    const drafts = (await loadManifests()).filter(manifest => manifest.status === 'draft' && manifest.rules.length > 0);
 
     for (const manifest of drafts) {
       const root = join(VERSIONS_DIR, manifest.version, '__fixtures__');
