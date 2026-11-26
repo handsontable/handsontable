@@ -207,7 +207,11 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   `restoreState()` runs; a key a hook wrote straight onto the stored meta is in no journal and still there.
   MergeCells gated its undo cleanup on its own `hidden`/`spanned` marks, which the journal had already removed,
   and left `rowspan`, `colspan` and `copyable: false` on the cells of an undone merge. Key such a cleanup on the
-  recorded state (`context.other`) instead.
+  recorded state (`context.other`) instead. When `context.reordered` is set, the replay inserted or removed rows
+  or columns first, so the physical indexes `context.other` records name the grid before the replay: map them
+  with `context.toRestoredIndex` (`toFinalIndex()` over the step's journal). The plugin's live state is no
+  substitute: the replay ran in the physical order and the index maps are already restored, so a live visual
+  column names another physical column once a column was moved.
 - **Derived index maps are never captured** (`autoRowSize`, `autoColumnSize`, `stretchColumns`, the
   NestedHeaders widths, `Pagination`, `AsyncValues`, `*.columnMeta` - `DERIVED_INDEX_MAP_NAMES`). They are rebuilt
   from the rest. `AsyncValues` is there because it holds in-flight requests, which an undo must not bring back. Pagination is there because it recomputes its page map on every index cache update:
@@ -370,14 +374,16 @@ Optional methods, found by `typeof plugin.captureState === 'function'`:
   NestedRows (collapsed parents), CustomBorders (a model version - the borders live in the `borders`
   cell meta, and `restoreState()` rebuilds the model from it), Pagination (the page and the page
   size), Formulas (see `../formulas/AGENTS.md`).
-- `restoreState(state, context?)` gets a `PluginRestoreContext` - `{ other, direction, reordered }`:
-  the plugin's state on the other side of the step, `'undo'` or `'redo'`, and whether the replay
-  reset the order. A plugin uses it to apply only what the step changed, so a change made outside
+- `restoreState(state, context?)` gets a `PluginRestoreContext` - `{ other, direction, reordered,
+  toRestoredIndex }`: the plugin's state on the other side of the step, `'undo'` or `'redo'`, whether
+  the replay reset the order, and, with `reordered`, a function that maps a physical index of `other`
+  to the restored grid. A plugin uses it to apply only what the step changed, so a change made outside
   any step survives: MergeCells adds and removes only the merges that differ between `other` and
   `state` (and falls back to a full rebuild when `reordered` or when a merge to remove is not where
-  it was, or when a merge to put back overlaps a live merge the step did not make) and, unless
-  `reordered`, clears the covered-cell flags of the cells `other` covered and `state` does not, by
-  the recorded physical columns (a redo of a column move), Formulas reads
+  it was, or when a merge to put back overlaps a live merge the step did not make) and clears the
+  merge keys of the cells `other` covered and `state` does not: by the recorded physical columns (a
+  redo of a column move), or, when `reordered`, by `other` mapped to the restored grid through
+  `context.toRestoredIndex`. Formulas reads
   the peer rewrites from `other` on undo. No context is passed when the restore puts back a state no
   step changed.
 - `getStateColumns(state, other)` - the physical columns whose state differs between the two sides
@@ -416,14 +422,15 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
   (O(cells) time; the unchanged rows share their arrays with the previous snapshot, so the memory
   grows with the rows that changed).
 - An accessor function re-created on every render (an inline `data: row => ...` in React) reads as
-  another field, so each render drops the steps that address its column. Documented in the guide's
-  known limitations and section 24.
+  another field, so each render drops the steps that address its column. Documented in the undo-redo
+  guide's known limitations and in the 18.1 to 19.0 migration guide's "Undo and redo restore a
+  recorded state" change.
 - A replayed removal that removes a different number of rows or columns than it recorded cannot be
   taken back (`alterRuns()`): its rows are gone. Also in the guide's known limitations.
 - A settings update that changes the row count while a transaction that already journaled a change
   is pending (a join host) is folded into that step's "after" state instead of dropping the history.
 - Every transaction that joins a host adds its names to the step's `operations` and `sources`, a
-  no-op one included (an AutoRowSize `batchExecution()` during a scroll reads as a `'batch'` entry).
+  no-op one included (an AutoRowSize `_batchExecutionWithoutHooks()` during a scroll reads as a `'batch'` entry).
   Only a capture per settle could tell a no-op from a hide, which changes no journal either.
 
 ## Testing

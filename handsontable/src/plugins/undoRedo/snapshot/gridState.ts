@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import type { BasePlugin } from '../../base';
+import type { BasePlugin, PluginRestoreContext } from '../../base';
 import { getPluginsNames } from '../../registry';
 import {
   IndexMapperStateTracker,
@@ -224,11 +224,14 @@ export class GridStateTracker {
    * @param {boolean} [options.forceOrder=false] Write the row and column order and the trimming maps back
    *   even when the step did not change them – a replay reset them to the physical order.
    * @param {string} [options.direction] `'undo'` or `'redo'`, handed to the plugins with `changedFrom`.
+   * @param {Function} [options.toRestoredIndex] Maps a physical index of `changedFrom` to the restored grid,
+   *   handed to the plugins with `changedFrom` when `forceOrder` is set.
    */
   restore(
     snapshot: GridStateSnapshot,
-    { changedFrom, base, forceOrder = false, direction }: {
+    { changedFrom, base, forceOrder = false, direction, toRestoredIndex }: {
       changedFrom?: GridStateSnapshot, base?: GridStateSnapshot, forceOrder?: boolean, direction?: 'undo' | 'redo',
+      toRestoredIndex?: PluginRestoreContext['toRestoredIndex'],
     } = {},
   ) {
     // Each axis takes the length the data implies, the one `updateData()` fits it to. With no source
@@ -255,6 +258,7 @@ export class GridStateTracker {
           other: changedFrom.plugins.get(name),
           direction,
           reordered: forceOrder,
+          toRestoredIndex,
         });
 
       } else if (forceOrder && base?.plugins.has(name)) {

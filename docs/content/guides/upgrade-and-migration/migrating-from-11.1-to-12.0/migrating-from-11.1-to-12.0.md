@@ -41,7 +41,7 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 
 If you need to reset your index mapper information and configuration options  along with updating your [`data`](@/api/options.md#data):
 
-- Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
+- Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loaddata) and provide the new dataset as its argument:
 
 ```js
 // Handsontable 12.0: this doesn't reset your configuration options
@@ -61,7 +61,7 @@ hotInstance.loadData(newDataset);
 
 Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/configuration/configuration-options/configuration-options.md).
 
-If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loadData) method, referencing the Handsontable instance from the component:
+If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loaddata) method, referencing the Handsontable instance from the component:
 
 ```jsx
 import { useRef } from 'react';
@@ -88,7 +88,7 @@ To learn more about referencing the Handsontable instance, see the [Instance met
 
 Updating your [`data`](@/api/options.md#data) through a component property no longer resets your index mapper information and configuration options.
 
-To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loadData) method (the same way as above), referencing the Handsontable instance from the component.
+To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loaddata) method (the same way as above), referencing the Handsontable instance from the component.
 
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/angular/guides/getting-started/angular-hot-instance/angular-hot-instance.md)

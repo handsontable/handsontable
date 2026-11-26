@@ -443,6 +443,8 @@ const customTheme = registerTheme('custom-theme', mainTheme);
 
 To start from another preset, import `classicTheme` or `horizonTheme` instead. Your theme keeps the density and icons of the preset: `main` uses the `'default'` density, `classic` uses `'compact'`, and `horizon` uses `'comfortable'`.
 
+If you publish a theme library that re-exports a preset and generates declaration files, see [Re-export a theme preset](@/guides/tools-and-building/typescript-types/typescript-types.md#re-export-a-theme-preset).
+
 ### Override values with `params()`
 
 Call `params()` to override only the colors and tokens you need. The values you pass are merged into your theme. `params()` returns the theme, so you can chain `setColorScheme()` and `setDensityType()` after it:

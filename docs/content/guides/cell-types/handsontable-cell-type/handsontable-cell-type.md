@@ -85,7 +85,7 @@ The **Product** column uses the handsontable cell type for a searchable product 
 | Key | Action |
 | --- | --- |
 | <kbd>**Escape**</kbd> | Close editor and cancel change |
-| <kbd>**Enter**</kbd> | Close editor and apply change; move selection in the main HOT downwards or according to the [`enterMoves`](@/api/options.md#enterMoves) setting |
+| <kbd>**Enter**</kbd> | Close editor and apply change; move selection in the main HOT downwards or according to the [`enterMoves`](@/api/options.md#entermoves) setting |
 | <kbd>**Tab**</kbd> | Same as <kbd>**Enter**</kbd>, but move selection to the right or left according to the [`tabMoves`](@/api/options.md#tabmoves) setting |
 | <kbd>**Arrow Down**</kbd> | Move selection in HOT-in-HOT downwards. No effect if last row is selected |
 | <kbd>**Arrow Up**</kbd> | Move selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as <kbd>**Enter**</kbd> but move main HOT selection upwards |

@@ -464,7 +464,7 @@ The dropdown cell editor is an [autocomplete](@/guides/cell-types/autocomplete-c
 - [trimDropdown](@/api/options.md#trimdropdown)
 - [type](@/api/options.md#type)
 - [valueGetter](@/api/options.md#valuegetter)
-- [valueSetter](@/api/options.md#valueSetter)
+- [valueSetter](@/api/options.md#valuesetter)
 - [visibleRows](@/api/options.md#visiblerows)
 
 </div>

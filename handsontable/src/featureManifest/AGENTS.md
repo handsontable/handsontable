@@ -38,7 +38,7 @@ Jest suite fails until it has one (`needs exactly one "plugin" entry for "<Name>
 | an editor, renderer, or validator | `src/editors/`, `src/renderers/`, or `src/validators/` `features.json` | `editor:…`, `renderer:…`, `validator:…` | `none` |
 | an XLSX sub-feature a tier can switch | `src/utils/xlsxEngine/features.json` | `xlsx:<name>` | `token` |
 
-Every `token` entry also lists the tiers that include it (`"tiers": ["standard", "professional"]`, see "Tiers"
+Every `token` entry also lists the tiers that include it (`"tiers": ["professional"]`, see "Tiers"
 below).
 
 Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes (the record in
@@ -64,7 +64,7 @@ A plugin entry looks like this (`src/plugins/filters/feature.json`):
       "status": "stable",
       "licensing": "token",
       "gate": "enable",
-      "tiers": ["standard", "professional"],
+      "tiers": ["professional"],
       "requires": { "allOf": ["feat:dropdown_menu", "feat:hidden_rows", "cell:checkbox"] },
       "enforceAtInit": true
     }
@@ -200,11 +200,23 @@ because a record never loses a value.
 - **A tier includes what its features require.** For each tier of an entry, every sold entry its `requires.allOf`
   reaches (the `implies` closure) and at least one member of its `requires.anyOf` must list that tier too.
 - **The `tier` namespace is reserved** for tier tokens: no entry id may start with `tier:`.
-- **A tier name, once merged, is never renamed or removed.** The license portal reads the top-level `tiers` of each
-  published build (the `experimental` tag included) and refuses a build that lacks a tier it sells, and keys that
-  name the tier are already issued. Add a tier; do not rename one. `released-tokens.json` records each tier as its
-  key token (`"tier:standard": ["tier"]`): `checkReleased()` refuses sources that lack a recorded tier, and
-  `--check-base` refuses a record that drops one, the same way both protect a sold feature id.
+- **A tier name, once merged, is never renamed or removed, with one recorded exception.** The license portal reads
+  the top-level `tiers` of each published build (the `experimental` tag included) and refuses a build that lacks a
+  tier it sells, and keys that name the tier are already issued. Add a tier; do not rename one.
+  `released-tokens.json` records each tier as its key token (`"tier:professional": ["tier"]`): `checkReleased()`
+  refuses sources that lack a recorded tier, and `--check-base` refuses a record that drops one, the same way both
+  protect a sold feature id. **The exception is `standard` (DEV-4198).** The business decided that Handsontable has a
+  single tier, named `professional`, which unlocks every feature, so `standard` was removed from `tiers.json`, from
+  every entry's `tiers` (the six `xlsx:` entries that listed only `professional` are unchanged), and from the
+  record. It is the one name in `REMOVED_TIERS` (`scripts/utils/feature-manifest.js`): `--check-base` accepts a
+  record that drops `tier:standard`, `checkReleased()` accepts a `tier:standard` line whose tier is no longer in
+  `tiers.json`, and the checks refuse to list `standard` in `tiers.json`
+  again. A key that names only `tier:standard` is a restricted key whose tier no feature lists, so it unlocks
+  nothing and must be reissued with `tier:professional`; myHOT must stop selling `standard` before this change
+  merges to develop, because the `experimental` build publishes from develop right after a merge. The removal is
+  non-breaking only because it is picked to `release/19.0.0` before 19.0.0 GA; no stable release lists `standard`.
+  By the myHOT side, myHOT production never issued tier tokens, and tiers exist only on myHOT staging and in the HubSpot sandbox. Do not add a name to `REMOVED_TIERS` to rename a tier, or without a business
+  decision to drop it.
 - **Public text says "tier"**, never "plan": the key token is `tier:<name>`, the manifest field is `tiers`, and
   "plan" already names a support product.
 - **`dist/manifest.json`** carries `tiers` at the top level and per capability, and no `keyFlag` (the

@@ -14,7 +14,6 @@ export const LICENSE: PluginLicense = Object.freeze({
   name: 'Formula builder',
   gate: 'enable',
   tiers: Object.freeze([
-    'standard',
     'professional',
   ]),
 });

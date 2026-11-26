@@ -413,6 +413,20 @@ the page. Measured from a step, the columns would come out of empty labels again
 fixed. Every ready step now runs before the `init` hook, so `init` is the point where the other plugins'
 state is in place and the first render has not run yet. AutoRowSize keeps its listener for the same reason.
 
+## Size writes fire no execution hooks (DEV-4193)
+
+Every batched write to `columnWidthsMap` goes through `this.hot._batchExecutionWithoutHooks()`, never through
+`batchExecution()`. Both methods suspend the execution, open a `'batch'` operation, and flush the index cache
+on a forced resume. Only `batchExecution()` fires `beforeSuspendExecution`, `afterSuspendExecution`,
+`beforeResumeExecution`, and `afterResumeExecution`. The render that ends a `batch()` runs after the batch
+resumed the execution, so a size write made with `batchExecution()` there fired a second full cycle of the
+hooks for one `batch()` call, and one more cycle on every render. The hooks report the batches an application
+or a feature makes, so a new size write uses the silent method too.
+
+The public `clearCache()` with a list of indexes batch the same way, so they are silent as well. The
+full `clearCache()` calls `columnWidthsMap.clear()` with no batch at all: it suspends nothing and fires nothing.
+Pinned by `src/__tests__/core/executionSuspendHooks.unit.js`.
+
 ## Where to look next
 
 - Row counterpart: `../autoRowSize/AGENTS.md`. Row *header* widths: `../autoRowHeaderSize/AGENTS.md`.

@@ -647,7 +647,7 @@ export class AutoRowSize extends BasePlugin {
     });
 
     if (this.ghostTable.rows.length) {
-      this.hot.batchExecution(() => {
+      this.hot._batchExecutionWithoutHooks(() => {
         this.ghostTable.getHeights((row: number, height: number) => {
           if (row < 0) {
             this.headerHeight = Math.round(height);
@@ -925,7 +925,7 @@ export class AutoRowSize extends BasePlugin {
     const lastVisibleRow = this.getLastVisibleRow();
     const rowsToQueue: number[] = [];
 
-    this.hot.batchExecution(() => {
+    this.hot._batchExecutionWithoutHooks(() => {
       physicalRows.forEach((physicalRow) => {
         this.rowHeightsMap.setValueAtIndex(physicalRow, null);
       });
@@ -1019,7 +1019,7 @@ export class AutoRowSize extends BasePlugin {
     });
 
     if (this.ghostTable.rows.length) {
-      this.hot.batchExecution(() => {
+      this.hot._batchExecutionWithoutHooks(() => {
         this.ghostTable.getHeights((visualRow: number, height: number) => {
           const physicalRow = this.hot.toPhysicalRow(visualRow);
 
@@ -1164,7 +1164,7 @@ export class AutoRowSize extends BasePlugin {
     this.headerHeight = null;
 
     if (Array.isArray(physicalRows)) {
-      this.hot.batchExecution(() => {
+      this.hot._batchExecutionWithoutHooks(() => {
         physicalRows.forEach((physicalIndex) => {
           this.rowHeightsMap.setValueAtIndex(physicalIndex, null);
         });
@@ -1194,7 +1194,7 @@ export class AutoRowSize extends BasePlugin {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
     const clearedRows: number[] = [];
 
-    this.hot.batchExecution(() => {
+    this.hot._batchExecutionWithoutHooks(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
         clearedRows.push(row);

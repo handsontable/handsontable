@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [19.0.0-rc8] - 2026-11-24
+## [19.0.0-rc10] - 2026-11-25
 
 ### Added
 - **Breaking change**: Added treegrid accessibility to the NestedRows plugin: tree attributes on rows, Ctrl/Cmd+arrow keys on a row header to expand, collapse, or move to the parent row, and screen reader announcements. On a row header, Ctrl/Cmd+arrow keys no longer jump to the edge of the row, and Enter no longer toggles while an overlay covers the grid. [#13759](https://github.com/handsontable/handsontable/pull/13759)
@@ -53,10 +53,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added the license check of plugins: a plugin that the tier of a license key leaves out stays off, and the console and the bar under the grid name the missing features. A plugin turned off with `disablePlugin()` while its option is on now counts as off for exports, imports, row resizing, the Loading overlay, and the Undo, Redo, and "Copy with group headers" context menu items. [#14104](https://github.com/handsontable/handsontable/pull/14104)
 - Added the `hidden_columns_hide` and `hidden_columns_show` keys to the column menu. List them in the `dropdownMenu` option to show the items. `dropdownMenu: true` is unchanged. A custom column menu item under one of these keys now uses the built-in action and visibility rule unless you set your own. The `MenuItemConfig` and `PredefinedMenuItemKey` types are now also exported from `handsontable`. [#14107](https://github.com/handsontable/handsontable/pull/14107)
 - Added the import of the errors Excel stores as rich values, such as #SPILL! and #CALC!, to the built-in XLSX engine. Such cells used to import as #VALUE!. A cell holding a linked data type, such as Stocks, is now reported in result.dropped. [#14119](https://github.com/handsontable/handsontable/pull/14119)
-- Added a "Powered by Handsontable DataGrid" bar below the grid for trial license keys (including trials issued for external use) and keys with the `attribution-bar` flag. A license bar now stays within the grid's declared `height`. [#14139](https://github.com/handsontable/handsontable/pull/14139)
+- Added a "Powered by Handsontable DataGrid" bar below the grid for license keys whose terms carry the `attribution-bar` flag. A license bar now stays within the grid's declared `height`. [#14139](https://github.com/handsontable/handsontable/pull/14139)
 - Added the `batchEvaluation` setting of the `formulas` option, which makes HyperFormula recalculate once for all changes made inside `batch()`, and the `beforeSuspendExecution`, `afterSuspendExecution`, `beforeResumeExecution`, and `afterResumeExecution` hooks. [#14268](https://github.com/handsontable/handsontable/pull/14268)
 - Added the `includeSummaryResults` option of a column summary, which lets a summary count the results of other summaries inside its range. [#14271](https://github.com/handsontable/handsontable/pull/14271)
-- Added license tiers: a license key can name the Standard or Professional tier, and the license key guide lists the features each tier includes. A key that names no tier keeps every feature. [#14284](https://github.com/handsontable/handsontable/pull/14284)
+- Added a license tier: a license key can name the Professional tier, which includes every Handsontable feature, and the license key guide lists the features it includes. A key that names no tier keeps every feature. [#14284](https://github.com/handsontable/handsontable/pull/14284)
 - Added an `emptyValue` option that sets what an emptied cell stores, and stopped a cell editor confirmed without any typing from overwriting the cell's value with an empty string. [#3927](https://github.com/handsontable/handsontable/issues/3927)
 - Added the `AutoRowHeaderSize` plugin, which sizes the row header column to its longest label instead of clipping it. [#7147](https://github.com/handsontable/handsontable/issues/7147)
 - React: Added a console warning when a Handsontable function renderer is passed to the `renderer` prop of `HotTable` or `HotColumn`, pointing to the `hotRenderer` prop instead. [#14010](https://github.com/handsontable/handsontable/pull/14010)
@@ -108,6 +108,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: Changed `@handsontable/react-wrapper` to declare `react` and `react-dom` 18.0.0 or later as peer dependencies, matching the documented React 18 minimum. [#14009](https://github.com/handsontable/handsontable/pull/14009)
 - Angular: Changed the wrapper to build with Angular 22, which replaces the per-file type declarations with a single bundled types file, while the supported range stays Angular 16 to 22. [#13835](https://github.com/handsontable/handsontable/pull/13835)
 - Angular: Changed the `[data]` input to update the grid outside Angular's zone, like the `[settings]` input. A callback added with `addHook()` now runs outside the zone on a `[data]` change too, so async work it starts no longer triggers change detection by itself. [#14388](https://github.com/handsontable/handsontable/pull/14388)
+- Changed the "Powered by Handsontable DataGrid" bar so that a trial license key shows it only when the key's terms ask for it, like any other key. [#14465](https://github.com/handsontable/handsontable/pull/14465)
 
 ### Deprecated
 - Deprecated writing past the last column of an object data source. A paste, `populateFromArray()`, or `setDataAtCell()` still adds a property named after the column index, which no column can display, and prints a one-time console warning; the write will be ignored in Handsontable 20.0.0. Use `setDataAtRowProp()` to write a field the grid shows no column for. [#13343](https://github.com/handsontable/handsontable/pull/13343)

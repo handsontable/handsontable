@@ -284,8 +284,8 @@ Each license behaves differently around its date:
 ### Trial keys
 
 A trial key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left
-corner and the [Powered by Handsontable DataGrid bar](#powered-by-handsontable-datagrid-bar) below
-the table. Hover over the badge to see the trial status. Once the key's notice period begins, the
+corner, and the [Powered by Handsontable DataGrid bar](#powered-by-handsontable-datagrid-bar) below
+the table when the key's terms ask for it. Hover over the badge to see the trial status. Once the key's notice period begins, the
 console starts warning how many days remain - on a standard 45-day trial that is from day one. On
 the last licensed day the warning says the key expires today, because that day is still licensed in
 full. After the expiration date, a message opens next to the badge and below the grid, and the console
@@ -311,102 +311,103 @@ console reports an error and the grid shows a notice below the table.
 
 ### Powered by Handsontable DataGrid bar
 
-A trial key, and a key whose license terms ask for it, show a bar below the table that reads
+A key whose license terms ask for it shows a bar below the table that reads
 "Powered by Handsontable DataGrid" next to the Handsontable logo. The bar links to
 [handsontable.com](https://handsontable.com) and sits below any license message.
 
 The bar is not a warning, so it shows on a key issued for use in an application for external users
-too, and no option turns it off. Every other key shows no bar. The grid keeps the height you set:
+too, and no option turns it off. A trial key follows the same rule: it shows the bar only when its terms ask
+for it. The grid keeps the height you set:
 the bar takes its room from the grid, as the pagination bar does.
 
 ## Keys that name a tier
 
-An entitlement key can name one or more tiers. The grid turns on the features of those tiers and
-keeps every other feature off. A key that names no tier turns on every feature, as every key did
+An entitlement key can name a tier. Handsontable has one tier, Professional, and it includes every
+feature. The grid turns on the features of the tiers the key names and keeps every other feature off. A key that names no tier turns on every feature, as every key did
 before 19.0. The 25-character keys also turn on every feature.
 
-The table lists the tiers that include each feature. For prices, see the
+The table lists the tier that includes each feature. For prices, see the
 [pricing page](https://handsontable.com/pricing).
 
 <!-- license-tiers:start -->
 
-| Feature | Standard | Professional |
-| --- | :---: | :---: |
-| Data grid | Yes | Yes |
-| Async values | Yes | Yes |
-| Auto column size | Yes | Yes |
-| Auto link | Yes | Yes |
-| Auto row header size | Yes | Yes |
-| Auto row size | Yes | Yes |
-| Autofill | Yes | Yes |
-| Bind rows with headers | Yes | Yes |
-| Checkbox header | Yes | Yes |
-| Collapsible columns | Yes | Yes |
-| Column freezing | Yes | Yes |
-| Column menu | Yes | Yes |
-| Column moving | Yes | Yes |
-| Column resizing | Yes | Yes |
-| Column sorting | Yes | Yes |
-| Column stretching | Yes | Yes |
-| Column summary | Yes | Yes |
-| Comments | Yes | Yes |
-| Context menu | Yes | Yes |
-| Copy and paste | Yes | Yes |
-| Custom borders | Yes | Yes |
-| Data provider | Yes | Yes |
-| Dialog | Yes | Yes |
-| Drag to scroll | Yes | Yes |
-| Empty data state | Yes | Yes |
-| Export to file | Yes | Yes |
-| Filters | Yes | Yes |
-| Formula builder | Yes | Yes |
-| Formulas | Yes | Yes |
-| Freeze bar | Yes | Yes |
-| Hidden columns | Yes | Yes |
-| Hidden rows | Yes | Yes |
-| Import from file | Yes | Yes |
-| Loading | Yes | Yes |
-| Merge cells | Yes | Yes |
-| Move cells | Yes | Yes |
-| Multi-column sorting | Yes | Yes |
-| Nested headers | Yes | Yes |
-| Nested rows | Yes | Yes |
-| Notifications | Yes | Yes |
-| Pagination | Yes | Yes |
-| Row moving | Yes | Yes |
-| Row resizing | Yes | Yes |
-| Row selection | Yes | Yes |
-| Search | Yes | Yes |
-| Selection handles | Yes | Yes |
-| Sheets bar | Yes | Yes |
-| Trim rows | Yes | Yes |
-| Undo and redo | Yes | Yes |
-| View state | Yes | Yes |
-| Cell type: Autocomplete | Yes | Yes |
-| Cell type: Checkbox | Yes | Yes |
-| Cell type: Date | Yes | Yes |
-| Cell type: Date (Intl) | Yes | Yes |
-| Cell type: Date and time (Intl) | Yes | Yes |
-| Cell type: Dropdown | Yes | Yes |
-| Cell type: Handsontable | Yes | Yes |
-| Cell type: Multiselect | Yes | Yes |
-| Cell type: Numeric | Yes | Yes |
-| Cell type: Password | Yes | Yes |
-| Cell type: Select | Yes | Yes |
-| Cell type: Text | Yes | Yes |
-| Cell type: Time | Yes | Yes |
-| Cell type: Time (Intl) | Yes | Yes |
-| XLSX export | Yes | Yes |
-| XLSX import | Yes | Yes |
-| XLSX: Cell styles | No | Yes |
-| XLSX: Comments | No | Yes |
-| XLSX: Conditional formatting | No | Yes |
-| XLSX: Data validation | No | Yes |
-| XLSX: Formulas | Yes | Yes |
-| XLSX: Import report | Yes | Yes |
-| XLSX: Number formats | No | Yes |
-| XLSX: Sheet layout | Yes | Yes |
-| XLSX: Sheet protection | No | Yes |
+| Feature | Professional |
+| --- | :---: |
+| Data grid | Yes |
+| Async values | Yes |
+| Auto column size | Yes |
+| Auto link | Yes |
+| Auto row header size | Yes |
+| Auto row size | Yes |
+| Autofill | Yes |
+| Bind rows with headers | Yes |
+| Checkbox header | Yes |
+| Collapsible columns | Yes |
+| Column freezing | Yes |
+| Column menu | Yes |
+| Column moving | Yes |
+| Column resizing | Yes |
+| Column sorting | Yes |
+| Column stretching | Yes |
+| Column summary | Yes |
+| Comments | Yes |
+| Context menu | Yes |
+| Copy and paste | Yes |
+| Custom borders | Yes |
+| Data provider | Yes |
+| Dialog | Yes |
+| Drag to scroll | Yes |
+| Empty data state | Yes |
+| Export to file | Yes |
+| Filters | Yes |
+| Formula builder | Yes |
+| Formulas | Yes |
+| Freeze bar | Yes |
+| Hidden columns | Yes |
+| Hidden rows | Yes |
+| Import from file | Yes |
+| Loading | Yes |
+| Merge cells | Yes |
+| Move cells | Yes |
+| Multi-column sorting | Yes |
+| Nested headers | Yes |
+| Nested rows | Yes |
+| Notifications | Yes |
+| Pagination | Yes |
+| Row moving | Yes |
+| Row resizing | Yes |
+| Row selection | Yes |
+| Search | Yes |
+| Selection handles | Yes |
+| Sheets bar | Yes |
+| Trim rows | Yes |
+| Undo and redo | Yes |
+| View state | Yes |
+| Cell type: Autocomplete | Yes |
+| Cell type: Checkbox | Yes |
+| Cell type: Date | Yes |
+| Cell type: Date (Intl) | Yes |
+| Cell type: Date and time (Intl) | Yes |
+| Cell type: Dropdown | Yes |
+| Cell type: Handsontable | Yes |
+| Cell type: Multiselect | Yes |
+| Cell type: Numeric | Yes |
+| Cell type: Password | Yes |
+| Cell type: Select | Yes |
+| Cell type: Text | Yes |
+| Cell type: Time | Yes |
+| Cell type: Time (Intl) | Yes |
+| XLSX export | Yes |
+| XLSX import | Yes |
+| XLSX: Cell styles | Yes |
+| XLSX: Comments | Yes |
+| XLSX: Conditional formatting | Yes |
+| XLSX: Data validation | Yes |
+| XLSX: Formulas | Yes |
+| XLSX: Import report | Yes |
+| XLSX: Number formats | Yes |
+| XLSX: Sheet layout | Yes |
+| XLSX: Sheet protection | Yes |
 
 <!-- license-tiers:end -->
 
@@ -439,6 +440,9 @@ a tier, so a key that names only that tier turns off the plugins and the parts o
 the table, and reports them as missing. The grid itself keeps working. To use the key, upgrade to a
 Handsontable version released after the tier was added.
 
+A key that names only a tier that was removed, such as `standard`, unlocks nothing in any version.
+Reissue the key with `tier:professional`.
+
 The `handsontable` package lists every feature with the tiers that include it in
 `dist/manifest.json`.
 
@@ -447,15 +451,14 @@ The `handsontable` package lists every feature with the tiers that include it in
 An additional add-on extends Excel import and export. Available as a bundle, it carries formulas,
 styles, layout (column widths, row heights, merged cells, and frozen panes), number formats,
 comments, conditional formatting, data validation, and sheet protection into and out of `.xlsx`
-files. The tier your key names decides which parts of the add-on are on. The table in
-[Keys that name a tier](#keys-that-name-a-tier) lists them in the rows that start with `XLSX`. See the
+files. The Professional tier includes the whole add-on. The table in
+[Keys that name a tier](#keys-that-name-a-tier) lists it in the rows that start with `XLSX`. See the
 [pricing page](https://handsontable.com/pricing) for prices.
 
 A key that names no tier includes the whole add-on, so keys issued before 19.0 work as before. When
-your tier leaves out part of the add-on, an import or export skips that part, does the rest, and
-prints one console warning that names what it skipped. An import also reports each skipped part on
-`result.dropped` as a `license:xlsx:<id>` entry. See the
-[Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
+your key names only a tier that your version does not know, the add-on is off: the import and
+export methods throw, and `supportsImportFormat('xlsx')` and `supportsExportFormat('xlsx')` return
+`false`.
 
 ## Result
 
