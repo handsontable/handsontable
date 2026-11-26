@@ -540,13 +540,24 @@ export class MergeCells extends BasePlugin {
   /**
    * Whether a row move made inside a batch has written the merges in the live row order while the row
    * index cache still holds the order from before the batch. The recording of
-   * {@link MergeCells#foreignRowsBeforeCacheUpdate} would then read those rows through the stale cache, take
-   * rows the merge does not draw over for foreign ones, and strip the user's `hidden` and `copyable` from them,
-   * so the recording is skipped for that one cache update.
+   * {@link MergeCells#foreignRowsBeforeCacheUpdate} would then read the merges through the stale cache, so it
+   * is not made for that one cache update; {@link MergeCells#foreignRowsBeforeBatchMove} stands in for it.
+   * The row hooks also read the rows on the live order only while this holds, because only then are the
+   * merges in it.
    *
    * @type {boolean}
    */
   #areMergesAheadOfRowCache: boolean = false;
+
+  /**
+   * The cells of other records the merges drew over right before a row move made inside a batch, by physical
+   * row and physical column. Taken in `beforeRowMove`, where the merges and the row cache describe the same
+   * order, because at the end of the batch they no longer do. Several moves in one batch add to one record.
+   * {@link MergeCells#clearForeignRowsOfBatchMove} clears the cells no merge draws over once the batch ends.
+   *
+   * @type {{ rowCount: number, cells: Map<number, Set<number>> } | null}
+   */
+  #foreignRowsBeforeBatchMove: { rowCount: number, cells: Map<number, Set<number>> } | null = null;
 
   /**
    * The physical cells the merges were drawn from, recorded right before a trim or a filter changes in the
@@ -682,6 +693,8 @@ export class MergeCells extends BasePlugin {
     this.hot.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.#foreignRowsBeforeCacheUpdate = null;
+    this.#foreignRowsBeforeBatchMove = null;
+    this.#areMergesAheadOfRowCache = false;
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
     this.#coveredBeforeMove = null;
@@ -709,6 +722,8 @@ export class MergeCells extends BasePlugin {
     this.hot?.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.#foreignRowsBeforeCacheUpdate = null;
+    this.#foreignRowsBeforeBatchMove = null;
+    this.#areMergesAheadOfRowCache = false;
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
     this.#coveredBeforeMove = null;
@@ -1881,17 +1896,7 @@ export class MergeCells extends BasePlugin {
         return;
       }
 
-      const columns: number[] = [];
-
-      rangeEach(merge.col, merge.col + merge.colspan - 1, (visualColumn) => {
-        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-        if (physicalColumn !== null) {
-          columns.push(physicalColumn);
-        }
-      });
-
-      foreignRows.set(merge, { rows, columns });
+      foreignRows.set(merge, { rows, columns: this.#getPhysicalColumnsOfMerge(merge) });
     });
 
     return foreignRows;
@@ -1919,6 +1924,61 @@ export class MergeCells extends BasePlugin {
         });
       });
     });
+  }
+
+  /**
+   * Removes `hidden` and `copyable` from the cells of other records that the merges drew over before the row
+   * moves of a batch and no merge draws over after them. It is {@link MergeCells#clearRowsLeftBehind} for a
+   * record that is not tied to a merge: a move replaces the merges it splits, so the merges of the record are
+   * not the ones that draw after it.
+   *
+   * @param {Map<number, Set<number>>} cells The physical columns recorded per physical row.
+   */
+  #clearForeignRowsOfBatchMove(cells: Map<number, Set<number>>) {
+    const metaManager = this.hot._getMetaManager();
+    const drawn = new Map<number, Set<number>>();
+
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      if (this.#purgedMerges.has(merge)) {
+        return;
+      }
+
+      const columns = this.#getPhysicalColumnsOfMerge(merge);
+
+      this.#getDrawnPhysicalRows(merge).forEach((physicalRow) => {
+        const drawnColumns = drawn.get(physicalRow) ?? new Set<number>();
+
+        columns.forEach(physicalColumn => drawnColumns.add(physicalColumn));
+        drawn.set(physicalRow, drawnColumns);
+      });
+    });
+
+    cells.forEach((columns, physicalRow) => {
+      columns.forEach((physicalColumn) => {
+        if (drawn.get(physicalRow)?.has(physicalColumn)) {
+          return;
+        }
+
+        COVERED_CELL_META_KEYS.forEach(key => metaManager.removeCellMeta(physicalRow, physicalColumn, key));
+      });
+    });
+  }
+
+  /**
+   * Returns the physical columns under the merge's visual columns, skipping the ones that address no column.
+   */
+  #getPhysicalColumnsOfMerge(mergedCell: MergedCellCoords): number[] {
+    const columns: number[] = [];
+
+    rangeEach(mergedCell.col, mergedCell.col + mergedCell.colspan - 1, (visualColumn) => {
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalColumn !== null) {
+        columns.push(physicalColumn);
+      }
+    });
+
+    return columns;
   }
 
   /**
@@ -2716,9 +2776,11 @@ export class MergeCells extends BasePlugin {
     }
   ) => {
     const foreignRowsBefore = this.#foreignRowsBeforeCacheUpdate;
+    const foreignRowsBeforeBatchMove = this.#foreignRowsBeforeBatchMove;
     const drawnFromBefore = this.#drawnFromBeforeCacheUpdate;
 
     this.#foreignRowsBeforeCacheUpdate = null;
+    this.#foreignRowsBeforeBatchMove = null;
     this.#drawnFromBeforeCacheUpdate = null;
 
     // The hook is removed in `disablePlugin`/`destroy`, but keep a defensive guard in case a final
@@ -2741,6 +2803,11 @@ export class MergeCells extends BasePlugin {
     // A changed row count means an insert or a remove renumbered the physical rows the recording holds.
     if (foreignRowsBefore && foreignRowsBefore.rowCount === this.hot.rowIndexMapper.getNumberOfIndexes()) {
       this.#clearRowsLeftBehind(foreignRowsBefore.merges);
+    }
+
+    if (foreignRowsBeforeBatchMove
+        && foreignRowsBeforeBatchMove.rowCount === this.hot.rowIndexMapper.getNumberOfIndexes()) {
+      this.#clearForeignRowsOfBatchMove(foreignRowsBeforeBatchMove.cells);
     }
   };
 
@@ -4469,7 +4536,7 @@ export class MergeCells extends BasePlugin {
     this.#runOnLiveIndexOrder(() => {
       this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
       this.#captureDrawnFromBeforeMove(window);
-    });
+    }, this.#areMergesAheadOfRowCache);
   }
 
   /**
@@ -4554,7 +4621,7 @@ export class MergeCells extends BasePlugin {
       this.#captureMergeAnchors();
 
       this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
-    });
+    }, this.#areMergesAheadOfRowCache);
 
     this.hot.render();
   }
@@ -4588,13 +4655,79 @@ export class MergeCells extends BasePlugin {
     // The merges' columns are read on the live column order: a column move earlier in the same batch has
     // rewritten them in it (`#translateMergesAfterColumnReorder()`).
     //
-    // The merges' rows are read on the live row order too: a row move earlier in the same batch has rewritten
-    // them in it, and the stale cache would take them for rows of the order from before the batch.
+    // The merges' rows are read on the live row order only when a row move earlier in the same batch has rewritten
+    // them in it: the stale cache would take them for rows of the order from before the batch. Otherwise they are
+    // still in the order of the stale cache (a sort made earlier in the batch has not touched them), and the live
+    // one would read them wrong.
+    const moveWindow = this.#getMoveWindow('row', rows, finalIndex);
+
+    // A move that permutes only rows no merge touches moves no merge and changes no row under one, so there is
+    // nothing to translate. Skipping it spares the live caches of a batch, which cost a pass over every row per
+    // move. The rows a move names are in the order the merges are in only before a move of this plugin has
+    // rewritten the merges in the live one, so that case takes the full path.
+    if (!this.#areMergesAheadOfRowCache && this.#isMoveOutsideMerges(moveWindow)) {
+      this.#rowMoveSnapshot = null;
+      this.#drawnFromBeforeMove = null;
+      this.#coveredBeforeMove = null;
+
+      return;
+    }
+
     this.#runOnLiveIndexOrder(() => {
       this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
-      this.#captureDrawnFromBeforeMove(this.#getMoveWindow('row', rows, finalIndex));
-    });
+      this.#captureDrawnFromBeforeMove(moveWindow);
+      this.#recordForeignRowsBeforeBatchMove();
+    }, this.#areMergesAheadOfRowCache);
   };
+
+  /**
+   * Tells whether a move permutes only rows that no merge covers. A merge without a row in the window keeps its
+   * place and the rows under it, whatever the move does inside the window.
+   *
+   * @param {object|null} window The visual rows the move permutes.
+   * @returns {boolean} `false` for a grid with no merge, to keep that path as it was.
+   */
+  #isMoveOutsideMerges(window: MoveWindow | null): boolean {
+    const { mergedCells } = this.mergedCellsCollection;
+
+    if (window === null || mergedCells.length === 0) {
+      return false;
+    }
+
+    return mergedCells.every(merge => merge.row > window.to || merge.row + merge.rowspan - 1 < window.from);
+  }
+
+  /**
+   * Records, right before a row move made inside a batch, the cells of other records the merges draw over. Outside
+   * a batch the recording of the row index mapper's `beforeCacheUpdate` does that, but at the end of a batch it
+   * reads the merges, which the move has written in the live order, through the cache of the order from before
+   * the batch. Here the merges and the caches the call reads describe the same order.
+   */
+  #recordForeignRowsBeforeBatchMove() {
+    if (!this.hot.rowIndexMapper.isBatched) {
+      return;
+    }
+
+    const foreignRows = this.#collectForeignDrawnRows();
+
+    if (foreignRows.size === 0) {
+      return;
+    }
+
+    const record = this.#foreignRowsBeforeBatchMove
+      ?? { rowCount: this.hot.rowIndexMapper.getNumberOfIndexes(), cells: new Map<number, Set<number>>() };
+
+    foreignRows.forEach(({ rows, columns }) => {
+      rows.forEach((physicalRow) => {
+        const recordedColumns = record.cells.get(physicalRow) ?? new Set<number>();
+
+        columns.forEach(physicalColumn => recordedColumns.add(physicalColumn));
+        record.cells.set(physicalRow, recordedColumns);
+      });
+    });
+
+    this.#foreignRowsBeforeBatchMove = record;
+  }
 
   /**
    * Runs `callback` with the row and the column index caches rebuilt from the live sequences. Inside `batch()`
@@ -4602,8 +4735,11 @@ export class MergeCells extends BasePlugin {
    * batch reads them through this.
    *
    * @param {Function} callback The function to run.
+   * @param {boolean} [areRowsLive] Whether the rows are read on the live order too. The merges are in it only
+   *   after a row move of this plugin has written them there, so the rows of a call that reads them before that
+   *   stay on the caches.
    */
-  #runOnLiveIndexOrder(callback: () => void) {
+  #runOnLiveIndexOrder(callback: () => void, areRowsLive: boolean = true) {
     // The live caches cost one pass over every row, and there is nothing to translate without a merge.
     if (this.mergedCellsCollection.mergedCells.length === 0) {
       callback();
@@ -4611,7 +4747,11 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    this.hot.rowIndexMapper.runWithLiveCache(() => this.hot.columnIndexMapper.runWithLiveCache(callback));
+    if (areRowsLive) {
+      this.hot.rowIndexMapper.runWithLiveCache(() => this.hot.columnIndexMapper.runWithLiveCache(callback));
+    } else {
+      this.hot.columnIndexMapper.runWithLiveCache(callback);
+    }
   }
 
   /**

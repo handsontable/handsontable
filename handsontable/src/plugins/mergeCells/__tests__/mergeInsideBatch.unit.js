@@ -54,13 +54,15 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
    * Reads what a user can observe: the merges, the flags the merge writes on every cell, and the text a copy
    * of the whole grid produces next to the data it should reproduce.
    *
+   * @param {number} [rows] How many rows of the grid to read.
+   * @param {number} [columns] How many columns of the grid to read.
    * @returns {object} The observable state.
    */
-  function readState() {
+  function readState(rows = ROWS, columns = COLUMNS) {
     const flags = [];
 
-    for (let row = 0; row < ROWS; row++) {
-      for (let column = 0; column < COLUMNS; column++) {
+    for (let row = 0; row < rows; row++) {
+      for (let column = 0; column < columns; column++) {
         const { hidden, spanned, copyable, rowspan, colspan } = hot.getCellMeta(row, column);
 
         flags.push({ row, column, hidden, spanned, copyable, rowspan, colspan });
@@ -71,7 +73,7 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       merges: hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
         .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan })),
       flags: flags.filter(cell => cell.hidden || cell.spanned || cell.copyable === false),
-      copyableText: hot.getCopyableText(0, 0, ROWS - 1, COLUMNS - 1),
+      copyableText: hot.getCopyableText(0, 0, rows - 1, columns - 1),
       dataText: hot.getData().map(row => row.join('\t')).join('\n'),
     };
   }
@@ -619,6 +621,32 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       expect(run(scenario, true)).toEqual(expected);
     });
 
+    it('should not rebuild the live row caches for a move that touches no merge, and move as outside the batch', () => {
+      const move = () => hot.getPlugin('manualRowMove').moveRow(5, 7);
+      const expected = run(move, false);
+
+      createGrid();
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+      const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
+
+      hot.batch(move);
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(readState()).toEqual(expected);
+    });
+
+    it('should rebuild the live row caches for a move that touches a merge', () => {
+      createGrid();
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+
+      const spy = jest.spyOn(hot.rowIndexMapper, 'runWithLiveCache');
+
+      hot.batch(() => hot.getPlugin('manualRowMove').moveRow(2, 6));
+
+      expect(spy).toHaveBeenCalled();
+    });
+
     it('should undo and redo the split with the same state as outside the batch', () => {
       const state = {};
 
@@ -654,6 +682,89 @@ describe('MergeCells -> merge() inside a batch after a reorder', () => {
       expect(state.true).toEqual(state.false);
       expect(state.true.undone).toEqual(state.true.initial);
       expect(state.true.redone).toEqual(state.true.moved);
+    });
+
+    /**
+     * Builds a 10 x 4 grid, merges the given range, sorts it outside any batch when asked to, runs a scenario in
+     * a batch or outside it and reads the grid.
+     *
+     * @param {object} options The setup.
+     * @param {number[]} options.merge The range to merge, `[fromRow, fromColumn, toRow, toColumn]`.
+     * @param {object} [options.settings] Settings merged over the grid defaults.
+     * @param {boolean} [options.isSorted] Whether to sort the grid, descending, before the scenario.
+     * @param {Function} options.scenario The calls to make.
+     * @param {boolean} options.isBatched Whether they run in `hot.batch()`.
+     * @returns {object} The observable state.
+     */
+    function runOnTallGrid({ merge, settings = {}, isSorted = false, scenario, isBatched }) {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(10, 4), ...settings });
+      hot.getPlugin('mergeCells').merge(...merge);
+
+      if (isSorted) {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      }
+
+      if (isBatched) {
+        hot.batch(scenario);
+      } else {
+        scenario();
+      }
+
+      const state = readState(10, 4);
+
+      hot.destroy();
+      hot = null;
+      container.remove();
+      container = document.createElement('div');
+      document.body.appendChild(container);
+
+      return state;
+    }
+
+    it('should keep the flags of a row a sorted merge drew over before the move, as outside the batch', () => {
+      const options = {
+        merge: [3, 0, 6, 0],
+        settings: { trimRows: [9, 6] },
+        isSorted: true,
+        scenario: () => hot.getPlugin('manualRowMove').moveRow(3, 7),
+      };
+      const expected = runOnTallGrid({ ...options, isBatched: false });
+
+      expect(runOnTallGrid({ ...options, isBatched: true })).toEqual(expected);
+    });
+
+    it('should draw no merge over a row it does not own when a sort comes before the move in the same batch', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(10, 4) });
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+      hot.batch(() => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.getPlugin('manualRowMove').moveRow(2, 6);
+      });
+
+      hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.forEach(({ row, rowspan }) => {
+        for (let visualRow = row; visualRow < row + rowspan; visualRow++) {
+          expect([1, 2, 3]).toContain(hot.toPhysicalRow(visualRow));
+        }
+      });
+    });
+
+    it('should leave no merge behind when the sort is cleared after the move in the same batch', () => {
+      createGrid({ data: Handsontable.helper.createSpreadsheetData(10, 4) });
+      hot.getPlugin('mergeCells').merge(1, 0, 3, 0);
+      hot.batch(() => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.getPlugin('manualRowMove').moveRow(2, 6);
+        hot.getPlugin('columnSorting').clearSort();
+      });
+
+      hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }) => {
+        hot.getPlugin('mergeCells').unmerge(row, col, row + rowspan - 1, col + colspan - 1);
+      });
+
+      const { merges, flags } = readState(10, 4);
+
+      expect(merges).toEqual([]);
+      expect(flags).toEqual([]);
     });
   });
 
