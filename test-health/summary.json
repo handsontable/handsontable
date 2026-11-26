@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T14:41:22.514Z",
+  "generatedAt": "2026-11-26T16:13:03.804Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 469,
-    "needsTicket": 7,
+    "needsTicket": 8,
     "quarantined": 1,
-    "entries": 2375
+    "entries": 2376
   },
   "rows": [
     {
@@ -255,6 +255,40 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(locator).toBeInViewport() failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/manual-row-move-zoom-after-build.spec.ts|row move guideline after a zoom made while the grid was hidden › the grid is measured once it is shown, not while it renders no row",
+      "tier": "playwright",
+      "file": "e2e/manual-row-move-zoom-after-build.spec.ts",
+      "line": 86,
+      "title": "row move guideline after a zoom made while the grid was hidden › the grid is measured once it is shown, not while it renders no row",
+      "count7": 1,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-26T16:12:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/45850109981",
+        "branch": "develop",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -1984,39 +2018,6 @@
         "leg": "cross-browser/webkit",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 e6bc06fa9f3c",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/manual-row-move-zoom-after-build.spec.ts|row move guideline after a zoom made while the grid was hidden › the grid is measured once it is shown, not while it renders no row",
-      "tier": "playwright",
-      "file": "e2e/manual-row-move-zoom-after-build.spec.ts",
-      "line": 86,
-      "title": "row move guideline after a zoom made while the grid was hidden › the grid is measured once it is shown, not while it renders no row",
-      "count7": 0,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-18T12:53:55Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44302986368",
-        "branch": "develop",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
