@@ -54,6 +54,7 @@ Exit codes:
   1  A file could not be read, parsed, or transformed. The other files are still migrated.
   2  Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to
      migrate, unknown rule id.
+  130  Stopped with Ctrl-C (SIGINT).
 `;
 
 const OPTIONS = {

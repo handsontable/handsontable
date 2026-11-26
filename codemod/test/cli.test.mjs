@@ -99,6 +99,7 @@ describe('cli', () => {
     assert.equal(code, 0);
     assert.match(out, /Usage: handsontable-codemod migrate/);
     assert.match(out, /--include-draft/);
+    assert.match(out, /^ {2}130 {2}Stopped with Ctrl-C \(SIGINT\)\.$/m);
   });
 
   it('answers a bad option with one sentence, the usage line, and exit code 2', async() => {
