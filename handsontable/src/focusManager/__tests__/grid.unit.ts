@@ -782,3 +782,52 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
     });
   });
 });
+
+describe('FocusGridManager.getPendingFocusRow', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+  });
+
+  it('returns no row while no selection change waits for the render', () => {
+    const grid = makeDeferredFocusGrid();
+
+    expect(grid.manager.getPendingFocusRow()).toBeNull();
+  });
+
+  it('returns the highlighted row from a selection change until the render that follows it', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.state.highlight = { row: 199, col: 0 };
+    grid.run('afterSelection');
+
+    expect(grid.manager.getPendingFocusRow()).toBe(199);
+
+    grid.state.rendered = true;
+    grid.run('afterRender');
+
+    expect(grid.manager.getPendingFocusRow()).toBeNull();
+  });
+
+  it('returns the highlighted row from a focus change inside the selection', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.state.highlight = { row: 7, col: 2 };
+    grid.run('afterSelectionFocusSet');
+
+    expect(grid.manager.getPendingFocusRow()).toBe(7);
+  });
+
+  it('returns no row for a highlighted column header or a cleared selection', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.run('afterSelection');
+    grid.state.highlight = { row: -1, col: 0 };
+
+    expect(grid.manager.getPendingFocusRow()).toBeNull();
+
+    grid.state.highlight = null;
+
+    expect(grid.manager.getPendingFocusRow()).toBeNull();
+  });
+});

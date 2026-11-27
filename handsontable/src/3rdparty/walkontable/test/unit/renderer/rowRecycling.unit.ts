@@ -4,7 +4,7 @@ import type { TableRenderer } from 'walkontable/render/tableRenderer';
 interface Fixture {
   renderer: RowsRenderer;
   rootNode: HTMLElement;
-  state: { offset: number; size: number; recyclable: boolean; renderEpoch: number };
+  state: { offset: number; size: number; recyclable: boolean; renderEpoch: number; pendingFocusRow: number | null };
   /**
    * Renders the band and stamps every TR with the source row the cell pass would paint into it.
    */
@@ -23,7 +23,7 @@ interface Fixture {
 function createFixture(): Fixture {
   const rootNode = document.createElement('tbody');
   const renderer = new RowsRenderer(rootNode);
-  const state = { offset: 0, size: 0, recyclable: false, renderEpoch: 0 };
+  const state = { offset: 0, size: 0, recyclable: false, renderEpoch: 0, pendingFocusRow: null as number | null };
 
   renderer.setTable({
     rootDocument: document,
@@ -36,6 +36,7 @@ function createFixture(): Fixture {
     get renderEpoch() {
       return state.renderEpoch;
     },
+    getPendingFocusRow: () => state.pendingFocusRow,
   } as unknown as TableRenderer);
 
   const sources = () => Array.from(rootNode.children, tr => (tr as HTMLElement).dataset.source ?? '');
@@ -96,6 +97,181 @@ function emulateEagerBlur(): jest.SpyInstance {
 
     return fragment;
   });
+}
+
+/**
+ * Gives the TBODY a `moveBefore()` that moves with `insertBefore()` and records every call. jsdom has
+ * no `moveBefore()`, so without this the renderer always takes the fragment path. jsdom drops the
+ * focus of a removed element, which a real `moveBefore()` keeps, so the stub puts it back through the
+ * prototype, out of reach of a spy on the element itself.
+ *
+ * @param {HTMLElement} rootNode The TBODY.
+ * @returns {Array<[Node, Node|null]>} The recorded calls, as `[node, referenceNode]` pairs.
+ */
+function installMoveBefore(rootNode: HTMLElement): Array<[Node, Node | null]> {
+  const calls: Array<[Node, Node | null]> = [];
+
+  Object.defineProperty(rootNode, 'moveBefore', {
+    configurable: true,
+    value(node: Node, referenceNode: Node | null) {
+      const focused = document.activeElement;
+      const keepsFocus = focused instanceof HTMLElement && node.contains(focused);
+
+      calls.push([node, referenceNode]);
+      rootNode.insertBefore(node, referenceNode);
+
+      if (keepsFocus && document.activeElement !== focused) {
+        HTMLElement.prototype.focus.call(focused);
+      }
+    },
+  });
+
+  return calls;
+}
+
+interface Scenario {
+  first: { offset: number; size: number };
+  next: { offset: number; size: number };
+  focusedIndex: number;
+}
+
+interface ScenarioResult {
+  order: Array<number | 'fresh'>;
+  movedRows: number[] | null;
+  fragmentCalls: number;
+  blurCalls: number;
+  focusCalls: number;
+  keptFocus: boolean;
+}
+
+/**
+ * Draws a band, puts a TD in one of its rows (focused or not), and scrolls the band once on an engine
+ * that blurs a detached element. Reports the final TRs as indexes of the first draw's TRs (`'fresh'`
+ * for a new one) and the rows `moveBefore()` moved, in call order.
+ *
+ * @param {Scenario} scenario The two bands and the index of the row that holds the TD.
+ * @param {object} options The options.
+ * @param {boolean} options.withMoveBefore `true` to give the TBODY a `moveBefore()`.
+ * @param {boolean} options.focused `true` to focus the TD before the scroll draw.
+ * @returns {ScenarioResult}
+ */
+function runScroll(
+  scenario: Scenario,
+  { withMoveBefore, focused }: { withMoveBefore: boolean; focused: boolean },
+): ScenarioResult {
+  const { rootNode, draw, state, renderer } = createFixture();
+  const table = document.createElement('table');
+
+  table.appendChild(rootNode);
+  document.body.appendChild(table);
+  draw(scenario.first.offset, scenario.first.size, false);
+
+  const initialRows = Array.from(rootNode.children);
+  const td = document.createElement('td');
+
+  td.tabIndex = -1;
+  initialRows[scenario.focusedIndex].appendChild(td);
+
+  if (focused) {
+    td.focus();
+  }
+
+  const moveBeforeCalls = withMoveBefore ? installMoveBefore(rootNode) : null;
+  const blurSpy = jest.spyOn(td, 'blur');
+  const focusSpy = jest.spyOn(td, 'focus');
+
+  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
+
+  const fragmentSpy = emulateEagerBlur();
+
+  state.offset = scenario.next.offset;
+  state.size = scenario.next.size;
+  state.recyclable = true;
+  renderer.render();
+
+  const result: ScenarioResult = {
+    order: Array.from(rootNode.children, (tr) => {
+      const index = initialRows.indexOf(tr);
+
+      return index === -1 ? 'fresh' : index;
+    }),
+    movedRows: moveBeforeCalls && moveBeforeCalls.map(([node]) => initialRows.indexOf(node as Element)),
+    fragmentCalls: fragmentSpy.mock.calls.length,
+    blurCalls: blurSpy.mock.calls.length,
+    focusCalls: focusSpy.mock.calls.length,
+    keptFocus: document.activeElement === td,
+  };
+
+  table.remove();
+  jest.restoreAllMocks();
+
+  return result;
+}
+
+interface FocusDrawResult {
+  order: Array<number | 'fresh'>;
+  focusMovedOff: boolean;
+  focusedCellConnected: boolean;
+  focusCalls: number;
+}
+
+/**
+ * Draws a band, focuses a TD in one of its rows, and draws the band once more with the row the host
+ * says it focuses right after the draw. Reports the final TRs as indexes of the first draw's TRs
+ * (`'fresh'` for a new one) and what happened to the focused TD.
+ *
+ * @param {Scenario} scenario The two bands and the index of the row that holds the focused TD.
+ * @param {object} options The options.
+ * @param {number|null} options.pendingFocusRow The row the host focuses after the second draw.
+ * @param {boolean} options.recyclable `true` for a scroll-driven second draw.
+ * @param {boolean} [options.eagerBlur=false] `true` to emulate an engine that blurs a detached element.
+ * @returns {FocusDrawResult}
+ */
+function runFocusDraw(
+  scenario: Scenario,
+  { pendingFocusRow, recyclable, eagerBlur = false }:
+    { pendingFocusRow: number | null; recyclable: boolean; eagerBlur?: boolean },
+): FocusDrawResult {
+  const { rootNode, draw, state, renderer } = createFixture();
+  const table = document.createElement('table');
+
+  table.appendChild(rootNode);
+  document.body.appendChild(table);
+  draw(scenario.first.offset, scenario.first.size, false);
+
+  const initialRows = Array.from(rootNode.children);
+  const td = document.createElement('td');
+
+  td.tabIndex = -1;
+  initialRows[scenario.focusedIndex].appendChild(td);
+  td.focus();
+
+  const focusSpy = jest.spyOn(td, 'focus');
+
+  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
+
+  if (eagerBlur) {
+    emulateEagerBlur();
+  }
+
+  state.pendingFocusRow = pendingFocusRow;
+  draw(scenario.next.offset, scenario.next.size, recyclable);
+
+  const result: FocusDrawResult = {
+    order: Array.from(rootNode.children, (tr) => {
+      const index = initialRows.indexOf(tr);
+
+      return index === -1 ? 'fresh' : index;
+    }),
+    focusMovedOff: document.activeElement !== td,
+    focusedCellConnected: td.isConnected,
+    focusCalls: focusSpy.mock.calls.length,
+  };
+
+  table.remove();
+  jest.restoreAllMocks();
+
+  return result;
 }
 
 describe('RowsRenderer row recycling', () => {
@@ -538,5 +714,183 @@ describe('RowsRenderer row recycling', () => {
 
     expect(rootNode.children.length).toBe(5);
     expect(sources().slice(0, 4)).toEqual(['0', '1', '2', '3']);
+  });
+
+  describe('with `moveBefore()` on the TBODY', () => {
+    const scrollDown: Scenario = {
+      first: { offset: 0, size: 5 },
+      next: { offset: 3, size: 5 },
+      focusedIndex: 1,
+    };
+    const scrollUp: Scenario = {
+      first: { offset: 4, size: 5 },
+      next: { offset: 1, size: 5 },
+      focusedIndex: 4,
+    };
+    const scrollUpAndGrow: Scenario = {
+      first: { offset: 10, size: 20 },
+      next: { offset: 5, size: 22 },
+      focusedIndex: 19,
+    };
+    const scrollDownAndShrink: Scenario = {
+      first: { offset: 0, size: 5 },
+      next: { offset: 2, size: 3 },
+      focusedIndex: 0,
+    };
+
+    it('should move the rows that leave the band down in place while a cell in one holds the focus', () => {
+      const inPlace = runScroll(scrollDown, { withMoveBefore: true, focused: true });
+      const throughFragment = runScroll(scrollDown, { withMoveBefore: false, focused: true });
+
+      expect(inPlace.order).toEqual([3, 4, 0, 1, 2]);
+      expect(inPlace.order).toEqual(throughFragment.order);
+      expect(inPlace.movedRows).toEqual([0, 1, 2]);
+      expect(inPlace.fragmentCalls).toBe(0);
+      expect(inPlace.blurCalls).toBe(0);
+      expect(inPlace.focusCalls).toBe(0);
+      expect(inPlace.keptFocus).toBe(true);
+    });
+
+    it('should move the rows that leave the band up in place while a cell in one holds the focus', () => {
+      const inPlace = runScroll(scrollUp, { withMoveBefore: true, focused: true });
+      const throughFragment = runScroll(scrollUp, { withMoveBefore: false, focused: true });
+
+      expect(inPlace.order).toEqual([2, 3, 4, 0, 1]);
+      expect(inPlace.order).toEqual(throughFragment.order);
+      expect(inPlace.movedRows).toEqual([4, 3, 2]);
+      expect(inPlace.fragmentCalls).toBe(0);
+      expect(inPlace.blurCalls).toBe(0);
+      expect(inPlace.focusCalls).toBe(0);
+      expect(inPlace.keptFocus).toBe(true);
+    });
+
+    it('should give a band that moves up and grows the same TRs as the fragment path, with fresh TRs in front', () => {
+      const inPlace = runScroll(scrollUpAndGrow, { withMoveBefore: true, focused: true });
+      const throughFragment = runScroll(scrollUpAndGrow, { withMoveBefore: false, focused: true });
+
+      expect(inPlace.order).toEqual([
+        'fresh', 'fresh', 17, 18, 19,
+        ...Array.from({ length: 17 }, (_, index) => index),
+      ]);
+      expect(inPlace.order).toEqual(throughFragment.order);
+      expect(inPlace.movedRows).toEqual([19, 18, 17]);
+      expect(inPlace.fragmentCalls).toBe(0);
+      expect(inPlace.blurCalls).toBe(0);
+      expect(inPlace.keptFocus).toBe(true);
+    });
+
+    it('should swap the focused row into a shrinking band in place', () => {
+      const inPlace = runScroll(scrollDownAndShrink, { withMoveBefore: true, focused: true });
+      const throughFragment = runScroll(scrollDownAndShrink, { withMoveBefore: false, focused: true });
+
+      expect(inPlace.order).toEqual([2, 3, 0]);
+      expect(inPlace.order).toEqual(throughFragment.order);
+      expect(inPlace.movedRows).toEqual([0, 1, 0, 4]);
+      expect(inPlace.fragmentCalls).toBe(0);
+      expect(inPlace.blurCalls).toBe(0);
+      expect(inPlace.keptFocus).toBe(true);
+    });
+
+    it('should rotate through a fragment when no cell in the band holds the focus', () => {
+      [scrollDown, scrollUp, scrollUpAndGrow].forEach((scenario) => {
+        const unfocused = runScroll(scenario, { withMoveBefore: true, focused: false });
+        const withoutMoveBefore = runScroll(scenario, { withMoveBefore: false, focused: false });
+
+        expect(unfocused.movedRows).toEqual([]);
+        expect(unfocused.fragmentCalls).toBe(1);
+        expect(unfocused.order).toEqual(withoutMoveBefore.order);
+      });
+    });
+  });
+
+  it('should rotate through a fragment when the TBODY has no `moveBefore()`, even with the focus in the band', () => {
+    const result = runScroll({
+      first: { offset: 0, size: 5 },
+      next: { offset: 3, size: 5 },
+      focusedIndex: 1,
+    }, { withMoveBefore: false, focused: true });
+
+    expect(result.order).toEqual([3, 4, 0, 1, 2]);
+    expect(result.fragmentCalls).toBe(1);
+    expect(result.blurCalls).toBe(1);
+    expect(result.focusCalls).toBe(1);
+    expect(result.keptFocus).toBe(true);
+  });
+
+  describe('with a focus move the host makes after the draw', () => {
+    const jumpToEnd: Scenario = {
+      first: { offset: 0, size: 5 },
+      next: { offset: 195, size: 5 },
+      focusedIndex: 2,
+    };
+
+    it('should give the focused row a new TR when a scroll draw rebuilds the band in place and paints the target row into it', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: 197, recyclable: true });
+
+      expect(result.order).toEqual([0, 1, 'fresh', 3, 4]);
+      expect(result.focusedCellConnected).toBe(false);
+      expect(result.focusCalls).toBe(0);
+    });
+
+    it('should give the focused row a new TR when a draw that is not scroll-driven paints the target row into it', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: 197, recyclable: false });
+
+      expect(result.order).toEqual([0, 1, 'fresh', 3, 4]);
+      expect(result.focusedCellConnected).toBe(false);
+    });
+
+    it('should keep every TR when the host makes no focus move after the draw', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: null, recyclable: true });
+
+      expect(result.order).toEqual([0, 1, 2, 3, 4]);
+      expect(result.focusMovedOff).toBe(false);
+      expect(result.focusedCellConnected).toBe(true);
+    });
+
+    it('should keep every TR when the target row lands in another TR', () => {
+      const result = runFocusDraw(jumpToEnd, { pendingFocusRow: 199, recyclable: true });
+
+      expect(result.order).toEqual([0, 1, 2, 3, 4]);
+      expect(result.focusMovedOff).toBe(false);
+    });
+
+    it('should keep the focused TR when it already showed the target row', () => {
+      const result = runFocusDraw({
+        first: { offset: 0, size: 5 },
+        next: { offset: 0, size: 5 },
+        focusedIndex: 2,
+      }, { pendingFocusRow: 2, recyclable: false });
+
+      expect(result.order).toEqual([0, 1, 2, 3, 4]);
+      expect(result.focusMovedOff).toBe(false);
+    });
+
+    it('should keep the focused TR of a row that survives a rotation', () => {
+      const result = runFocusDraw({
+        first: { offset: 0, size: 5 },
+        next: { offset: 3, size: 5 },
+        focusedIndex: 3,
+      }, { pendingFocusRow: 3, recyclable: true });
+
+      expect(result.order).toEqual([3, 4, 0, 1, 2]);
+      expect(result.focusMovedOff).toBe(false);
+    });
+
+    it('should give a new TR to a focused row that a rotation wraps onto the target row, without giving the old cell the focus back', () => {
+      const scenario: Scenario = {
+        first: { offset: 0, size: 5 },
+        next: { offset: 3, size: 5 },
+        focusedIndex: 1,
+      };
+      const renewed = runFocusDraw(scenario, { pendingFocusRow: 6, recyclable: true, eagerBlur: true });
+      const kept = runFocusDraw(scenario, { pendingFocusRow: null, recyclable: true, eagerBlur: true });
+
+      expect(renewed.order).toEqual([3, 4, 0, 'fresh', 2]);
+      expect(renewed.focusedCellConnected).toBe(false);
+      expect(renewed.focusCalls).toBe(0);
+      expect(kept.order).toEqual([3, 4, 0, 1, 2]);
+      expect(kept.focusMovedOff).toBe(false);
+      expect(kept.focusCalls).toBe(1);
+    });
   });
 });

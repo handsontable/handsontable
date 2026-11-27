@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/test';
-import { MenuFocusReturnPage, CONTEXT_MENU } from '../fixtures/pages/MenuFocusReturnPage';
+import { MenuFocusReturnPage, CONTEXT_MENU, ARMED_TAB_ENTRIES } from '../fixtures/pages/MenuFocusReturnPage';
 import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
 
 /**
@@ -85,11 +85,11 @@ test.describe('focus catchers while a menu holds the focus', () => {
 
   test('a menu of one grid leaves the catchers of another grid on the page armed', async() => {
     const second = await menu.buildSecondGrid();
-    const secondCatchers = second.locator('.htFocusCatcher[tabindex="0"]');
+    const secondCatchers = second.locator(ARMED_TAB_ENTRIES);
 
     await menu.openContextMenuAt(1, 1);
 
-    await expect(menu.page.getByTestId('grid').locator('.htFocusCatcher[tabindex="0"]')).toHaveCount(0);
+    await expect(menu.page.getByTestId('grid').locator(ARMED_TAB_ENTRIES)).toHaveCount(0);
     await expect(secondCatchers).toHaveCount(2);
   });
 
@@ -112,6 +112,6 @@ test.describe('focus catchers while the sheets bar menu holds the focus', () => 
     await fixture.chevron(0).click();
     await expect(fixture.openMenu).toBeVisible();
 
-    await expect(page.locator('.htFocusCatcher[tabindex="0"]')).toHaveCount(0);
+    await expect(page.locator(ARMED_TAB_ENTRIES)).toHaveCount(0);
   });
 });

@@ -5,6 +5,11 @@ import { MenuSeparatorRolePage, CONTEXT_MENU, DROPDOWN_MENU } from './MenuSepara
 export { CONTEXT_MENU, DROPDOWN_MENU };
 
 /**
+ * Every armed Tab entry of a focus scope: a catcher or the grid root, both of which name their focus source.
+ */
+export const ARMED_TAB_ENTRIES = '[data-ht-focus-source][tabindex="0"]';
+
+/**
  * Page Object for the menu focus return fixture.
  *
  * It reuses the menu helpers of the separator page object (opening a menu by keyboard, reading a
@@ -35,11 +40,13 @@ export class MenuFocusReturnPage extends MenuSeparatorRolePage {
   }
 
   /**
-   * The focus catchers a Tab can land on: the hidden sentinels around a focus scope that are armed
-   * (`tabindex="0"`). A disarmed one carries `tabindex="-1"`.
+   * The Tab entries a Tab can land on: the hidden catchers around a focus scope that are armed
+   * (`tabindex="0"`), and the grid's root element while it is armed as the entry from above (it then
+   * carries `tabindex="0"` and `data-ht-focus-source`). A disarmed catcher carries `tabindex="-1"`, and a
+   * disarmed root carries neither attribute.
    */
   get armedFocusCatchers(): Locator {
-    return this.page.locator('.htFocusCatcher[tabindex="0"]');
+    return this.page.locator(ARMED_TAB_ENTRIES);
   }
 
   /**

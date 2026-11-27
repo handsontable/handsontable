@@ -216,6 +216,39 @@ export class FocusGridManager {
   }
 
   /**
+   * Returns the visual row of the highlighted cell that the manager gives the browser focus to after the next
+   * render, because the selection changed since the last one. `null` when no selection change waits for the render,
+   * when the highlight is a header or a hidden cell, and while an editor is open (its input keeps the focus).
+   *
+   * The view reads it while the render runs: when the rows renderer is about to draw the highlighted row into the
+   * element that holds the focus, it gives that row a new element, so that the focus moves to a new element and a
+   * screen reader hears the move.
+   *
+   * @private
+   * @returns {number | null}
+   */
+  getPendingFocusRow(): number | null {
+    if (this.#pendingFocus === null) {
+      return null;
+    }
+
+    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
+
+    if (
+      !highlight ||
+      highlight.row === null ||
+      highlight.col === null ||
+      highlight.row < 0 ||
+      !this.#hot.selection.isCellVisible(highlight) ||
+      (this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
+    ) {
+      return null;
+    }
+
+    return highlight.row;
+  }
+
+  /**
    * Exempts a plugin-owned element from the outside-click deselect. The document `mousedown` in
    * `TableView` closes an open editor, saving it, and keeps the selection for a press inside the
    * element, whatever `outsideClickDeselects` says. Used by the sheets bar.

@@ -501,6 +501,18 @@ export class TableRenderer {
   }
 
   /**
+   * Returns the row (a Walkontable row index) the host moves the browser focus to right after this
+   * draw, because its selection moved there, or `null` when it moves the focus nowhere.
+   *
+   * @returns {number|null}
+   */
+  getPendingFocusRow(): number | null {
+    const row = this.rowUtils!.wtSettings.getSetting<number | null>('pendingFocusRow');
+
+    return typeof row === 'number' ? row : null;
+  }
+
+  /**
    * Returns the instance-unique prefix a column-header id is built from (`${prefix}${columnIndex}`),
    * or an empty string when the host supplied no instance id. The column-header renderer stamps the id
    * on the owning overlay's header and the cells renderer points at it through `aria-describedby`, so

@@ -1951,6 +1951,11 @@ class TableView {
         this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },
       renderEpoch: () => this.hot.renderChangeTracker.epoch,
+      pendingFocusRow: () => {
+        const visualRow = this.hot.getFocusManager().getPendingFocusRow();
+
+        return visualRow === null ? null : this.hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+      },
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
