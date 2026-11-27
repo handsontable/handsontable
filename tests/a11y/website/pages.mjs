@@ -52,6 +52,7 @@ export const WEBSITE_PAGES = Object.freeze([
   page('/partners/'),
   page('/pricing/', { selected: ['tab', 'DataGrid'] }),
   page('/privacy/'),
+  page('/sitemap/'),
   page('/spreadsheet-viewer/'),
   page('/support/'),
   page('/support-call/'),

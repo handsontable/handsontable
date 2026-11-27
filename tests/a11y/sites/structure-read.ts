@@ -9,6 +9,10 @@ import { type Page } from '@playwright/test';
  */
 export interface StructureRead {
   url: string;
+  /**
+   * The page's `<link rel="canonical">`, resolved; `null` without one.
+   */
+  canonical: string | null;
   title: string;
   lang: string | null;
   mainLang: string | null;
@@ -24,7 +28,7 @@ export interface StructureRead {
    * The links of the header and the footer, with their targets and the landmark they sit in (the nearest navigation's
    * name, or `banner` or `contentinfo`): one control is compared with the same control on another page.
    */
-  chromeLinks: Array<{ name: string; href: string; region: string }>;
+  chromeLinks: Array<{ name: string; href: string; region: string; placeholder: boolean }>;
   /**
    * The names of the controls in the header and the footer that the site's help pattern matches.
    */
@@ -151,6 +155,7 @@ export async function readStructure(page: Page, help: RegExp): Promise<Structure
 
     return {
       url: location.href,
+      canonical: document.querySelector<HTMLLinkElement>('link[rel="canonical"][href]')?.href ?? null,
       title: document.title,
       lang: document.documentElement.getAttribute('lang'),
       mainLang: main?.getAttribute('lang') ?? null,
@@ -166,8 +171,12 @@ export async function readStructure(page: Page, help: RegExp): Promise<Structure
       chromeLinks: links.filter(inChrome).map((link) => {
         const holder = landmarkElements.filter(element => element.contains(link)).at(-1);
 
+        const raw = (link.getAttribute('href') ?? '').trim();
+
+        // `placeholder`: an empty href or a bare fragment, which resolves to the page but goes nowhere else.
         return { name: nameOf(link), href: (link as HTMLAnchorElement).href,
-          region: holder ? (roleOf(holder) === 'navigation' ? `nav "${nameOf(holder) || 'navigation'}"` : roleOf(holder) ?? '') : '' };
+          region: holder ? (roleOf(holder) === 'navigation' ? `nav "${nameOf(holder) || 'navigation'}"` : roleOf(holder) ?? '') : '',
+          placeholder: raw === '' || raw.startsWith('#') };
       }),
       helps: [...document.querySelectorAll('a[href], button, [role="button"]')].filter(element => exposed(element) && inChrome(element))
         .map(nameOf).filter(name => helpPattern.test(name)),

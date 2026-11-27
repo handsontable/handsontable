@@ -10,7 +10,8 @@
  * - 2.4.1: a skip link whose target exists, or at least a main landmark.
  * - 2.4.2: a title that names the page, not only the site, and that no other page of the site shares.
  * - 2.4.4 (advisory): link names that say nothing on their own ("here", "read more").
- * - 2.4.5: two ways to reach the page: a navigation landmark that links it, and a site search.
+ * - 2.4.5: two ways to reach the page: a navigation landmark that links it (on the page or the reference page), the
+ *   site map, its collection's index, and a site search.
  * - 3.1.1: a valid `lang` on the document, agreeing with the main content's own.
  * - 3.2.3, 3.2.4, 3.2.6: against a reference page of the same site, the shared links of the header's and the
  *   footer's navigation in the same order, one name per target, and the help controls in the same order.
@@ -320,15 +321,147 @@ export function duplicateTitleFindings(page, titles) {
 }
 
 /**
- * The 2.4.5 finding of a page with fewer than two ways to reach it: a navigation landmark that links it, and a
- * site search.
+ * A page's address as the ways to it are compared: its path with no trailing slash (`''` for the root), with no
+ * query or hash, whatever the origin (a run of a local preview reads the production canonicals).
  *
- * @param {{inNavigation: boolean}} page The page.
- * @param {{search: boolean}} site Whether the site has a search.
+ * @param {string} href The address.
+ * @param {string} [base] The page it is read on, for a relative address.
+ * @returns {string|null} The key, or `null` for an address that does not parse.
+ */
+export function pathKey(href, base) {
+  try {
+    return new URL(href, base).pathname.replace(/\/+$/, '');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A page of a site as the ways to it are compared: the site's base address and the page's path joined as strings, as
+ * the site opens it, so a base with a path of its own (`https://handsontable.com/docs`) keeps it.
+ *
+ * @param {string} path The page's path (`/blog/`).
+ * @param {string} base The site's base address.
+ * @returns {string|null} The key (`pathKey()`).
+ */
+export function pageKey(path, base) {
+  return pathKey(`${base.replace(/\/+$/, '')}${path}`);
+}
+
+/**
+ * The pages a page's main content links, read from its HTML: on the page's own site, with no hash (a place on a page),
+ * as `pathKey()`s. A static list is read as served: hidden links are not told apart.
+ *
+ * @param {string} html The page's HTML.
+ * @param {string} url The address it was served from.
+ * @returns {Set<string>|null} The links, or `null` for a page with no main element.
+ */
+export function linksInMain(html, url) {
+  const main = /<main\b[\s\S]*?<\/main>/i.exec(html)?.[0];
+
+  if (main === undefined) {
+    return null;
+  }
+
+  const origin = new URL(url).origin;
+  const links = new Set();
+
+  for (const [, raw] of main.matchAll(/<a\b[^>]*?\shref="([^"]*)"/gi)) {
+    if (raw.trim() === '' || raw.trim().startsWith('#')) {
+      continue;
+    }
+    try {
+      const target = new URL(raw.replace(/&amp;/g, '&'), url);
+
+      if (target.origin === origin && target.hash === '') {
+        links.add(pathKey(target.href));
+      }
+    } catch {
+      // An address that does not parse goes nowhere.
+    }
+  }
+
+  return links;
+}
+
+/**
+ * Whether a page is a numbered listing page of a collection's index (`/blog/2/` of `/blog/`).
+ *
+ * @param {string} key The page (`pathKey()`).
+ * @param {string} root The collection's index (`pathKey()`).
+ * @returns {boolean} The verdict.
+ */
+export function isListingPage(key, root) {
+  return key.startsWith(`${root}/`) && /^\d+$/.test(key.slice(root.length + 1));
+}
+
+/**
+ * The pages the reference page's navigation landmarks in its header and footer link, on its own site. Those are on
+ * every page of the site, so a page they link is reached through them from anywhere, even where its own copy of the
+ * link is an anchor on the page (a trial form's link on the form). A link with a hash goes to a place on a page, and
+ * a placeholder (an empty href, a bare `#`) goes nowhere.
+ *
+ * @param {{url: string, chromeLinks: Array<{href: string, region?: string, placeholder?: boolean}>}} reference The
+ *   reference page.
+ * @returns {Set<string>} The page keys (`pathKey()`).
+ */
+export function navigationTargets(reference) {
+  const origin = new URL(reference.url).origin;
+
+  return new Set(reference.chromeLinks.filter(link => !link.placeholder && String(link.region ?? '').startsWith('nav ')).flatMap((link) => {
+    try {
+      const url = new URL(link.href, reference.url);
+
+      return url.origin === origin && url.hash === '' ? [pathKey(url.href)] : [];
+    } catch {
+      return [];
+    }
+  }));
+}
+
+/**
+ * The page a page stands for, when its canonical names another page the run reads: the same page under a second
+ * address, whose ways are judged on that page (2.4.5). `null` for a page that is its own canonical.
+ *
+ * @param {{url: string, canonical?: string|null}} page The page.
+ * @param {Set<string>} pages The keys of the pages the run reads.
+ * @returns {string|null} The canonical's key, or `null`.
+ */
+export function aliasOf(page, pages) {
+  if (!page.canonical) {
+    return null;
+  }
+
+  const canonical = pathKey(page.canonical, page.url);
+
+  return canonical !== null && canonical !== pathKey(page.url) && pages.has(canonical) ? canonical : null;
+}
+
+/**
+ * The 2.4.5 finding of a page with fewer than two ways to reach it: a navigation landmark that links it (on the page,
+ * or on the reference page, whose header and footer every page repeats), the site map, the index of the collection
+ * it belongs to (a blog's listing), and a site search.
+ *
+ * @param {{url?: string, inNavigation: boolean}} page The page.
+ * @param {object} site The site's ways.
+ * @param {boolean} site.search Whether the site has a search.
+ * @param {Set<string>|null} [site.navigation] The pages the reference page's navigation links (`navigationTargets()`).
+ * @param {Set<string>|null} [site.siteMap] The pages the site map links; `null` for a site with none.
+ * @param {string|null} [site.siteMapPage] The site map's own page (`pathKey()`): the site map is a way only where the
+ *   reference page's navigation links it, since a site map nothing links reaches nothing.
+ * @param {Set<string>|null} [site.index] The pages the index of the page's collection links; `null` outside one.
  * @returns {object[]} The findings.
  */
-export function waysFindings(page, { search }) {
-  const ways = [...(page.inNavigation ? ['navigation'] : []), ...(search ? ['search'] : [])];
+export function waysFindings(page, { search, navigation = null, siteMap = null, siteMapPage = null, index = null }) {
+  const key = page.url === undefined ? null : pathKey(page.url);
+  const holds = targets => key !== null && targets !== null && targets.has(key);
+  const mapReached = siteMapPage === null || (navigation !== null && navigation.has(siteMapPage));
+  const ways = [
+    ...(page.inNavigation || holds(navigation) ? ['navigation'] : []),
+    ...(mapReached && holds(siteMap) ? ['site map'] : []),
+    ...(holds(index) ? ['index'] : []),
+    ...(search ? ['search'] : []),
+  ];
 
   if (ways.length >= 2) {
     return [];

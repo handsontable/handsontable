@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { consistencyFindings, duplicateTitleFindings, pageFindings, textKey, waysFindings } from '../site-structure.mjs';
+import { aliasOf, consistencyFindings, duplicateTitleFindings, isListingPage, linksInMain, navigationTargets, pageFindings, pageKey,
+  pathKey, textKey, waysFindings } from '../site-structure.mjs';
 
 // tests/AGENTS.md ("A11y: the site checks beyond axe", page structure): the verdicts behind 1.3.1, 2.4.1, 2.4.2,
 // 2.4.4, 2.4.5, 2.4.6, 3.1.1, 3.2.3, 3.2.4 and 3.2.6 on a site's pages.
@@ -107,6 +108,80 @@ test('2.4.5: navigation and search are two ways; one of them alone is a finding'
   assert.deepEqual(waysFindings({ inNavigation: true }, { search: true }), []);
   assert.deepEqual(waysFindings({ inNavigation: true }, { search: false }).map(finding => finding.measured.ways), ['navigation']);
   assert.deepEqual(waysFindings({ inNavigation: false }, { search: false }).map(finding => finding.measured.ways), ['none']);
+});
+
+test('2.4.5: the site map, a collection\'s index and the reference page\'s navigation are ways too', () => {
+  const post = { url: 'https://site.test/blog/a-post/', inNavigation: false };
+  const ways = (page, site) => waysFindings(page, { search: false, ...site }).map(finding => finding.measured.ways);
+
+  assert.deepEqual(ways(post, { siteMap: new Set(['/blog/a-post']), index: new Set(['/blog/a-post']) }), []);
+  assert.deepEqual(ways(post, { siteMap: new Set(['/blog/a-post']), index: new Set(['/blog/other']) }), ['site map']);
+  assert.deepEqual(ways(post, { index: new Set(['/blog/a-post']) }), ['index']);
+  // The page's own navigation may not link it (a trial form's link is an anchor on the form itself): the reference
+  // page's navigation, the same header and footer, does.
+  assert.deepEqual(ways({ url: 'https://site.test/evaluation/', inNavigation: false },
+    { navigation: new Set(['/evaluation']), siteMap: new Set(['/evaluation']) }), []);
+  assert.deepEqual(ways({ url: 'https://site.test/evaluation/', inNavigation: true },
+    { navigation: new Set(['/evaluation']) }), ['navigation']);
+  assert.deepEqual(ways({ url: 'https://site.test/', inNavigation: false }, { siteMap: new Set(['']), search: true }), []);
+});
+
+test('2.4.5: the reference page\'s navigation targets are its header\'s and footer\'s navigation links on its site', () => {
+  const reference = {
+    url: 'https://site.test/',
+    chromeLinks: [
+      { name: 'Pricing', href: 'https://site.test/pricing/', region: 'nav "Footer"' },
+      { name: 'Start a trial', href: 'https://site.test/evaluation/?trial_source=home', region: 'nav "Footer"' },
+      { name: 'Try now', href: 'https://site.test/contact/', region: 'banner' },
+      { name: 'GitHub', href: 'https://github.com/handsontable/', region: 'nav "Footer"' },
+      { name: 'Jump', href: 'https://site.test/#top', region: 'nav "Footer"' },
+      { name: 'Menu', href: 'https://site.test/', region: 'nav "Main"', placeholder: true },
+    ],
+  };
+
+  assert.deepEqual([...navigationTargets(reference)].sort(), ['/evaluation', '/pricing']);
+});
+
+test('2.4.5: a page whose canonical is another page the run reads is that page under a second address', () => {
+  const pages = new Set(['/datagrid/demos', '/blog']);
+
+  assert.equal(aliasOf({ url: 'http://localhost:4411/datagrid/demos/bulk-data-entry/',
+    canonical: 'https://handsontable.com/datagrid/demos/' }, pages), '/datagrid/demos');
+  assert.equal(aliasOf({ url: 'https://site.test/blog/', canonical: 'https://site.test/blog/' }, pages), null);
+  assert.equal(aliasOf({ url: 'https://site.test/x/', canonical: 'https://site.test/elsewhere/' }, pages), null);
+  assert.equal(aliasOf({ url: 'https://site.test/x/', canonical: null }, pages), null);
+  assert.equal(pathKey('https://site.test/blog/2/?page=1#top'), '/blog/2');
+  assert.equal(pathKey('/', 'https://site.test/blog/'), '');
+  assert.equal(pageKey('/javascript-data-grid/sorting/', 'https://handsontable.com/docs/'), '/docs/javascript-data-grid/sorting');
+});
+
+test('2.4.5: the site map is a way only where the reference page\'s navigation links it', () => {
+  const post = { url: 'https://site.test/blog/a-post/', inNavigation: false };
+  const ways = site => waysFindings(post, { search: false, index: new Set(['/blog/a-post']), siteMap: new Set(['/blog/a-post']),
+    siteMapPage: '/sitemap', ...site }).map(finding => finding.measured.ways);
+
+  assert.deepEqual(ways({ navigation: new Set(['/sitemap']) }), []);
+  assert.deepEqual(ways({ navigation: new Set(['/pricing']) }), ['index']);
+  assert.deepEqual(ways({ navigation: null }), ['index']);
+});
+
+test('2.4.5: a main content\'s links are its own site\'s pages, with no place on a page and no placeholder', () => {
+  const html = `<header><a href="/pricing/">Pricing</a></header><main id="m">
+    <a class="x" href="/blog/a-post/">A post</a> <a href="https://site.test/blog/2/?tab=a&amp;b=c">2</a>
+    <a href="#section">Jump</a> <a href="">Nothing</a> <a href="/blog/#top">Top</a>
+    <a href="https://elsewhere.test/blog/">Elsewhere</a> <a href="relative/">Relative</a></main>`;
+
+  assert.deepEqual([...linksInMain(html, 'https://site.test/blog/')].sort(), ['/blog/2', '/blog/a-post', '/blog/relative']);
+  assert.equal(linksInMain('<body><a href="/x/">x</a></body>', 'https://site.test/'), null);
+});
+
+test('2.4.5: a collection\'s numbered listing pages are its index; its other pages are not', () => {
+  assert.equal(isListingPage('/blog/2', '/blog'), true);
+  assert.equal(isListingPage('/blog/12', '/blog'), true);
+  assert.equal(isListingPage('/blog/a-post', '/blog'), false);
+  assert.equal(isListingPage('/blog/category/datagrid', '/blog'), false);
+  assert.equal(isListingPage('/blog/2/extra', '/blog'), false);
+  assert.equal(isListingPage('/blogs/2', '/blog'), false);
 });
 
 const chrome = (fields = {}) => ({

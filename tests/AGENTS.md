@@ -2298,7 +2298,8 @@ and of `.github/workflows/website-a11y.yml`.
 - **The website is opened as its scan opens it.** `WEBSITE_SITE.open()` is `openWebsitePage()` (the guard, the
   islands woken, `settleWebsite()`), at the desktop width unless the page is the phone's (the mobile menu). Its
   pages are one per address at rest: a tab a query or a hash selects is a state of its page, which the scan reads.
-  It has one color scheme and no search, so 2.4.5 rests on its navigation; a CSS module's class
+  It has one color scheme and no search, so 2.4.5 rests on its navigation, its site map (`/sitemap/`, linked from
+  the footer) and its collections' indexes (`COLLECTIONS`: a post is listed on a page of `/blog/`); a CSS module's class
   (`_input_4y8oc_15`) is read as the name its author wrote (`input`), because its hash changes with every build.
 - **The same pages, opened the same way, as the docs scan.** `SITE.open()` is `openDocsPage()`: the viewport, the
   blocked hosts, the color scheme before the first paint, the status, the password wall, the examples loaded and
@@ -2331,8 +2332,18 @@ and of `.github/workflows/website-a11y.yml`.
   accessibility tree exposes them (an element under `aria-hidden`, `inert` or `hidden`, or not rendered, is left
   out). 2.4.2's duplicates compare each title with every page's, read from the start of each page's HTML once
   per worker; the same address at another viewport is the same page. 2.4.5 counts the navigation that links the
-  page (a bare `#` or an empty href resolves to the page but goes nowhere, so it never counts) and the site's search, read once per worker from the page that holds it; a search that could not be read
-  is a problem of the reference page, and no page evaluates 2.4.5 that run. 3.2.3, 3.2.4 and 3.2.6 compare each
+  page, on the page or on the reference page, whose header and footer every page repeats (a bare `#` or an empty
+  href resolves to the page but goes nowhere, so it never counts, and a link to a place on the page, such as the trial
+  form's own link to its form, does not reach it either), the site map (`SITE.siteMap`, a way only where the reference
+  page's navigation links it), the index of the collection the page belongs to (`SITE.collections`: the collection's
+  page and its numbered listing pages, at most `INDEX_PAGES` of them), and the site's search. The search, the site map
+  and each index are read once per worker from their pages' HTML. A search that could not be read is a problem of the
+  reference page, and no page evaluates 2.4.5 that run; a site map that could not be read is a problem of the worker's
+  first page, and no page of that worker evaluates 2.4.5; an index that could not be read in full is a problem of the
+  page that needed it. A site map, or a collection's own index page, that is not there (404) is no way, not a
+  problem; a numbered listing page that is not there is an index read in part, a problem. A page whose
+  canonical names another page the run reads is that page under a second address (the demo gallery's first demo
+  at its own address), and 2.4.5 is judged on that page. 3.2.3, 3.2.4 and 3.2.6 compare each
   page with the site's reference page at the same viewport: the shared links of each header and footer
   navigation in the same order (a link added or left out keeps the order), one name per target within one
   landmark (the framework switcher's tab and the header's section link are two controls), and the help controls
