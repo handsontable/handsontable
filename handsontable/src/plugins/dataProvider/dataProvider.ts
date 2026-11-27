@@ -573,16 +573,17 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Disables the plugin. A real disable syncs EmptyDataState's loading overlay after the abort, because an
-   * aborted fetch fires no hook that would hide it. The disable and enable cycle of `updatePlugin()` skips the
-   * sync: its refetch takes the overlay over, and hiding it in between would restore the selection and show it
-   * again for the same fetch. A passive disable aborts nothing, and the owner's context change syncs the overlay
-   * itself.
+   * aborted fetch fires no hook that would hide it, and makes Pagination count its pages from the rows the grid
+   * holds, because the server's total no longer describes them. The disable and enable cycle of `updatePlugin()`
+   * skips both: its refetch takes the overlay over and brings a new total, and syncing in between would restore
+   * the selection and show the overlay again for the same fetch, and flash the local page count. A passive disable
+   * aborts nothing, and the owner's context change syncs the overlay and the total itself.
    *
-   * @param {boolean} syncsLoadingOverlay Whether to sync the loading overlay after the abort.
+   * @param {boolean} isRealDisable `true` for a real disable, `false` for the cycle of `updatePlugin()`.
    */
-  #disable(syncsLoadingOverlay: boolean): void {
+  #disable(isRealDisable: boolean): void {
     if (!this.#isPassive) {
-      if (syncsLoadingOverlay) {
+      if (isRealDisable) {
         this.#abortFetchesAndSyncLoading(this.#currentContext());
       } else {
         this.#abortFetchesFor(this.#currentContext());
@@ -596,6 +597,13 @@ export class DataProvider extends BasePlugin {
     this.#overtakenEdits.reset();
 
     super.disablePlugin();
+
+    // After `super.disablePlugin()`: a direct call, or a conflict that turns the plugin off, leaves `dataProvider`
+    // in the settings, so until `clearHooks()` removes the `hasExternalDataSource` listener Pagination still counts
+    // the pages from the server total.
+    if (isRealDisable && !this.#isPassive) {
+      this.hot.getPlugin('pagination')?._syncDataProviderRemoval();
+    }
   }
 
   /**

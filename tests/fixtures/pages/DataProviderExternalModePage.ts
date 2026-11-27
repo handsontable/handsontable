@@ -20,6 +20,8 @@ export class DataProviderExternalModePage {
   readonly bundle: string;
   readonly grid: Locator;
   readonly status: Locator;
+  readonly counter: Locator;
+  readonly navigationLabel: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -27,6 +29,8 @@ export class DataProviderExternalModePage {
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.status = page.getByTestId('status');
+    this.counter = page.locator('.ht-pagination .ht-page-counter-section');
+    this.navigationLabel = page.locator('.ht-pagination .ht-page-navigation-section__label');
   }
 
   /**
@@ -127,6 +131,22 @@ export class DataProviderExternalModePage {
 
       pagination.setPage(pagination.getPaginationData().currentPage);
     });
+  }
+
+  /**
+   * Moves the pager to a page through `setPage()`.
+   *
+   * @param {number} pageNumber The page to show.
+   */
+  async setPage(pageNumber: number): Promise<void> {
+    await this.page.evaluate(target => window.hot.getPlugin('pagination').setPage(target), pageNumber);
+  }
+
+  /**
+   * The page the pager shows.
+   */
+  async currentPage(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getPlugin('pagination').getPaginationData().currentPage);
   }
 
   /**
