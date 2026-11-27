@@ -376,6 +376,17 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `formatRef`. `getGridSize()` is the physical index count, not `getSheetDimensions()`: the engine reports
   its occupied extent, and the formula bar refuses to navigate at or past that size. A span wider than
   `MAX_HF_INDEX_SCAN` maps only its two ends and walks inward past trimmed ends.
+- **The adapter cuts every HyperFormula span to the grid's indexes before it walks one.** The editor sends
+  indexes as typed, with no upper bound: `=CONCATENATEA1` lexes as column 13205193704424828, past
+  `Number.MAX_SAFE_INTEGER`, where `index + 1 === index`, so a loop stepping from there never ends (the tab
+  hung on that keystroke), and `=AA1:ZZZZZZZ1` walked about 8 billion indexes outside the grid one by one.
+  `#visualRuns()` (highlights) and `#firstVisualIn()` (the address box's `setSelection()`) clamp through
+  `#clampToHfIndexes()` to `[0, getNumberOfIndexes() - 1]` (the axis syncers' HF index space is exactly
+  the index mapper's sequence, so nothing past it has a visual index), and a span with no index left maps
+  to nothing. The whole-axis check stays before the clamp, so `A:A` still reads as the whole axis. A new
+  loop over editor-supplied indexes takes the same clamp; a cap on the iteration count is not the fix.
+  The adapter stub tests therefore give the grid a size (`makeHotStub()` answers `getNumberOfIndexes()`
+  with `countRows()`/`countCols()`), and a mapping stub must keep its HF indexes inside that count.
 - **A bar edit whose text equals the cell's raw text opens the editor with a `null` seed.** `BaseEditor#beginEditing()` treats a string seed as typed text, so its unchanged-value guard never arms and an untouched commit would write `"5"` for `5`, `""` for `null`, and record an undo step. `HandsontableAdapter#editorSeed()` (private) makes that call; a changed or typed seed stays a string.
 - **The bar opens the editor with a synthetic `focus` event, never `undefined`.** `openEditor()` hands the event to `beforeBeginEditing`, and a listener reading `event.type` threw, so the bar stopped opening edits. `HandsontableAdapter#beginEdit()` builds a `FocusEvent` from `rootWindow`. Not a `MouseEvent`: `openEditor()` then applies its double-click default and refuses a range or a second layer, which the bar edits from the active cell.
 - **A drag past the viewport edge resolves through `getCellCoordsFromMousePosition()`.** The pick's edge

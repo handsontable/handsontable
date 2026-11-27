@@ -4,6 +4,12 @@ import { makeAdapterOptions, makeHotStub, makePluginStub } from './helpers/stubs
 import type { CustomSelectionStub } from './helpers/stubs';
 
 /**
+ * The stub grid's size. The adapter maps only the HyperFormula indexes the grid has, so every range the
+ * tests highlight lies inside it, the wide spans (past the per-index scan limit) included.
+ */
+const GRID_SIZE = { countRows: () => 20000, countCols: () => 100 };
+
+/**
  * Builds a cell range in HyperFormula coordinates.
  *
  * @param {number} startRow The start row index.
@@ -32,6 +38,7 @@ function makeAdapter(options: {
   settings?: Record<string, unknown>;
 } = {}) {
   const hot = makeHotStub({
+    ...GRID_SIZE,
     getSettings: () => options.settings ?? {},
   });
   const overlayHost = document.createElement('div');
@@ -286,8 +293,8 @@ describe('HandsontableAdapter custom-selection highlights', () => {
   });
 
   it('scopes generated class names per grid instance', () => {
-    const hotA = makeHotStub();
-    const hotB = makeHotStub({ guid: 'ht_other' } as Parameters<typeof makeHotStub>[0]);
+    const hotA = makeHotStub(GRID_SIZE);
+    const hotB = makeHotStub({ ...GRID_SIZE, guid: 'ht_other' } as Parameters<typeof makeHotStub>[0]);
     const hostA = document.createElement('div');
     const hostB = document.createElement('div');
 
@@ -347,6 +354,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
       (highlight: { row: number; col: number }) => ({ highlight, from: highlight, to: highlight }),
     );
     const hot = makeHotStub({
+      ...GRID_SIZE,
       _createCellRange: createRange as unknown as Parameters<typeof makeHotStub>[0]['_createCellRange'],
     } as Parameters<typeof makeHotStub>[0]);
     const overlayHost = document.createElement('div');
@@ -371,6 +379,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     const hooks: Record<string, ((...args: unknown[]) => void)[]> = {};
     let colShift = 0;
     const hot = makeHotStub({
+      ...GRID_SIZE,
       addHook: (name: string, callback: (...args: unknown[]) => void) => {
         (hooks[name] ??= []).push(callback);
       },
@@ -406,7 +415,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
   });
 
   it('stops listening to the index mappers when destroyed', () => {
-    const hot = makeHotStub();
+    const hot = makeHotStub(GRID_SIZE);
     const overlayHost = document.createElement('div');
     const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
     const rowIndexMapper = hot.rowIndexMapper as unknown as { localHooks: Map<string, Set<unknown>> };
@@ -439,6 +448,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
   it('re-probes the border width until the theme variable resolves', () => {
     let cssValue = '';
     const hot = makeHotStub({
+      ...GRID_SIZE,
       rootWindow: {
         ...window,
         getComputedStyle: () => ({ getPropertyValue: () => cssValue }),
@@ -470,6 +480,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
   it('reads the border width from the grid\'s root element, where the guide tells an application to set it', () => {
     const rootElement = document.createElement('div');
     const hot = makeHotStub({
+      ...GRID_SIZE,
       rootElement,
       rootWindow: {
         ...window,
@@ -501,6 +512,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
   it('reads the border width again after `resetBorderWidth()`', () => {
     let cssValue = '1px';
     const hot = makeHotStub({
+      ...GRID_SIZE,
       rootWindow: {
         ...window,
         getComputedStyle: () => ({ getPropertyValue: () => cssValue }),
@@ -563,6 +575,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
 
   it('accepts a strict var() reference even where CSS.supports rejects it', () => {
     const hot = makeHotStub({
+      ...GRID_SIZE,
       rootWindow: {
         ...window,
         getComputedStyle: window.getComputedStyle.bind(window),
@@ -589,6 +602,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
 
   it('rejects a var() reference followed by a declaration break-out', () => {
     const hot = makeHotStub({
+      ...GRID_SIZE,
       rootWindow: {
         ...window,
         getComputedStyle: window.getComputedStyle.bind(window),
@@ -613,6 +627,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     (unusable) => {
       let cssValue = unusable;
       const hot = makeHotStub({
+        ...GRID_SIZE,
         rootWindow: {
           ...window,
           getComputedStyle: () => ({ getPropertyValue: () => cssValue }),
