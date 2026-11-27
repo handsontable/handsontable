@@ -142,4 +142,47 @@ test.describe('Version comparison page', () => {
     expect(listText).not.toContain('**');
     expect(listText).not.toContain('[Migration guide]');
   });
+
+  test('links only the PR number to GitHub, not the whole entry', async ({ page }) => {
+    await page.goto(`${PAGE_PATH}?from=16.0&to=19.0`);
+
+    const entries = page.locator('.vc-entry');
+
+    await expect(entries.first()).toBeVisible();
+
+    // The row itself is not a link, so the text next to the number is not clickable.
+    await expect(page.locator('a.vc-entry-compact')).toHaveCount(0);
+    await expect(page.locator('a.vc-featured-card')).toHaveCount(0);
+
+    // An entry with a PR number holds exactly one link, and it is the number.
+    const linkedEntry = entries.filter({ has: page.locator('a.vc-entry-pr') }).first();
+
+    await expect(linkedEntry.locator('a')).toHaveCount(1);
+
+    const number = linkedEntry.locator('a.vc-entry-pr');
+    const text = (await number.textContent()) ?? '';
+
+    await expect(number).toHaveAttribute(
+      'href',
+      new RegExp(`^https://github\\.com/handsontable/handsontable/(pull|issues)/${text.replace('#', '')}$`)
+    );
+    await expect(number).toHaveAttribute('target', '_blank');
+  });
+
+  test('links only the PR number on a featured card', async ({ page }) => {
+    await page.goto(`${PAGE_PATH}?from=16.0&to=19.0`);
+
+    const cards = page.locator('.vc-featured-card');
+
+    await expect(cards.first()).toBeVisible();
+
+    // Each card is a plain container, and the only link in it is the PR number.
+    const linkedCard = cards.filter({ has: page.locator('a.vc-featured-card-pr') }).first();
+
+    await expect(linkedCard.locator('a')).toHaveCount(1);
+    await expect(linkedCard.locator('a.vc-featured-card-pr')).toHaveAttribute(
+      'href',
+      /^https:\/\/github\.com\/handsontable\/handsontable\/(pull|issues)\/\d+$/
+    );
+  });
 });
