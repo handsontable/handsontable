@@ -436,7 +436,7 @@ function lexScript(text, from, to, code, noComments) {
  * @param {boolean} [inTemplate] Whether the markup is the text of a template literal.
  */
 function lexScriptBlocks(text, from, to, code, noComments, inTemplate = false) {
-  for (const match of text.slice(from, to).matchAll(/(<script\b[^>]*>)([\s\S]*?)<\/script\s*>/gi)) {
+  for (const match of text.slice(from, to).matchAll(/(<script\b[^>]*>)([\s\S]*?)<\/script\b[^>]*>/gi)) {
     const start = from + match.index + match[1].length;
     const end = start + match[2].length;
     const view = inTemplate
@@ -934,8 +934,8 @@ test('the keyless scan reads a fixture as markup, and a page a spec writes in a 
     '<script>',
     '  new Handsontable(a, { licenseKey: window.htTestLicenseKey });',
     '  new Handsontable(b, {});',
-    // An end tag with a space still ends the block, so the prose after it is not read as code.
-    '</script >',
+    // An end tag with white space or attributes still ends the block, so the prose after it is not code.
+    '</script\t foo>',
     '<p>Don\'t</p><script>new Handsontable(c, {});</script>',
   ].join('\n'), 'tests/fixtures/demo/new.html'), [4, 6]);
   assert.deepEqual(keylessGridLines([
