@@ -7,6 +7,13 @@
  * same DOM that the `<Steps>` Astro component generates. Nested h3 steps
  * inside a parent step are wrapped in a nested `<ol class="sl-steps">`.
  *
+ * Grouped guides: numbered h3 headings under an UNNUMBERED h2 (a migration
+ * guide's impact groups, such as "Before you upgrade") are wrapped by the
+ * h3 pass, one `<ol class="sl-steps">` per group, because the unnumbered h2
+ * ends the run. The visible number comes from the list's CSS counter, so it
+ * restarts in every group. The h3 pass is not only for stray step headings:
+ * removing it flattens such a guide into plain headings.
+ *
  * Step lists: a how-to guide writes its steps as a plain markdown ordered
  * list under a `## Steps` heading (the template in `docs/AGENTS.md`), which
  * is a list rather than a run of headings and so never matched the wrapper
@@ -275,7 +282,9 @@ export function rehypeMigrationSteps() {
     //    h2 steps nest h3, h3 steps nest h4.
     tree.children = wrapSteps(tree.children, 'h2', 'h3');
 
-    // 4. Catch orphaned h3 step headings (e.g. "Step 1: …" not inside an h2 step).
+    // 4. Wrap h3 step headings not inside an h2 step: stray "Step 1: …" headings,
+    //    and the numbered changes under each unnumbered group h2 of a grouped
+    //    migration guide (one list per group).
     tree.children = wrapSteps(tree.children, 'h3', 'h4');
 
     // 5. Catch orphaned h4 step headings (e.g. "Step 1. …" under a non-step h3).

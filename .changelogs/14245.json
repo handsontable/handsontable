@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a merged cell whose text was not measured by AutoRowSize and copied as empty after a row move, a column move, or a column freeze.",
-  "type": "fixed",
-  "issueOrPR": 14245,
-  "breaking": false,
-  "framework": "none"
-}

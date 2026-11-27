@@ -93,7 +93,7 @@ Handsontable(document.createElement('div'), {
 });
 
 // A value read into a `string` is wider than the option accepts; `as const` is the documented fix
-// (migration guide 18.1 -> 19.0, section 23).
+// (migration guide 18.1 -> 19.0, "The `filters` option is type-checked").
 const widenedConfig = { searchMode: 'apply' };
 const literalConfig = { searchMode: 'apply' } as const;
 

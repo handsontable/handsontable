@@ -198,9 +198,164 @@ describe('dataProvider/query/pagination', () => {
 
       expect(goToPage).toHaveBeenCalledWith(2);
     });
+
+    it('should revert to the query\'s page when the fetch fails', async() => {
+      const revertPageTo = jasmine.createSpy('revertPageTo');
+      const hot = {
+        getPlugin: () => ({ enabled: true, revertPageTo }),
+      };
+
+      handleAfterPageChangeExternalPagination(
+        {
+          hot,
+          getQueryPage: () => 2,
+          goToPage: () => Promise.reject(new Error('Network error')),
+        },
+        3,
+        4
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(revertPageTo).toHaveBeenCalledTimes(1);
+      expect(revertPageTo).toHaveBeenCalledWith(2);
+    });
   });
 
   describe('handleAfterPageSizeChangeExternalPagination', () => {
+    it('should no-op while the pager is reverted after a failed fetch', () => {
+      const setPageSize = jasmine.createSpy('setPageSize').and.returnValue(Promise.resolve());
+      const hot = {
+        getPlugin: () => ({ enabled: true, getCurrentPage: () => 3 }),
+      };
+
+      handleAfterPageSizeChangeExternalPagination(
+        {
+          hot,
+          getQueryPage: () => 4,
+          getQueryPageSize: () => 10,
+          isApplyingResponse: () => false,
+          isRevertingPager: () => true,
+          revertPager: revert => revert(),
+          setPageSize,
+        },
+        20,
+        10
+      );
+
+      expect(setPageSize).not.toHaveBeenCalled();
+    });
+
+    it('should call setPageSize for another size set while the pager is reverted', () => {
+      const setPageSize = jasmine.createSpy('setPageSize').and.returnValue(Promise.resolve());
+      const hot = {
+        getPlugin: () => ({ enabled: true, getCurrentPage: () => 4 }),
+      };
+
+      handleAfterPageSizeChangeExternalPagination(
+        {
+          hot,
+          getQueryPage: () => 4,
+          getQueryPageSize: () => 10,
+          isApplyingResponse: () => false,
+          isRevertingPager: () => true,
+          revertPager: revert => revert(),
+          setPageSize,
+        },
+        10,
+        50
+      );
+
+      expect(setPageSize).toHaveBeenCalledWith(50);
+    });
+
+    it('should revert to the query\'s page size when the change started from a size whose fetch was superseded',
+      async() => {
+        const revertPageSizeTo = jasmine.createSpy('revertPageSizeTo');
+        const hot = {
+          getPlugin: () => ({ enabled: true, getCurrentPage: () => 1, revertPageSizeTo }),
+        };
+
+        handleAfterPageSizeChangeExternalPagination(
+          {
+            hot,
+            getQueryPage: () => 2,
+            getQueryPageSize: () => 10,
+            isApplyingResponse: () => false,
+            isRevertingPager: () => false,
+            revertPager: revert => revert(),
+            setPageSize: () => Promise.reject(new Error('Network error')),
+          },
+          20,
+          50
+        );
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(revertPageSizeTo).toHaveBeenCalledTimes(1);
+        expect(revertPageSizeTo).toHaveBeenCalledWith(10, 2);
+      });
+
+    it('should keep \'auto\' when the revert goes back to the query\'s page size', async() => {
+      const revertPageSizeTo = jasmine.createSpy('revertPageSizeTo');
+      const hot = {
+        getPlugin: () => ({ enabled: true, getCurrentPage: () => 1, revertPageSizeTo }),
+      };
+
+      handleAfterPageSizeChangeExternalPagination(
+        {
+          hot,
+          getQueryPage: () => 2,
+          getQueryPageSize: () => 10,
+          isApplyingResponse: () => false,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
+          setPageSize: () => Promise.reject(new Error('Network error')),
+        },
+        'auto',
+        20
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(revertPageSizeTo).toHaveBeenCalledTimes(1);
+      expect(revertPageSizeTo).toHaveBeenCalledWith('auto', 2);
+    });
+
+    it('should revert the page size and the query\'s page through revertPager when the fetch fails', async() => {
+      const calls = [];
+      const plugin = {
+        enabled: true,
+        getCurrentPage: () => 3,
+        revertPageSizeTo: (pageSize, page) => calls.push(['revertPageSizeTo', pageSize, page]),
+      };
+      const hot = {
+        getPlugin: () => plugin,
+      };
+
+      handleAfterPageSizeChangeExternalPagination(
+        {
+          hot,
+          getQueryPage: () => 4,
+          getQueryPageSize: () => 10,
+          isApplyingResponse: () => false,
+          isRevertingPager: () => false,
+          revertPager: (revert) => {
+            calls.push(['revertPager:start']);
+            revert();
+            calls.push(['revertPager:end']);
+          },
+          setPageSize: () => Promise.reject(new Error('Network error')),
+        },
+        10,
+        20
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(calls).toEqual([['revertPager:start'], ['revertPageSizeTo', 10, 4], ['revertPager:end']]);
+    });
+
     it('should no-op when Pagination plugin is disabled', () => {
       const setPageSize = jasmine.createSpy('setPageSize').and.returnValue(Promise.resolve());
       const hot = {
@@ -213,6 +368,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 1,
           getQueryPageSize: () => 10,
           isApplyingResponse: () => false,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         10,
@@ -234,6 +391,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 1,
           getQueryPageSize: () => 10,
           isApplyingResponse: () => false,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         10,
@@ -255,6 +414,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 3,
           getQueryPageSize: () => 5,
           isApplyingResponse: () => true,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         10,
@@ -276,6 +437,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 3,
           getQueryPageSize: () => 5,
           isApplyingResponse: () => true,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         10,
@@ -297,6 +460,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 3,
           getQueryPageSize: () => 5,
           isApplyingResponse: () => true,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         5,
@@ -318,6 +483,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 3,
           getQueryPageSize: () => 5,
           isApplyingResponse: () => false,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         10,
@@ -339,6 +506,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 3,
           getQueryPageSize: () => 10,
           isApplyingResponse: () => false,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         20,
@@ -360,6 +529,8 @@ describe('dataProvider/query/pagination', () => {
           getQueryPage: () => 1,
           getQueryPageSize: () => 10,
           isApplyingResponse: () => false,
+          isRevertingPager: () => false,
+          revertPager: revert => revert(),
           setPageSize,
         },
         10,

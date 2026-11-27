@@ -77,7 +77,7 @@ lower half is the "drop it back in place" gesture, which must stay a no-op: step
 the hidden block, fire `afterRowMove` with `orderChanged: true` and record an undo step for a visibly unchanged
 grid. Pinned by the self-drop case of `tests/e2e/manual-row-move-hidden-gap.spec.ts`.
 The hooks report the resolved drop index. Landing on the far side is a change from 18.1 for the lower-half drop
-(migration guide, section 60). Pinned by `__tests__/moveTrimmedPlacement.unit.js` (`getLowerHalfDropIndex()`, bands and NestedRows included) and
+(migration guide, "A row dragged into a gap with hidden rows lands after them"). Pinned by `__tests__/moveTrimmedPlacement.unit.js` (`getLowerHalfDropIndex()`, bands and NestedRows included) and
 `tests/e2e/manual-row-move-hidden-gap.spec.ts`. NestedRows moves rows by its own path and the e2e spec does not drive it; the unit tests only pin that the step is skipped.
 
 ## Row heights are read defensively

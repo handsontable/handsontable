@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue where a custom border disappeared on the first trim, untrim, or filter after `loadData()`.",
-  "type": "fixed",
-  "issueOrPR": 14117,
-  "breaking": false,
-  "framework": "none"
-}

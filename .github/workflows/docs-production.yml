@@ -1,7 +1,7 @@
 name: Docs Production Deployment
 
 env:
-  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
+  GHA_DOCKER_TAG: ghcr.io/${{ github.repository }}/handsontable-documentation
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
   docker:
     name: Build and push Docker image
     if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
@@ -46,7 +46,7 @@ jobs:
 
       - name: Docker login into GHCR
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
 
       - name: Install monorepo dependencies and build packages
         working-directory: .

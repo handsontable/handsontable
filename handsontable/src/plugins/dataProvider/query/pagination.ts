@@ -7,7 +7,7 @@ interface PaginationPluginInterface {
   getCurrentPage?(): number;
   getCurrentPageSize?(): number | 'auto' | undefined;
   revertPageTo?(page: number): void;
-  revertPageSizeTo?(pageSize: number | 'auto'): void;
+  revertPageSizeTo?(pageSize: number | 'auto', page?: number): void;
 }
 
 const PAGINATION_PLUGIN_KEY = 'pagination';
@@ -114,10 +114,12 @@ export function getPagedRowHeaderIndex(
 }
 
 /**
- * Loads the requested page when Pagination runs in external paged mode.
+ * Loads the requested page when Pagination runs in external paged mode. When the fetch fails, puts the pager back on
+ * the query's page, the page of the rows still shown: the page the change started from can be one whose fetch a
+ * later change superseded, and the revert's own {@link Hooks#afterPageChange} then names that page, so the handler
+ * fetched it and reverted again, without end, against a server that kept failing.
  *
  * @param {object} ctx Context.
- * @param {function(): boolean} ctx.isEnabled DataProvider enabled check.
  * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): number} ctx.getQueryPage Current 1-based page from query parameters.
  * @param {function(number): Promise<void>} ctx.goToPage Fetch given page.
@@ -145,7 +147,7 @@ export function handleAfterPageChangeExternalPagination(
     const p = hot.getPlugin(PAGINATION_PLUGIN_KEY);
 
     if (p?.enabled) {
-      p.revertPageTo(oldPage);
+      p.revertPageTo(getQueryPage());
     }
   });
 }
@@ -155,12 +157,20 @@ export function handleAfterPageChangeExternalPagination(
  * already matches the query and the query is on page 1. While the plugin applies a response (a loaded one or a
  * replayed one), it also skips when the pager's page matches the query's page: that is Pagination taking the page
  * and page size of the response (possibly after a view with another page size was shown), not a user's change.
+ * When the fetch fails, the pager is put back on the query's page size and page, those of the rows still shown (the
+ * size the change started from is kept when it asks for the query's size, so `'auto'` stays `'auto'`). The attempted
+ * size may have clamped the page, and the size the change started from can be one whose fetch a later change
+ * superseded. The revert's own page-size change starts no fetch: off page 1 the rule above does not skip it, and its
+ * fetch, failing too, reverted to the size that failed, without end. Another size set while the revert runs (a
+ * listener) is still fetched.
  *
  * @param {object} ctx Context.
  * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): number} ctx.getQueryPage Current 1-based page.
  * @param {function(): number} ctx.getQueryPageSize Current page size.
  * @param {function(): boolean} ctx.isApplyingResponse Whether the plugin is applying a response right now.
+ * @param {function(): boolean} ctx.isRevertingPager Whether the pager is being put back after a failed fetch.
+ * @param {function(function(): void): void} ctx.revertPager Runs a revert of the pager with `isRevertingPager` set.
  * @param {function(number): Promise<void>} ctx.setPageSize Fetch with new page size (page 1).
  * @param {number | 'auto'} oldPageSize Previous page size.
  * @param {number | 'auto'} newPageSize New page size.
@@ -169,12 +179,13 @@ export function handleAfterPageChangeExternalPagination(
 export function handleAfterPageSizeChangeExternalPagination(
   ctx: {
     hot: HotInstance; getQueryPage: () => number; getQueryPageSize: () => number;
-    isApplyingResponse: () => boolean; setPageSize: (ps: number) => Promise<void>;
+    isApplyingResponse: () => boolean; isRevertingPager: () => boolean;
+    revertPager: (revert: () => void) => void; setPageSize: (ps: number) => Promise<void>;
   },
   oldPageSize: number | 'auto',
   newPageSize: number | 'auto'
 ): void {
-  const { hot, getQueryPage, getQueryPageSize, isApplyingResponse, setPageSize } = ctx;
+  const { hot, getQueryPage, getQueryPageSize, isApplyingResponse, isRevertingPager, revertPager, setPageSize } = ctx;
 
   const paginationPlugin = hot.getPlugin(PAGINATION_PLUGIN_KEY);
 
@@ -183,6 +194,10 @@ export function handleAfterPageSizeChangeExternalPagination(
   }
 
   const ps = normalizeExternalPaginationPageSize(newPageSize, DEFAULT_PAGE_SIZE);
+
+  if (isRevertingPager() && ps === getQueryPageSize()) {
+    return;
+  }
 
   const isPagerSync = isApplyingResponse() && paginationPlugin.getCurrentPage() === getQueryPage();
 
@@ -194,7 +209,12 @@ export function handleAfterPageSizeChangeExternalPagination(
     const p = hot.getPlugin(PAGINATION_PLUGIN_KEY);
 
     if (p?.enabled) {
-      p.revertPageSizeTo(oldPageSize);
+      const queryPageSize = getQueryPageSize();
+      const previousPageSize = normalizeExternalPaginationPageSize(oldPageSize, DEFAULT_PAGE_SIZE) === queryPageSize
+        ? oldPageSize
+        : queryPageSize;
+
+      revertPager(() => p.revertPageSizeTo(previousPageSize, getQueryPage()));
     }
   });
 }

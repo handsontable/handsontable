@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the comment box sitting 1px below the top edge of the selection border of its cell.",
-  "type": "fixed",
-  "issueOrPR": 14218,
-  "breaking": false,
-  "framework": "none"
-}

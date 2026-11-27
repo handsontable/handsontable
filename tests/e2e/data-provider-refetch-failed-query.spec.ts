@@ -60,6 +60,35 @@ test.describe('dataProvider Refetch after a failed fetch', () => {
     ]);
   });
 
+  test('a failed page-size change past the last page fetches once and keeps the page on screen', async() => {
+    for (const counter of ['11 - 20 of 50', '21 - 30 of 50', '31 - 40 of 50']) {
+      await grid.nextPageButton.click();
+      await expect(grid.pageCounter).toHaveText(counter);
+    }
+
+    await grid.setServerFailing(true);
+    await grid.pageSizeSelect.selectOption('20');
+
+    await expect(grid.refetchButton).toHaveCount(1);
+    await expect(grid.pageSizeSelect).toHaveValue('10');
+    await expect(grid.pageCounter).toHaveText('31 - 40 of 50');
+    await expect(grid.firstIdCell()).toHaveText('31');
+    expect((await grid.fetchCalls()).map(({ page, pageSize }) => ({ page, pageSize }))).toEqual([
+      { page: 1, pageSize: 10 },
+      { page: 2, pageSize: 10 },
+      { page: 3, pageSize: 10 },
+      { page: 4, pageSize: 10 },
+      { page: 1, pageSize: 20 },
+    ]);
+
+    await grid.setServerFailing(false);
+    await grid.refetchButton.click();
+
+    await expect(grid.pageCounter).toHaveText('1 - 20 of 50');
+    await expect(grid.pageSizeSelect).toHaveValue('20');
+    await expect(grid.refetchButton).toBeHidden();
+  });
+
   test('Refetch after a failed sort loads the sorted rows and keeps the sort indicator', async() => {
     await grid.setServerFailing(true);
     await grid.sortLabel(0).click();
