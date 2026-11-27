@@ -76,16 +76,16 @@ older version stops with exit code 2 and a message that names the earlier migrat
 `migration-from-16.2-to-17.0`. Follow those guides first. To run the covered migrations anyway, pass
 `--allow-uncovered`: the report then starts with the guides of the steps the tool does not cover.
 
-`--to` above the newest migration the tool knows (`--to 19`, `--to 18.2`) is not an error. The tool migrates up to
-the newest one, prints "No migration for 19 is known. Migrated up to 18.1.0.", and puts the same line at the top of
+`--to` above the newest migration the tool knows (`--to 20`, `--to 19.2`) is not an error. The tool migrates up to
+the newest one, prints "No migration for 20 is known. Migrated up to 19.0.0.", and puts the same line at the top of
 the report. The `handsontable` ranges in `package.json` go to that newest known version, never beyond it. When the
 line `--to` names holds only a draft migration and you did not pass `--include-draft`, the line says so instead
-("19.0 is a draft migration (19.0.0) and was skipped. The run stops at 18.1.0."). `--only '19.0.0/*'` without the flag
-is a usage error that names the draft and `--include-draft`, from 18.0 and from 18.1 alike. A draft with no rules (the
+("19.1 is a draft migration (19.1.0) and was skipped. The run stops at 19.0.0."). A draft with no rules (the
 release after 19.0) changes and reports nothing, so a run never ends at it: with `--include-draft` and no `--to` the run
 goes up to the newest migration that has rules, the report and the JSON `to` say that version, and "Nothing to migrate"
 lists the empty draft as `(draft, no rules yet)`. Only an explicit `--to 19.1 --include-draft` selects it, and the run
-says that it has no rules.
+says that it has no rules. A `--only` pattern that names a rule of a draft migration with rules, without the flag, is a
+usage error that names the draft and `--include-draft`.
 
 ### Install from the repository
 
@@ -301,6 +301,7 @@ Each migration follows one page of the Handsontable migration guide, and each ru
 |---|---|---|---|
 | 17.x to 18.0 | 106 | 41 | 65 |
 | 18.0 to 18.1 | 8 | 1 | 7 |
+| 18.1 to 19.0 | 44 | 6 | 38 |
 
 `npm run test --prefix codemod` fails when these numbers differ from the output of `--list`. A rule is a `rewrite`
 rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
@@ -308,19 +309,19 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 | Rule kind | Rewrite | Report | What it covers |
 |---|---|---|---|
 | `importSource` | 3 | 0 | Named imports that moved to another entry point, such as `handsontable/common`. |
-| `exportRename` | 13 | 0 | Type names that changed. A rename to a type of another shape is applied, and its rule reports one note that says what changed in the shape. |
+| `exportRename` | 15 | 0 | Type names that changed. A rename to a type of another shape is applied, and its rule reports one note that says what changed in the shape. |
 | `namespaceType` | 15 | 13 | `Handsontable.X` types that became named imports, and the ones that were removed. |
 | `exportRemoved` | 0 | 35 | Names that an entry point no longer exports. The import stays and gets a TODO. |
-| `optionRename` | 1 | 0 | An option that changed its name. |
+| `optionRename` | 2 | 0 | An option that changed its name. |
 | `optionMove` | 1 | 0 | An option that moved, such as `numericFormat.culture` to `locale`. |
 | `optionRemove` | 2 | 0 | An option that Handsontable ignores. The tool deletes it and leaves a TODO. |
-| `methodRemove` | 1 | 0 | Methods that do nothing now. |
+| `methodRemove` | 3 | 0 | Methods that do nothing now. |
 | `methodMove` | 1 | 0 | Methods that moved to a plugin. |
-| `callUnwrap` | 0 | 1 | A call that is a pass-through now. The 17.x call did work, so it is reported. |
+| `callUnwrap` | 0 | 2 | A call that is a pass-through now. The 17.x call did work, so it is reported. |
 | `cssVariable` | 1 | 2 | CSS custom properties that were renamed or removed. |
 | `themeToken` | 1 | 2 | Theme tokens that were renamed or removed. |
-| `detect` | 0 | 14 | Code that needs a decision. It only reports. |
-| `dependency` | 3 | 3 | `package.json` ranges, packages to add, packages to replace or drop, and the browsers a project targets (a draft migration). |
+| `detect` | 0 | 50 | Code that needs a decision. It only reports. |
+| `dependency` | 4 | 4 | `package.json` ranges, packages to add, packages to replace or drop, and the browsers a project targets. |
 | `custom` | 0 | 2 | Checks that a rule file implements in code. Both report. |
 
 ### Draft migrations
@@ -329,21 +330,12 @@ A draft migration is one that is not final yet. It is not in the table above, a 
 `--to` defaults to the newest released migration, or to the newest draft that has rules with `--include-draft`. To run it, or to list
 its rules, pass `--include-draft`. The rules and messages of a draft can change before its release.
 
-Two migrations are drafts:
+One migration is a draft: the release after 19.0. It is held under `19.1.0` until the version number of that release
+is decided. It has no rules yet, so a run never ends at it, even with `--include-draft`: that run stops at the newest migration with rules. Only `--to 19.1 --include-draft` selects it, changes and reports nothing, and `--list` says so.
 
 ```bash
-handsontable-codemod migrate --from 18.1 --to 19.0 --include-draft --dry-run
-handsontable-codemod migrate --list --from 18.1 --to 19.0 --include-draft
+handsontable-codemod migrate --from 19.0 --to 19.1 --include-draft --dry-run
 ```
-
-- **18.1 to 19.0.** Handsontable 19.0.0 is released, and the type changes of this draft come from the difference
-  between the published packages 18.1.3 and 19.0.0. It stays a draft only until the released migration guide is in
-  this repository: the `guide` anchors of its rules follow the guide of the release, and the repository still holds an
-  earlier copy. Its manifest lists the changes of the guide that no rule covers, with the
-  reason, under `notAutomated`. `--list` prints how many there are on the line before the counts. A run writes `^19.0.0`
-  for `handsontable` and the three wrappers, which is a published range.
-- **The release after 19.0.** Its migration is a draft too, held under `19.1.0` until the version number of that release
-  is decided. It has no rules yet, so a run never ends at it, even with `--include-draft`: that run stops at the newest migration with rules. Only `--to 19.1 --include-draft` selects it, changes and reports nothing, and `--list` says so.
 
 A run that includes a draft whose packages are not on npm yet, and that rewrites a `package.json`, prints a note under its
 "Next:" lines: a range without a prerelease tag never matches a release candidate, so install the candidate with
@@ -407,10 +399,21 @@ that test the source against `'innerHTML'`, synthetic header events, column move
 styles that are left in a theme, in a stylesheet, or in the inline `<style>` of an HTML page. A file that mentions
 `pikaday` (a `<link>` to its stylesheet, say) is left alone, because it loads Pikaday itself.
 
+### 18.1 to 19.0
+
+The tool raises the ranges of `handsontable` and the three wrappers in `package.json` to `^19.0.0`. It renames
+`columnHeaders` to `colHeaders` in the export calls, removes the calls of the four resize-state methods and the two
+`Formulas` shortcut methods that do nothing now, and renames the types `Settings` of `handsontable/plugins/exportFile`
+and `DataProviderOptions` of `handsontable/plugins/dataProvider`. It reports the rest: removed exports and namespace
+types, a hook set to `null`, the frozen column drag and the unfreeze hooks, `updateSettings()` calls in a file with a
+`dataProvider` or a `dataSchema`, a `sanitize` helper call, the `non-commercial-and-evaluation` license key that 19.0 rejects (the tool never
+inserts or changes a license key), and the other changes that have a pattern in your code. The changes of the guide
+that no pattern shows are listed by `--list` and in the report, with the reason each one has no rule.
+
 ### Browser targets
 
 Handsontable 19.0 raised the minimum browsers to Chrome 130, Edge 130, Firefox 132, Safari 18.2, and iOS Safari 18.2. The
-rule `19.0.0/browserslist-targets` of the 19.0 draft compares them with the Browserslist configuration of your project.
+rule `19.0.0/browserslist-targets` of 18.1 to 19.0 compares them with the Browserslist configuration of your project.
 The minimums are data in the manifest of the migration, not code. The tool reads:
 
 - the `browserslist` key of every `package.json` the run reads that declares `handsontable` or a wrapper, as a string, a

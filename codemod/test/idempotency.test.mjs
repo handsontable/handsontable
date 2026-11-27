@@ -10,10 +10,10 @@ import './helpers/git-env.mjs';
 import { loadReleasedManifests } from './helpers/manifests.mjs';
 
 const TODO = 'TODO(handsontable-codemod';
-// The one-line shapes run against the released migrations, as a default run selects them. A draft is a separate plan
-// below, because a chained run of two versions that act on one call leaves a TODO from each.
-const fullPlan = buildPlan(await loadReleasedManifests(), []);
-const draftPlan = buildPlan((await loadManifests(VERSIONS_DIR)).filter(manifest => manifest.status === 'draft'), []);
+// The one-line shapes run against the 18.x migrations (a run to 18.1). The 19.0 migration is a separate plan below,
+// because a chained run of two versions that act on one call leaves a TODO from each.
+const fullPlan = buildPlan((await loadReleasedManifests()).filter(manifest => manifest.version.startsWith('18.')), []);
+const plan19 = buildPlan((await loadReleasedManifests()).filter(manifest => manifest.version === '19.0.0'), []);
 
 /**
  * Transform a text three times in a row, each run on the output of the one before. A run that changes nothing hands the
@@ -139,20 +139,20 @@ const ONE_LINE_CASES = [
       + 'new Handsontable(el, { licenseKey: \'k\', sanitizer(c, s) { return s === \'innerHTML\' ? c : c; } });\n',
   },
   {
-    name: 'a draft methodRemove on a used result',
+    name: 'a 19.0 methodRemove on a used result',
     file: 'a.js',
     todos: 1,
-    plan: draftPlan,
+    plan: plan19,
     source: 'import Handsontable from \'handsontable\';\n'
       + 'const hot = new Handsontable(el, { manualColumnResize: true });\n'
       + 'const columns = hot.getPlugin(\'manualColumnResize\');\n'
       + 'const w = columns.loadManualColumnWidths();\n',
   },
   {
-    name: 'a draft detect rule on a one-line object',
+    name: 'a 19.0 detect rule on a one-line object',
     file: 'a.js',
     todos: 2,
-    plan: draftPlan,
+    plan: plan19,
     source: 'import Handsontable from \'handsontable\';\n'
       + 'new Handsontable(el, { licenseKey: \'non-commercial-and-evaluation\', rowHeights: 20 });\n',
   },

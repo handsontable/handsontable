@@ -31,7 +31,7 @@ async function threeRuns(source, plan, filePath = 'grid.js') {
 
 const released = manifests.filter(manifest => manifest.version === '18.0.0');
 const everyRule = buildPlan(released, undefined);
-const draftPlan = buildPlan(manifests.filter(manifest => manifest.version === '19.0.0'), undefined);
+const plan19 = buildPlan(manifests.filter(manifest => manifest.version === '19.0.0'), undefined);
 
 /**
  * The receivers a file shows to be something other than the grid, each as the lines that define it.
@@ -147,8 +147,8 @@ describe('an object that another receiver than the grid takes is not Handsontabl
   it('keeps a detect match on an unresolved receiver and drops it on another one', async() => {
     const call = receiver => `${receiver}.updateSettings({ afterOnCellMouseDown: null });\n`;
     const draft = (receiver, setup = '') => `${IMPORTS}${setup}${call(receiver)}`;
-    const onGrid = await threeRuns(draft('table'), draftPlan);
-    const onOther = await threeRuns(draft('form', 'const form = { updateSettings() {} };\n'), draftPlan);
+    const onGrid = await threeRuns(draft('table'), plan19);
+    const onOther = await threeRuns(draft('form', 'const form = { updateSettings() {} };\n'), plan19);
 
     assert.ok(onGrid.entries.some(entry => entry.ruleId === '19.0.0/hook-set-to-null'), JSON.stringify(onGrid.entries));
     assert.deepEqual(onOther.entries, []);
@@ -157,7 +157,7 @@ describe('an object that another receiver than the grid takes is not Handsontabl
 
 describe('the update-settings-data-provider rule needs an updateSettings call on a grid', () => {
   const rule = '19.0.0/update-settings-data-provider';
-  const run = async source => (await threeRuns(`${IMPORTS}${source}`, draftPlan))
+  const run = async source => (await threeRuns(`${IMPORTS}${source}`, plan19))
     .entries.filter(entry => entry.ruleId === rule).map(entry => entry.line);
 
   it('reports a call on a confirmed grid, and on a receiver the file does not show', async() => {

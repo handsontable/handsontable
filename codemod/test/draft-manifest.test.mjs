@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { main } from '../src/cli.mjs';
 import { UsageError } from '../src/errors.mjs';
-import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
+import { buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
 import { resolvePlan } from '../src/runner.mjs';
 import { anchorListOf, changeAnchorsOf, checkAnchors, missingAnchors } from './helpers/guide-anchors.mjs';
 import { guidePath } from './helpers/guide-source.mjs';
@@ -194,29 +194,6 @@ describe('a draft manifest', () => {
         draft.version);
       assert.ok(included.selected.some(manifest => manifest.version === draft.version), draft.version);
     }
-  });
-
-  it('is what the 19.0.0 manifest is until its guide is final', async() => {
-    // Delete this test with the flip of 19.0.0 to released, which also needs the README row (readme.test.mjs).
-    const manifest = (await loadManifests()).find(item => item.version === '19.0.0');
-
-    assert.equal(manifest.status, 'draft');
-    assert.equal(manifest.from, '18.1');
-
-    const normal = await resolvePlan({ cwd: tmpdir(), from: '18.1' }).catch(error => error);
-    const explicit = await resolvePlan({ cwd: tmpdir(), from: '18.1', to: '19.0' }).catch(error => error);
-
-    assert.ok(normal instanceof UsageError, 'a default run from 18.1 has nothing released to migrate to');
-    assert.match(normal.message, /Known migrations: .*19\.0\.0 \(draft\)/);
-    assert.ok(explicit instanceof UsageError, 'a run to 19.0 without --include-draft has nothing to migrate');
-    assert.match(explicit.message, /Only draft migrations are in range, add --include-draft to run them\./);
-
-    const listed = await cli(['migrate', '--list', '--from', '18.1', '--to', '19.0', '--include-draft']);
-    const rows = listed.out.split('\n').filter(line => line.startsWith('19.0.0/'));
-
-    assert.equal(listed.code, 0);
-    assert.ok(rows.length > 20, `${rows.length} rules listed`);
-    assert.match(listed.out.trimEnd().split('\n').pop(), /^\d+ rules: \d+ rewrite, \d+ report\.$/);
   });
 });
 
@@ -563,31 +540,9 @@ describe('notAutomated', () => {
         const live = anchorListOf(await readFile(guidePath(manifest), 'utf8'));
         const added = live.filter(anchor => !headings.includes(anchor) && !covered.has(anchor));
 
-        // Not an assertion: another team edits the guide. Refresh the snapshot and cover what is new. Until the released
-        // 19.0 guide is merged back, the file holds the older flat guide, so the count here is large.
+        // Not an assertion: another team edits the guide. Refresh the snapshot and cover what is new.
         context.diagnostic(`${added.length} headings of the guide file are not in the snapshot and have no rule or `
           + `entry${added.length > 0 ? `: ${added.join(', ')}` : ''}`);
       });
     });
-});
-
-describe('the fixtures of every shipped draft', () => {
-  it('give every rule of the manifest a fixture that names it', async() => {
-    // A draft with no rule yet (the migration after 19.0) has no fixture directory either.
-    const drafts = (await loadManifests()).filter(manifest => manifest.status === 'draft' && manifest.rules.length > 0);
-
-    for (const manifest of drafts) {
-      const root = join(VERSIONS_DIR, manifest.version, '__fixtures__');
-      const named = new Set();
-
-      for (const entry of await readdir(root, { withFileTypes: true })) {
-        const report = await readFile(join(root, entry.name, 'report.json'), 'utf8').catch(() => '[]');
-        const parsed = JSON.parse(report);
-
-        (Array.isArray(parsed) ? parsed : parsed.entries ?? []).forEach(item => named.add(item.ruleId));
-      }
-
-      assert.deepEqual(manifest.rules.map(rule => rule.id).filter(id => !named.has(id)), [], manifest.version);
-    }
-  });
 });

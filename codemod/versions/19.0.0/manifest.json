@@ -1,8 +1,7 @@
 {
   "version": "19.0.0",
   "from": "18.1",
-  "status": "draft",
-  "published": true,
+  "status": "released",
   "guide": {
     "url": "https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0",
     "source": "docs/content/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md"

@@ -5,7 +5,7 @@ import { transformFile } from '../src/runner.mjs';
 import { blankCodeComments, blankToolComments } from '../src/lib/tool-comments.mjs';
 import { validateDetectRule } from '../src/transforms/detect.mjs';
 
-const drafts = (await loadManifests(VERSIONS_DIR)).filter(manifest => manifest.status === 'draft');
+const migration19 = (await loadManifests(VERSIONS_DIR)).filter(manifest => manifest.version === '19.0.0');
 const LICENSE = '19.0.0/non-commercial-license-key';
 const TODO = 'TODO(handsontable-codemod';
 
@@ -18,7 +18,7 @@ const TODO = 'TODO(handsontable-codemod';
  * @returns {Promise<Array<{output: string, changed: boolean, entries: object[]}>>} The three results.
  */
 async function threeRuns(filePath, source, only) {
-  const plan = buildPlan(drafts, only);
+  const plan = buildPlan(migration19, only);
   const results = [];
   let text = source;
 

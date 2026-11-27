@@ -68,7 +68,7 @@ How versions are chosen:
   that ship after 19.0 and holds the name `19.1.0` until the version of that release is decided. A manifest with no
   rules is never the end of a run: a default run ignores it, `--include-draft` stops at the newest migration with rules,
   and only an explicit `--to 19.1 --include-draft` selects it, when it changes and reports nothing.
-- A draft manifest may set `published: true` when its packages are on npm. The 19.0 draft does.
+- A draft manifest may set `published: true` when its packages are on npm. The 19.0 manifest did until its release.
 - The package carries the repository's `LICENSE.txt`, and its `license` field points at it.
 - `detect` `call` matchers take `receiver: "grid"`: a confirmed grid instance, or a receiver the file does not show,
   never one it shows to be another object. `19.0.0/update-settings-data-provider` uses it, so an `updateSettings()` call
@@ -85,8 +85,8 @@ How versions are chosen:
 - A rule can name the rules of earlier migrations that report the same spot (`twins`). In a run that holds both, the
   earliest reports the spot once and leaves the one marker, and a later migration leaves no second marker on code the
   earlier one marked. The 19.0 `resize-state-methods`, `helper-sanitize`, and `export-column-headers` use it.
-- The 18.1 to 19.0 migration, as a draft: it runs only with `--include-draft` and its rules can change before the
-  release of Handsontable 19.0.
+- The 18.1 to 19.0 migration (`versions/19.0.0/`, 44 rules: 6 rewrite and 38 report). It follows the released
+  Handsontable 19.0.0 and its migration guide, and a default run reaches it with no flag.
 - A `notAutomated` list in a manifest for the changes that have no rule. `--list` prints how many there are.
 - Detect rules read the quoted values of a part (`regex` with `in: "strings"`), code without comments (`regex` with
   `code: true`), `registerPlugin()` calls by what the file imports (`pluginRegistration`), menu items (`property`
@@ -106,13 +106,18 @@ How versions are chosen:
 
 ### Changed
 
+- The 19.0 migration is released: `versions/19.0.0/` has `status: "released"` and no `published` flag, its `guide`
+  anchors and the snapshot of the guide headings were checked against the guide in the repository and the live page, and
+  `--to` defaults to 19.0.0 with no `--include-draft`. `19.1.0` stays the empty draft. The README lists 18.1 to 19.0 under
+  "Supported migrations", and its "Draft migrations" section names 19.1.0 only.
 - A note for the whole run (`scope: "run"`, the note of a type rename) is counted as a note, not as a spot to review, in
   the summary line, the `Next:` lines, the Markdown report, and the `--json` counts. It stays under "Read once" and never
   causes exit code 3 with `--fail-on-manual`.
 - `--include-draft` without `--to` stops at the newest migration that has rules. The empty draft `19.1.0` is not the end
   of a run any more: the report title and the `to` of the document say `19.0.0`, "Migrated up to" names it, and "Nothing to
   migrate" lists the draft as `(draft, no rules yet)`.
-- `--only '19.0.0/*'` from 18.1, with no `--include-draft`, names the draft and the flag, as it did from 18.0.
+- `--only` with the pattern of a draft migration that has rules, with no `--include-draft`, names the draft and the
+  flag, from the line before it and from the line it starts from alike.
 - A nested rule (`.a { &::before {} }`, in SCSS or in native CSS nesting) is read as its resolved selector by every
   `selector` matcher, at the line of the nested rule. `19.0.0/icon-pseudo-element-selectors` reports it.
 - The `<style>` elements of an HTML page are read as stylesheets, so each rule of a page gets its own line, and a page
@@ -142,7 +147,7 @@ How versions are chosen:
   character references`, and `colWidths, rowHeights, and minRowHeights address columns and rows by physical index`),
   and `19.0.0/sr-sp-language-code` and `19.0.0/auto-row-size-use-headers` link their sections. The exports diff is made
   from the published packages `handsontable` 18.1.3 and 19.0.0, with the three wrappers. The removed names are the same
-  as in the diff against `19.0.0-rc1`. The migration stays a draft until the released guide is in the repository.
+  as in the diff against `19.0.0-rc1`.
 - The "Next:" note about release candidates is printed only for a draft whose packages are not on npm yet
   (`published` is not set) and whose rules bump or add a package, and it names the range of that draft. A run from 18.1
   with `--include-draft` no longer says that `^19.0.0` or `^19.1.0` matches no published version.

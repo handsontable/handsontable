@@ -1,6 +1,6 @@
 {
   "page": "migration-from-18.1-to-19.0",
-  "note": "Headings of the guide as written in Markdown, with the id the docs build gives each one. The page was not on the site when this file was made, so the ids come from the build pipeline itself (the Astro Markdown processor with the rehype plugins of docs/astro.config.mjs), not from the live page. Refresh it from the rendered page once the guide is published. test/guide-anchors.test.mjs holds slugOf() to these ids. The guide itself may change; this file does not.",
+  "note": "Headings of the guide as written in Markdown, with the id the docs build gives each one. The ids were checked against the published page https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0/ (the h2 to h6 ids of the rendered page equal these 68, in the same levels). test/guide-anchors.test.mjs holds slugOf() to these ids. The guide itself may change; this file does not.",
   "headings": [
     {
       "level": 2,

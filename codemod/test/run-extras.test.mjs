@@ -142,7 +142,7 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
       message: '2 inline <script> elements that use Handsontable were not analyzed. The tool reads no JavaScript '
         + 'inside an HTML page. Check them by hand.'
         + ' Check by hand: numeric and date formats, removed options, HTML that needs a sanitizer, the license key, '
-        + 'loading title and description markup, sanitizer source values.',
+        + 'loading title and description markup, sanitizer source values, size options, removed methods.',
     }]);
     assert.deepEqual(await skippedOf('a.html', '<script>var x = 1;</script>\n<div class="ht-theme-main"></div>\n'), []);
     // A browser runs the file of a script that has a src and ignores its body, so the body is no code of the page.
@@ -158,7 +158,7 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
         message: '2 inline <script> elements that use Handsontable were not analyzed. The tool reads no JavaScript '
           + 'inside an HTML page. Check them by hand.'
           + ' Check by hand: numeric and date formats, removed options, HTML that needs a sanitizer, the license key, '
-          + 'loading title and description markup, sanitizer source values.',
+          + 'loading title and description markup, sanitizer source values, size options, removed methods.',
       }]
     );
   });

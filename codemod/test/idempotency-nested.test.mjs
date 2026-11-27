@@ -106,7 +106,7 @@ const BODIES = [
     code: 'registerTheme(\'t\', mainTheme).params({ tokens: { wrapperBorderColor: 1 } });',
   },
   {
-    name: 'draft detect',
+    name: '19.0 detect',
     file: 'a.js',
     plan: planFor('19.0.0/non-commercial-license-key'),
     code: 'new Handsontable(el, { licenseKey: \'non-commercial-and-evaluation\', rowHeights: 20 });',

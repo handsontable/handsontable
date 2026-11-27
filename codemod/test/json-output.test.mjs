@@ -182,9 +182,9 @@ describe('--json on a run', () => {
     });
   });
 
-  it('lists the changes with no rule of a draft, with the guide link of each', async() => {
+  it('lists the changes with no rule of the 19.0 migration, with the guide link of each', async() => {
     await inPlainProject({ 'package.json': '{ "dependencies": { "handsontable": "^18.1.0" } }\n' }, async(dir) => {
-      const { stdout } = await migrate(dir, ['--from', '18.1', '--include-draft', '--dry-run', '--json']);
+      const { stdout } = await migrate(dir, ['--from', '18.1', '--dry-run', '--json']);
       const document = documentOf(stdout);
       const item = document.notAutomated.find(entry => entry.guide === 'license-keys-are-checked-more-strictly');
 
@@ -342,8 +342,8 @@ describe('--json on a run', () => {
 
 describe('--json on --list', () => {
   it('lists every rule with its action, class, and guide link, and the counts of the text list', async() => {
-    const json = await migrate(process.cwd(), ['--list', '--from', '18.1', '--include-draft', '--json']);
-    const text = await migrate(process.cwd(), ['--list', '--from', '18.1', '--include-draft']);
+    const json = await migrate(process.cwd(), ['--list', '--from', '18.1', '--json']);
+    const text = await migrate(process.cwd(), ['--list', '--from', '18.1']);
     const document = documentOf(json.stdout);
     const [, total, rewrite, report] = /^(\d+) rules: (\d+) rewrite, (\d+) report\.$/m.exec(text.stdout);
     const rule = document.rules.find(item => item.id === '19.0.0/before-init-option');

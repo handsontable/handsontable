@@ -572,11 +572,11 @@ describe('detecting --from in a monorepo', () => {
   it('names every path package.json in the message that says the project is already on the target', async() => {
     await inProject({
       'package.json': '{ "private": true }\n',
-      'packages/a/package.json': pkg('^18.1.0'),
-      'packages/b/package.json': pkg('18.1.0'),
+      'packages/a/package.json': pkg('^19.0.0'),
+      'packages/b/package.json': pkg('19.0.0'),
     }, async(dir) => {
       await assert.rejects(resolvePlan({ cwd: dir, paths: ['packages/a', 'packages/b'] }), {
-        message: /^packages\/a\/package\.json and packages\/b\/package\.json already name 18\.1\.0, so there is /,
+        message: /^packages\/a\/package\.json and packages\/b\/package\.json already name 19\.0\.0, so there is /,
       });
     });
   });

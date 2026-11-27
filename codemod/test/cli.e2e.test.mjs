@@ -223,7 +223,7 @@ describe('the CLI on a 17.1 project', () => {
   }));
 
   it('detects --from from the package.json range when it is omitted', () => withProject(async(dir) => {
-    const result = migrate(dir, []);
+    const result = migrate(dir, ['--to', '18.1']);
 
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stderr, /Detected --from 17\.1\.0 \(package\.json dependencies\)\./);
@@ -231,7 +231,7 @@ describe('the CLI on a 17.1 project', () => {
   }));
 
   it('prefers the installed package to the package.json range when it detects --from', () => withProject(async(dir) => {
-    const result = migrate(dir, []);
+    const result = migrate(dir, ['--to', '18.1']);
 
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stderr, /Detected --from 17\.1\.0 \(node_modules\/handsontable\)\./);

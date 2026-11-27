@@ -308,7 +308,7 @@ describe('the rule on a package.json', () => {
 });
 
 describe('the rule in a run', () => {
-  const FROM = ['--from', '18.1', '--include-draft', '--only', '19.0.0/browserslist-targets', '--dry-run'];
+  const FROM = ['--from', '18.1', '--only', '19.0.0/browserslist-targets', '--dry-run'];
   const PACKAGE = '{ "dependencies": { "handsontable": "^18.1.0" }, "browserslist": ["chrome >= 110"] }\n';
 
   it('checks every package.json of a monorepo with its own .browserslistrc, and edits no file', async() => {
@@ -337,9 +337,9 @@ describe('the rule in a run', () => {
 
   it('reports the same on the second run, and a run that migrates leaves the configuration as it was', async() => {
     await inPlainProject({ 'package.json': PACKAGE, '.browserslistrc': 'safari 14\n' }, async(dir) => {
-      const args = ['--from', '18.1', '--include-draft', '--json'];
+      const args = ['--from', '18.1', '--json'];
       const first = JSON.parse((await migrate(dir, args)).stdout);
-      const second = JSON.parse((await migrate(dir, ['--from', '18.1', '--include-draft', '--json'])).stdout);
+      const second = JSON.parse((await migrate(dir, ['--from', '18.1', '--json'])).stdout);
       const pick = document => document.entries.filter(entry => entry.ruleId === '19.0.0/browserslist-targets')
         .map(entry => `${entry.severity} ${entry.file}:${entry.line}`);
 
@@ -380,7 +380,7 @@ describe('the rule in a run', () => {
 });
 
 describe('a .browserslistrc the tool cannot use is a skipped file, never a silent gap', () => {
-  const ARGS = ['--from', '18.1', '--include-draft', '--only', '19.0.0/browserslist-targets', '--dry-run'];
+  const ARGS = ['--from', '18.1', '--only', '19.0.0/browserslist-targets', '--dry-run'];
   const PACKAGE = '{ "dependencies": { "handsontable": "^18.1.0" } }\n';
 
   /**
@@ -498,7 +498,7 @@ describe('the Markdown report quotes the query of the user, not a prefix of the 
     await inPlainProject({
       'package.json': `{ "dependencies": { "handsontable": "^18.1.0" }, "browserslist": ["${query}"] }\n`,
     }, async(dir) => {
-      await migrate(dir, ['--from', '18.1', '--include-draft', '--only', '19.0.0/browserslist-targets', '--dry-run',
+      await migrate(dir, ['--from', '18.1', '--only', '19.0.0/browserslist-targets', '--dry-run',
         '--report', 'r.md']);
       text = await readFile(join(dir, 'r.md'), 'utf8');
     });

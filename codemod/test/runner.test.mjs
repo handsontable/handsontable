@@ -570,7 +570,7 @@ describe('which versions a run covers', () => {
     assert.deepEqual(covered.reportNotes, []);
     assert.equal(allowed.reportNotes.length, 1);
     assert.ok(allowed.reportNotes[0].includes(`${GUIDES}migration-from-16.2-to-17.0`));
-    assert.deepEqual(allowed.selected.map(manifest => manifest.version), ['18.0.0', '18.1.0']);
+    assert.deepEqual(allowed.selected.map(manifest => manifest.version), ['18.0.0', '18.1.0', '19.0.0']);
   });
 
   it('puts the note about an uncovered start at the top of the report of a run', async() => {
@@ -583,14 +583,14 @@ describe('which versions a run covers', () => {
   });
 
   it('migrates up to the highest known version when --to is above every migration, and says so', async() => {
-    for (const to of ['20', '18.2']) {
+    for (const to of ['20', '19.2']) {
       const { reportNotes, selected } = await resolvePlan({ cwd: tmpdir(), from: '17', to });
 
-      assert.deepEqual(reportNotes, [`No migration for ${to} is known. Migrated up to 18.1.0.`], to);
-      assert.equal(selected[selected.length - 1].version, '18.1.0');
+      assert.deepEqual(reportNotes, [`No migration for ${to} is known. Migrated up to 19.0.0.`], to);
+      assert.equal(selected[selected.length - 1].version, '19.0.0');
     }
 
-    for (const to of ['18', '18.1', '18.1.5']) {
+    for (const to of ['18', '18.1', '18.1.5', '19', '19.0', '19.0.0']) {
       assert.deepEqual((await resolvePlan({ cwd: tmpdir(), from: '17', to })).reportNotes, [], to);
     }
   });
@@ -599,21 +599,21 @@ describe('which versions a run covers', () => {
     const manifest = `${JSON.stringify({ dependencies: { handsontable: '^17.1.0' } }, null, 2)}\n`;
 
     await withProject({ 'package.json': manifest }, async(dir) => {
-      const result = await run({ cwd: dir, from: '17.1', to: '19' });
+      const result = await run({ cwd: dir, from: '17.1', to: '20' });
 
       assert.equal(result.exitCode, 0);
-      assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^18\.1\.0"/);
+      assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^19\.0\.0"/);
       assert.equal(result.report.notes.length, 1);
     }, noRepo);
   });
 
   it('says that package.json already names the target when a rerun finds nothing to migrate', async() => {
-    const manifest = `${JSON.stringify({ dependencies: { handsontable: '^18.1.0' } })}\n`;
+    const manifest = `${JSON.stringify({ dependencies: { handsontable: '^19.0.0' } })}\n`;
 
     await withProject({ 'package.json': manifest }, async(dir) => {
       await assert.rejects(resolvePlan({ cwd: dir }), (error) => {
         assert.match(error.message,
-          /^package\.json already names 18\.1\.0, so there is nothing to migrate to 18\.1\.0\./);
+          /^package\.json already names 19\.0\.0, so there is nothing to migrate to 19\.0\.0\./);
         assert.match(error.message,
           /To run the migration again, pass --from <your previous version>, for example --from 17\.1\./);
 
@@ -621,10 +621,10 @@ describe('which versions a run covers', () => {
       });
     }, noRepo);
 
-    await withProject({ 'node_modules/handsontable/package.json': '{ "name": "handsontable", "version": "18.1.2" }' },
+    await withProject({ 'node_modules/handsontable/package.json': '{ "name": "handsontable", "version": "19.0.1" }' },
       async(dir) => {
         await assert.rejects(resolvePlan({ cwd: dir }),
-          { message: /^The installed handsontable package is 18\.1\.2, so / });
+          { message: /^The installed handsontable package is 19\.0\.1, so / });
       }, noRepo);
   });
 

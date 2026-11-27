@@ -292,7 +292,7 @@ describe('ranges, overrides, and aliases in a chained run', () => {
       pnpm: { overrides: { handsontable: '17.1.0' } },
     });
 
-    await migrate({ 'package.json': input }, { from: '18.1', to: '19.0', includeDraft: true }, async({ result }) => {
+    await migrate({ 'package.json': input }, { from: '18.1', to: '19.0' }, async({ result }) => {
       const pins = result.report.entries.filter(entry => / pins handsontable /.test(entry.message));
       const ending = section => pins.find(entry => entry.message.startsWith(`${section}[`))?.message.split('. ').pop();
 
@@ -323,7 +323,7 @@ describe('ranges, overrides, and aliases in a chained run', () => {
       '@handsontable/angular-wrapper': 'latest',
     };
 
-    await migrate({ 'package.json': pkg({ dependencies: specs }) }, { from: '18.1', to: '19.0', includeDraft: true },
+    await migrate({ 'package.json': pkg({ dependencies: specs }) }, { from: '18.1', to: '19.0' },
       async({ result, read }) => {
         const manual = result.report.entries.filter(entry => entry.severity === 'manual').map(entry => entry.message);
 
@@ -335,7 +335,7 @@ describe('ranges, overrides, and aliases in a chained run', () => {
         assert.deepEqual(JSON.parse(await read('package.json')).dependencies, specs);
       });
 
-    await migrate({ 'package.json': pkg({ dependencies: local }) }, { from: '18.1', to: '19.0', includeDraft: true },
+    await migrate({ 'package.json': pkg({ dependencies: local }) }, { from: '18.1', to: '19.0' },
       async({ result }) => {
         assert.deepEqual(result.report.entries.filter(entry => entry.severity === 'manual'), []);
       });
@@ -344,7 +344,7 @@ describe('ranges, overrides, and aliases in a chained run', () => {
   it('reports a repository spec once in a run that crosses two migrations, with the last target', async() => {
     const input = pkg({ dependencies: { handsontable: 'github:handsontable/handsontable#17.1.0' } });
 
-    await migrate({ 'package.json': input }, { from: '17.1', to: '19.0', includeDraft: true }, async({ result }) => {
+    await migrate({ 'package.json': input }, { from: '17.1', to: '19.0' }, async({ result }) => {
       const manual = result.report.entries.filter(entry => entry.severity === 'manual'
         && entry.message.startsWith('handsontable "github:'));
 

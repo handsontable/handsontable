@@ -741,7 +741,7 @@ describe('19.0.0/icon-pseudo-element-selectors reads a nested selector as resolv
 
 describe('an HTML page with no mark of Handsontable is judged only in a project that depends on it', () => {
   const PAGE = '<!doctype html>\n<style>\n.changeType::before {}\n</style>\n';
-  const ARGS = ['--from', '18.1', '--include-draft', '--only', '19.0.0/icon-pseudo-element-selectors', '--dry-run',
+  const ARGS = ['--from', '18.1', '--only', '19.0.0/icon-pseudo-element-selectors', '--dry-run',
     '--json'];
 
   /**

@@ -350,23 +350,27 @@ describe('cli', () => {
     }
   });
 
-  it('prints no release candidate advice for the published 19.0 draft, and writes no 19.1 range', async() => {
+  it('prints no release candidate advice for the released 19.0 migration, and writes no 19.1 range', async() => {
     const dir = await makeProject(false);
     const input = '{ "dependencies": { "handsontable": "^18.1.0" } }\n';
 
     try {
       await writeFile(join(dir, 'package.json'), input);
 
-      // Two drafts exist: 19.0.0 (published, bumps the packages) and 19.1.0 (no rules yet). A default run ends at the
-      // newest one that has rules, so the empty draft is not part of it.
-      const draft = await cli(['migrate', '--from', '18.1', '--include-draft', '--allow-dirty'], dir);
+      // 19.0.0 is released and 19.1.0 is a draft with no rules yet. A default run ends at 19.0.0 with no flag, and the
+      // flag changes nothing, because the empty draft is never the end of a run.
+      for (const flags of [[], ['--include-draft']]) {
+        await writeFile(join(dir, 'package.json'), input);
 
-      assert.equal(draft.code, 0, draft.err);
-      assert.match(draft.out, /^Next: install the new package ranges/m);
-      assert.doesNotMatch(draft.out, /matches no published version|@rc/);
-      assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^19\.0\.0"/);
-      assert.doesNotMatch(await readFile(join(dir, 'package.json'), 'utf8'), /19\.1/);
-      assert.doesNotMatch(draft.err, /19\.1\.0/);
+        const result = await cli(['migrate', '--from', '18.1', ...flags, '--allow-dirty'], dir);
+
+        assert.equal(result.code, 0, result.err);
+        assert.match(result.out, /^Next: install the new package ranges/m);
+        assert.doesNotMatch(result.out, /matches no published version|@rc/);
+        assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^19\.0\.0"/);
+        assert.doesNotMatch(await readFile(join(dir, 'package.json'), 'utf8'), /19\.1/);
+        assert.doesNotMatch(result.err, /19\.1\.0/);
+      }
 
       await writeFile(join(dir, 'package.json'), '{ "dependencies": { "handsontable": "^17.1.0" } }\n');
 
