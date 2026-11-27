@@ -25,8 +25,7 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     const button = grid.headerMenuButton(0);
 
     await expect(button).toBeVisible();
-    expect(await grid.drawsElement(button, button.locator('.ht-icon'), '.ht_clone_top .changeType .ht-icon'),
-      'the icon changes what the button looks like').toBe(true);
+    expect(await grid.drawsPart(grid.headerMenuIcon(0)), 'the icon changes what the button looks like').toBe(true);
   });
 
   test('draw a pager button icon in the button color, and in the disabled color when disabled', async() => {
@@ -39,16 +38,14 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     await expect(first).toBeDisabled();
     await expect(next).toBeEnabled();
 
-    expect(await grid.drawsElement(first, first.locator('.ht-icon'), '.ht-pagination .ht-page-first .ht-icon'),
-      'the disabled button draws its icon').toBe(true);
-    expect(await grid.drawsElement(next, next.locator('.ht-icon'), '.ht-pagination .ht-page-next .ht-icon'),
-      'the enabled button draws its icon').toBe(true);
+    expect(await grid.drawsPart(grid.pagerIcon('first')), 'the disabled button draws its icon').toBe(true);
+    expect(await grid.drawsPart(grid.pagerIcon('next')), 'the enabled button draws its icon').toBe(true);
 
     const grayText = await grid.systemColor('GrayText');
 
     expect(grayText).not.toBe(await grid.systemColor('CanvasText'));
-    await expect(first.locator('.ht-icon')).toHaveCSS('color', grayText);
-    await expect(next.locator('.ht-icon')).toHaveCSS('color', await grid.systemColor('ButtonText'));
+    await expect(grid.partElement(grid.pagerIcon('first'))).toHaveCSS('color', grayText);
+    await expect(grid.partElement(grid.pagerIcon('next'))).toHaveCSS('color', await grid.systemColor('ButtonText'));
   });
 
   test('mark the menu item the arrow keys move to', async() => {
@@ -58,7 +55,7 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     const items = grid.contextMenuItems;
     // The item ArrowDown lands on: the one after the highlighted item, or the first when the menu
     // opened with none highlighted.
-    const highlightedIndex = await items.evaluateAll(cells => cells.findIndex(cell => cell.classList.contains('current')));
+    const highlightedIndex = await grid.highlightedContextMenuIndex();
     const target = items.nth(highlightedIndex + 1);
 
     await expect(target).not.toHaveClass(/\bcurrent\b/);
@@ -68,8 +65,8 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     await grid.page.keyboard.press('ArrowDown');
     await expect(target).toHaveClass(/\bcurrent\b/);
 
-    expect((await target.screenshot()).equals(atRest), 'the highlighted item looks different from the item at rest')
-      .toBe(false);
+    expect(await grid.looksDifferent(await target.screenshot(), atRest),
+      'the highlighted item looks different from the item at rest').toBe(true);
     // The mark is an outline, which forced colors keeps, in the system highlight color.
     await expect(target).toHaveCSS('outline-style', 'solid');
     await expect(target).toHaveCSS('outline-width', '2px');
@@ -84,7 +81,7 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     // An item with a submenu: hovering it opens the submenu and leaves the item without the
     // highlight class, so only the hover rule can mark it. Hovering a plain item moves the highlight
     // to it, which the arrow-key test covers.
-    const target = grid.page.locator('.htContextMenu .ht_master td.htSubmenu').first();
+    const target = grid.contextMenuSubmenuItems.first();
 
     await expect(target).not.toHaveClass(/\bcurrent\b/);
 
@@ -96,7 +93,8 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
 
     // The capture alone is not enough here: the submenu arrow changes when the submenu opens. The
     // outline, which forced colors keeps, is what marks the item.
-    expect((await target.screenshot()).equals(atRest), 'the item under the pointer looks different').toBe(false);
+    expect(await grid.looksDifferent(await target.screenshot(), atRest), 'the item under the pointer looks different')
+      .toBe(true);
     await expect(target).toHaveCSS('outline-style', 'solid');
     expect(await grid.outlineColor(target)).toBe(await grid.systemColor('Highlight'));
   });
@@ -115,8 +113,8 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     await grid.page.keyboard.press('ArrowDown');
     await expect(target).toHaveClass(/\bcurrent\b/);
 
-    expect((await target.screenshot()).equals(atRest), 'the highlighted row looks different from the row at rest')
-      .toBe(false);
+    expect(await grid.looksDifferent(await target.screenshot(), atRest),
+      'the highlighted row looks different from the row at rest').toBe(true);
     expect(await grid.outlineColor(target)).toBe(await grid.systemColor('Highlight'));
   });
 
@@ -134,8 +132,8 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
     await grid.page.keyboard.press('ArrowDown');
     await expect(target).toHaveClass(/\bcurrent\b/);
 
-    expect((await target.screenshot()).equals(atRest), 'the highlighted row looks different from the row at rest')
-      .toBe(false);
+    expect(await grid.looksDifferent(await target.screenshot(), atRest),
+      'the highlighted row looks different from the row at rest').toBe(true);
     expect(await grid.outlineColor(target)).toBe(await grid.systemColor('Highlight'));
   });
 
@@ -144,10 +142,9 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
       await grid.goto(icons);
 
       const cell = grid.cell(0, 1);
-      const mark = cell.locator('.ht-icon');
-      const selector = '[data-testid="grid"] td input[type="checkbox"] + .ht-icon';
+      const mark = grid.checkboxMark(0);
 
-      await expect(mark).toHaveCount(1);
+      await expect(grid.partElement(mark)).toHaveCount(1);
 
       // Unchecked: the mark is in the DOM, and the themes hide it with a transparent color only.
       await grid.setDataAt(0, 1, false);
@@ -155,16 +152,16 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
 
       const unchecked = await cell.screenshot();
 
-      expect(await grid.drawsElement(cell, mark, selector), 'an unchecked box shows no mark').toBe(false);
+      expect(await grid.drawsPart(mark), 'an unchecked box shows no mark').toBe(false);
 
       // Checked: the mark is drawn.
       await grid.setDataAt(0, 1, true);
       await expect(grid.checkbox(0)).toBeChecked();
-      await expect(mark).toHaveCSS('visibility', 'visible');
+      await expect(grid.partElement(mark)).toHaveCSS('visibility', 'visible');
 
-      expect(await grid.drawsElement(cell, mark, selector), 'a checked box shows its mark').toBe(true);
-      expect((await cell.screenshot()).equals(unchecked), 'a checked box looks different from an unchecked one')
-        .toBe(false);
+      expect(await grid.drawsPart(mark), 'a checked box shows its mark').toBe(true);
+      expect(await grid.looksDifferent(await cell.screenshot(), unchecked),
+        'a checked box looks different from an unchecked one').toBe(true);
     });
 
     test(`draw the mark of the checked radio button only (${icons} icons)`, async() => {
@@ -176,14 +173,21 @@ test.describe('forced colors', { tag: THEMES_TAG }, () => {
       await expect(and).toBeChecked();
       await expect(or).not.toBeChecked();
 
-      const operators = grid.page.locator('.htDropdownMenu .htFiltersMenuOperators');
-      const andMark = and.locator('xpath=following-sibling::*[contains(@class, "ht-icon")][1]');
-      const orMark = or.locator('xpath=following-sibling::*[contains(@class, "ht-icon")][1]');
+      expect(await grid.drawsPart(grid.operatorMark(true)), 'the checked radio button shows its mark').toBe(true);
+      expect(await grid.drawsPart(grid.operatorMark(false)), 'the unchecked radio button shows no mark').toBe(false);
+    });
 
-      expect(await grid.drawsElement(operators, andMark, '.htFiltersMenuOperators input:checked + .ht-icon'),
-        'the checked radio button shows its mark').toBe(true);
-      expect(await grid.drawsElement(operators, orMark, '.htFiltersMenuOperators input:not(:checked) + .ht-icon'),
-        'the unchecked radio button shows no mark').toBe(false);
+    test(`draw the mark of a mixed header checkbox (${icons} icons)`, async() => {
+      await grid.goto(icons);
+
+      // Half the rows are checked, so the header checkbox is neither checked nor unchecked. The rule
+      // that hides an unchecked mark must leave this one drawn.
+      await expect(grid.headerCheckbox).not.toBeChecked();
+      expect(await grid.headerCheckbox.evaluate(input => (input as HTMLInputElement).indeterminate),
+        'the header checkbox is mixed').toBe(true);
+      await expect(grid.partElement(grid.headerCheckboxMark)).toHaveCSS('visibility', 'visible');
+
+      expect(await grid.drawsPart(grid.headerCheckboxMark), 'a mixed header checkbox shows its mark').toBe(true);
     });
   }
 });

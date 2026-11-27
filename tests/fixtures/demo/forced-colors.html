@@ -42,7 +42,7 @@
   <!--
     E2E fixture for forced colors (Windows contrast themes): one grid that draws every surface the
     forced-colors rules of the stylesheet reach. A column menu button in each header, a checkbox column
-    (column 1), a dropdown column (column 2), the context and dropdown menus with Filters (whose
+    (column 1) whose header checkbox starts mixed, a dropdown column (column 2), the context and dropdown menus with Filters (whose
     condition operators are radio buttons), Pagination at five rows a page (so its first and previous
     buttons start disabled), and a sheets bar of two sheets (its all-sheets menu). `?icons=external`
     draws the checkbox and radio marks as external (class) icons instead of masks. Every cell carries
@@ -94,7 +94,8 @@
         rowHeaders: true,
         columns: [
           { type: 'text' },
-          { type: 'checkbox' },
+          // Half the rows start checked, so the header checkbox starts mixed (indeterminate).
+          { type: 'checkbox', headerCheckbox: true },
           { type: 'dropdown', source: ['Red', 'Green', 'Blue'] },
         ],
         height: 'auto',
