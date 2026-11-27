@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-27T13:48:10.455Z",
+  "generatedAt": "2026-11-27T13:49:44.573Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 469,
+    "tests": 476,
     "needsTicket": 4,
     "quarantined": 1,
-    "entries": 2376
+    "entries": 2383
   },
   "rows": [
     {
@@ -1635,6 +1635,237 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 94 to be 97.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-height-css-zoom-engines.spec.ts|row height under CSS zoom on every engine › at 75% › the grid does not overlap the element below it",
+      "tier": "playwright",
+      "file": "e2e/row-height-css-zoom-engines.spec.ts",
+      "line": 60,
+      "title": "row height under CSS zoom on every engine › at 75% › the grid does not overlap the element below it",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T13:48:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46004446146",
+        "branch": "feature/DEV-4196_WebKit-zoom-auto-height",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-height-css-zoom-engines.spec.ts|row height under CSS zoom on every engine › at 75% › the grid is as tall as the rows it holds",
+      "tier": "playwright",
+      "file": "e2e/row-height-css-zoom-engines.spec.ts",
+      "line": 50,
+      "title": "row height under CSS zoom on every engine › at 75% › the grid is as tall as the rows it holds",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T13:48:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46004446146",
+        "branch": "feature/DEV-4196_WebKit-zoom-auto-height",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-height-css-zoom-engines.spec.ts|row height under CSS zoom on every engine › at 75% › the row-header clone shows its last row",
+      "tier": "playwright",
+      "file": "e2e/row-height-css-zoom-engines.spec.ts",
+      "line": 55,
+      "title": "row height under CSS zoom on every engine › at 75% › the row-header clone shows its last row",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T13:48:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46004446146",
+        "branch": "feature/DEV-4196_WebKit-zoom-auto-height",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-height-css-zoom-engines.spec.ts|row height under CSS zoom on every engine › at 90% › the grid does not overlap the element below it",
+      "tier": "playwright",
+      "file": "e2e/row-height-css-zoom-engines.spec.ts",
+      "line": 60,
+      "title": "row height under CSS zoom on every engine › at 90% › the grid does not overlap the element below it",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T13:48:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46004446146",
+        "branch": "feature/DEV-4196_WebKit-zoom-auto-height",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-height-css-zoom-engines.spec.ts|row height under CSS zoom on every engine › at 90% › the grid is as tall as the rows it holds",
+      "tier": "playwright",
+      "file": "e2e/row-height-css-zoom-engines.spec.ts",
+      "line": 50,
+      "title": "row height under CSS zoom on every engine › at 90% › the grid is as tall as the rows it holds",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T13:48:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46004446146",
+        "branch": "feature/DEV-4196_WebKit-zoom-auto-height",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-height-css-zoom-engines.spec.ts|row height under CSS zoom on every engine › at 90% › the row-header clone shows its last row",
+      "tier": "playwright",
+      "file": "e2e/row-height-css-zoom-engines.spec.ts",
+      "line": 55,
+      "title": "row height under CSS zoom on every engine › at 90% › the row-header clone shows its last row",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T13:48:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46004446146",
+        "branch": "feature/DEV-4196_WebKit-zoom-auto-height",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-height-css-zoom-engines.spec.ts|row height under CSS zoom on every engine › zoomed out after the grid was built › the grid is as tall as the rows it holds",
+      "tier": "playwright",
+      "file": "e2e/row-height-css-zoom-engines.spec.ts",
+      "line": 68,
+      "title": "row height under CSS zoom on every engine › zoomed out after the grid was built › the grid is as tall as the rows it holds",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T13:48:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46004446146",
+        "branch": "feature/DEV-4196_WebKit-zoom-auto-height",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
