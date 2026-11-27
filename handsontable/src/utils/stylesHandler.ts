@@ -823,7 +823,12 @@ export class StylesHandler {
     const layoutWidth = this.#rootElement.offsetWidth;
     const renderedZoom = layoutWidth > 0 ? this.#rootElement.getBoundingClientRect().width / layoutWidth : 1;
 
-    return renderedZoom > 0 ? renderedZoom : 1;
+    // `offsetWidth` is a whole number of pixels and the on-screen width is not, so the ratio wobbles by
+    // up to half a pixel over the width (1.0006 for a 700.4px root). Two decimals keep that from reading
+    // as a zoom change on every resize, and still tell the zoom levels apart.
+    const roundedZoom = Math.round(renderedZoom * 100) / 100;
+
+    return roundedZoom > 0 ? roundedZoom : 1;
   }
 
   /**

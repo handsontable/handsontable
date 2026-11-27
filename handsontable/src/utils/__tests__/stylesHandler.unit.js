@@ -1305,6 +1305,23 @@ describe('StylesHandler', () => {
       expect(handler.refreshZoomDependentValues()).toBe(false);
     });
 
+    it('should report no change for a sub-pixel width change on an engine without currentCSSZoom', () => {
+      // The fallback reads the zoom as the on-screen width over the layout width, so a root whose width
+      // went from 700.4px to 700.6px reads 1.0006 and then 0.9994. Neither is a zoom change.
+      const { handler, rootElement } = setUpHandler('border-bottom-width: 1px; height: 31px;');
+
+      Object.defineProperty(rootElement, 'offsetWidth', { value: 700, configurable: true });
+      rootElement.getBoundingClientRect = () => ({ width: 700.4 });
+      handler.clearCache();
+      rootElement.getBoundingClientRect = () => ({ width: 699.6 });
+
+      expect(handler.refreshZoomDependentValues()).toBe(false);
+
+      rootElement.getBoundingClientRect = () => ({ width: 630 });
+
+      expect(handler.refreshZoomDependentValues()).toBe(true);
+    });
+
     it('should report a change and re-read the border when the browser zoom moved the cell border', () => {
       const { handler, style } = setUpHandler('border-bottom-width: 1px;');
 
