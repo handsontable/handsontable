@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the browser tab hanging when a formula in the formula builder referenced a column or row far past the grid.",
+  "type": "fixed",
+  "issueOrPR": 14510,
+  "breaking": false,
+  "framework": "none"
+}
