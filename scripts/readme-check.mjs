@@ -17,7 +17,7 @@
  *   node scripts/readme-check.mjs --links=all  # also resolve third-party links (nightly)
  *   node scripts/readme-check.mjs --links=none # no network at all
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -283,6 +283,73 @@ export function findUnprefixedDocsLinks(links, flavour) {
 }
 
 /**
+ * The page slug of a docs guide URL: `https://handsontable.com/docs/react-data-grid/sheets-bar/`
+ * and `https://handsontable.com/docs/sheets-bar/` both give `/sheets-bar`.
+ *
+ * @param {string} url An absolute URL.
+ * @returns {string|null} The slug with a leading slash, or `null` when the URL is not a single-page
+ *   docs guide URL (another host, the docs homepage, a nested path such as an API page).
+ */
+export function docsPageSlug(url) {
+  const m = url.match(/^https?:\/\/(?:www\.)?handsontable\.com\/docs\/([a-z0-9-]+)(?:\/([a-z0-9-]+))?\/?(?:[?#].*)?$/);
+
+  if (m === null) {
+    return null;
+  }
+
+  const known = new Set(Object.values(DOCS_PREFIX));
+
+  if (m[2] !== undefined) {
+    return known.has(m[1]) ? `/${m[2]}` : null;
+  }
+
+  return known.has(m[1]) ? null : `/${m[1]}`;
+}
+
+/**
+ * Whether a dead docs link points at a page that is already in the docs source but not yet
+ * published. A release publishes its docs only after the release tag, while npm renders the README
+ * from the release branch, so a README that links a page new in that release has to merge first.
+ * A typo or a deleted page matches no permalink and stays a failure.
+ *
+ * @param {string} url The URL that returned 404.
+ * @param {Set<string>} permalinks Permalinks of the guide pages in `docs/content/guides`.
+ * @returns {boolean} `true` when the docs source holds the page.
+ */
+export function isUnpublishedDocsPage(url, permalinks) {
+  const slug = docsPageSlug(url);
+
+  return slug !== null && permalinks.has(slug);
+}
+
+/**
+ * Collect the `permalink:` of every guide page in the docs source.
+ *
+ * @param {string} guidesDir Absolute path of `docs/content/guides`.
+ * @returns {Set<string>} Permalinks such as `/sheets-bar`; empty when the directory is missing.
+ */
+function readDocsPermalinks(guidesDir) {
+  const permalinks = new Set();
+
+  if (!existsSync(guidesDir)) {
+    return permalinks;
+  }
+
+  for (const rel of readdirSync(guidesDir, { recursive: true })) {
+    if (typeof rel === 'string' && rel.endsWith('.md')) {
+      const head = readFileSync(path.join(guidesDir, rel), 'utf8').slice(0, 1500);
+      const m = head.match(/^permalink:\s*(\/[a-z0-9-]+)\s*$/m);
+
+      if (m !== null) {
+        permalinks.add(m[1]);
+      }
+    }
+  }
+
+  return permalinks;
+}
+
+/**
  * Resolve one URL, following redirects. HEAD first, falling back to GET for the hosts that answer
  * HEAD with a 405 (and for those that 404 a HEAD they would have served as a GET).
  *
@@ -431,11 +498,15 @@ async function main() {
 
     console.log(`Resolving ${wanted.size} ${mode === 'all' ? '' : 'internal '}link(s)…`);
     const statuses = await resolveAll([...wanted.keys()]);
+    const permalinks = readDocsPermalinks(path.join(ROOT, 'docs/content/guides'));
 
     for (const [url, where] of wanted) {
       const status = statuses.get(url);
 
-      if (DEAD.includes(status)) {
+      if (DEAD.includes(status) && isUnpublishedDocsPage(url, permalinks)) {
+        warnings.push(
+          `${where.join(', ')}: '${url}' returns ${status}, but the page is in docs/content and not published yet`);
+      } else if (DEAD.includes(status)) {
         failures.push(`${where.join(', ')}: '${url}' returns ${status}`);
       } else if (status === 0) {
         warnings.push(`${where.join(', ')}: '${url}' could not be reached`);

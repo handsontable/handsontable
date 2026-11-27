@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the XLSX export rounding numbers in a column whose `numericFormat` sets no fraction digits, such as a currency format with no `minimumFractionDigits`, and the XLSX import rounding numbers under a format with optional fraction digits, such as `0.##`.",
-  "type": "fixed",
-  "issueOrPR": 14376,
-  "breaking": false,
-  "framework": "none"
-}

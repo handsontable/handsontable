@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed `customBorders` edges that were not drawn on the first column and the first row after the frozen ones.",
-  "type": "fixed",
-  "issueOrPR": 14294,
-  "breaking": false,
-  "framework": "none"
-}

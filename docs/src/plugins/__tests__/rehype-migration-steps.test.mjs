@@ -152,3 +152,24 @@ test('numbered headings under a `## Steps` heading still go through the heading 
   assert.deepEqual(classesOf(wrapper), ['sl-steps']);
   assert.equal(wrapper.children.length, 2);
 });
+
+test('numbered h3 changes under each unnumbered group h2 become one step list per group', () => {
+  const tree = run([
+    el('h2', [text('Before you upgrade')]),
+    el('table', [text('Change | Affects | Do')]),
+    el('h3', [text('1. The license key no longer works')]),
+    el('p', [text('Body.')]),
+    el('h3', [text('2. The minimum browser versions are higher')]),
+    el('h2', [text('Changes in every grid')]),
+    el('table', [text('Change | Affects | Do')]),
+    el('h3', [text('1. Undo and redo restore a recorded state')]),
+  ]);
+  const tags = tree.children.map(node => node.tagName);
+
+  assert.deepEqual(tags, ['h2', 'table', 'ol', 'h2', 'table', 'ol']);
+  assert.equal(tree.children[2].children.length, 2);
+  assert.equal(tree.children[5].children.length, 1);
+  assert.deepEqual(classesOf(tree.children[2]), ['sl-steps']);
+  // The prefix is stripped, so the anchor comes from the title and the list's counter numbers the step.
+  assert.equal(tree.children[5].children[0].children[0].children[0].value, 'Undo and redo restore a recorded state');
+});
