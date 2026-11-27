@@ -34,7 +34,7 @@ you upgrade.
 
 | Change | Affects | Do |
 | --- | --- | --- |
-| [`non-commercial-and-evaluation` key no longer works](#the-non-commercial-and-evaluation-license-key-no-longer-works) | Apps that pass this key, or the Angular `NON_COMMERCIAL_LICENSE` constant | Get a trial, sponsored, or commercial key before you upgrade |
+| [`non-commercial-and-evaluation` key no longer works](#the-non-commercial-and-evaluation-license-key-no-longer-works) | Apps that pass this key, or the Angular `NON_COMMERCIAL_LICENSE` constant | Get a trial key, a free license for non-commercial projects, or a commercial license before you upgrade |
 | [Higher minimum browser versions](#the-minimum-browser-versions-are-higher) | Apps that support Chrome or Edge older than 130, Firefox older than 132, or Safari older than 18.2 | Raise your browser targets, or stay on 18.1 |
 | [Stricter license key check](#license-keys-are-checked-more-strictly) | Entitlement keys passed in a shortened or edited form | Pass the key exactly as you received it |
 | [Removed deprecated APIs](#removed-deprecated-apis) | Calls to APIs deprecated in 17.1 and 18.0 | Switch to the replacements |
@@ -54,8 +54,8 @@ import `NON_COMMERCIAL_LICENSE` from `@handsontable/angular-wrapper`.
 [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
 
 - To evaluate Handsontable, get a trial key at [handsontable.com/pricing](https://handsontable.com/pricing/).
-- For non-commercial use (education, research, study, and personal projects), apply for a sponsored license: a regular
-  key that Handsontable issues free of charge, at its discretion.
+- For non-commercial projects, such as teaching or academic research, you may qualify for a free license. To apply,
+  [contact our sales team](https://handsontable.com/contact/) and tell us about your project.
 - For commercial use, buy a commercial license.
 
 Before:
