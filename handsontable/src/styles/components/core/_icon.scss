@@ -57,10 +57,12 @@
     }
 
     // The mark of a checkbox or a radio button is always in the DOM, and the themes hide it in the off
-    // state with a transparent color only. The rules above would draw it on every box, so an unchecked
-    // box read as checked. It stays hidden until the input is checked or indeterminate.
-    input:not(:checked, :indeterminate) + .ht-icon:not(.ht-icon--external) {
-      color: transparent !important;
+    // state with a transparent color only. Forced colors would draw it on every box: a mask icon takes
+    // the rules above, and an external icon (text or SVG) takes the forced text color in place of the
+    // transparent one. So an unchecked box read as checked. The mark stays hidden until the input is
+    // checked or indeterminate, for both kinds of icon.
+    input:is([type="checkbox"], [type="radio"]):not(:checked, :indeterminate) + .ht-icon {
+      visibility: hidden;
     }
   }
 

@@ -431,34 +431,26 @@ the filter search took no focus, checkboxes and OK did nothing, and no submenu o
 `click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
 pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`, which also taps the Filters controls and a submenu parent.
 
-## Forced colors: the highlight is an outline, and a mask icon opts out (DEV-4003)
+## Forced colors: the highlighted and the hovered item are an outline (DEV-4003)
 
-Forced colors (a Windows contrast theme) paints every `background-color` with a system color and drops
-`box-shadow`. Two parts of a menu were built from exactly those:
+Forced colors (a Windows contrast theme) repaints every `background-color` with a system color and
+drops `box-shadow`. A menu marked its highlighted item with an inset `box-shadow` and its hovered item
+with a background, so in forced colors both looked like every other item.
 
-- **The highlighted item** is marked with an inset `box-shadow` (`_dropdown-menu.scss`). In forced colors
-  the same rule adds `outline: 2px solid Highlight; outline-offset: -2px`, inside
-  `@media (forced-colors: active)`. An outline survives there. Do not move the mark to a background: the
-  browser repaints it with the canvas color.
-- **A mask icon** (`.ht-icon`, `_icon.scss`) is a masked `background-color: currentColor`, so it took the
-  canvas color and vanished: the column menu button in a header, a submenu arrow, a checked box's mark. In
-  forced colors `.ht-icon:not(.ht-icon--external)` sets `forced-color-adjust: none` and `color: CanvasText
-  !important`. The `!important` is needed: the per-control icon colors are more specific, and a theme color
-  on a forced canvas can have no contrast. An external icon is text or inline SVG, which the browser
-  recolors itself. Every mask icon in the grid follows this rule, not only the menus'. Three rules ride
-  along in the same block:
-  - An icon inside a `button` takes `ButtonText`, and `GrayText` in a disabled one.
-  - **The mark of an unchecked checkbox or radio stays transparent**
-    (`input:not(:checked, :indeterminate) + .ht-icon`). That mark is always in the DOM, and the themes hide
-    it in the off state with a transparent color token only, so the rule above drew it on every box and an
-    unchecked box read as checked. A new control that hides an icon by color alone needs the same care:
-    hide it with `visibility` or add its off state here.
+- **The mark is the `forced-colors-item-mark` mixin** (`src/styles/utils/_mixins.scss`): `outline: 2px
+  solid Highlight; outline-offset: -2px` inside `@media (forced-colors: active)`. An outline survives
+  there. Do not move the mark to a background: the browser repaints it with the canvas color.
+- **Every list of items uses it, on the hover and the highlight rule alike:** the menus
+  (`_dropdown-menu.scss`), the dropdown and autocomplete editor's list (`_dropdown-editor.scss`), and the
+  sheets bar's menus, whose rows are custom-rendered (`_sheets-bar.scss`). A new list that marks an item
+  with a shadow or a background includes the mixin next to that rule.
+- **An item whose submenu is open stays unmarked**, as outside forced colors, where the inset shadow
+  skips `[aria-expanded="true"]` too. The parent row under the pointer is marked by the hover rule; a
+  hovered plain item takes the highlight class anyway, so only the submenu parent shows the hover rule
+  on its own.
 
-Not covered: the highlighted row of the dropdown and autocomplete editor's list (`_dropdown-editor.scss`)
-and of the sheets bar's all-sheets menu (`_sheets-bar.scss`) are box shadows of their own and get no
-outline yet.
-
-Both rules apply in forced colors only, so the three themes look as before outside it. Pinned by
-`tests/e2e/forced-colors-icons-menu.spec.ts`, which compares captures: the computed style keeps the
-author's value in forced colors and cannot show the defect.
-
+Mask icons in forced colors (the header menu button, the submenu arrow, a checked box's mark) are a
+core rule, not a menu one: `handsontable/AGENTS.md`, Accessibility. Both apply in forced colors only, so
+the three themes look as before outside it. Pinned by `tests/e2e/forced-colors-icons-menu.spec.ts`,
+which compares captures: the computed style keeps the author's value in forced colors and cannot show
+the defect.
