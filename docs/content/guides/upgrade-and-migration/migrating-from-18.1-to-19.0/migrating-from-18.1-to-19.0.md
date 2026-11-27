@@ -177,8 +177,8 @@ one-time console warning that names `colHeaders`.
   `saveManualRowHeights()` and `loadManualRowHeights()` ([`ManualRowResize`](@/api/manualRowResize.md)), deprecated in
   18.0: save and restore the sizes with the `columnWidths` and `rowHeights` parts of the
   [view state](@/guides/getting-started/view-state/view-state.md), as in the example below, or with
-  [`getManualSizes()`](@/api/manualColumnResize.md#getmanualsizes) and
-  [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes).
+  `getManualSizes()` and `setManualSizes()` of [`ManualColumnResize`](@/api/manualColumnResize.md#getmanualsizes)
+  and [`ManualRowResize`](@/api/manualRowResize.md#getmanualsizes).
 - `Handsontable.helper.sanitize()`, deprecated in 18.0: remove the call and use its argument directly. To sanitize the
   HTML the grid renders, set the [`sanitizer`](@/api/options.md#sanitizer) option.
 - The `columnHeaders` export option of the [`ExportFile`](@/api/exportFile.md) plugin, deprecated in 17.1: rename it to
@@ -204,13 +204,19 @@ back to its row or column after a sort, a filter, or a move:
 
 ```js
 const viewState = hot.getPlugin('viewState');
+
+// Save
 const { columnWidths, rowHeights } = viewState.getViewState();
 
 localStorage.setItem('gridSizes', JSON.stringify({ columnWidths, rowHeights }));
 
-const saved = JSON.parse(localStorage.getItem('gridSizes'));
+// Restore, for example right after you create the grid
+const stored = localStorage.getItem('gridSizes');
 
-viewState.setViewState({ version: 1, ...saved });
+// Nothing is stored on a first visit
+if (stored !== null) {
+  viewState.setViewState({ version: 1, ...JSON.parse(stored) });
+}
 ```
 
 ::: details Details: Removed deprecated APIs

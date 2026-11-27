@@ -363,17 +363,23 @@ To keep the widths users set, for example across page reloads, use the [`ViewSta
 ```js
 const viewState = hot.getPlugin('viewState');
 
-localStorage.setItem('columnWidths', JSON.stringify(viewState.getViewState().columnWidths));
+// Save
+localStorage.setItem('columnWidths', JSON.stringify(viewState.getViewState().columnWidths ?? []));
 
-viewState.setViewState({
-  version: 1,
-  columnWidths: JSON.parse(localStorage.getItem('columnWidths')),
-});
+// Restore, for example right after you create the grid
+const stored = localStorage.getItem('columnWidths');
+
+// Nothing is stored on a first visit
+if (stored !== null) {
+  viewState.setViewState({ version: 1, columnWidths: JSON.parse(stored) });
+}
 ```
 
-`columnWidths` holds `[physicalColumn, width]` pairs for the columns users resized, so each width goes back to the same column after users move columns. `setViewState()` replaces the stored widths with the saved ones, leaves the other parts of the view alone, and repaints the grid. To save the sort order, filters, or hidden columns too, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+`columnWidths` holds `[physicalColumn, width]` pairs for the columns users resized, so each width goes back to the same column after users move columns. `getViewState()` leaves the part out while the `ManualColumnResize` plugin is disabled, which is why the example saves an empty array then. `setViewState()` replaces the stored widths with the saved ones, leaves the other parts of the view alone, and repaints the grid. If you import from `handsontable/base`, [register the `ViewState` plugin](@/guides/getting-started/view-state/view-state.md#overview) first. To save the sort order, filters, or hidden columns too, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
 
-To work with the widths without the view state, use [`ManualColumnResize#getManualSize()`](@/api/manualColumnResize.md#getmanualsize) for one column (by visual index), or [`getManualSizes()`](@/api/manualColumnResize.md#getmanualsizes) and [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes), which use the same pairs. `setManualSizes()` writes only the columns you pass and does not repaint the grid, so call `hot.render()` after it. A width below the [minimum column width](#minimum-column-width) is stored as the minimum.
+To work with the widths without the view state, use [`ManualColumnResize#getManualSize()`](@/api/manualColumnResize.md#getmanualsize) for one column (by visual index), or [`getManualSizes()`](@/api/manualColumnResize.md#getmanualsizes) and [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes), which use the same pairs. `setManualSizes()` writes only the columns you pass and does not repaint the grid, so call `hot.render()` after it.
+
+Both ways store a width below the [minimum column width](#minimum-column-width) as the minimum.
 
 ## Column stretching
 

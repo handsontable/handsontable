@@ -861,7 +861,7 @@ hot.getPlugin('manualRowResize').loadManualRowHeights();
 
 #### How to migrate
 
-Remove all calls to these methods. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
+Remove all calls to these methods. In 18.x, if you need to persist column widths or row heights across page loads, store the sizes yourself -- for example in `localStorage` -- and pass them back as arrays to the [`manualColumnResize`](@/api/options.md#manualcolumnresize) and [`manualRowResize`](@/api/options.md#manualrowresize) options when the grid initializes. From 19.0, save and restore them with the view state instead: see [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis).
 
 ## Summary of breaking changes
 
