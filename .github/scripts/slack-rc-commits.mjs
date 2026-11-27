@@ -91,15 +91,15 @@ if (isMain) {
 
   if (!prevTag || !head || !repoUrl) {
     process.stderr.write('Usage: node slack-rc-commits.mjs <prev-tag> <head-ref> <repo-url>\n');
-    process.exit(1);
+    process.exitCode = 1;
+  } else {
+    const headSha = execFileSync('git', ['rev-parse', head], { encoding: 'utf8' }).trim();
+
+    process.stdout.write(buildCommitsSection({
+      prevTag,
+      commits: refExists(prevTag) ? listCommits(prevTag, headSha) : null,
+      repoUrl,
+      compareUrl: `${repoUrl}/compare/${prevTag}...${headSha}`,
+    }));
   }
-
-  const headSha = execFileSync('git', ['rev-parse', head], { encoding: 'utf8' }).trim();
-
-  process.stdout.write(buildCommitsSection({
-    prevTag,
-    commits: refExists(prevTag) ? listCommits(prevTag, headSha) : null,
-    repoUrl,
-    compareUrl: `${repoUrl}/compare/${prevTag}...${headSha}`,
-  }));
 }

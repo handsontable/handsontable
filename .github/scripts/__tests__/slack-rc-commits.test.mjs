@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -137,6 +137,14 @@ test('prints the section from the command line', () => {
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('exits with 1 and prints the usage when an argument is missing', () => {
+  const run = spawnSync('node', [SCRIPT, 'rc1', 'HEAD'], { cwd: ROOT, encoding: 'utf8' });
+
+  assert.equal(run.status, 1);
+  assert.equal(run.stdout, '');
+  assert.match(run.stderr, /^Usage: node slack-rc-commits\.mjs <prev-tag> <head-ref> <repo-url>\n$/);
 });
 
 test('every Slack step in publish.yml fails the job when Slack rejects the message', () => {
