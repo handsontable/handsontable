@@ -733,11 +733,11 @@ Three guards hold it, one per runner, because no single check sees every runner:
 - **Jasmine and fixture pages: a static scan.** `scripts/__tests__/test-license-key.test.mjs` (root
   `test:tooling`) reads every grid constructor: `new Handsontable(`, `new Handsontable.Core(`, `new Core(`,
   the same through an object (`new win.Handsontable(`), and jQuery's `.handsontable(`. It fails on one whose
-  arguments do not name `licenseKey`, unless its options get the key from the same file. They get it through
-  a name whose value flows into them: a variable, a spread, an `Object.assign()` argument, or a helper the
-  options call, followed three names deep, or an `options.licenseKey =` assignment. A name in a callback, in
-  a call's arguments, or in a property's value does not count, and neither does a key in a comment, in a
-  string, or in an import path. Names are matched in the whole file, not by scope. The scan masks strings
+  options hold no `licenseKey` property of their own, unless they get one from the same file. They get it
+  through a name whose value flows into them: a variable, a spread, an `Object.assign()` argument, or a
+  helper the options call, followed three names deep, or an `options.licenseKey =` assignment. A
+  `licenseKey` or a name in a nested object, a callback, a call's arguments, or a property's value does not
+  count, and neither does a key in a comment, in a string, or in an import path. Names are matched in the whole file, not by scope. The scan masks strings
   and comments first (`maskSource()`), so a parenthesis, a comma, or a constructor inside them counts for
   nothing. A fixture is code only inside its `<script>` blocks, and so is a page a spec writes in a template
   literal. A runtime check cannot do this job in Jasmine: the whole suite shares one page, and the core

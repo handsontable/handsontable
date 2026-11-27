@@ -376,7 +376,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   fixture in `fixtures/test.ts` fails a test that passed after its page showed a `.ht-license-lock`, in any
   frame (`fixtures/licenseLockGuard.ts`). An init script reports each lock as it mounts, so a lock counts
   even when the test destroyed its grid, navigated the frame away, or closed the page, once the report has
-  reached Node (a report sent in the test's last step can still be in flight). A frame a script built with
+  reached Node. The guard's `page.close()` makes one round trip first, so a report in flight lands (WebKit
+  drops it otherwise); a report sent in the test's last step can still be in flight at teardown. A frame a script built with
   `document.open()` is read at the end instead. An error reading a frame fails the test, unless the frame
   went away. A test that failed gets the lock as a `license-lock` annotation, not a second failure. A lock
   inside a shadow root is not seen.

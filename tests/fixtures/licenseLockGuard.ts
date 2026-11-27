@@ -121,6 +121,16 @@ export async function watchLicenseLocks(
       reported.push(url);
     });
     await page.addInitScript(reportLocksAsTheyMount, { binding: LICENSE_LOCK_BINDING, lockClass: LOCK_CLASS });
+
+    const close = page.close.bind(page);
+
+    // One round trip before the page closes lets a report still in flight reach Node: WebKit drops it
+    // otherwise, when the page closes right after the lock mounted.
+    page.close = async(...args: Parameters<Page['close']>) => {
+      await page.evaluate(() => 0).catch(() => {});
+
+      return close(...args);
+    };
   }
 
   return {

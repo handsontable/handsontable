@@ -644,102 +644,56 @@ const LEADING_NAME = /^([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*([([]?)/;
 // The names that never lead to a key in this file.
 const NOT_RESOLVED = new Set(['window', 'document', 'this', 'undefined', 'null', 'structuredClone', 'JSON']);
 
+// An object literal's own `licenseKey` property: `licenseKey: …`, `'licenseKey': …`, or the shorthand.
+const OWN_KEY = /^\s*(?:licenseKey|(['"])licenseKey\1)\s*(?::|$)/;
+
 /**
- * Whether a span names `licenseKey` in code: as an identifier, or as a quoted property name. A `licenseKey`
- * inside any other string (a title, a message) gives no grid a key.
+ * Returns a span without the white space at its ends.
  *
- * @param {{ code: string, noComments: string }} source The masked file.
- * @param {number} from The index the span starts at.
- * @param {number} to The index it ends at.
- * @returns {boolean}
+ * @param {string} code The masked code.
+ * @param {[number, number]} span The span.
+ * @returns {[number, number]}
  */
-function namesKey(source, from, to) {
-  return /\blicenseKey\b/.test(source.code.slice(from, to))
-    || /['"]licenseKey['"]\s*:/.test(source.noComments.slice(from, to));
+function trimSpan(code, [from, to]) {
+  let start = from;
+  let end = to;
+
+  while (start < end && /\s/.test(code[start])) {
+    start += 1;
+  }
+
+  while (end > start && /\s/.test(code[end - 1])) {
+    end -= 1;
+  }
+
+  return [start, end];
 }
 
 /**
- * Splits the text between a pair of brackets at its top-level commas.
+ * Splits a span at its top-level commas.
  *
- * @param {string} inner The text between the brackets.
- * @returns {string[]}
+ * @param {string} code The masked code.
+ * @param {number} from The index the span starts at.
+ * @param {number} to The index it ends at.
+ * @returns {Array<[number, number]>}
  */
-function topLevelParts(inner) {
-  const parts = [];
+function topLevelSpans(code, from, to) {
+  const spans = [];
   let depth = 0;
-  let start = 0;
+  let start = from;
 
-  for (let index = 0; index < inner.length; index++) {
-    if ('([{'.includes(inner[index])) {
+  for (let index = from; index < to; index++) {
+    if ('([{'.includes(code[index])) {
       depth += 1;
-    } else if (')]}'.includes(inner[index])) {
+    } else if (')]}'.includes(code[index])) {
       depth -= 1;
-    } else if (inner[index] === ',' && depth === 0) {
-      parts.push(inner.slice(start, index));
+    } else if (code[index] === ',' && depth === 0) {
+      spans.push([start, index]);
       start = index + 1;
     }
   }
 
-  return [...parts, inner.slice(start)];
-}
-
-/**
- * Lists the names whose value flows into an expression, read from masked code: the expression itself when it
- * is a name (`settings`, `window.htSettings`), the function it calls (`baseSettings('a')`) or the object it
- * indexes (`scenarios[name]()`), the spread sources of an object literal (`{ ...base }`), the arguments of
- * `Object.assign()`, and an arrow function's result. A name inside a callback, a call's arguments or a
- * property's value flows nowhere, so a grid that only mentions a keyed one does not borrow its key.
- *
- * @param {string} text The expression, masked.
- * @returns {string[]}
- */
-function flowNames(text) {
-  let expression = text.trim()
-    .replace(/^<[^>]*>\s*/, '')
-    .replace(/\s+(?:as|satisfies)\s+[\w$.<>[\], |]+$/, '');
-
-  while (expression.startsWith('(') && closingParen(expression, 0) === expression.length - 1) {
-    expression = expression.slice(1, -1).trim();
-  }
-
-  const arrow = expression.match(/^(?:async\s+)?(?:\([^()]*\)|[A-Za-z_$][\w$]*)\s*=>\s*/);
-
-  if (arrow) {
-    const body = expression.slice(arrow[0].length);
-
-    return body.startsWith('{') ? returnedNames(body) : flowNames(body);
-  }
-
-  if (expression.startsWith('{')) {
-    return topLevelParts(expression.slice(1, closingBrace(expression, 0)))
-      .map(part => part.trim().match(/^\.\.\.\s*([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)/)?.[1])
-      .filter(name => name !== undefined);
-  }
-
-  const leading = expression.match(LEADING_NAME);
-
-  if (!leading) {
-    return [];
-  }
-
-  if (leading[1] === 'Object.assign' && leading[2] === '(') {
-    const open = leading[0].length - 1;
-
-    return topLevelParts(expression.slice(open + 1, closingParen(expression, open))).flatMap(flowNames);
-  }
-
-  return [leading[1]];
-}
-
-/**
- * Lists the names whose value a function body returns.
- *
- * @param {string} body The body, masked, braces included.
- * @returns {string[]}
- */
-function returnedNames(body) {
-  return [...body.matchAll(/\breturn\b/g)]
-    .flatMap(match => flowNames(body.slice(match.index + 6, expressionEnd(body, match.index + 6))));
+  return [...spans, [start, to]];
 }
 
 /**
@@ -774,49 +728,129 @@ function declarationSpans(code, name) {
 }
 
 /**
- * Whether an expression carries a license key this file gives it: the expression names `licenseKey`, or a
- * name whose value flows into it (`flowNames()`, `returnedNames()` for a function body) is declared in the
- * file with a value or a body that does, or gets one assigned (`settings.licenseKey = …`). Followed three
- * names deep. Names are matched in the whole file, not by scope, so two tests that each declare `settings`
- * share what either declaration holds. A name declared in another file carries nothing.
+ * Whether a function body returns a value that carries a key (`expressionCarriesKey()`).
  *
  * @param {{ code: string, noComments: string }} source The masked file.
- * @param {[number, number]} span The span to read.
- * @param {boolean} isBody Whether the span is a function body.
- * @param {number} depth How many names deep this span is.
+ * @param {[number, number]} span The body, braces included.
+ * @param {number} depth How many names deep this body is.
  * @param {Set<string>} seen The names already followed.
  * @returns {boolean}
  */
-function carriesKey(source, [from, to], isBody = false, depth = 0, seen = new Set()) {
-  if (namesKey(source, from, to)) {
-    return true;
-  }
+function bodyCarriesKey(source, [from, to], depth, seen) {
+  return [...source.code.slice(from, to).matchAll(/\breturn\b/g)].some((match) => {
+    const start = from + match.index + 'return'.length;
 
+    return expressionCarriesKey(source, [start, Math.min(expressionEnd(source.code, start), to)], depth, seen);
+  });
+}
+
+/**
+ * Whether a name carries a key this file gives it: an assignment `name.licenseKey = …`, or a declaration of the
+ * name whose value or body carries one. Followed three names deep. A name declared in another file, or only
+ * as a function parameter, carries nothing.
+ *
+ * @param {{ code: string, noComments: string }} source The masked file.
+ * @param {string} name The name, possibly dotted.
+ * @param {number} depth How many names deep the name is.
+ * @param {Set<string>} seen The names already followed.
+ * @returns {boolean}
+ */
+function nameCarriesKey(source, name, depth, seen) {
   if (depth >= 3) {
     return false;
   }
 
-  const text = source.code.slice(from, to);
-  const names = (isBody ? returnedNames(text) : flowNames(text))
-    .flatMap(name => (name.startsWith('window.') ? [name, name.slice('window.'.length)] : [name]));
+  const names = name.startsWith('window.') ? [name, name.slice('window.'.length)] : [name];
 
-  return names.filter(name => !NOT_RESOLVED.has(name) && !seen.has(name)).some((name) => {
-    seen.add(name);
+  return names.filter(candidate => !NOT_RESOLVED.has(candidate) && !seen.has(candidate)).some((candidate) => {
+    seen.add(candidate);
 
-    if (new RegExp(`(?<![\\w$.])${escapeName(name)}\\.licenseKey\\s*=(?!=)`).test(source.code)) {
+    if (new RegExp(`(?<![\\w$.])${escapeName(candidate)}\\.licenseKey\\s*=(?!=)`).test(source.code)) {
       return true;
     }
 
-    return declarationSpans(source.code, name)
-      .some(declared => carriesKey(source, declared.span, declared.isBody, depth + 1, seen));
+    return declarationSpans(source.code, candidate).some(({ span, isBody }) => (isBody
+      ? bodyCarriesKey(source, span, depth + 1, seen)
+      : expressionCarriesKey(source, span, depth + 1, seen)));
   });
+}
+
+/**
+ * Whether an expression's value carries a license key. An object literal carries one when it has its own
+ * `licenseKey` property, or when a spread source carries one. A name carries what this file gives it
+ * (`nameCarriesKey()`), a call what the called function returns, `Object.assign()` what any argument
+ * carries, an arrow function what it returns. A `licenseKey` inside a nested object, a callback or a
+ * property's value is not the grid's key, and neither is a name used there.
+ *
+ * @param {{ code: string, noComments: string }} source The masked file.
+ * @param {[number, number]} span The expression's span.
+ * @param {number} [depth] How many names deep this expression is.
+ * @param {Set<string>} [seen] The names already followed.
+ * @returns {boolean}
+ */
+function expressionCarriesKey(source, span, depth = 0, seen = new Set()) {
+  const { code } = source;
+  let [from, to] = trimSpan(code, span);
+
+  if (code[from] === '<' && code.indexOf('>', from) !== -1 && code.indexOf('>', from) < to) {
+    [from, to] = trimSpan(code, [code.indexOf('>', from) + 1, to]);
+  }
+
+  const typed = code.slice(from, to).match(/\s+(?:as|satisfies)\s+[\w$.<>[\], |]+$/);
+
+  if (typed) {
+    to -= typed[0].length;
+  }
+
+  while (code[from] === '(' && closingParen(code, from) === to - 1) {
+    [from, to] = trimSpan(code, [from + 1, to - 1]);
+  }
+
+  const text = code.slice(from, to);
+  const arrow = text.match(/^(?:async\s+)?(?:\([^()]*\)|[A-Za-z_$][\w$]*)\s*=>\s*/);
+
+  if (arrow) {
+    const body = from + arrow[0].length;
+
+    return code[body] === '{'
+      ? bodyCarriesKey(source, [body, to], depth, seen)
+      : expressionCarriesKey(source, [body, to], depth, seen);
+  }
+
+  if (code[from] === '{') {
+    return topLevelSpans(code, from + 1, closingBrace(code, from)).some(([start, end]) => {
+      if (OWN_KEY.test(source.noComments.slice(start, end))) {
+        return true;
+      }
+
+      const [partStart, partEnd] = trimSpan(code, [start, end]);
+
+      return code.startsWith('...', partStart)
+        && expressionCarriesKey(source, [partStart + 3, partEnd], depth, seen);
+    });
+  }
+
+  const leading = text.match(LEADING_NAME);
+
+  if (!leading) {
+    return false;
+  }
+
+  if (leading[1] === 'Object.assign' && leading[2] === '(') {
+    const open = from + leading[0].length - 1;
+
+    return topLevelSpans(code, open + 1, closingParen(code, open))
+      .some(argument => expressionCarriesKey(source, argument, depth, seen));
+  }
+
+  return nameCarriesKey(source, leading[1], depth, seen);
 }
 
 /**
  * Finds the grids a test file builds without a license key, by line. The file is read through
  * `maskSource()`, so a constructor, a parenthesis or a comma inside a string or a comment counts for
- * nothing. A call passes when its arguments name `licenseKey`, when they are a string (a jQuery method call
- * such as `.handsontable('getInstance')`), or when its options carry a key the file gives them (`carriesKey()`).
+ * nothing. A call passes when its first argument is a string (a jQuery method call such as
+ * `.handsontable('getInstance')`), or when its options carry a key (`expressionCarriesKey()`).
  *
  * @param {string} text The file's text.
  * @param {string} [path] The file's path, which decides whether the file is markup.
@@ -835,22 +869,23 @@ function keylessGridLines(text, path = 'spec.js') {
       const open = match.index + match[0].length - 1;
       const close = closingParen(source.code, open);
 
-      if (/^\s*['"`]/.test(source.code.slice(open + 1, close)) || namesKey(source, open + 1, close)) {
+      if (/^\s*['"`]/.test(source.code.slice(open + 1, close))) {
         return false;
       }
 
       const options = optionsSpan(source.code, open + 1, close, match[0].startsWith('.'));
 
-      return options === null || !carriesKey(source, options);
+      return options === null || !expressionCarriesKey(source, options);
     })
     .map(match => text.slice(0, match.index).split('\n').length);
 }
 
 // The files that build grids without a key on purpose, with the reason. The license specs build theirs
 // through the Jasmine helper (`handsontable({}, true)`), which this scan does not read, or through a fixture
-// page that takes its key from the spec, so only the lock guard's own page object is listed.
+// page that takes its key from the spec.
 const KEYLESS_ALLOWED = {
   'tests/fixtures/pages/LicenseLockGuardPage.ts': 'builds the locked grid the lock guard\'s own spec must find',
+  'tests/fixtures/demo/license-branding.html': 'builds a grid per license state, a missing key included',
 };
 
 test('every grid a spec or a fixture builds takes a license key', () => {
@@ -968,6 +1003,13 @@ test('the keyless scan follows indirect options to the key the file gives them, 
     'new Handsontable(el, settings);',
     'new Handsontable(el, { title: \'licenseKey\' });',
   ].join('\n')), [3, 4]);
+  // A `licenseKey` in a nested object or a callback is not the grid's own key.
+  assert.deepEqual(keylessGridLines([
+    'new Handsontable(el, { nested: { licenseKey: TEST_LICENSE_KEY } });',
+    'new Handsontable(el, { afterInit() { log(this.getSettings().licenseKey); } });',
+    'new Handsontable(el, { data: [], \'licenseKey\': TEST_LICENSE_KEY });',
+    'new Handsontable(el, { data: [], licenseKey });',
+  ].join('\n')), [1, 2]);
   // A name inside a callback, a call's arguments or a property's value does not flow into the options.
   assert.deepEqual(keylessGridLines([
     'const hot = new Handsontable(a, { licenseKey: TEST_LICENSE_KEY });',

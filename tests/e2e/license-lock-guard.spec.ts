@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { LICENSE_LOCK_BINDING, watchLicenseLocks } from '../fixtures/licenseLockGuard';
 import { LicenseLockGuardPage } from '../fixtures/pages/LicenseLockGuardPage';
 
@@ -6,7 +6,8 @@ import { LicenseLockGuardPage } from '../fixtures/pages/LicenseLockGuardPage';
 // These tests drive the same guard on a page they open in the test's context, which the fixture does not
 // guard, so the locked grid each one builds on purpose fails only what the test asserts.
 
-test.describe('The license lock guard', () => {
+// Tagged for Firefox and WebKit: whether a lock report reaches Node before a page closes is the engine's.
+test.describe('The license lock guard', { tag: CROSS_BROWSER_TAG }, () => {
   test('watches the page the fixture hands a test', async({ page, theme, bundle }) => {
     await new LicenseLockGuardPage(page, theme, bundle).goto();
 
