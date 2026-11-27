@@ -436,7 +436,7 @@ function lexScript(text, from, to, code, noComments) {
  * @param {boolean} [inTemplate] Whether the markup is the text of a template literal.
  */
 function lexScriptBlocks(text, from, to, code, noComments, inTemplate = false) {
-  for (const match of text.slice(from, to).matchAll(/(<script\b[^>]*>)([\s\S]*?)<\/script>/gi)) {
+  for (const match of text.slice(from, to).matchAll(/(<script\b[^>]*>)([\s\S]*?)<\/script\s*>/gi)) {
     const start = from + match.index + match[1].length;
     const end = start + match[2].length;
     const view = inTemplate
@@ -629,13 +629,13 @@ function closingBrace(code, open) {
 }
 
 /**
- * Escapes a dotted name for a regular expression.
+ * Escapes a name for a regular expression.
  *
  * @param {string} name The name.
  * @returns {string}
  */
 function escapeName(name) {
-  return name.replace(/[$.]/g, '\\$&');
+  return name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
 }
 
 // A name, possibly dotted (`window.htSettings`), at the start of an expression.
@@ -934,8 +934,10 @@ test('the keyless scan reads a fixture as markup, and a page a spec writes in a 
     '<script>',
     '  new Handsontable(a, { licenseKey: window.htTestLicenseKey });',
     '  new Handsontable(b, {});',
-    '</script>',
-  ].join('\n'), 'tests/fixtures/demo/new.html'), [4]);
+    // An end tag with a space still ends the block, so the prose after it is not read as code.
+    '</script >',
+    '<p>Don\'t</p><script>new Handsontable(c, {});</script>',
+  ].join('\n'), 'tests/fixtures/demo/new.html'), [4, 6]);
   assert.deepEqual(keylessGridLines([
     'const html = `<!DOCTYPE html>',
     '<script>',
