@@ -362,14 +362,15 @@ export class StylesHandler {
     const lineHeightVarValue = this.getCSSVariableValue('line-height');
     const verticalPaddingVarValue = this.getCSSVariableValue('cell-vertical-padding');
     const renderedBottomBorderWidth = Number.parseFloat(this.getStyleForTD('border-bottom-width') ?? '');
-    // The whole-pixel width the declared height counts. An inflated border (1px or wider) is counted
-    // by its whole pixels, never rounded up: 1.111px at 90% counts 1px, and 2.5px at 40% counts 2px.
-    // Rounding counted 3px there, declared every row half a pixel taller than it renders, and left a
-    // gap below the rows that the gate below could never close, because the border never read wider
-    // than what was counted. One layout unit of slack keeps a whole width reported a hair short
-    // (1.99999px) on its pixel. A border thinner than 1px (0.8px at 125%) still rounds to the 1px the
-    // cells' height rule reserves, and 0 stays 0.
-    const bottomBorderWidth = renderedBottomBorderWidth >= 1 ?
+    // The whole-pixel width the declared height counts. Below 100% (a device scale under 1) a border
+    // of 1px or wider is counted by its whole pixels, never rounded up: 1.111px at 90% counts 1px, and
+    // 2.5px at 40% counts 2px. Rounding counted 3px there, declared every row half a pixel taller than
+    // it renders, and left a gap below the rows that the gate below could never close, because the
+    // border never read wider than what was counted. One layout unit of slack keeps a whole width
+    // reported a hair short (1.99999px) on its pixel. Every other border keeps `Math.round`: 0.8px at
+    // 125% still counts the 1px the cells' height rule reserves, 0 stays 0, and a custom border that
+    // reads a fraction at or above 100% is counted as it always was.
+    const bottomBorderWidth = renderedBottomBorderWidth >= 1 && this.#deviceScale() < 1 ?
       Math.floor(renderedBottomBorderWidth + LAYOUT_UNIT) : Math.round(renderedBottomBorderWidth);
 
     if (
@@ -505,7 +506,8 @@ export class StylesHandler {
     }
 
     // What the browser adds cannot exceed the device pixel the border was rounded up to, so the bound
-    // is derived from the device scale rather than picked: 0.25px at 80%, 1.5px at 40% CSS zoom.
+    // is derived from the device scale rather than picked: 0.25px at 80%, 1.5px at 40% CSS zoom in WebKit
+    // (the border reads 1px there), 0.5px at the same zoom in Chromium (it reads 2.5px and counts 2).
     // Anything past it is cell styling the probe cannot represent, so the declared height stays
     // authoritative. A fixed cap would be a cliff — a theme override that pushed the cell just past it
     // would silently reopen this defect while a slightly smaller one stayed corrected.
@@ -532,8 +534,9 @@ export class StylesHandler {
   #maxCellOvergrowth(roundedBorderWidth: number): number {
     const deviceScale = this.#deviceScale();
 
-    // A scale at or above 1 inflates nothing, and this is only reached when something did grow, so
-    // fall back to one whole pixel rather than to zero.
+    // A scale at or above 1 inflates nothing. This is reached there only for a border the engine reports
+    // wider than its rounded value without any inflation (a custom fractional border), so fall back to one
+    // whole pixel rather than to zero, as before.
     return deviceScale > 0 && deviceScale < 1 ? Math.max((1 / deviceScale) - roundedBorderWidth, 0) : 1;
   }
 
@@ -571,10 +574,11 @@ export class StylesHandler {
    * theme stylesheet applies, and unlike `#rootComputedStyle` — a live declaration, so the CSS
    * variables read through it are always current — a snapshotted string stays frozen at whatever the
    * unthemed cell measured. Keying the cache on the declared height and the device pixel ratio
-   * re-measures once either moves, which covers a late-arriving theme, and a zoom change on a grid
-   * that was ALREADY below 100% when it was built. A grid built at 100% and zoomed out afterwards
-   * reaches here once `refreshZoomDependentValues()` has replaced the border snapshot the gate in
-   * front of this reads — see the note there.
+   * re-measures once either moves, which covers a late-arriving theme, and a device pixel ratio change
+   * on a grid that was ALREADY below 100% when it was built. A CSS zoom change moves neither key: it,
+   * and a grid built at 100% and zoomed out afterwards, reach here once `refreshZoomDependentValues()`
+   * has cleared this cache and replaced the snapshot the gate in front of this reads — see the note
+   * there.
    *
    * Only a usable measurement is stored. A probe that resolves no layout — a grid built inside a
    * `display: none` tab, accordion or modal — must not be cached: neither key moves when the container

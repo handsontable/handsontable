@@ -3034,7 +3034,8 @@ class TableView {
    * the styles handler sizes rows from that only when the border it cached was already inflated. A grid built at
    * 100% and zoomed out afterwards kept the declared height and every sum of row heights fell short per row: the
    * guideline of `ManualRowMove`, the scroll range, the row-header clone (GitHub #14330). The handler re-reads the
-   * border and, when it moved, the row-height cache is dropped here, so the next render measures the rows again.
+   * border and the root's CSS zoom (WebKit reads the border as 1px at every CSS zoom level) and, when either
+   * moved, the row-height cache is dropped here, so the next render measures the rows again.
    * The oversized-row records stay: without `AutoRowSize` nothing else knows the height of a tall row outside the
    * rendered band, and a render measures the rows it draws. The column width cache is left alone too, because a
    * measured width (`AutoColumnSize`) does not depend on the border.

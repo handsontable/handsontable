@@ -886,6 +886,35 @@ describe('StylesHandler', () => {
       expect(handler.getDefaultRowHeight()).toBeCloseTo(32.469, 3);
     });
 
+    it('should count an inflated border past half a pixel by its whole pixels at a device scale below 1', () => {
+      // Chrome at 67%: the ratio reads 0.667 and the border 1.5px. Rounding counted 2px and declared 32px
+      // for a cell that renders 31.48px.
+      setDevicePixelRatio(0.6667);
+
+      const { handler } = setUpHandler('border-bottom-width: 1.5px; height: 31.4776px;');
+
+      expect(handler.getDefaultRowHeight()).toBeCloseTo(31.478, 3);
+    });
+
+    it('should keep counting a whole border reported a hair short on its pixel', () => {
+      // 50%: a 2px border reported as 1.99999px. Without the slack it counted 1px and sized rows from the
+      // probe's 31.5px instead of the declared 32px.
+      setDevicePixelRatio(0.5);
+
+      const { handler } = setUpHandler('border-bottom-width: 1.99999px; height: 31.5px;');
+
+      expect(handler.getDefaultRowHeight()).toBe(32);
+    });
+
+    it('should round a fractional custom border at or above 100% as before', () => {
+      // A theme that sets a 2px border, at 125%: it reads 1.6px and still counts 2px.
+      setDevicePixelRatio(1.25);
+
+      const { handler } = setUpHandler('border-bottom-width: 1.6px; height: 31.6px;');
+
+      expect(handler.getDefaultRowHeight()).toBe(32);
+    });
+
     it('should keep rounding a border thinner than 1px up to the 1px the cells reserve', () => {
       // Above 100% the border snaps down (0.8px at 125%), while the cells' height rule keeps its 1px.
       const { handler } = setUpHandler('border-bottom-width: 0.8px; height: 31px;');
@@ -959,6 +988,15 @@ describe('StylesHandler', () => {
         setDevicePixelRatio(2);
 
         const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.097223px;', undefined, 0.9);
+
+        expect(handler.getDefaultRowHeight()).toBe(31);
+      });
+
+      it('should keep the declared height when a device pixel is within a layout unit of the border', () => {
+        // 99%: one device pixel is 1.0101 CSS pixels, less than a layout unit wider than the 1px counted.
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.0101px;', undefined, 0.99);
 
         expect(handler.getDefaultRowHeight()).toBe(31);
       });
