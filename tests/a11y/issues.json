@@ -920,8 +920,8 @@
     },
     {
       "id": "website-title-differs-from-heading",
-      "title": "Page titles of handsontable.com differ from the page's main heading",
-      "tracker": "DEV-4079",
+      "title": "Page titles of handsontable.com differ from the page's main heading: each title names its page (the product, the listing, the form) where the heading is a marketing line, and the five kept from the old site hold its search traffic; reviewed page by page, not a defect",
+      "notDefect": "title-names-page",
       "match": [
         { "source": "website-checks", "kinds": ["page-title-differs-from-heading"] }
       ]
