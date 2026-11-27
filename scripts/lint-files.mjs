@@ -15,6 +15,8 @@
  *                 the screen reader lane's runner and libraries)
  *   visual-tests  package.json lint       → whole package; the hook takes src/ tests/ only
  *                 (lib/ and scripts/ drive no page and carry no determinism ban)
+ *   codemod       package.json lint       → bin src test tools versions (.mjs and .cjs); the hook takes
+ *                 bin/ src/ test/ tools/ and versions/<semver>/custom/
  *   root          package.json eslint     → .github/scripts/ bin/changelog scripts/
  *   angular / docs — no plain-eslint script → not linted by the hook.
  *
@@ -39,6 +41,11 @@ const SCOPES = [
   // The visual tier's specs and fixtures share the functional tier's determinism bans
   // (visual-tests/.eslintrc.js), so a fixed sleep before a capture is caught at commit time too.
   /^visual-tests\/(src|tests)\//,
+  // The codemod's own lint script covers bin src test tools and versions; the hook takes the first four and
+  // the custom rule modules under versions/<semver>/custom/ (`versions/` otherwise holds manifests, rule files,
+  // and fixtures, which are JSON or which the package's .eslintignore keeps out of the lint).
+  /^codemod\/(bin|src|test|tools)\//,
+  /^codemod\/versions\/[^/]+\/custom\//,
   /^scripts\//,
 ];
 const LINTABLE = /\.(js|ts|mjs|tsx|vue)$/;
@@ -62,6 +69,8 @@ const PACKAGE_IGNORED = [
   /^handsontable\/test\/(lib|dist)\//,
   /^handsontable\/src\/3rdparty\/autoResize\//,
   /^handsontable\/src\/3rdparty\/walkontable\/test\/(lib|dist)\//,
+  // codemod/.eslintignore: `**/__fixtures__/**`, the inputs and outputs of the migration fixtures.
+  /^codemod\/(.+\/)?__fixtures__\//,
 ];
 
 /**

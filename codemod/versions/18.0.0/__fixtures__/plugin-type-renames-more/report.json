@@ -1,0 +1,7 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/type-multicolumnsorting-columnsorting", "severity": "changed", "line": 1 },
+    { "ruleId": "18.0.0/type-dataprovider-options", "severity": "changed", "line": 3 }
+  ]
+}

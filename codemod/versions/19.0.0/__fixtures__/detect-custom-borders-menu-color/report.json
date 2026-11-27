@@ -1,0 +1,15 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/custom-borders-menu-color",
+      "severity": "review",
+      "line": 6
+    },
+    {
+      "ruleId": "19.0.0/custom-borders-menu-color",
+      "severity": "review",
+      "line": 7
+    }
+  ]
+}

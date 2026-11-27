@@ -1,0 +1,15 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/editor-set-value",
+      "severity": "review",
+      "line": 3
+    },
+    {
+      "ruleId": "19.0.0/editor-set-value",
+      "severity": "review",
+      "line": 9
+    }
+  ]
+}

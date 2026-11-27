@@ -1,0 +1,50 @@
+.changeType {
+  &::before {
+    color: blue;
+  }
+}
+
+.handsontable {
+  .changeType {
+    &::before {
+      color: red;
+    }
+
+    &:after {
+      color: red;
+    }
+
+    &:hover {
+      color: red;
+    }
+  }
+}
+
+.htAutocompleteArrow {
+  &::after {
+    content: '';
+  }
+}
+
+.my-card, .collapsibleIndicator {
+  @media (min-width: 600px) {
+    &::before {
+      content: '';
+    }
+  }
+}
+
+// A pseudo-element of another component, and the hosts without a pseudo-element, are not reported.
+.my-card {
+  &::before {
+    content: '';
+  }
+}
+
+.columnSorting.sortAction {
+  color: blue;
+
+  &.active {
+    color: red;
+  }
+}

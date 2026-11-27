@@ -1,0 +1,8 @@
+/* Styles for the Handsontable grid of the orders page. */
+.changeType::before {
+  background-color: blue;
+}
+
+.my-card::before {
+  content: '';
+}

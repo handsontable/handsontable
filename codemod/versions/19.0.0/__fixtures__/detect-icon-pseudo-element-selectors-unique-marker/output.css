@@ -1,0 +1,19 @@
+/* A class that only the grid uses makes this its stylesheet, so a common name is a step to take. */
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.ht_nestingButton::after {
+  content: '+';
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+th.afterHiddenRow::before {
+  display: none;
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.changeType::before {
+  background-color: blue;
+}
+
+.my-card::before {
+  content: '';
+}

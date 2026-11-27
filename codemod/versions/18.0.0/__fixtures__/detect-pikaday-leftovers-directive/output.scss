@@ -1,0 +1,15 @@
+// A note about the next rule.
+// TODO(handsontable-codemod 18.0.0/pikaday-leftovers): Remove this code, or style the native input instead. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-date-and-time-cells-to-iso-8601-format
+// stylelint-disable-next-line selector-class-pattern
+.pika-single {
+  border-radius: 4px;
+}
+
+// TODO(handsontable-codemod 18.0.0/pikaday-leftovers): Remove this code, or style the native input instead. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-date-and-time-cells-to-iso-8601-format
+/* prettier-ignore */
+.pika-prev, .pika-next { opacity: 0.5; }
+
+// stylelint-disable-next-line
+.picker-pika-single {
+  color: red;
+}

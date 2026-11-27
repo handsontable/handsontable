@@ -52,9 +52,9 @@ function renderName(item) {
 }
 
 const ADVICE = {
-  names: '**Removed or renamed public names.** Keep the old name working as a deprecated alias that prints a one-time warning, as `.ai/BREAKING-CHANGES.md` requires. Mark the changelog entry `"breaking": true` only if it is removed in a major release. If a name is internal, ignore it.',
+  names: '**Removed or renamed public names.** Keep the old name working as a deprecated alias that prints a one-time warning, as `.ai/BREAKING-CHANGES.md` requires. Mark the changelog entry `"breaking": true` only if it is removed in a major release. Add a migration codemod rule for the new name (`.ai/BREAKING-CHANGES.md`, Codemod rule). If a name is internal, ignore it.',
   defaults: '**Default change.** Changing a default is strictly forbidden by `.ai/BREAKING-CHANGES.md`. Revert it. If the line is not a default change, ignore this.',
-  registry: '**Removed hook or option.** Confirm this is the major release that ends the deprecation, then mark the changelog entry `"breaking": true`.',
+  registry: '**Removed hook or option.** Confirm this is the major release that ends the deprecation, then mark the changelog entry `"breaking": true`. Check that the migration codemod has a rule for it (`.ai/BREAKING-CHANGES.md`, Codemod rule).',
 };
 
 /**

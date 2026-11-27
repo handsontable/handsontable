@@ -1,0 +1,30 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/common-imports",
+      "severity": "manual",
+      "line": 1
+    },
+    {
+      "ruleId": "18.0.0/common-imports",
+      "severity": "manual",
+      "line": 3
+    },
+    {
+      "ruleId": "18.0.0/common-imports",
+      "severity": "manual",
+      "line": 4
+    },
+    {
+      "ruleId": "18.0.0/common-imports",
+      "severity": "manual",
+      "line": 8
+    },
+    {
+      "ruleId": "18.0.0/common-imports",
+      "severity": "manual",
+      "line": 10
+    }
+  ]
+}

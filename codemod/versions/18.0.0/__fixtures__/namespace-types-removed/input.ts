@@ -1,0 +1,26 @@
+import Handsontable from 'handsontable';
+
+export let provider: Handsontable.plugins.DataProvider.Settings;
+export let nested: Handsontable.plugins.NestedHeaders.Settings;
+export let order: Handsontable.plugins.ColumnSorting.SortOrderType;
+export let multiOrder: Handsontable.plugins.MultiColumnSorting.SortOrderType;
+export let condition: Handsontable.plugins.Filters.ConditionName;
+export let formulas: Handsontable.plugins.Formulas.HyperFormulaSettings;
+export let callback: Handsontable.plugins.Search.SearchCallback;
+export let query: Handsontable.plugins.Search.SearchQueryMethod;
+export let menu: Handsontable.plugins.ContextMenu.MenuConfig;
+export let selection: Handsontable.plugins.ContextMenu.Selection;
+export let submenu: Handsontable.plugins.ContextMenu.SubmenuConfig;
+export let submenuItem: Handsontable.plugins.ContextMenu.SubmenuItemConfig;
+export let comments: Handsontable.plugins.Comments.CommentConfig;
+export let borderRange: Handsontable.plugins.CustomBorders.BorderRange;
+export let changes: Handsontable.RecordTranslation.ChangesEventData;
+export let observer: Handsontable.RecordTranslation.ChangesObserver;
+export let mapTypes: Handsontable.RecordTranslation.MapTypes;
+export let comparator: Handsontable.helper.Comparator;
+export let debounced: Handsontable.helper.DebouncedFunction;
+export let intlDate: Handsontable.cellTypes.intlDate.cellType;
+export let intlTime: Handsontable.cellTypes.intlTime.cellType;
+export let dictionary: Handsontable.languages.dictionaryKeys;
+export let other: Handsontable.languages.languageDictionary;
+export const loaded = Handsontable.languages.getLanguageDictionary('en-US');

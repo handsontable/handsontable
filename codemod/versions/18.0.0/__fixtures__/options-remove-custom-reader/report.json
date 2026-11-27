@@ -1,0 +1,11 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "manual", "line": 7 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 8 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "manual", "line": 11 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "manual", "line": 12 },
+    { "ruleId": "18.0.0/date-picker-config-removed", "severity": "manual", "line": 9 },
+    { "ruleId": "18.0.0/date-picker-config-removed", "severity": "changed", "line": 10 }
+  ]
+}

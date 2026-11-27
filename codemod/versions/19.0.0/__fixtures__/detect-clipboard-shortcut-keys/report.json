@@ -1,0 +1,20 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/clipboard-shortcut-keys",
+      "severity": "manual",
+      "line": 6
+    },
+    {
+      "ruleId": "19.0.0/clipboard-shortcut-keys",
+      "severity": "manual",
+      "line": 7
+    },
+    {
+      "ruleId": "19.0.0/clipboard-shortcut-keys",
+      "severity": "manual",
+      "line": 8
+    }
+  ]
+}

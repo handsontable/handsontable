@@ -1,0 +1,16 @@
+/* A class that only the grid uses makes this its stylesheet, so a common name is a step to take. */
+.ht_nestingButton::after {
+  content: '+';
+}
+
+th.afterHiddenRow::before {
+  display: none;
+}
+
+.changeType::before {
+  background-color: blue;
+}
+
+.my-card::before {
+  content: '';
+}

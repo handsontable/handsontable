@@ -1,0 +1,7 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "handsontable": "^17.1.0",
+    "react": "^19.0.0"
+  }
+}

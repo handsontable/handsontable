@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/resize-state-methods",
+      "severity": "changed",
+      "line": 4
+    }
+  ]
+}

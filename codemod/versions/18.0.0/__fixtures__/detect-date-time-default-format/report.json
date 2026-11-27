@@ -1,0 +1,8 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/date-default-format", "severity": "review", "line": 9 },
+    { "ruleId": "18.0.0/date-default-format", "severity": "review", "line": 11 },
+    { "ruleId": "18.0.0/time-default-format", "severity": "review", "line": 10 }
+  ]
+}

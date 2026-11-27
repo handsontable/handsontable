@@ -1,0 +1,14 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 6 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 7 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 8 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 8 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 9 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 9 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 17 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 17 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 18 }
+  ]
+}

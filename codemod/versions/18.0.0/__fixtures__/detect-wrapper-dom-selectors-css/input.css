@@ -1,0 +1,23 @@
+.ht-root-wrapper > .ht-grid > .handsontable {
+  border: 1px solid #a0aec0;
+}
+
+.ht-root-wrapper > :first-child {
+  margin-top: 0;
+}
+
+.ht-grid:only-child {
+  height: 100%;
+}
+
+.ht-grid-content > .handsontable {
+  border: 0;
+}
+
+.ht-root-wrapper > .ht-grid {
+  margin: 0;
+}
+
+.ht-grid-extra > .row {
+  margin: 0;
+}

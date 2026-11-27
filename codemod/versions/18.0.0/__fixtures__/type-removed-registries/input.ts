@@ -1,0 +1,20 @@
+import type { Plugins } from 'handsontable/plugins';
+import type { CellTypes } from 'handsontable/cellTypes';
+import type { Editors } from 'handsontable/editors';
+import type { Renderers } from 'handsontable/renderers';
+import type { BaseValidator, Validators } from 'handsontable/validators';
+import type { Shortcut } from 'handsontable/editors/factory';
+import type { LanguageDictionary } from 'handsontable/i18n';
+import type { LanguageDictionary as RegistryDictionary } from 'handsontable/i18n/registry';
+import type { CellSettings, Omit } from 'handsontable/settings';
+
+export const plugins: Plugins | null = null;
+export const cellTypes: CellTypes | null = null;
+export const editors: Editors | null = null;
+export const renderers: Renderers | null = null;
+export const validators: Validators | null = null;
+export const validator: BaseValidator | null = null;
+export const shortcut: Shortcut | null = null;
+export const dictionary: LanguageDictionary | RegistryDictionary | null = null;
+export const cell: CellSettings | null = null;
+export type WithoutRow = Omit<{ row: number; col: number }, 'row'>;

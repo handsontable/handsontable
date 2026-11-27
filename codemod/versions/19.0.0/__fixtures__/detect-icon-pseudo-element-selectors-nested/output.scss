@@ -1,0 +1,55 @@
+.changeType {
+  // TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements
+  &::before {
+    color: blue;
+  }
+}
+
+.handsontable {
+  .changeType {
+    // TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements
+    &::before {
+      color: red;
+    }
+
+    // TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements
+    &:after {
+      color: red;
+    }
+
+    &:hover {
+      color: red;
+    }
+  }
+}
+
+.htAutocompleteArrow {
+  // TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements
+  &::after {
+    content: '';
+  }
+}
+
+.my-card, .collapsibleIndicator {
+  @media (min-width: 600px) {
+    // TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements
+    &::before {
+      content: '';
+    }
+  }
+}
+
+// A pseudo-element of another component, and the hosts without a pseudo-element, are not reported.
+.my-card {
+  &::before {
+    content: '';
+  }
+}
+
+.columnSorting.sortAction {
+  color: blue;
+
+  &.active {
+    color: red;
+  }
+}

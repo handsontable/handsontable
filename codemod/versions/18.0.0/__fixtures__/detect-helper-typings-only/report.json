@@ -1,0 +1,15 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/helper-typings-only",
+      "severity": "manual",
+      "line": 4
+    },
+    {
+      "ruleId": "18.0.0/helper-typings-only",
+      "severity": "manual",
+      "line": 7
+    }
+  ]
+}

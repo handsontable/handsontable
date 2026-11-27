@@ -1,0 +1,12 @@
+{
+    "name": "grid-app",
+    "dependencies": {
+        "@handsontable/react-wrapper": "~18.0.0",
+        "handsontable": "^18.0.0",
+        "hyperformula": "^3.0.0",
+        "react": "^19.0.0"
+    },
+    "scripts": {
+        "build": "vite build"
+    }
+}

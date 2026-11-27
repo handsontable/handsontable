@@ -1,0 +1,9 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/export-column-headers", "severity": "manual", "line": 8 },
+    { "ruleId": "18.0.0/export-column-headers", "severity": "manual", "line": 11 },
+    { "ruleId": "18.0.0/export-column-headers", "severity": "changed", "line": 14 },
+    { "ruleId": "18.0.0/export-column-headers", "severity": "changed", "line": 15 }
+  ]
+}

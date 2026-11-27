@@ -1,0 +1,17 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "@handsontable/react-wrapper": "^19.0.0",
+    "handsontable": "^19.0.0"
+  },
+  "browserslist": {
+    "production": [
+      "chrome >= 130",
+      "firefox 109"
+    ],
+    "legacy": "chrome 100-110 or safari 15",
+    "development": [
+      "last 1 chrome version"
+    ]
+  }
+}

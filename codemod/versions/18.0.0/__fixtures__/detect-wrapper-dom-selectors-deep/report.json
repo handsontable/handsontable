@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/wrapper-dom-selectors", "severity": "manual", "line": 1 },
+    { "ruleId": "18.0.0/wrapper-dom-selectors", "severity": "manual", "line": 5 },
+    { "ruleId": "18.0.0/wrapper-dom-selectors", "severity": "manual", "line": 9 },
+    { "ruleId": "18.0.0/wrapper-dom-selectors", "severity": "manual", "line": 13 },
+    { "ruleId": "18.0.0/wrapper-dom-selectors", "severity": "manual", "line": 17 }
+  ]
+}

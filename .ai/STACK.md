@@ -178,7 +178,7 @@
 - `develop.yml` - post-merge develop pipeline; same modules plus trunk-only stages, no `CI Gate`, and no visual golden seed (that left for `visual-seed.yml` in DEV-2797)
 - `checks.yml` - scope router (which modules run) plus the changelog and test-presence gates
 - `build.yml` / `build-all.yml` - shared UMD and ES+CJS build artifacts / multi-OS build verification
-- `lint.yml` - core linters
+- `lint.yml` - core linters, and the migration codemod suite when its scope changed (also an advisory job of `develop.yml`)
 - `code-quality.yml` - SonarCloud, CodeQL, FOSSA, npm audit
 - `unit.yml` / `types.yml` / `e2e.yml` / `walkontable.yml` / `emitted-types.yml` - the test tiers
 - `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above

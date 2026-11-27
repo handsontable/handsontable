@@ -159,6 +159,60 @@ jobs:
       attw-full: ${{ needs.checks.outputs.run-all == 'true' }}
     secrets: inherit
 
+  # The migration codemod's suite (Linux on Node 20, 22, and 24, Windows on 22). test.yml runs it on a pull
+  # request through lint.yml, which no push pipeline calls, so without this job two pull requests that pass
+  # alone (a guide heading renamed, a rule anchored to it) merged red with no signal. It is a job of this
+  # file, not a call of lint.yml: that would run the whole lint job (ESLint, stylelint, the RuleTester
+  # suites) on a merge a pull request already proved. The matrix is the `codemod` job of lint.yml plus the
+  # Linux leg on the Node of `.nvmrc` (that leg is the `core` step there), and
+  # `codemod/test/workflow-gates.test.mjs` pins the two sets.
+  # Gated on the `test-codemod` scope flag, not on run-all: the package has its own inputs (`codemod/**`,
+  # the lockfile, the migration guides its rules anchor to), so a merge that touches none of them gains
+  # nothing from four runners, and run-all would spend them on every develop push. A manual dispatch skips
+  # the path filter, which leaves every flag empty, so it runs the job by event name.
+  # Advisory: `continue-on-error` keeps a red codemod suite from failing the Develop run, because the chained
+  # `experimental` publish of the grid waits for a green one, and a broken migration tool is no reason to hold the
+  # grid. On a pull request the same suite is a real gate (lint.yml). Here the failure stays visible as a red step in
+  # the job log, a warning annotation, and a job summary (the last step), not as a red run.
+  codemod:
+    name: codemod (${{ matrix.os }}, Node ${{ matrix.node }})
+    needs: [ checks ]
+    if: ${{ !failure() && !cancelled() && (github.event_name == 'workflow_dispatch' || needs.checks.outputs.test-codemod == 'true') }}
+    continue-on-error: true
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-26.04
+            node: 20
+          - os: ubuntu-26.04
+            node: 22
+          - os: ubuntu-26.04
+            node: 24
+          - os: windows-2025-vs2026
+            node: 22
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      # No `version:` here: the action reads `packageManager` from the root `package.json`, and naming a
+      # second version makes it refuse to install.
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install the codemod's dependencies
+        run: pnpm install --filter @handsontable/codemod --ignore-scripts --frozen-lockfile
+      - name: Codemod tests
+        run: npm run test --prefix codemod
+      # The job is advisory (see above), so a red suite would pass unseen without this.
+      - name: Say that the codemod suite is red
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          echo "::warning title=Codemod suite is red on develop::codemod (${{ matrix.os }}, Node ${{ matrix.node }}) failed. The Develop run and the experimental publish are not held. Fix it in a follow-up."
+          echo "Codemod suite is red on ${{ matrix.os }}, Node ${{ matrix.node }}. It is advisory here, so the Develop run stays green." >> "$GITHUB_STEP_SUMMARY"
+
   # The visual golden seed is NOT here. It lives in visual-seed.yml with a
   # non-cancelling concurrency group, because this run's `cancel-in-progress`
   # kept cancelling it at the end of the DAG and left every open pull request

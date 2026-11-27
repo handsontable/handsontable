@@ -1,0 +1,346 @@
+{
+  "page": "migration-from-18.1-to-19.0",
+  "note": "Headings of the guide as written in Markdown, with the id the docs build gives each one. The ids were checked against the published page https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0/ (the h2 to h6 ids of the rendered page equal these 68, in the same levels). test/guide-anchors.test.mjs holds slugOf() to these ids. The guide itself may change; this file does not.",
+  "headings": [
+    {
+      "level": 2,
+      "markdown": "Before you upgrade",
+      "id": "before-you-upgrade"
+    },
+    {
+      "level": 3,
+      "markdown": "1. The `non-commercial-and-evaluation` license key no longer works",
+      "id": "the-non-commercial-and-evaluation-license-key-no-longer-works"
+    },
+    {
+      "level": 3,
+      "markdown": "2. The minimum browser versions are higher",
+      "id": "the-minimum-browser-versions-are-higher"
+    },
+    {
+      "level": 3,
+      "markdown": "3. License keys are checked more strictly",
+      "id": "license-keys-are-checked-more-strictly"
+    },
+    {
+      "level": 3,
+      "markdown": "4. Removed deprecated APIs",
+      "id": "removed-deprecated-apis"
+    },
+    {
+      "level": 3,
+      "markdown": "5. The `Loading` plugin needs the `Dialog` plugin registered",
+      "id": "the-loading-plugin-needs-the-dialog-plugin-registered"
+    },
+    {
+      "level": 3,
+      "markdown": "6. A `beforeInit` callback in your settings now runs",
+      "id": "a-beforeinit-callback-in-your-settings-now-runs"
+    },
+    {
+      "level": 2,
+      "markdown": "Changes in every grid",
+      "id": "changes-in-every-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "1. Undo and redo restore a recorded state",
+      "id": "undo-and-redo-restore-a-recorded-state"
+    },
+    {
+      "level": 3,
+      "markdown": "2. Confirming an editor without typing writes nothing",
+      "id": "confirming-an-editor-without-typing-writes-nothing"
+    },
+    {
+      "level": 3,
+      "markdown": "3. The React and Angular wrappers pass only the settings that changed",
+      "id": "the-react-and-angular-wrappers-pass-only-the-settings-that-changed"
+    },
+    {
+      "level": 3,
+      "markdown": "4. An auto-sized column is no longer capped at the width of the grid",
+      "id": "an-auto-sized-column-is-no-longer-capped-at-the-width-of-the-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "5. `height: 'auto'` no longer clips the grid",
+      "id": "height-auto-no-longer-clips-the-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "6. `rowHeights` sets an exact row height",
+      "id": "rowheights-sets-an-exact-row-height"
+    },
+    {
+      "level": 3,
+      "markdown": "7. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click on a selected cell moves the highlight",
+      "id": "cmdctrl--click-on-a-selected-cell-moves-the-highlight"
+    },
+    {
+      "level": 3,
+      "markdown": "8. A hook set to `null` through `updateSettings()` is removed",
+      "id": "a-hook-set-to-null-through-updatesettings-is-removed"
+    },
+    {
+      "level": 3,
+      "markdown": "9. `editor: false` is honored by typed and checkbox columns",
+      "id": "editor-false-is-honored-by-typed-and-checkbox-columns"
+    },
+    {
+      "level": 3,
+      "markdown": "10. The list cell types default to a single line",
+      "id": "the-list-cell-types-default-to-a-single-line"
+    },
+    {
+      "level": 3,
+      "markdown": "11. AutoColumnSize includes the list-cell arrow in the column width",
+      "id": "autocolumnsize-includes-the-list-cell-arrow-in-the-column-width"
+    },
+    {
+      "level": 3,
+      "markdown": "12. Dropdown editor lists are no longer confined to the grid",
+      "id": "dropdown-editor-lists-are-no-longer-confined-to-the-grid"
+    },
+    {
+      "level": 2,
+      "markdown": "Changes in specific features",
+      "id": "changes-in-specific-features"
+    },
+    {
+      "level": 3,
+      "markdown": "1. Icons are rendered as `<i>` elements",
+      "id": "icons-are-rendered-as-i-elements"
+    },
+    {
+      "level": 3,
+      "markdown": "2. `colToProp()` and `propToCol()` return `null` for an unknown column",
+      "id": "coltoprop-and-proptocol-return-null-for-an-unknown-column"
+    },
+    {
+      "level": 3,
+      "markdown": "3. A custom editor's `setValue()` receives the cell value",
+      "id": "a-custom-editors-setvalue-receives-the-cell-value"
+    },
+    {
+      "level": 3,
+      "markdown": "4. `colWidths`, `rowHeights`, and `minRowHeights` address columns and rows by physical index",
+      "id": "colwidths-rowheights-and-minrowheights-address-columns-and-rows-by-physical-index"
+    },
+    {
+      "level": 3,
+      "markdown": "5. Plugins apply their settings before the first render",
+      "id": "plugins-apply-their-settings-before-the-first-render"
+    },
+    {
+      "level": 3,
+      "markdown": "6. A change that waits for its validator stays on its record",
+      "id": "a-change-that-waits-for-its-validator-stays-on-its-record"
+    },
+    {
+      "level": 3,
+      "markdown": "7. `loadData()` drops a change that waits for its validator",
+      "id": "loaddata-drops-a-change-that-waits-for-its-validator"
+    },
+    {
+      "level": 3,
+      "markdown": "8. XLSX export no longer needs ExcelJS",
+      "id": "xlsx-export-no-longer-needs-exceljs"
+    },
+    {
+      "level": 3,
+      "markdown": "9. `updateSettings()` keeps the rows of a server-backed grid",
+      "id": "updatesettings-keeps-the-rows-of-a-server-backed-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "10. A string `dataProvider.rowId` reads a property with a dot in its name",
+      "id": "a-string-dataproviderrowid-reads-a-property-with-a-dot-in-its-name"
+    },
+    {
+      "level": 3,
+      "markdown": "11. A plain value written into a key/value `source` cell resolves to the matching object",
+      "id": "a-plain-value-written-into-a-keyvalue-source-cell-resolves-to-the-matching-object"
+    },
+    {
+      "level": 3,
+      "markdown": "12. A `dropdown` column with `strict: false` validates strictly",
+      "id": "a-dropdown-column-with-strict-false-validates-strictly"
+    },
+    {
+      "level": 3,
+      "markdown": "13. `date` cells reach the formula engine the same way on every data path",
+      "id": "date-cells-reach-the-formula-engine-the-same-way-on-every-data-path"
+    },
+    {
+      "level": 3,
+      "markdown": "14. An `afterRender` hook that writes to the engine loops",
+      "id": "an-afterrender-hook-that-writes-to-the-engine-loops"
+    },
+    {
+      "level": 3,
+      "markdown": "15. `SHEET()` keeps a sheet's number after an earlier sheet is removed",
+      "id": "sheet-keeps-a-sheets-number-after-an-earlier-sheet-is-removed"
+    },
+    {
+      "level": 3,
+      "markdown": "16. Frozen columns can be dragged, and the unfreeze hooks get a target",
+      "id": "frozen-columns-can-be-dragged-and-the-unfreeze-hooks-get-a-target"
+    },
+    {
+      "level": 3,
+      "markdown": "17. The narrowest column width depends on the theme",
+      "id": "the-narrowest-column-width-depends-on-the-theme"
+    },
+    {
+      "level": 3,
+      "markdown": "18. A border added from the context menu takes its color from the theme",
+      "id": "a-border-added-from-the-context-menu-takes-its-color-from-the-theme"
+    },
+    {
+      "level": 3,
+      "markdown": "19. `maxLength` is a built-in cell option",
+      "id": "maxlength-is-a-built-in-cell-option"
+    },
+    {
+      "level": 3,
+      "markdown": "20. Removing a parent row removes every row below it",
+      "id": "removing-a-parent-row-removes-every-row-below-it"
+    },
+    {
+      "level": 3,
+      "markdown": "21. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + arrow keys on a row header expand and collapse row groups",
+      "id": "cmdctrl--arrow-keys-on-a-row-header-expand-and-collapse-row-groups"
+    },
+    {
+      "level": 3,
+      "markdown": "22. Leaving a merged cell with a left or right arrow lands on its top row",
+      "id": "leaving-a-merged-cell-with-a-left-or-right-arrow-lands-on-its-top-row"
+    },
+    {
+      "level": 3,
+      "markdown": "23. A row dragged into a gap with hidden rows lands after them",
+      "id": "a-row-dragged-into-a-gap-with-hidden-rows-lands-after-them"
+    },
+    {
+      "level": 3,
+      "markdown": "24. A `numeric` cell aligns itself by its type, not by its value",
+      "id": "a-numeric-cell-aligns-itself-by-its-type-not-by-its-value"
+    },
+    {
+      "level": 3,
+      "markdown": "25. Turning `loading` off turns the `Dialog` plugin off",
+      "id": "turning-loading-off-turns-the-dialog-plugin-off"
+    },
+    {
+      "level": 3,
+      "markdown": "26. Changing `dataSchema` resets the grid's index state",
+      "id": "changing-dataschema-resets-the-grids-index-state"
+    },
+    {
+      "level": 3,
+      "markdown": "27. A `dataSchema` with non-`null` values creates a column for each value",
+      "id": "a-dataschema-with-non-null-values-creates-a-column-for-each-value"
+    },
+    {
+      "level": 3,
+      "markdown": "28. `colWidths: null` sizes columns like `undefined`",
+      "id": "colwidths-null-sizes-columns-like-undefined"
+    },
+    {
+      "level": 3,
+      "markdown": "29. Row elements move with their rows on a vertical scroll",
+      "id": "row-elements-move-with-their-rows-on-a-vertical-scroll"
+    },
+    {
+      "level": 3,
+      "markdown": "30. `getCopyableData()` returns a string",
+      "id": "getcopyabledata-returns-a-string"
+    },
+    {
+      "level": 3,
+      "markdown": "31. The copy, cut, and paste shortcuts are registered in the `grid` context",
+      "id": "the-copy-cut-and-paste-shortcuts-are-registered-in-the-grid-context"
+    },
+    {
+      "level": 3,
+      "markdown": "32. `checked` is a reserved context menu item property",
+      "id": "checked-is-a-reserved-context-menu-item-property"
+    },
+    {
+      "level": 3,
+      "markdown": "33. HTML output changes for `TrustedHTML` paste, `toHTML()` headers, and character references",
+      "id": "html-output-changes-for-trustedhtml-paste-tohtml-headers-and-character-references"
+    },
+    {
+      "level": 3,
+      "markdown": "34. `removeCellMeta()` accepts an index past the grid's range",
+      "id": "removecellmeta-accepts-an-index-past-the-grids-range"
+    },
+    {
+      "level": 3,
+      "markdown": "35. The `AutoRowSize` plugin's settings no longer include `useHeaders`",
+      "id": "the-autorowsize-plugins-settings-no-longer-include-useheaders"
+    },
+    {
+      "level": 2,
+      "markdown": "TypeScript-only changes",
+      "id": "typescript-only-changes"
+    },
+    {
+      "level": 3,
+      "markdown": "1. Ten options are type-checked",
+      "id": "ten-options-are-type-checked"
+    },
+    {
+      "level": 3,
+      "markdown": "2. The `filters` option is type-checked",
+      "id": "the-filters-option-is-type-checked"
+    },
+    {
+      "level": 3,
+      "markdown": "3. The Vue 3 wrapper props are type-checked",
+      "id": "the-vue-3-wrapper-props-are-type-checked"
+    },
+    {
+      "level": 3,
+      "markdown": "4. `HotColumn` no longer types hook props",
+      "id": "hotcolumn-no-longer-types-hook-props"
+    },
+    {
+      "level": 2,
+      "markdown": "Deprecated in 19.0",
+      "id": "deprecated-in-190"
+    },
+    {
+      "level": 3,
+      "markdown": "1. Writing past the last column of an object data source is deprecated",
+      "id": "writing-past-the-last-column-of-an-object-data-source-is-deprecated"
+    },
+    {
+      "level": 3,
+      "markdown": "2. `spliceCol()` and `spliceRow()` are deprecated",
+      "id": "splicecol-and-splicerow-are-deprecated"
+    },
+    {
+      "level": 3,
+      "markdown": "3. Formulas shortcut methods",
+      "id": "formulas-shortcut-methods"
+    },
+    {
+      "level": 3,
+      "markdown": "4. Four `MergedCellsCollection` methods are deprecated",
+      "id": "four-mergedcellscollection-methods-are-deprecated"
+    },
+    {
+      "level": 3,
+      "markdown": "5. The `sr-SP` language code is deprecated",
+      "id": "the-sr-sp-language-code-is-deprecated"
+    },
+    {
+      "level": 2,
+      "markdown": "Also new in 19.0",
+      "id": "also-new-in-190"
+    }
+  ]
+}

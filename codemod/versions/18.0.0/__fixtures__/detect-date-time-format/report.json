@@ -1,0 +1,15 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/moment-date-format",
+      "severity": "manual",
+      "line": 5
+    },
+    {
+      "ruleId": "18.0.0/moment-time-format",
+      "severity": "manual",
+      "line": 6
+    }
+  ]
+}

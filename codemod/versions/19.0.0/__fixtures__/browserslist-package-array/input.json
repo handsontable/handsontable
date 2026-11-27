@@ -1,0 +1,12 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "handsontable": "^19.0.0"
+  },
+  "browserslist": [
+    "chrome >= 110",
+    "Safari 14.1, ios_saf 15",
+    "firefox > 100",
+    "edge >= 130"
+  ]
+}

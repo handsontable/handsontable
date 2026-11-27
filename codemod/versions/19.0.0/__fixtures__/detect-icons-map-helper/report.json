@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/icons-map-helper",
+      "severity": "manual",
+      "line": 1
+    }
+  ]
+}

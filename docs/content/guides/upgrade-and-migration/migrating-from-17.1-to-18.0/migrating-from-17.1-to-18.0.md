@@ -18,6 +18,10 @@ category: Upgrade and migration
 
 Migrate from Handsontable 17.1 to Handsontable 18.0.
 
+The migration codemod automates part of this migration. It rewrites the changes that are certain and reports the rest. To run it, see:
+
+- [How to run the migration codemod](@/guides/upgrade-and-migration/migration-codemod/migration-codemod.md)
+
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 
 [[toc]]
@@ -833,6 +837,28 @@ Two types are removed, and only one has a successor:
 
 Nested type paths are removed too: `Handsontable.RecordTranslation.IndexMapper` (use `IndexMapper` from `handsontable`), `Handsontable.helper.*`, `Handsontable.languages.*`, and `Handsontable.cellTypes.<name>.*` fail with `TS2694` or `TS2749`. Most `Handsontable.plugins.<PluginName>.<Type>` paths are removed as well. A few still compile, such as `ColumnSorting.Config`, `ContextMenu.MenuItemConfig`, `ContextMenu.PredefinedMenuItemKey`, `Filters.ConditionId`, and `Filters.OperationType`. If the plugin entry point still exports the type, import it from `handsontable/plugins/<name>`. Examples are `CommentObject` from `comments`, `Settings` from `exportFile`, and the payload types of `dataProvider`. For the types that the entry points no longer export, see [Replace removed plugin type exports](#replace-removed-plugin-type-exports).
 
+## 10. Import the theme functions from the themes entry point
+
+Handsontable 18.0 removes the theme functions and the built-in themes from the typings of `handsontable` and `handsontable/base`.
+
+### Who is affected
+
+You are affected if a TypeScript file imports `registerTheme`, `reinitTheme`, `getTheme`, `getThemes`, `getThemeNames`, `hasTheme`, `mainTheme`, `classicTheme`, or `horizonTheme` from `handsontable` or `handsontable/base`. The 17.1 typings declared these names there. The 17.1 runtime exports them only from `handsontable/themes`, so the import compiled, but the imported name was not there when the code ran.
+
+### How to migrate
+
+Import these names from `handsontable/themes`. The import from `handsontable` now fails with `TS2305`.
+
+```ts
+// Before (17.x)
+import { registerTheme, mainTheme } from 'handsontable';
+
+// After (18.0)
+import { registerTheme, mainTheme } from 'handsontable/themes';
+```
+
+The migration codemod makes this change.
+
 ## Deprecated APIs
 
 The changes in this section do not break an existing project. Handsontable 18.0 deprecates these APIs, and a later major release removes them.
@@ -877,6 +903,7 @@ Remove all calls to these methods. If you need to persist column widths or row h
 | HyperFormula no longer installed with the `handsontable` npm package | Projects that use the `Formulas` plugin and install Handsontable from npm | Run `npm install hyperformula`; keep `import { HyperFormula } from 'hyperformula'` and `formulas: { engine: HyperFormula }` |
 | Plugin type exports removed, including `Settings` (38 entry points) and `DetailedSettings` (19 entry points) | TypeScript projects importing types from `handsontable/plugins/*` or using `Handsontable.plugins.*` type paths | Take the type from `Handsontable.GridSettings['<option>']`, or use the named replacement (see the tables in step 9) |
 | `Handsontable.*` namespace types removed (`CellCoords`, `CellRange`, `EditorType`, `RendererType`, `ValidatorType`, `Theme*`, and others) | TypeScript projects using these `Handsontable.<Type>` paths as types | Import the type by name from `handsontable` |
+| Theme functions and built-in themes removed from the typings of `handsontable` and `handsontable/base` | TypeScript projects that import `registerTheme`, `mainTheme`, and the other theme names from `handsontable` | Import them from `handsontable/themes` |
 
 ## Result
 

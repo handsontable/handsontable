@@ -1,0 +1,7 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "19.0.0/hook-set-to-null", "severity": "review", "line": 6 },
+    { "ruleId": "19.0.0/hook-set-to-null", "severity": "review", "line": 7 }
+  ]
+}

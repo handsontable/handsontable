@@ -1,0 +1,25 @@
+/* A stylesheet of the project. Nothing in it is a name of the grid. */
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Check that this selector targets the Handsontable grid. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.changeType::before {
+  background-color: blue;
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Check that this selector targets the Handsontable grid. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.collapsibleIndicator::after {
+  content: '+';
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Check that this selector targets the Handsontable grid. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.columnSorting.sortAction::before {
+  color: red;
+}
+
+/* The same names without a pseudo-element are not reported. */
+.changeType {
+  color: blue;
+}
+
+/* Another stylesheet's pseudo-element is not reported. */
+.my-card::before {
+  content: '';
+}

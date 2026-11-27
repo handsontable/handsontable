@@ -1,0 +1,7 @@
+# Browsers we support
+[production]
+chrome >= 130
+firefox >= 132 or safari 14.1   # old iPads
+
+[legacy]
+ios_saf 15.2-15.3, edge < 100

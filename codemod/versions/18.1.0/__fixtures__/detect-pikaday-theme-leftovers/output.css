@@ -1,0 +1,18 @@
+/* TODO(handsontable-codemod 18.1.0/pikaday-theme-leftovers): Remove this rule unless you load Pikaday yourself. */
+.pika-single {
+  border-radius: 4px;
+}
+
+/* TODO(handsontable-codemod 18.1.0/pikaday-theme-leftovers): Remove this rule unless you load Pikaday yourself. */
+.pika-prev,
+.pika-next {
+  opacity: 0.5;
+}
+
+.pika-button {
+  color: inherit;
+}
+
+.picker-pika-single {
+  color: red;
+}
