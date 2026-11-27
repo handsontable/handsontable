@@ -203,11 +203,12 @@ describe('Menu: roles and names', () => {
     expect(nestedTables.length).toBeGreaterThan(0);
     expect(nestedRows.length).toBeGreaterThan(0);
 
-    // Walkontable marks every `table` presentational itself, so the body and the holder tell the two apart.
-    nestedTables.forEach(table => expect(table.tBodies[0].getAttribute('role')).toBe('rowgroup'));
+    // The value list is built with `ariaTags: false` and writes no role below its tables, so a role on
+    // its body, rows or cells could only come from the menu's own pass reaching into it.
+    nestedTables.forEach(table => expect(table.tBodies[0].hasAttribute('role')).toBe(false));
     nestedRows.forEach((row) => {
-      expect(row.getAttribute('role')).toBe('row');
-      expect(row.cells[0].getAttribute('role')).toBe('gridcell');
+      expect(row.hasAttribute('role')).toBe(false);
+      expect(row.cells[0].hasAttribute('role')).toBe(false);
     });
     expect(valueList.querySelector(':scope > .ht_master > .wtHolder').getAttribute('tabindex')).toBe('-1');
 

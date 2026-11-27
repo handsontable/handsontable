@@ -3,7 +3,7 @@ import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
 /**
- * The focus ring on a value-list cell: ArrowDown from the search input enters the list on its first
+ * The focus ring on a value-list value: ArrowDown from the search input enters the list on its first
  * value, and Space unticks that value, so the capture shows a focused cell with its checkbox cleared.
  * `tests/e2e/filters-menu-focus-order.spec.ts` asserts the way into and out of the list, what Space and
  * Enter toggle, and that a focused value scrolls fully into the list's view.
@@ -28,13 +28,17 @@ visualTest(__filename, {
   await tablePage.keyboard.press('Tab');
   await expect(menu.getByPlaceholder('Search', { exact: true })).toBeFocused();
 
+  // A value is a checkbox named by the value, and the focus is on the checkbox.
+  const value = menu.getByRole('checkbox', { name: '1/10/20', exact: true });
+
   await tablePage.keyboard.press('ArrowDown');
-  await expect(menu.getByRole('gridcell', { name: 'Checked 1/10/20', exact: true })).toBeFocused();
+  await expect(value).toBeFocused();
+  await expect(value).toBeChecked();
 
   await tablePage.keyboard.press('Space');
-  // A value-list cell is named by its checkbox state and its value, so this also pins what Space did:
-  // it unticked "1/10/20" and left the focus there.
-  await expect(menu.getByRole('gridcell', { name: 'Unchecked 1/10/20', exact: true })).toBeFocused();
+  // Space unticked "1/10/20" and left the focus there.
+  await expect(value).toBeFocused();
+  await expect(value).not.toBeChecked();
 
   // a focused value-list cell, unticked
   await tablePage.screenshot({ path: helpers.screenshotPath() });

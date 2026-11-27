@@ -107,14 +107,14 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
   }
 
   /**
-   * A row of the value list, named by its checkbox state and its value, the way the list's
-   * accessible names read: `Checked Alice`, `Unchecked Alice`.
+   * A value of the value list: its checkbox, named by the value (`Alice`). The checkbox is what the
+   * list focuses, and it carries the checked state, so a spec asserts `toBeChecked()` on it.
    *
-   * @param {string} name The accessible name.
-   * @returns {Locator} The list cell.
+   * @param {string} value The value, as the list shows it.
+   * @returns {Locator} The checkbox.
    */
-  listItem(name: string): Locator {
-    return this.menu.getByRole('gridcell', { name, exact: true });
+  listItem(value: string): Locator {
+    return this.menu.locator('.htUIMultipleSelect').getByRole('checkbox', { name: value, exact: true });
   }
 
   /**
