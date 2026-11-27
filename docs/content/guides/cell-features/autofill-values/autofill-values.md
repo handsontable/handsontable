@@ -29,6 +29,8 @@ Copy a cell's value into multiple other cells, using the "fill handle" UI elemen
 
 Autofill lets users drag the fill handle to copy values across adjacent cells. Use it to speed up repetitive data entry.
 
+To change the values autofill writes, use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook, `beforeAutofill(selectionData, sourceRange, targetRange, direction)`. To read where a fill started and where it ended, use the [`afterAutofill`](@/api/hooks.md#afterautofill) hook, `afterAutofill(fillData, sourceRange, targetRange, direction)`. For details, see [Altering and tracking autofilled values](#altering-and-tracking-autofilled-values).
+
 ## Autofill in all directions
 
 Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to copy and repeat the selected values across adjacent cells.
@@ -150,6 +152,16 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 ## Altering and tracking autofilled values
 
 Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values Handsontable is about to fill in, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes.
+
+The hooks receive these arguments:
+
+- `selectionData` (`beforeAutofill`): the values of the selected cells, as an array of arrays.
+- `fillData` (`afterAutofill`): the data that was used to fill the target range.
+- `sourceRange`: the range the values are filled from, that is, the cells the user selected before dragging the fill handle.
+- `targetRange`: the range of new cells the values are filled into. It doesn't include the selected cells.
+- `direction`: the direction of the fill, one of `up`, `down`, `left`, or `right`.
+
+To find out where a fill started, read `sourceRange`. To find out where it ended, read `targetRange`. To cancel the fill, return `false` from `beforeAutofill`. To fill with your own data instead of the default result, return an array of arrays. When the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin is enabled, the order of the callbacks decides which result wins. For details, see [Result](#result).
 
 In the example below, select the four cells from Symbol to Known Isotopes in the `Lithium` row and drag the fill handle down through the rows with row headers 4 and 5. The `afterAutofill` hook logs the affected range and direction to the output box below the grid. The logged row and column numbers are 0-based indices, so the two filled rows appear as `3-4`, not `4-5`.
 
