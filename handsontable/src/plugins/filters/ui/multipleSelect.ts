@@ -473,7 +473,7 @@ export class MultipleSelectUI extends BaseUI {
       runOnlyIf: () => {
         const highlightRow = this.#itemsBox?.getSelectedRangeActive()?.highlight.row;
 
-        return highlightRow !== undefined && highlightRow === this.#getFirstVisibleRow();
+        return typeof highlightRow === 'number' && highlightRow === this.#getFirstVisibleRow();
       },
       callback: () => {
         this.#itemsBox?.deselectCell();
@@ -740,7 +740,7 @@ export class MultipleSelectUI extends BaseUI {
     const itemsBox = this.#itemsBox;
     const highlight = itemsBox?.getSelectedRangeActive()?.highlight;
 
-    if (!itemsBox || !highlight) {
+    if (!itemsBox || !highlight || highlight.row === null || highlight.col === null) {
       return;
     }
 
