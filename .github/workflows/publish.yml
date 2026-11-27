@@ -646,6 +646,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload-file-path: /tmp/slack-payload.json
+          errors: true
 
   # ============================================================
   # Scenario C — Subsequent RC (push to release/**)
@@ -1035,6 +1036,11 @@ jobs:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
 
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+
       - name: Prepare and send Slack message
         env:
           RC_VERSION: ${{ needs.rc-build.outputs.rc-version }}
@@ -1062,23 +1068,7 @@ jobs:
           git fetch --unshallow 2>/dev/null || true
           git fetch --tags --quiet
 
-          COMMITS_TEXT=""
-
-          if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
-            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%H %s" --no-merges)
-
-            if [ -n "$COMMITS" ]; then
-              while IFS= read -r line; do
-                SHA=$(echo "$line" | cut -d' ' -f1)
-                MSG=$(echo "$line" | cut -d' ' -f2-)
-                COMMITS_TEXT="${COMMITS_TEXT}• <${REPO_URL}/commit/${SHA}|${MSG}>"$'\n'
-              done <<< "$COMMITS"
-            fi
-          fi
-
-          if [ -z "$COMMITS_TEXT" ]; then
-            COMMITS_TEXT="No commits found since \`${PREV_TAG}\`."
-          fi
+          COMMITS_SECTION=$(node .github/scripts/slack-rc-commits.mjs "$PREV_TAG" HEAD "$REPO_URL")
 
           jq -n \
             --arg version          "${RC_VERSION}" \
@@ -1088,8 +1078,7 @@ jobs:
             --arg npm_ok           "$NPM_OK" \
             --arg nuget_status     "$NUGET_STATUS" \
             --arg docs_url         "$DOCS_URL" \
-            --arg prev_tag         "${PREV_TAG}" \
-            --arg commits          "$COMMITS_TEXT" \
+            --arg commits_section  "$COMMITS_SECTION" \
             --arg changelog_synced "${CHANGELOG_SYNCED}" \
             --arg changelog_url    "$CHANGELOG_URL" \
             --arg run_url          "${RUN_URL}" \
@@ -1127,7 +1116,7 @@ jobs:
               { type: "divider" },
               {
                 type: "section",
-                text: { type: "mrkdwn", text: ("*Commits since `" + $prev_tag + "`*\n" + $commits) }
+                text: { type: "mrkdwn", text: $commits_section }
               },
               if $changelog_synced == "true" then
                 {
@@ -1158,6 +1147,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload-file-path: /tmp/slack-payload.json
+          errors: true
 
   # ============================================================
   # Scenario D — Stable release (release event, not prerelease)
@@ -2235,3 +2225,4 @@ jobs:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload-file-path: /tmp/slack-payload.json
+          errors: true
