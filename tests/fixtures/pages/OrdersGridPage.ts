@@ -1,6 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { assertKnownBundle, awaitBundle } from '../bundle';
-import { pointerLeavesBody } from '../gestures';
+import { pointerEntersBody, pointerLeavesBody } from '../gestures';
 import { FiltersValueListPage } from './FiltersValueListPage';
 
 /**
@@ -27,6 +27,9 @@ type OrdersWindow = {
     getDataAtCell(row: number, column: number): unknown,
     getSourceData(): unknown[][],
     getSelected(): number[][] | undefined,
+    getCell(row: number, column: number): HTMLElement | null,
+    countRows(): number,
+    scrollViewportTo(options: { row: number, verticalSnap: 'top' | 'bottom' }): boolean,
     render(): void,
     setCellMeta(row: number, column: number, key: string, value: unknown): void,
     setDataAtCell(row: number, column: number, value: unknown): void,
@@ -229,6 +232,25 @@ export class OrdersGridPage extends FiltersValueListPage {
   }
 
   /**
+   * Scrolls the grid to its last row through the API, the way a scroll made without the pointer does,
+   * and waits until the grid no longer draws the given row. The grid reuses the elements of the rows it
+   * stops drawing for the rows it draws next.
+   *
+   * @param {number} row A visual row index the scroll takes out of the rendered rows.
+   */
+  async scrollUntilRowIsNotDrawn(row: number): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as OrdersWindow;
+
+      hot.scrollViewportTo({ row: hot.countRows() - 1, verticalSnap: 'bottom' });
+    });
+
+    await expect.poll(() => this.page.evaluate(
+      checkedRow => (window as unknown as OrdersWindow).hot.getCell(checkedRow, 0) === null, row
+    )).toBe(true);
+  }
+
+  /**
    * Makes the page body at least as tall as the window, so the pointer cannot end outside it. The
    * fixture's body is only as tall as the grid, and the filter menu's OK button sits below it: once the
    * menu closes, the browser reports a `mouseleave` on the body on a frame of its own choosing, which
@@ -247,6 +269,14 @@ export class OrdersGridPage extends FiltersValueListPage {
    */
   async pointerLeavesBody(): Promise<void> {
     await pointerLeavesBody(this.page);
+  }
+
+  /**
+   * Sends the `mouseenter` the page body reports when the pointer comes back into its box
+   * (`pointerEntersBody()` in `fixtures/gestures.ts`).
+   */
+  async pointerEntersBody(): Promise<void> {
+    await pointerEntersBody(this.page);
   }
 
   /**

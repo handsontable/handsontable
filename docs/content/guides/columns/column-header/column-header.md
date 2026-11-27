@@ -427,6 +427,14 @@ The example below uses longer labels together with `columnHeaderHeight: 50`.
 
 :::
 
+## Keyboard navigation
+
+By default, the arrow keys move focus between cells only. To let users move focus onto the column headers, set [`navigableHeaders`](@/api/options.md#navigableheaders) to `true`. Then press <kbd>**↑**</kbd> in the first row to focus a column header, and <kbd>**↓**</kbd> to go back to the cells.
+
+From a focused column header, users can [sort](@/guides/rows/rows-sorting/rows-sorting.md#related-keyboard-shortcuts) the column, open the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md#related-keyboard-shortcuts), or [rename the header](#how-users-rename-a-header). The example in [Rename headers in the grid](#rename-headers-in-the-grid) sets `navigableHeaders` to `true`.
+
+To choose between header navigation and <kbd>**Tab**</kbd> navigation, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 ## Rename headers in the grid
 
 Let users rename column headers, row headers, or both, right in the grid. Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin with the [`editableHeaders`](@/api/options.md#editableheaders) option. It is available since version 19.0.0.

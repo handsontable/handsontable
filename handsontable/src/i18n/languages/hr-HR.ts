@@ -167,6 +167,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetiraj filtre',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Učitavanje podataka',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Pričekajte.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Podaci su učitani',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nije moguće učitati podatke',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nije moguće stvoriti retke',

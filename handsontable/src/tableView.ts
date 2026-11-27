@@ -22,6 +22,7 @@ import {
   isOutsideInput,
   isShadowRoot,
   isVisible,
+  removeAttribute,
   setAttribute,
   getParentWindow,
 } from './helpers/dom/element';
@@ -48,6 +49,9 @@ import { getSanitizer } from './utils/sanitizer';
 import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
+  A11Y_DESCRIBED_BY,
+  A11Y_LABEL,
+  A11Y_LABELED_BY,
   A11Y_MULTISELECTABLE,
   A11Y_PRESENTATION,
   A11Y_ROWCOUNT,
@@ -67,6 +71,19 @@ import { getSideSlotsWidth } from './core/rootSize';
  * the space between the panels and follows the container when it resizes.
  */
 const GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME = 'ht-grid-width-follows-content';
+
+/**
+ * The grid options that name and describe the grid, each with the helper that builds its ARIA
+ * attribute on the root element.
+ */
+const ROOT_ACCESSIBLE_NAME_OPTIONS: ReadonlyArray<[
+  'ariaLabel' | 'ariaLabelledby' | 'ariaDescribedby',
+  (value: string) => [string, string],
+]> = [
+  ['ariaLabel', A11Y_LABEL],
+  ['ariaLabelledby', A11Y_LABELED_BY],
+  ['ariaDescribedby', A11Y_DESCRIBED_BY],
+];
 
 /**
  * The most redraws `TableView#onCellContentSettled` requests for one row inside one window.
@@ -452,6 +469,14 @@ class TableView {
    * @type {CellPainter}
    */
   #cellPainter: CellPainter;
+  /**
+   * The names of the ARIA attributes the grid wrote on the root element from the `ariaLabel`,
+   * `ariaLabelledby`, and `ariaDescribedby` options. The grid removes only these, so an attribute
+   * that other code wrote on the root element stays.
+   *
+   * @type {Set<string>}
+   */
+  #rootAccessibleNameAttributes = new Set<string>();
 
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
@@ -761,6 +786,36 @@ class TableView {
   }
 
   /**
+   * Writes the `ariaLabel`, `ariaLabelledby`, and `ariaDescribedby` options onto the root element as
+   * `aria-label`, `aria-labelledby`, and `aria-describedby`. A non-empty string sets the attribute.
+   * Any other value removes it, but only when the grid wrote it. With `ariaTags` off, the grid writes
+   * none of them.
+   */
+  updateRootAccessibleName(): void {
+    const settings = this.hot.getSettings();
+
+    if (!settings.ariaTags) {
+      return;
+    }
+
+    const { rootElement } = this.hot;
+
+    ROOT_ACCESSIBLE_NAME_OPTIONS.forEach(([optionName, toAttribute]) => {
+      const value = settings[optionName];
+      const [attributeName] = toAttribute('');
+
+      if (typeof value === 'string' && value !== '') {
+        setAttribute(rootElement, [toAttribute(value)]);
+        this.#rootAccessibleNameAttributes.add(attributeName);
+
+      } else if (this.#rootAccessibleNameAttributes.has(attributeName)) {
+        removeAttribute(rootElement, attributeName);
+        this.#rootAccessibleNameAttributes.delete(attributeName);
+      }
+    });
+  }
+
+  /**
    * Prepares DOMElements and adds correct className to the root element.
    *
    * @private
@@ -793,6 +848,8 @@ class TableView {
         A11Y_COLCOUNT(this.hot.countCols()),
         A11Y_MULTISELECTABLE(),
       ]);
+
+      this.updateRootAccessibleName();
     }
 
     this.THEAD = rootDocument.createElement('thead');

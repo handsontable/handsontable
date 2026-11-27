@@ -44,7 +44,6 @@ export {
   ERROR_CLASS_NAME,
   INDICATOR_CLASS_NAME,
   ERROR_MESSAGE_CLASS_NAME,
-  PENDING_MESSAGE_CLASS_NAME,
   ERROR_MARKER_CLASS_NAME,
 } from './decoration';
 
@@ -125,6 +124,11 @@ interface AsyncValueEntry {
   launch: Launch | null;
   finished: boolean;
   reported: boolean;
+  /**
+   * When the request turned the cell pending (`Date.now()`). A repaint builds a new indicator, and it
+   * resumes the indicator's turns from this time rather than starting them again.
+   */
+  startedAt: number;
 }
 
 /**
@@ -1443,6 +1447,7 @@ export class AsyncValues extends BasePlugin {
       launch: null,
       finished: false,
       reported: false,
+      startedAt: Date.now(),
     };
     const previous = state.entries.get(prop);
 
@@ -4039,7 +4044,10 @@ export class AsyncValues extends BasePlugin {
     if (entry) {
       const message = entry.status === 'pending' ? this.hot.getTranslatedPhrase(LOADING_TITLE) : entry.message;
 
-      decorateCell(TD, entry.status, typeof message === 'string' ? message : '', !!cellProperties.ariaTags);
+      decorateCell(
+        TD, entry.status, typeof message === 'string' ? message : '', !!cellProperties.ariaTags,
+        Date.now() - entry.startedAt,
+      );
     }
   };
 }

@@ -615,6 +615,100 @@ export default (): Record<string, unknown> => {
     allowRemoveRow: true,
 
     /**
+     * The `ariaDescribedby` option gives the grid an accessible description. Set it to the `id` of an element
+     * on the page, or to several `id`s separated by spaces. Handsontable writes the value to the `aria-describedby`
+     * attribute of the grid's root element, and a screen reader reads the text of those elements after the grid's name.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-describedby` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-describedby` attribute that the grid wrote. An
+     * `aria-describedby` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // describe the grid with the text of the element with the `sales-help` id
+     * ariaDescribedby: 'sales-help',
+     * ```
+     */
+    ariaDescribedby: undefined,
+
+    /**
+     * The `ariaLabel` option gives the grid an accessible name. Handsontable writes the value to the `aria-label`
+     * attribute of the grid's root element, and a screen reader reads it when the focus enters the grid.
+     *
+     * When a heading or another element on the page already names the grid, use [`ariaLabelledby`](#arialabelledby)
+     * instead, so the visible text and the accessible name stay the same.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-label` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-label` attribute that the grid wrote. An
+     * `aria-label` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // name the grid
+     * ariaLabel: 'Quarterly sales',
+     * ```
+     */
+    ariaLabel: undefined,
+
+    /**
+     * The `ariaLabelledby` option names the grid with the text of other elements on the page. Set it to the `id`
+     * of an element, or to several `id`s separated by spaces. Handsontable writes the value to the `aria-labelledby`
+     * attribute of the grid's root element.
+     *
+     * A screen reader uses `aria-labelledby` before [`ariaLabel`](#arialabel) when you set both.
+     *
+     * The option needs [`ariaTags`](#ariatags) set to `true`, which is its default. With `ariaTags: false`,
+     * the grid has no role, so it writes no `aria-labelledby` either.
+     *
+     * You can change the option with the [`updateSettings()`](@/api/core.md#updatesettings) method. An empty
+     * string, `null`, or `undefined` removes the `aria-labelledby` attribute that the grid wrote. An
+     * `aria-labelledby` attribute that your own code wrote on the grid's root element stays.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md#name-and-describe-the-grid)
+     *
+     * @memberof Options#
+     * @type {string|null}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     * @since 19.1.0
+     *
+     * @example
+     * ```js
+     * // name the grid with the text of the element with the `sales-title` id
+     * ariaLabelledby: 'sales-title',
+     * ```
+     */
+    ariaLabelledby: undefined,
+
+    /**
      * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
      * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
      * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.

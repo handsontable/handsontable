@@ -4926,8 +4926,15 @@ export class SheetsBar extends BasePlugin {
     const root = this.hot.rootElement;
     const labelId = this.#tabStrip?.getActiveLabelId() ?? null;
 
-    if (!this.hot.getSettings().ariaTags || labelId === null || this.#hostNamesGrid(root)) {
+    if (!this.hot.getSettings().ariaTags || labelId === null) {
       this.#clearGridName();
+
+      return;
+    }
+
+    if (this.#hostNamesGrid(root)) {
+      this.#releaseGridName(root);
+      this.#watchHostGridName(root);
 
       return;
     }
@@ -4947,9 +4954,11 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Starts watching the grid root for a name the host writes later. Without it the bar's
+   * Starts watching the grid root for a name the host writes or removes later. Without it the bar's
    * `aria-labelledby`, which wins over an `aria-label`, kept naming the grid after the sheet until
-   * the next repaint of the bar.
+   * the next repaint of the bar. The watch stays while the host's name is on the root, so when the
+   * host removes it (an empty `ariaLabel` or `ariaLabelledby` option, or its own code), the bar names
+   * the grid after the sheet again.
    *
    * @param {HTMLElement} root The grid's root element.
    */
@@ -4959,8 +4968,13 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#gridNameObserver = new this.hot.rootWindow.MutationObserver(() => {
-      if (this.#gridNameId !== null && this.#hostNamesGrid(root)) {
-        this.#clearGridName();
+      if (this.#hostNamesGrid(root)) {
+        if (this.#gridNameId !== null) {
+          this.#releaseGridName(root);
+        }
+
+      } else if (this.#gridNameId === null) {
+        this.#syncGridName();
       }
     });
     this.#gridNameObserver.observe(root, { attributes: true, attributeFilter: ['aria-label', 'aria-labelledby'] });
@@ -4982,11 +4996,18 @@ export class SheetsBar extends BasePlugin {
    * Takes the name the bar gave the grid off again, when the bar is turned off.
    */
   #clearGridName() {
-    const root = this.hot.rootElement;
-
     this.#gridNameObserver?.disconnect();
     this.#gridNameObserver = null;
+    this.#releaseGridName(this.hot.rootElement);
+  }
 
+  /**
+   * Removes the `aria-labelledby` the bar wrote, when it is still the bar's, and forgets it. The
+   * watch on the root stays as it is.
+   *
+   * @param {HTMLElement|null} root The grid's root element.
+   */
+  #releaseGridName(root: HTMLElement | null) {
     if (this.#gridNameId !== null && root?.getAttribute('aria-labelledby') === this.#gridNameId) {
       removeAttribute(root, 'aria-labelledby');
     }

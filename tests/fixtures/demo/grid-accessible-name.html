@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grid accessible name e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    The grid takes its accessible name and description from the `ariaLabel`, `ariaLabelledby`, and
+    `ariaDescribedby` options. The heading and the paragraphs below are the elements the id-reference
+    options point at. The spec builds the grid through `window.buildGrid()`, optionally after putting
+    its own attributes on the container.
+  -->
+  <h2 id="sales-title">Quarterly sales</h2>
+  <p id="sales-region">North region</p>
+  <p id="sales-help">Amounts in US dollars.</p>
+  <p id="sales-note">Press Enter to edit a cell.</p>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.buildGrid = function(extraSettings, containerAttributes) {
+      container.removeAttribute('data-init-error');
+
+      Object.entries(containerAttributes || {}).forEach(([name, value]) => {
+        container.setAttribute(name, value);
+      });
+
+      try {
+        window.hot = new Handsontable(container, Object.assign({
+          data: Handsontable.helper.createSpreadsheetData(5, 4),
+          colHeaders: true,
+          rowHeaders: true,
+          width: 600,
+          height: 300,
+          licenseKey: window.htTestLicenseKey,
+        }, extraSettings));
+        window.hot.rootElement.setAttribute('data-testid', 'grid-root');
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+      }
+    };
+  </script>
+</body>
+</html>

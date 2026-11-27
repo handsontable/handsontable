@@ -1531,8 +1531,13 @@ jobs:
             exit 0
           fi
 
-          # Find the latest non-prerelease tag for the previous major version
-          git fetch --tags origin
+          # Find the latest non-prerelease tag for the previous major version.
+          # Fetch only that major's tags. A bare `git fetch --tags` also tries to
+          # update the current version tag, which the previous step moved on the
+          # remote to the post-merge master commit; this checkout still holds the
+          # old one, so git rejects it with "would clobber existing tag" (19.0.0).
+          # `--force` covers the same case for any previous-major tag that moved.
+          git fetch --force origin "refs/tags/${PREV_MAJOR}.*:refs/tags/${PREV_MAJOR}.*"
           LATEST_TAG=$(git tag --list "${PREV_MAJOR}.*" --sort=-version:refname | grep -v '-' | head -n 1)
 
           if [ -z "$LATEST_TAG" ]; then
@@ -2107,27 +2112,6 @@ jobs:
           dotnet nuget push "$NUPKG" \
             --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json
-
-  # ============================================================
-  # Scenario D.2b — Delete release branch (only when all publish steps succeeded)
-  # ============================================================
-  stable-cleanup:
-    name: Delete release branch
-    runs-on: ubuntu-26.04
-    needs: [stable-build, stable-publish, stable-publish-nuget]
-    if: always() && needs.stable-build.result == 'success' && needs.stable-publish.result == 'success' && needs.stable-publish-nuget.result == 'success' && needs.stable-publish.outputs.docs-result == 'success'
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Delete release branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
-          git push origin --delete "${RELEASE_BRANCH}"
-          echo "Deleted release branch ${RELEASE_BRANCH}"
 
   # ============================================================
   # Scenario D.3 — Stable release notification

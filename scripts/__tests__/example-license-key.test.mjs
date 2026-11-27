@@ -32,7 +32,34 @@ const ALLOWED = [
     /^docs\/content\/guides\/getting-started\/license-key\/license-key\.md$/,
     'says the retired key reads as invalid since 19.0',
   ],
+  [
+    /^docs\/content\/api\/(core|options)\.md$/,
+    'the API reference generated from the `licenseKey` JSDoc says the retired key reads as invalid',
+    { generated: true },
+  ],
 ];
+
+/**
+ * Returns the ALLOWED patterns that no longer earn their place. A generated entry covers files that only the
+ * release commits (`git add -f docs/content/api` in `publish.yml`), so it is stale only when those files exist
+ * and none of them names the key.
+ *
+ * @param {Array} allowed The ALLOWED entries.
+ * @param {string[]} tracked The scanned files.
+ * @param {Function} holdsKey Tells whether a file names the retired key.
+ * @returns {string[]}
+ */
+const staleEntries = (allowed, tracked, holdsKey) => allowed
+  .filter(([pattern, , { generated = false } = {}]) => {
+    const matched = tracked.filter(file => pattern.test(file));
+
+    if (generated && matched.length === 0) {
+      return false;
+    }
+
+    return !matched.some(holdsKey);
+  })
+  .map(([pattern]) => String(pattern));
 
 const files = execFileSync('git', ['ls-files', '-z', '--', ...SCANNED], { cwd: ROOT, encoding: 'utf8' })
   .split('\0')
@@ -55,11 +82,26 @@ test('the scan reads files under every scanned root and spots the retired key', 
 test('every file the guard allows still names the retired key', () => {
   // A stale entry would let the key come back into that path unnoticed.
   const holdsKey = file => RETIRED_KEY.test(readFileSync(join(ROOT, file), 'utf8'));
-  const stale = ALLOWED
-    .filter(([pattern]) => !files.some(file => pattern.test(file) && holdsKey(file)))
-    .map(([pattern]) => String(pattern));
 
-  assert.deepEqual(stale, [], 'ALLOWED names paths that no longer hold the retired key. Remove them.');
+  assert.deepEqual(
+    staleEntries(ALLOWED, files, holdsKey),
+    [],
+    'ALLOWED names paths that no longer hold the retired key. Remove them.',
+  );
+});
+
+test('a generated entry is stale only when its files exist and none names the key', () => {
+  const allowed = [
+    [/^gen\//, 'generated', { generated: true }],
+    [/^kept\//, 'committed'],
+  ];
+  const withKey = new Set(['gen/a.md', 'kept/a.md']);
+  const holdsKey = file => withKey.has(file);
+
+  assert.deepEqual(staleEntries(allowed, ['kept/a.md'], holdsKey), []);
+  assert.deepEqual(staleEntries(allowed, ['gen/a.md', 'kept/a.md'], holdsKey), []);
+  assert.deepEqual(staleEntries(allowed, ['gen/b.md', 'kept/a.md'], holdsKey), ['/^gen\\//']);
+  assert.deepEqual(staleEntries(allowed, ['gen/a.md'], holdsKey), ['/^kept\\//']);
 });
 
 test('no example or README names the retired non-commercial key', () => {

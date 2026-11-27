@@ -30,7 +30,8 @@ describe('HotGlobalConfigService', () => {
 
   it('should still export the deprecated NON_COMMERCIAL_LICENSE constant until 20.0', () => {
     // Deprecated in 19.0, so an existing import keeps compiling. The key it holds reads as invalid
-    // from 19.0 on, which section 55 of the 18.1 to 19.0 migration guide documents.
+    // from 19.0 on, which the 18.1 to 19.0 migration guide documents under "The
+    // `non-commercial-and-evaluation` license key no longer works".
     expect(publicApi.NON_COMMERCIAL_LICENSE).toBe('non-commercial-and-evaluation');
   });
 

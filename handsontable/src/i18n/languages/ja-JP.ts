@@ -161,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'フィルターをリセット',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'データを読み込み中',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'お待ちください。',
+  [C.EMPTY_DATA_STATE_LOADED]: 'データを読み込みました',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'データを読み込めませんでした',
   [C.DATA_PROVIDER_ERRORS_CREATE]: '行を作成できませんでした',

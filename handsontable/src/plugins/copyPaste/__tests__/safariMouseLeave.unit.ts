@@ -168,4 +168,215 @@ describe('CopyPaste Safari `mouseleave` workaround', () => {
       expect(cellIsContentEditable()).toBe(true);
     });
   });
+  describe('the `aria-hidden` the workaround sets', () => {
+    const enterBody = () => {
+      document.body.dispatchEvent(new MouseEvent('mouseenter'));
+    };
+
+    it('should stay on the highlighted cell after a render', () => {
+      createGrid();
+      leaveBody();
+
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+
+      hot.render();
+
+      // The positive control: the render left the cell editable, so the workaround is still on.
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should stay on a highlighted column header after a render', () => {
+      createGrid({ colHeaders: true, navigableHeaders: true });
+      hot.selectCell(-1, 1);
+      hot.listen();
+      leaveBody();
+
+      expect(hot.getCell(-1, 1, true)?.hasAttribute('contenteditable')).toBe(true);
+      expect(hot.getCell(-1, 1, true)?.getAttribute('aria-hidden')).toBe('true');
+
+      hot.render();
+
+      expect(hot.getCell(-1, 1, true)?.hasAttribute('contenteditable')).toBe(true);
+      expect(hot.getCell(-1, 1, true)?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should be gone, with a render in between, once the pointer is back in the body', () => {
+      createGrid();
+      leaveBody();
+      hot.render();
+      enterBody();
+
+      expect(cellIsContentEditable()).toBe(false);
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
+
+      hot.render();
+
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should not be put on a highlighted cell a renderer made editable, which the workaround did not touch', () => {
+      createGrid({
+        renderer(_hot: unknown, TD: HTMLTableCellElement, row: number, column: number, _prop: unknown, value: string) {
+          TD.textContent = value;
+
+          if (row === 1 && column === 1) {
+            TD.setAttribute('contenteditable', 'true');
+          }
+        },
+      });
+      // The pointer never left the body, so the highlighted cell (1, 1) is editable by its renderer only.
+      hot.render();
+
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should stay on the highlighted cell after a draw that no full render follows, as a scroll makes', () => {
+      createGrid();
+      leaveBody();
+
+      // A scroll draws through Walkontable alone: `afterViewRender` fires, `afterRender` does not.
+      (hot as unknown as { view: { _wt: { draw: (fastDraw: boolean) => void } } }).view._wt.draw(false);
+
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should take the workaround off a cell the selection has left', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      hot.selectCell(0, 0);
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it.each([
+      ['`fragmentSelection`', { fragmentSelection: true }],
+      ['`copyPaste`', { copyPaste: { copyColumnHeaders: true } }],
+    ])('should stay on the highlighted cell after an update of %s, which updates the plugin', (_name, settings) => {
+      createGrid();
+      leaveBody();
+
+      hot.updateSettings(settings);
+
+      expect(cellIsContentEditable()).toBe(true);
+      expect(hot.getCell(1, 1)?.getAttribute('aria-hidden')).toBe('true');
+
+      enterBody();
+
+      expect(cellIsContentEditable()).toBe(false);
+      expect(hot.getCell(1, 1)?.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should be gone, with `contenteditable`, once the plugin is disabled', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      hot.updateSettings({ copyPaste: false });
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+    });
+
+    it('should take the workaround off the previous cell when it moves on to another one', () => {
+      createGrid();
+      leaveBody();
+
+      const previousCell = hot.getCell(1, 1);
+
+      // The selection changes while the grid does not listen, so nothing takes the workaround off.
+      hot.unlisten();
+      hot.selectCell(0, 0, 0, 0, false, false);
+      hot.listen();
+      leaveBody();
+
+      expect(hot.getCell(0, 0)?.hasAttribute('contenteditable')).toBe(true);
+      expect(hot.getCell(0, 0)?.getAttribute('aria-hidden')).toBe('true');
+      expect(previousCell?.hasAttribute('contenteditable')).toBe(false);
+      expect(previousCell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      expect(window.getSelection()?.toString()).toBe('A1');
+    });
+
+    it('should take the workaround off an element that is no longer the highlighted cell, on the next draw', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      // A grid that does not listen leaves the workaround where it is, so the element stays editable
+      // while the highlight is on another cell: the state an element a scroll reused for another cell is in.
+      hot.unlisten();
+      hot.selectCell(0, 0, 0, 0, false, false);
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(true);
+      expect(window.getSelection()?.toString()).toBe('B2');
+
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('aria-hidden')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      expect(cell?.classList.contains('invisibleSelection')).toBe(false);
+      expect(hot.getCell(0, 0)?.hasAttribute('aria-hidden')).toBe(false);
+      // The marker no longer paints the workaround's selection transparent, so it must go as well.
+      expect(window.getSelection()?.toString()).toBe('');
+      expect(window.getSelection()?.rangeCount).toBe(0);
+    });
+
+    it('should keep a selection made outside the kept element when the draw takes the workaround off', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+      const outsideText = document.createElement('p');
+
+      outsideText.textContent = 'Outside the grid';
+      document.body.appendChild(outsideText);
+
+      hot.unlisten();
+      hot.selectCell(0, 0, 0, 0, false, false);
+
+      const range = document.createRange();
+
+      range.selectNodeContents(outsideText);
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
+
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+      // A draw must not clear a selection the user made elsewhere on the page.
+      expect(window.getSelection()?.toString()).toBe('Outside the grid');
+
+      outsideText.remove();
+    });
+
+    it('should take the workaround off the kept element when no cell is highlighted any more', () => {
+      createGrid();
+      leaveBody();
+
+      const cell = hot.getCell(1, 1);
+
+      hot.unlisten();
+      hot.deselectCell();
+      hot.render();
+
+      expect(cell?.hasAttribute('contenteditable')).toBe(false);
+      expect(cell?.hasAttribute('data-ht-invisible-selection')).toBe(false);
+    });
+  });
 });

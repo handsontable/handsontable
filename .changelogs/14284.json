@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added a license tier: a license key can name the Professional tier, which includes every Handsontable feature, and the license key guide lists the features it includes. A key that names no tier keeps every feature.",
-  "type": "added",
-  "issueOrPR": 14284,
-  "breaking": false,
-  "framework": "none"
-}

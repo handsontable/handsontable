@@ -161,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filters resetten',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Gegevens laden',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Even geduld.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Gegevens geladen',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Gegevens konden niet worden geladen',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Rijen konden niet worden aangemaakt',

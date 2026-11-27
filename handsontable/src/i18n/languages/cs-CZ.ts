@@ -161,6 +161,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetovat filtry',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Načítání dat',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Čekejte prosím.',
+  [C.EMPTY_DATA_STATE_LOADED]: 'Data načtena',
 
   [C.DATA_PROVIDER_ERRORS_FETCH]: 'Data se nepodařilo načíst',
   [C.DATA_PROVIDER_ERRORS_CREATE]: 'Řádky se nepodařilo vytvořit',

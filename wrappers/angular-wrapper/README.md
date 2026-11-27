@@ -23,7 +23,7 @@
 <br>
 [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
-[![FOSSA status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+[![FOSSA status](https://app.fossa.com/api/projects/custom%2B249%2Fgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.com/projects/custom%2B249%2Fgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
 
   <br>
 
@@ -47,18 +47,25 @@
 &nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/angular-data-grid/rows-sorting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/angular-data-grid/column-filter/) <br>
 &nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/angular-data-grid/formula-calculation/) <br>
+&nbsp;&nbsp;✅&nbsp; [Formula bar and builder](https://handsontable.com/docs/angular-data-grid/formula-builder/) <br>
+&nbsp;&nbsp;✅&nbsp; [Multiple sheets](https://handsontable.com/docs/angular-data-grid/sheets-bar/) <br>
 &nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/angular-data-grid/selection/) <br>
+&nbsp;&nbsp;✅&nbsp; [Row selection with checkboxes](https://handsontable.com/docs/angular-data-grid/row-selection/) <br>
 &nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/angular-data-grid/cell-validator/) <br>
 &nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/angular-data-grid/conditional-formatting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/angular-data-grid/merge-cells/) <br>
-&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/angular-data-grid/column-freezing/) <br>
+&nbsp;&nbsp;✅&nbsp; [Frozen rows and columns, adjustable by drag](https://handsontable.com/docs/angular-data-grid/column-freezing/) <br>
 &nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/angular-data-grid/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/angular-data-grid/context-menu/) <br>
+&nbsp;&nbsp;✅&nbsp; [Undo and redo](https://handsontable.com/docs/angular-data-grid/undo-redo/) <br>
+&nbsp;&nbsp;✅&nbsp; [Clickable links](https://handsontable.com/docs/angular-data-grid/clickable-links/) <br>
 &nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/angular-data-grid/rows-pagination/) <br>
 &nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/angular-data-grid/server-side-data/) <br>
+&nbsp;&nbsp;✅&nbsp; [Async cell values](https://handsontable.com/docs/angular-data-grid/async-values/) <br>
 &nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/angular-data-grid/notification/) <br>
-&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/angular-data-grid/export-to-excel/) <br>
-&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/angular-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Import and export Excel (XLSX)](https://handsontable.com/docs/angular-data-grid/import-and-export/) <br>
+&nbsp;&nbsp;✅&nbsp; [Save and restore view state](https://handsontable.com/docs/angular-data-grid/view-state/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/angular-data-grid/date-cell-type/) <br>
 &nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/angular-data-grid/shadow-dom/) <br>
 
 <div id="installation">
