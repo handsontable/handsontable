@@ -731,16 +731,26 @@ grid a test builds therefore takes the internal test key, from its suite's const
 Three guards hold it, one per runner, because no single check sees every runner:
 
 - **Jasmine and fixture pages: a static scan.** `scripts/__tests__/test-license-key.test.mjs` (root
-  `test:tooling`) fails on a grid constructor (`new Handsontable(`, `new Handsontable.Core(`, `new Core(`,
-  jQuery's `.handsontable(`) whose options do not name `licenseKey`, unless they are a variable, a spread or
-  `Object.assign()` in a file that sets a key. A runtime check cannot do this job in Jasmine: the whole suite
-  shares one page, and the core prints the legacy key message once per page.
-- **Jest: the console.** `test/jestExpectedConsole.js` fails a unit test whose grid logged a missing, invalid
-  or expired key message, unless its file is listed in `LICENSE_TEST_FILES`. The message prints once per
-  test file, so the guard fails the first keyless grid of a file. A `Core` built without the root symbol
-  never checks the key and logs nothing; it shows no lock either.
-- **Playwright: the page.** The `page` fixture in `tests/fixtures/test.ts` fails a passing test that left a
-  `.ht-license-lock` on its page (`tests/AGENTS.md`, "Fixture contract").
+  `test:tooling`) reads every grid constructor: `new Handsontable(`, `new Handsontable.Core(`, `new Core(`,
+  the same through an object (`new win.Handsontable(`), and jQuery's `.handsontable(`. It fails on one whose
+  arguments do not name `licenseKey`, unless its options get the key from the same file. They get it through
+  a name whose value flows into them: a variable, a spread, an `Object.assign()` argument, or a helper the
+  options call, followed three names deep, or an `options.licenseKey =` assignment. A name in a callback, in
+  a call's arguments, or in a property's value does not count, and neither does a key in a comment, in a
+  string, or in an import path. Names are matched in the whole file, not by scope. The scan masks strings
+  and comments first (`maskSource()`), so a parenthesis, a comma, or a constructor inside them counts for
+  nothing. A fixture is code only inside its `<script>` blocks, and so is a page a spec writes in a template
+  literal. A runtime check cannot do this job in Jasmine: the whole suite shares one page, and the core
+  prints the legacy key message once per page.
+- **Jest: the lock and the console.** `test/jestExpectedConsole.js` fails a unit test whose grid mounted the
+  license lock (a global `afterInit` hook, so every keyless grid of a file is caught, whatever a spec does to
+  `console`), or logged a missing, invalid or expired key message, unless its file is listed in
+  `LICENSE_TEST_FILES`. The message path is the backup: it is the only signal of an expired legacy key (no
+  lock), and of a grid built after `jest.resetModules()`, whose hooks singleton has no such hook. A `Core`
+  built without the root symbol never checks the key and logs nothing; it shows no lock either.
+- **Playwright: the page.** The `page` fixture in `tests/fixtures/test.ts` fails a passing test whose page
+  showed a `.ht-license-lock`, also one gone by the end once its report arrived (`tests/AGENTS.md`, "Fixture
+  contract").
 
 ## Bootstrap and Setup
 

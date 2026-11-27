@@ -373,7 +373,13 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `/tests/fixtures/demo/test-license-key.js` before the grid and passes `licenseKey: window.htTestLicenseKey`,
   and so does a grid a spec builds in `page.evaluate`. Since 19.0 a grid without a valid key mounts behind
   the license lock: API reads pass while clicks, focus, screenshots and axe scans meet the lock. The `page`
-  fixture in `fixtures/test.ts` fails a test that passed with a `.ht-license-lock` on its page, in any frame.
+  fixture in `fixtures/test.ts` fails a test that passed after its page showed a `.ht-license-lock`, in any
+  frame (`fixtures/licenseLockGuard.ts`). An init script reports each lock as it mounts, so a lock counts
+  even when the test destroyed its grid, navigated the frame away, or closed the page, once the report has
+  reached Node (a report sent in the test's last step can still be in flight). A frame a script built with
+  `document.open()` is read at the end instead. An error reading a frame fails the test, unless the frame
+  went away. A test that failed gets the lock as a `license-lock` annotation, not a second failure. A lock
+  inside a shadow root is not seen.
   A page asks for a license state on purpose in one of two ways: it is one of the license pages
   (`license-branding`, `license-bar`, `license-capabilities`, `xlsx-license`), or it is opened with a
   `?license=` value other than `test` (`side-layout-slots.html?license=trial`,
