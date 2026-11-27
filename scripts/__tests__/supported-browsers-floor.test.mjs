@@ -100,11 +100,17 @@ test('the migration guide to the last column release names every floor version i
   assert.ok(folder, `${MIGRATION_GUIDES} has no migration guide to ${release}`);
 
   const guide = readFileSync(path.join(ROOT, MIGRATION_GUIDES, folder, `${folder}.md`), 'utf8');
-  const section = guide.split(/^## /m).find(part => /browser/i.test(part.split('\n')[0]));
+  // A guide lists its changes as `## <N>. ...` steps, or as `### <N>. ...` items under impact groups.
+  const section = guide.split(/^#{2,3} /m).find(part => /browser/i.test(part.split('\n')[0]));
 
-  assert.ok(section, `${folder}.md has no "## <N>. ..." section about browsers`);
+  assert.ok(section, `${folder}.md has no "## <N>. ..." or "### <N>. ..." change about browsers`);
 
-  const named = version => new RegExp(`(^|[^\\d.])${version.replace('.', '\\.')}($|[^\\d])`).test(section);
+  // Only the prose a reader sees counts: a code example or a collapsed details block can hold a copy of the
+  // versions that stays right while the sentence goes wrong.
+  const visible = section
+    .replace(/^\s*```[\s\S]*?^\s*```[^\n]*$/gm, '')
+    .replace(/^:{3,}\s+details[\s\S]*?^:{3,}\s*$/gm, '');
+  const named = version => new RegExp(`(^|[^\\d.])${version.replace('.', '\\.')}($|[^\\d])`).test(visible);
   const missing = targets.filter(({ version }) => !named(version)).map(({ name, version }) => `${name} ${version}`);
 
   assert.deepEqual(missing, [], `${folder}.md: the browser section must name the ${release} minimum versions`);

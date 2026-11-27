@@ -37,7 +37,7 @@
       "id": "arrow-into-list",
       "action": {"press": "ArrowDown"},
       "expect": [["green"], ["checked"]],
-      "note": "ArrowDown from the search input (not Tab) enters the value list on its first row. A row's accessible name reads `Checked Green`: the checkbox's aria-label carries the state, and every value starts checked. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state."
+      "note": "ArrowDown from the search input (not Tab) enters the value list on its first value. The focus is on that value's checkbox, named by the value (`Green`) with its checked state; the list exposes no grid, row or cell around the checkboxes, and every value starts checked. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state."
     },
     {
       "id": "arrow-down-next",
@@ -49,7 +49,7 @@
       "id": "space-uncheck",
       "action": {"press": "Space"},
       "expect": [["unchecked", "not checked"]],
-      "note": "Space toggles the focused value and the focus stays on it; the row's name becomes `Unchecked Red`. Only the state is required: a reader that announces a state change says `not checked` without repeating the name. The focus is on the list's grid cell, and the checkbox inside it changes. Finding: with Chromium, NVDA and VoiceOver say nothing when Space unchecks the value; NVDA with Firefox reads `Unchecked Red`. Finding (the grid's): VoiceOver with WebKit says nothing too, where it read `Unchecked Red`, as checkbox-cell records for a cell that changes in place."
+      "note": "Space toggles the focused value and the focus stays on it; the checkbox `Red` becomes not checked. Only the state is required: a reader that announces a state change says `not checked` without repeating the name. The focus is on the checkbox itself; the draw replaces the checkbox and the list puts the focus back on the new one. Recorded while the focus was on the list's grid cell, before the list became a group of checkboxes, so the next reader run decides whether these findings still hold. Finding: with Chromium, NVDA and VoiceOver say nothing when Space unchecks the value; NVDA with Firefox reads `Unchecked Red`. Finding (the grid's): VoiceOver with WebKit says nothing too, where it read `Unchecked Red`, as checkbox-cell records for a cell that changes in place."
     },
     {
       "id": "tab-to-ok",

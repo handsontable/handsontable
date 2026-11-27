@@ -225,7 +225,12 @@
       }),
     };
 
-    window.hot = new Handsontable(container, scenarios[window.htScenario]());
+    // Every scenario spreads `base`, which holds the key; it is named here as well, so the keyless-grid scan
+    // (which does not follow a scenario picked at run time) sees it on the call.
+    window.hot = new Handsontable(container, {
+      ...scenarios[window.htScenario](),
+      licenseKey: window.htTestLicenseKey,
+    });
 
     // Serializes the master and overlay tables with sorted attributes and class tokens, so two
     // renders can be compared without depending on attribute or class order.

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Filters \"Filter by value\" list exposing an unnamed grid whose checkboxes were all named \"Checked\" to screen readers. The list is now a group of checkboxes named by their values, the focus goes to the checkbox, and ArrowUp on the first value returns to the search input. The list no longer has the `role`, `aria-rowindex`, and checkbox `aria-label` attributes.",
+  "type": "fixed",
+  "issueOrPR": 14502,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1442,7 +1442,7 @@ describe('Filters UI', () => {
       byValueMultipleSelect().getItemsBox().selectCell(23, 0);
 
       // Mathis Boone, 23th element
-      await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="24"] input'));
+      await simulateClick(byValueBoxRootElement().querySelector('input[data-row="23"]'));
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -1833,7 +1833,7 @@ describe('Filters UI', () => {
 
     await dropdownMenu(0);
     // Select only "Completed"
-    await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="2"] input'));
+    await simulateClick(byValueBoxRootElement().querySelector('input[data-row="1"]'));
     await simulateClick(getFilterDropdownMenuOKButton());
 
     expect(getData()).toEqual([
@@ -1845,8 +1845,8 @@ describe('Filters UI', () => {
     await dropdownMenu(0);
 
     // Select only "Open"
-    await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="1"] input'));
-    await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="2"] input'));
+    await simulateClick(byValueBoxRootElement().querySelector('input[data-row="0"]'));
+    await simulateClick(byValueBoxRootElement().querySelector('input[data-row="1"]'));
     await simulateClick(getFilterDropdownMenuOKButton());
 
     expect(getData()).toEqual([

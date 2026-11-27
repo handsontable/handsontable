@@ -262,23 +262,257 @@ test('the retired-key scan catches a code line and passes a comment', () => {
   assert.deepEqual(codeLinesWithRetiredKey(text), [code, upperCase]);
 });
 
-// A grid constructor: `new Handsontable(`, `new Handsontable.Core(`, `new Core(`, or jQuery's `.handsontable(`.
-const GRID_CONSTRUCTOR = /new\s+(?:Handsontable(?:\.Core|\.default)?|Core)\s*\(|\.handsontable\s*\(/g;
+// A grid constructor: `new Handsontable(`, `new Handsontable.Core(`, `new Core(`, the same through the object a
+// page exposes it on (`new win.Handsontable(` in a `page.evaluate`), or jQuery's `.handsontable(`.
+const GRID_CONSTRUCTOR =
+  /new\s+(?:[A-Za-z_$][\w$]*\.)*(?:Handsontable(?:\.Core|\.default)?|Core)\s*\(|\.handsontable\s*\(/g;
+
+// The characters after which a `/` starts a regular expression literal rather than a division.
+const BEFORE_REGEXP = new Set([...'(,=:[!&|?{};+-*%<>~^']);
+
+// The keywords after which a `/` starts a regular expression literal (`return /'/.test(s)`).
+const REGEXP_KEYWORDS = new Set(['return', 'typeof', 'case', 'throw', 'in', 'of', 'delete', 'void', 'yield',
+  'await', 'instanceof', 'new', 'else', 'do']);
 
 /**
- * Returns the index of the parenthesis that closes the one at `open`, or the text length.
+ * Returns the word that ends right before `index`, skipping white space.
  *
  * @param {string} text The text.
+ * @param {number} index The index.
+ * @returns {string}
+ */
+function wordBefore(text, index) {
+  let end = index;
+
+  while (end > 0 && /\s/.test(text[end - 1])) {
+    end -= 1;
+  }
+
+  let start = end;
+
+  while (start > 0 && /[\w$]/.test(text[start - 1])) {
+    start -= 1;
+  }
+
+  return text.slice(start, end);
+}
+
+/**
+ * Lexes the code of one script: masks the contents of strings, template literals, regular expressions and
+ * comments in `code`, and the comments alone in `noComments`, with spaces. The quotes, the newlines and every
+ * index stay, so a position in either output is the same position in the text. A string ends at a newline
+ * as well, so text that only looks like code (an apostrophe in JSX text) can open nothing past its line.
+ *
+ * @param {string} text The text.
+ * @param {number} from The index the script starts at.
+ * @param {number} to The index the script ends at.
+ * @param {string[]} code The masked code, written in place.
+ * @param {string[]} noComments The text without comments, written in place.
+ * @returns {Array<[number, number]>} The spans of the template literals' text, between their backticks.
+ */
+function lexScript(text, from, to, code, noComments) {
+  // One entry per open `${`: the brace depth inside it, so its closing `}` resumes the template, and where
+  // that template's text started.
+  const templates = [];
+  const templateSpans = [];
+  let templateStart = 0;
+  let state = 'code';
+  let quote = '';
+  let lastSignificant = '';
+  let inClass = false;
+
+  const blank = (index, keepInNoComments) => {
+    if (text[index] !== '\n') {
+      code[index] = ' ';
+
+      if (!keepInNoComments) {
+        noComments[index] = ' ';
+      }
+    }
+  };
+
+  for (let index = from; index < to; index++) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (state === 'line-comment') {
+      if (char === '\n') {
+        state = 'code';
+      } else {
+        blank(index, false);
+      }
+    } else if (state === 'block-comment') {
+      blank(index, false);
+
+      if (char === '*' && next === '/') {
+        blank(index + 1, false);
+        index += 1;
+        state = 'code';
+      }
+    } else if (state === 'string' || state === 'regexp') {
+      if (char === '\n') {
+        state = 'code';
+        inClass = false;
+      } else if (char === '\\') {
+        blank(index, true);
+        blank(index + 1, true);
+        index += 1;
+      } else if (state === 'regexp' && (char === '[' || (char === ']' && inClass))) {
+        inClass = char === '[';
+        blank(index, true);
+      } else if (char === quote && !inClass) {
+        state = 'code';
+        lastSignificant = 'a';
+      } else {
+        blank(index, true);
+      }
+    } else if (state === 'template') {
+      if (char === '\\') {
+        blank(index, true);
+        blank(index + 1, true);
+        index += 1;
+      } else if (char === '`') {
+        templateSpans.push([templateStart, index]);
+        state = 'code';
+        lastSignificant = 'a';
+      } else if (char === '$' && next === '{') {
+        templates.push({ depth: 0, start: templateStart });
+        index += 1;
+        state = 'code';
+        lastSignificant = '{';
+      } else {
+        blank(index, true);
+      }
+    } else if (char === '/' && next === '/') {
+      blank(index, false);
+      state = 'line-comment';
+    } else if (char === '/' && next === '*') {
+      blank(index, false);
+      state = 'block-comment';
+    } else if (char === '\'' || char === '"') {
+      state = 'string';
+      quote = char;
+    } else if (char === '`') {
+      state = 'template';
+      templateStart = index + 1;
+    } else if (char === '/' && (lastSignificant === '' || BEFORE_REGEXP.has(lastSignificant)
+        || (lastSignificant === 'a' && REGEXP_KEYWORDS.has(wordBefore(text, index))))) {
+      state = 'regexp';
+      quote = '/';
+      inClass = false;
+    } else if (templates.length > 0 && (char === '{' || char === '}')) {
+      const template = templates[templates.length - 1];
+
+      if (char === '{') {
+        template.depth += 1;
+      } else if (template.depth === 0) {
+        templates.pop();
+        templateStart = template.start;
+        state = 'template';
+      } else {
+        template.depth -= 1;
+      }
+
+      lastSignificant = char;
+    } else if (!/\s/.test(char)) {
+      lastSignificant = /[\w$]/.test(char) ? 'a' : char;
+    }
+  }
+
+  return templateSpans;
+}
+
+/**
+ * Lexes the `<script>` blocks of a markup span as code, and the `<script>` blocks of every template literal
+ * they hold: a spec that builds its fixture page in a template literal keeps its grid in one. A block inside
+ * a template literal is read with the template's escapes undone, in place, so every index stays: an escaped
+ * backtick, dollar sign or backslash reads as the character it writes.
+ *
+ * @param {string} text The text.
+ * @param {number} from The index the markup starts at.
+ * @param {number} to The index it ends at.
+ * @param {string[]} code The masked code, written in place.
+ * @param {string[]} noComments The text without comments, written in place.
+ * @param {boolean} [inTemplate] Whether the markup is the text of a template literal.
+ */
+function lexScriptBlocks(text, from, to, code, noComments, inTemplate = false) {
+  for (const match of text.slice(from, to).matchAll(/(<script\b[^>]*>)([\s\S]*?)<\/script\b[^>]*>/gi)) {
+    const start = from + match.index + match[1].length;
+    const end = start + match[2].length;
+    const view = inTemplate
+      ? text.slice(0, start) + match[2].replace(/\\([`$\\])/g, ' $1') + text.slice(end)
+      : text;
+
+    for (let index = start; index < end; index++) {
+      code[index] = text[index];
+      noComments[index] = text[index];
+    }
+
+    lexCode(view, start, end, code, noComments);
+  }
+}
+
+/**
+ * Lexes a span of code (`lexScript()`), then the `<script>` blocks inside its template literals.
+ *
+ * @param {string} text The text.
+ * @param {number} from The index the code starts at.
+ * @param {number} to The index it ends at.
+ * @param {string[]} code The masked code, written in place.
+ * @param {string[]} noComments The text without comments, written in place.
+ */
+function lexCode(text, from, to, code, noComments) {
+  lexScript(text, from, to, code, noComments)
+    .forEach(([start, end]) => lexScriptBlocks(text, start, end, code, noComments, true));
+}
+
+/**
+ * Masks a file for the keyless scan: `code` holds the code with strings, template literals, regular
+ * expressions and comments blanked, `noComments` the code with comments blanked, both as long as the text.
+ * An HTML or Vue file is code only inside its `<script>` blocks; the markup around them is blanked in both,
+ * so an apostrophe in a paragraph cannot open a string. A `<script>` block inside a template literal is
+ * code too.
+ *
+ * @param {string} text The file's text.
+ * @param {string} path The file's path, which decides whether it is markup.
+ * @returns {{ code: string, noComments: string }}
+ */
+function maskSource(text, path) {
+  // By UTF-16 unit, as the lexer and `matchAll()` index: a character outside the Basic Multilingual Plane
+  // (an emoji) is two units, and spreading the string would shift every index after it.
+  const code = text.split('');
+  const noComments = text.split('');
+
+  if (/\.(html|vue)$/.test(path)) {
+    code.forEach((char, index) => {
+      if (char !== '\n') {
+        code[index] = ' ';
+        noComments[index] = ' ';
+      }
+    });
+    lexScriptBlocks(text, 0, text.length, code, noComments);
+  } else {
+    lexCode(text, 0, text.length, code, noComments);
+  }
+
+  return { code: code.join(''), noComments: noComments.join('') };
+}
+
+/**
+ * Returns the index of the parenthesis that closes the one at `open`, or the text length. Run on masked code,
+ * so a parenthesis inside a string or a comment counts for nothing.
+ *
+ * @param {string} code The masked code.
  * @param {number} open The index of an opening parenthesis.
  * @returns {number}
  */
-function closingParen(text, open) {
+function closingParen(code, open) {
   let depth = 0;
 
-  for (let index = open; index < text.length; index++) {
-    if (text[index] === '(') {
+  for (let index = open; index < code.length; index++) {
+    if (code[index] === '(') {
       depth += 1;
-    } else if (text[index] === ')') {
+    } else if (code[index] === ')') {
       depth -= 1;
 
       if (depth === 0) {
@@ -287,58 +521,43 @@ function closingParen(text, open) {
     }
   }
 
-  return text.length;
+  return code.length;
 }
 
 /**
- * Whether an index sits inside a quoted string on its line, as a constructor named in a test title does.
+ * Returns the span of a constructor call's options argument in masked code: the second argument of
+ * `new …(element, options)`, the first of `.handsontable(options)`, or `null` when the call passes none.
  *
- * @param {string} text The text.
- * @param {number} at The index.
- * @returns {boolean}
- */
-function isInsideString(text, at) {
-  let quote = null;
-
-  for (let index = text.lastIndexOf('\n', at - 1) + 1; index < at; index++) {
-    const char = text[index];
-
-    if (char === '\\') {
-      index += 1;
-    } else if (quote) {
-      quote = char === quote ? null : quote;
-    } else if (char === '\'' || char === '"' || char === '`') {
-      quote = char;
-    }
-  }
-
-  return quote !== null;
-}
-
-/**
- * Returns the options argument of a constructor call: the second argument of `new …(element, options)`,
- * the first of `.handsontable(options)`, or `null` when the call passes none.
- *
- * @param {string} args The text between the call's parentheses.
+ * @param {string} code The masked code.
+ * @param {number} from The index right after the call's opening parenthesis.
+ * @param {number} to The index of its closing parenthesis.
  * @param {boolean} isJquery Whether the call is jQuery's `.handsontable(`.
- * @returns {string | null}
+ * @returns {[number, number] | null}
  */
-function optionsArgument(args, isJquery) {
+function optionsSpan(code, from, to, isJquery) {
+  const trimmed = ([start, end]) => {
+    while (start < end && /\s/.test(code[start])) {
+      start += 1;
+    }
+
+    return start < end ? [start, end] : null;
+  };
+
   if (isJquery) {
-    return args.trim() === '' ? null : args.trim();
+    return trimmed([from, to]);
   }
 
   let depth = 0;
 
-  for (let index = 0; index < args.length; index++) {
-    const char = args[index];
+  for (let index = from; index < to; index++) {
+    const char = code[index];
 
     if ('([{'.includes(char)) {
       depth += 1;
     } else if (')]}'.includes(char)) {
       depth -= 1;
     } else if (char === ',' && depth === 0) {
-      return args.slice(index + 1).trim() || null;
+      return trimmed([index + 1, to]);
     }
   }
 
@@ -346,51 +565,337 @@ function optionsArgument(args, isJquery) {
 }
 
 /**
- * Finds the grids a test file builds without a license key, by line. A call passes when its options name
- * `licenseKey`, when they are a jQuery method call (`.handsontable('getInstance')`), or when they are not a
- * plain object literal (a variable, a spread, `Object.assign()`) in a file that sets a license key somewhere.
+ * Returns the index where the expression that starts at `from` ends: a `;`, a closing bracket it did not
+ * open, or a line break that ends the statement (automatic semicolon insertion, read loosely: a line that
+ * ends on an operator other than `/`, or a next line that starts with one, goes on).
  *
- * @param {string} text The file's text.
- * @returns {number[]} The line numbers of the keyless calls.
+ * @param {string} code The masked code.
+ * @param {number} from The index the expression starts at.
+ * @returns {number}
  */
-function keylessGridLines(text) {
-  const fileSetsKey = /licenseKey/.test(text);
+function expressionEnd(code, from) {
+  let depth = 0;
 
-  return [...text.matchAll(GRID_CONSTRUCTOR)]
-    .filter(match => !isInsideString(text, match.index))
-    .filter((match) => {
-      const open = match.index + match[0].length - 1;
-      const args = text.slice(open + 1, closingParen(text, open));
-      const options = optionsArgument(args, match[0].startsWith('.'));
+  for (let index = from; index < code.length; index++) {
+    const char = code[index];
 
-      if (/licenseKey/.test(args) || /^\s*['"`]/.test(args)) {
-        return false;
+    if ('([{'.includes(char)) {
+      depth += 1;
+    } else if (')]}'.includes(char)) {
+      depth -= 1;
+
+      if (depth < 0) {
+        return index;
       }
+    } else if (depth === 0 && (char === ';' || char === ',')) {
+      return index;
+    } else if (depth === 0 && char === '\n') {
+      const before = code.slice(from, index).trimEnd();
+      const after = code.slice(index + 1).trimStart();
 
-      if (options === null) {
+      // A `/` at a line end is the end of a masked regular expression as often as a division: not read on.
+      if (before !== '' && !/[=+\-*%&|^!~?:<>(,[{.]$/.test(before) && !/^[.?:+\-*/%&|^<>=,)\]}]/.test(after)) {
+        return index;
+      }
+    }
+  }
+
+  return code.length;
+}
+
+/**
+ * Returns the index of the brace that closes the one at `open` in masked code, or the code length.
+ *
+ * @param {string} code The masked code.
+ * @param {number} open The index of an opening brace.
+ * @returns {number}
+ */
+function closingBrace(code, open) {
+  let depth = 0;
+
+  for (let index = open; index < code.length; index++) {
+    if (code[index] === '{') {
+      depth += 1;
+    } else if (code[index] === '}') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return index;
+      }
+    }
+  }
+
+  return code.length;
+}
+
+/**
+ * Escapes a name for a regular expression.
+ *
+ * @param {string} name The name.
+ * @returns {string}
+ */
+function escapeName(name) {
+  return name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+}
+
+// A name, possibly dotted (`window.htSettings`), at the start of an expression.
+const LEADING_NAME = /^([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*([([]?)/;
+
+// The names that never lead to a key in this file.
+const NOT_RESOLVED = new Set(['window', 'document', 'this', 'undefined', 'null', 'structuredClone', 'JSON']);
+
+// An object literal's own `licenseKey` property: `licenseKey: …`, `'licenseKey': …`, or the shorthand.
+const OWN_KEY = /^\s*(?:licenseKey|(['"])licenseKey\1)\s*(?::|$)/;
+
+/**
+ * Returns a span without the white space at its ends.
+ *
+ * @param {string} code The masked code.
+ * @param {[number, number]} span The span.
+ * @returns {[number, number]}
+ */
+function trimSpan(code, [from, to]) {
+  let start = from;
+  let end = to;
+
+  while (start < end && /\s/.test(code[start])) {
+    start += 1;
+  }
+
+  while (end > start && /\s/.test(code[end - 1])) {
+    end -= 1;
+  }
+
+  return [start, end];
+}
+
+/**
+ * Splits a span at its top-level commas.
+ *
+ * @param {string} code The masked code.
+ * @param {number} from The index the span starts at.
+ * @param {number} to The index it ends at.
+ * @returns {Array<[number, number]>}
+ */
+function topLevelSpans(code, from, to) {
+  const spans = [];
+  let depth = 0;
+  let start = from;
+
+  for (let index = from; index < to; index++) {
+    if ('([{'.includes(code[index])) {
+      depth += 1;
+    } else if (')]}'.includes(code[index])) {
+      depth -= 1;
+    } else if (code[index] === ',' && depth === 0) {
+      spans.push([start, index]);
+      start = index + 1;
+    }
+  }
+
+  return [...spans, [start, to]];
+}
+
+/**
+ * Lists what gives a name its value in a file: the expression of a `const`, `let` or `var` declaration or of
+ * an assignment, and the body of a function declaration. The whole file is searched, not the name's scope.
+ *
+ * @param {string} code The masked code.
+ * @param {string} name The name, possibly dotted (`window.htSettings`).
+ * @returns {Array<{ span: [number, number], isBody: boolean }>}
+ */
+function declarationSpans(code, name) {
+  const escaped = escapeName(name);
+  const spans = [];
+  const assignment = new RegExp(`(?:\\b(?:const|let|var)\\s+|(?<![\\w$.]))${escaped}\\s*(?::[^=;\\n]+)?=(?![=>])`, 'g');
+  const declaration = new RegExp(`\\bfunction\\s*\\*?\\s*${escaped}\\s*\\(`, 'g');
+
+  for (const match of code.matchAll(assignment)) {
+    const from = match.index + match[0].length;
+
+    spans.push({ span: [from, expressionEnd(code, from)], isBody: false });
+  }
+
+  for (const match of code.matchAll(declaration)) {
+    const open = code.indexOf('{', closingParen(code, match.index + match[0].length - 1));
+
+    if (open !== -1) {
+      spans.push({ span: [open, closingBrace(code, open) + 1], isBody: true });
+    }
+  }
+
+  return spans;
+}
+
+/**
+ * Whether a function body returns a value that carries a key (`expressionCarriesKey()`).
+ *
+ * @param {{ code: string, noComments: string }} source The masked file.
+ * @param {[number, number]} span The body, braces included.
+ * @param {number} depth How many names deep this body is.
+ * @param {Set<string>} seen The names already followed.
+ * @returns {boolean}
+ */
+function bodyCarriesKey(source, [from, to], depth, seen) {
+  return [...source.code.slice(from, to).matchAll(/\breturn\b/g)].some((match) => {
+    const start = from + match.index + 'return'.length;
+
+    return expressionCarriesKey(source, [start, Math.min(expressionEnd(source.code, start), to)], depth, seen);
+  });
+}
+
+/**
+ * Whether a name carries a key this file gives it: an assignment `name.licenseKey = …`, or a declaration of the
+ * name whose value or body carries one. Followed three names deep. A name declared in another file, or only
+ * as a function parameter, carries nothing.
+ *
+ * @param {{ code: string, noComments: string }} source The masked file.
+ * @param {string} name The name, possibly dotted.
+ * @param {number} depth How many names deep the name is.
+ * @param {Set<string>} seen The names already followed.
+ * @returns {boolean}
+ */
+function nameCarriesKey(source, name, depth, seen) {
+  if (depth >= 3) {
+    return false;
+  }
+
+  const names = name.startsWith('window.') ? [name, name.slice('window.'.length)] : [name];
+
+  return names.filter(candidate => !NOT_RESOLVED.has(candidate) && !seen.has(candidate)).some((candidate) => {
+    seen.add(candidate);
+
+    if (new RegExp(`(?<![\\w$.])${escapeName(candidate)}\\.licenseKey\\s*=(?!=)`).test(source.code)) {
+      return true;
+    }
+
+    return declarationSpans(source.code, candidate).some(({ span, isBody }) => (isBody
+      ? bodyCarriesKey(source, span, depth + 1, seen)
+      : expressionCarriesKey(source, span, depth + 1, seen)));
+  });
+}
+
+/**
+ * Whether an expression's value carries a license key. An object literal carries one when it has its own
+ * `licenseKey` property, or when a spread source carries one. A name carries what this file gives it
+ * (`nameCarriesKey()`), a call what the called function returns, `Object.assign()` what any argument
+ * carries, an arrow function what it returns. A `licenseKey` inside a nested object, a callback or a
+ * property's value is not the grid's key, and neither is a name used there.
+ *
+ * @param {{ code: string, noComments: string }} source The masked file.
+ * @param {[number, number]} span The expression's span.
+ * @param {number} [depth] How many names deep this expression is.
+ * @param {Set<string>} [seen] The names already followed.
+ * @returns {boolean}
+ */
+function expressionCarriesKey(source, span, depth = 0, seen = new Set()) {
+  const { code } = source;
+  let [from, to] = trimSpan(code, span);
+
+  if (code[from] === '<' && code.indexOf('>', from) !== -1 && code.indexOf('>', from) < to) {
+    [from, to] = trimSpan(code, [code.indexOf('>', from) + 1, to]);
+  }
+
+  const typed = code.slice(from, to).match(/\s+(?:as|satisfies)\s+[\w$.<>[\], |]+$/);
+
+  if (typed) {
+    to -= typed[0].length;
+  }
+
+  while (code[from] === '(' && closingParen(code, from) === to - 1) {
+    [from, to] = trimSpan(code, [from + 1, to - 1]);
+  }
+
+  const text = code.slice(from, to);
+  const arrow = text.match(/^(?:async\s+)?(?:\([^()]*\)|[A-Za-z_$][\w$]*)\s*=>\s*/);
+
+  if (arrow) {
+    const body = from + arrow[0].length;
+
+    return code[body] === '{'
+      ? bodyCarriesKey(source, [body, to], depth, seen)
+      : expressionCarriesKey(source, [body, to], depth, seen);
+  }
+
+  if (code[from] === '{') {
+    return topLevelSpans(code, from + 1, closingBrace(code, from)).some(([start, end]) => {
+      if (OWN_KEY.test(source.noComments.slice(start, end))) {
         return true;
       }
 
-      const isPlainLiteral = options.startsWith('{') && !/\.\.\.|Object\.assign/.test(options);
+      const [partStart, partEnd] = trimSpan(code, [start, end]);
 
-      return isPlainLiteral || !fileSetsKey;
+      return code.startsWith('...', partStart)
+        && expressionCarriesKey(source, [partStart + 3, partEnd], depth, seen);
+    });
+  }
+
+  const leading = text.match(LEADING_NAME);
+
+  if (!leading) {
+    return false;
+  }
+
+  if (leading[1] === 'Object.assign' && leading[2] === '(') {
+    const open = from + leading[0].length - 1;
+
+    return topLevelSpans(code, open + 1, closingParen(code, open))
+      .some(argument => expressionCarriesKey(source, argument, depth, seen));
+  }
+
+  return nameCarriesKey(source, leading[1], depth, seen);
+}
+
+/**
+ * Finds the grids a test file builds without a license key, by line. The file is read through
+ * `maskSource()`, so a constructor, a parenthesis or a comma inside a string or a comment counts for
+ * nothing. A call passes when its first argument is a string (a jQuery method call such as
+ * `.handsontable('getInstance')`), or when its options carry a key (`expressionCarriesKey()`).
+ *
+ * @param {string} text The file's text.
+ * @param {string} [path] The file's path, which decides whether the file is markup.
+ * @returns {number[]} The line numbers of the keyless calls.
+ */
+function keylessGridLines(text, path = 'spec.js') {
+  // Most files build no grid: lexing only the ones that name a constructor keeps the scan fast.
+  if (text.search(GRID_CONSTRUCTOR) === -1) {
+    return [];
+  }
+
+  const source = maskSource(text, path);
+
+  return [...source.code.matchAll(GRID_CONSTRUCTOR)]
+    .filter((match) => {
+      const open = match.index + match[0].length - 1;
+      const close = closingParen(source.code, open);
+
+      if (/^\s*['"`]/.test(source.code.slice(open + 1, close))) {
+        return false;
+      }
+
+      const options = optionsSpan(source.code, open + 1, close, match[0].startsWith('.'));
+
+      return options === null || !expressionCarriesKey(source, options);
     })
     .map(match => text.slice(0, match.index).split('\n').length);
 }
 
-// The files that build grids without a key on purpose, with the reason. Empty today: the license specs
-// build their keyless grids through the Jasmine helper (`handsontable({}, true)`), which this scan does
-// not read, or through a fixture page that takes its key from the spec.
-const KEYLESS_ALLOWED = {};
+// The files that build grids without a key on purpose, with the reason. The license specs build theirs
+// through the Jasmine helper (`handsontable({}, true)`), which this scan does not read, or through a fixture
+// page that takes its key from the spec.
+const KEYLESS_ALLOWED = {
+  'tests/fixtures/pages/LicenseLockGuardPage.ts': 'builds the locked grid the lock guard\'s own spec must find',
+  'tests/fixtures/demo/license-branding.html': 'builds a grid per license state, a missing key included',
+};
 
 test('every grid a spec or a fixture builds takes a license key', () => {
   // Since 19.0 a grid built without a valid key sits behind the license lock: API calls still work, so a
   // spec that only reads the grid passes, while clicks, focus, screenshots and axe scans meet the lock.
-  // Jest unit tests are left to the console guard in `handsontable/test/jestExpectedConsole.js`, which
-  // fails a unit test whose grid logs a license key message.
+  // Jest unit tests are left to the guard in `handsontable/test/jestExpectedConsole.js`, which fails a unit
+  // test whose grid mounts the license lock or logs a license key message.
   const scanned = testFiles.filter(path => !/\.unit\.[jt]sx?$|\.types\.ts$|\.test\.mjs$/.test(path));
   const offenders = scanned.filter(path => !(path in KEYLESS_ALLOWED))
-    .map(path => [path, keylessGridLines(readFromRoot(path))])
+    .map(path => [path, keylessGridLines(readFromRoot(path), path)])
     .filter(([, lines]) => lines.length > 0)
     .map(([path, lines]) => `${path}:${lines.join(',')}`);
 
@@ -398,7 +903,9 @@ test('every grid a spec or a fixture builds takes a license key', () => {
     + '`licenseKey: TEST_LICENSE_KEY` (a global in Jasmine specs) or `licenseKey: window.htTestLicenseKey` (a '
     + 'Playwright fixture). A test of a missing key itself goes in KEYLESS_ALLOWED, with the reason.');
   assert.ok(scanned.some(path => path.endsWith('.spec.js')), 'The keyless scan found no Jasmine spec.');
-  assert.deepEqual(Object.keys(KEYLESS_ALLOWED).filter(path => keylessGridLines(readFromRoot(path)).length === 0), [],
+  const stale = Object.keys(KEYLESS_ALLOWED).filter(path => keylessGridLines(readFromRoot(path), path).length === 0);
+
+  assert.deepEqual(stale, [],
     'KEYLESS_ALLOWED names files that no longer build a grid without a key. Remove them.');
 });
 
@@ -421,6 +928,121 @@ test('the keyless scan catches a grid built without a key and passes one built w
     'const base = { licenseKey: TEST_LICENSE_KEY };',
     'const e = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data });',
   ].join('\n')), [1, 2, 3, 4]);
+});
+
+test('the keyless scan reads no parenthesis or constructor inside a string or a comment', () => {
+  // A `)` inside a string closed a keyed call early, so its key was cut off and the grid read as keyless.
+  assert.deepEqual(keylessGridLines(
+    'new Handsontable(el, { data: [[\'a)b\']], licenseKey: TEST_LICENSE_KEY });',
+  ), []);
+  // A `(` inside a comment ran a keyless call on into the next one, which lent it its key.
+  assert.deepEqual(keylessGridLines([
+    'new Handsontable(el, { data: [] /* ( */ });',
+    'new Handsontable(el, { licenseKey: TEST_LICENSE_KEY });',
+  ].join('\n')), [1]);
+  // A constructor in a block comment, or in a multi-line template, builds nothing.
+  assert.deepEqual(keylessGridLines([
+    '/*',
+    ' * new Handsontable(container, {});',
+    ' */',
+    'const title = `',
+    '  new Handsontable(container, {})',
+    '`;',
+  ].join('\n')), []);
+  // A grid a spec builds in `page.evaluate` through the object the page exposes the class on.
+  assert.deepEqual(keylessGridLines('win.hot = new win.Handsontable(container, { data: [] });'), [1]);
+  // A character outside the Basic Multilingual Plane is two indexes: every index after it stays in place.
+  assert.deepEqual(keylessGridLines([
+    'new Handsontable(el, { data: [[\'\u{1F600}\', \')\']], licenseKey: TEST_LICENSE_KEY });',
+    'new Handsontable(el, {});',
+  ].join('\n')), [2]);
+  // A regular expression after a keyword holds a quote that opens no string.
+  assert.deepEqual(keylessGridLines([
+    'function hasQuote(s) { return /\'/.test(s); } new Handsontable(el, {});',
+  ].join('\n')), [1]);
+});
+
+test('the keyless scan reads a fixture as markup, and a page a spec writes in a template literal', () => {
+  // The apostrophe in the paragraph is text: lexed as code, it would open a string across the script.
+  assert.deepEqual(keylessGridLines([
+    '<p>Don\'t lock the grid</p>',
+    '<script>',
+    '  new Handsontable(a, { licenseKey: window.htTestLicenseKey });',
+    '  new Handsontable(b, {});',
+    // An end tag with white space or attributes still ends the block, so the prose after it is not code.
+    '</script\t foo>',
+    '<p>Don\'t</p><script>new Handsontable(c, {});</script>',
+  ].join('\n'), 'tests/fixtures/demo/new.html'), [4, 6]);
+  assert.deepEqual(keylessGridLines([
+    'const html = `<!DOCTYPE html>',
+    '<script>',
+    '  new Handsontable(container, { data: [] });',
+    '</script>`;',
+  ].join('\n'), 'tests/e2e/new.spec.ts'), [3]);
+  // A template nested in the page's own `${}`, and an escaped backtick in its script, change neither.
+  assert.deepEqual(keylessGridLines([
+    // eslint-disable-next-line no-template-curly-in-string -- the scanned source holds a template literal
+    'const html = `<script>${`/* nested */`}',
+    '  const s = \\`a\\`;',
+    '  new Handsontable(container, {});',
+    '</script>`;',
+  ].join('\n'), 'tests/e2e/new.spec.ts'), [3]);
+});
+
+test('the keyless scan follows indirect options to the key the file gives them, and nowhere else', () => {
+  // A key on another object, or in a comment, no longer passes a grid built from a variable or a spread.
+  assert.deepEqual(keylessGridLines([
+    'const keyed = { licenseKey: TEST_LICENSE_KEY };',
+    'const plain = { data: [] };',
+    'new Handsontable(el, { ...plain, height: 100 });',
+    'new Handsontable(el, plain);',
+  ].join('\n')), [3, 4]);
+  assert.deepEqual(keylessGridLines([
+    '// Each grid takes a licenseKey.',
+    'import { settings } from \'./licenseKey\';',
+    'new Handsontable(el, settings);',
+    'new Handsontable(el, { title: \'licenseKey\' });',
+  ].join('\n')), [3, 4]);
+  // A `licenseKey` in a nested object or a callback is not the grid's own key.
+  assert.deepEqual(keylessGridLines([
+    'new Handsontable(el, { nested: { licenseKey: TEST_LICENSE_KEY } });',
+    'new Handsontable(el, { afterInit() { log(this.getSettings().licenseKey); } });',
+    'new Handsontable(el, { data: [], \'licenseKey\': TEST_LICENSE_KEY });',
+    'new Handsontable(el, { data: [], licenseKey });',
+  ].join('\n')), [1, 2]);
+  // A name inside a callback, a call's arguments or a property's value does not flow into the options.
+  assert.deepEqual(keylessGridLines([
+    'const hot = new Handsontable(a, { licenseKey: TEST_LICENSE_KEY });',
+    'const data = { licenseKey: TEST_LICENSE_KEY };',
+    'new Handsontable(b, { afterChange() { log(hot); } });',
+    'new Handsontable(b, { data: copy(hot) });',
+    'new Handsontable(b, { data: [[1]] });',
+  ].join('\n')), [3, 4, 5]);
+  // A statement that ends on a regular expression does not run on into the next line's key.
+  assert.deepEqual(keylessGridLines([
+    'const re = /x/',
+    'const other = { licenseKey: TEST_LICENSE_KEY }',
+    'const settings = re',
+    'new Handsontable(el, settings);',
+  ].join('\n')), [4]);
+
+  // A key the options get through a variable, a spread, `Object.assign()`, a helper or an assignment passes.
+  assert.deepEqual(keylessGridLines([
+    'const base = { licenseKey: window.htTestLicenseKey };',
+    'const settings = { ...base, data: [] };',
+    'function baseSettings(id) {',
+    '  return { id, licenseKey: window.htTestLicenseKey };',
+    '}',
+    'window.htSettings = { licenseKey: window.htTestLicenseKey };',
+    'function build(options) {',
+    '  options.licenseKey = TEST_LICENSE_KEY;',
+    '  return new Handsontable(el, options);',
+    '}',
+    'new Handsontable(el, settings);',
+    'new Handsontable(el, Object.assign({}, base, { data: [] }));',
+    'new Handsontable(el, baseSettings(\'a\'));',
+    'new Handsontable(el, window.htSettings);',
+  ].join('\n')), []);
 });
 
 test('the scan finds a literal key it is given, in every spelling', () => {

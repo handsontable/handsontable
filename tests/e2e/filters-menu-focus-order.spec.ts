@@ -168,7 +168,7 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
     await grid.openMenuWithKeyboard(0, 0);
     await grid.pressTab(2);
     await page.keyboard.press('ArrowDown');
-    await expect(grid.listItem('Checked Alice')).toBeFocused();
+    await expect(grid.listItem('Alice')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(grid.menu).toBeHidden();
     expect(await grid.selectedRanges(), 'after Escape from the value list').toEqual(columnSelection);
@@ -251,14 +251,16 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
 
     // The list is not a Tab stop of its own; ArrowDown from the search input is the way in.
     await page.keyboard.press('ArrowDown');
-    await expect(grid.listItem('Checked Alice')).toBeFocused();
+    await expect(grid.listItem('Alice')).toBeFocused();
     await expect(grid.focusedListItems()).toHaveCount(1);
 
     // Space and Enter toggle the focused value and keep the focus on it.
     await page.keyboard.press('Space');
-    await expect(grid.listItem('Unchecked Alice')).toBeFocused();
+    await expect(grid.listItem('Alice')).not.toBeChecked();
+    await expect(grid.listItem('Alice')).toBeFocused();
     await page.keyboard.press('Enter');
-    await expect(grid.listItem('Checked Alice')).toBeFocused();
+    await expect(grid.listItem('Alice')).toBeChecked();
+    await expect(grid.listItem('Alice')).toBeFocused();
 
     // Tab leaves the list forwards, to "OK", and the list drops its focus ring.
     await page.keyboard.press('Tab');
@@ -270,7 +272,7 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
     await grid.pressTab(3, true);
     await expect(grid.searchInput).toBeFocused();
     await page.keyboard.press('ArrowDown');
-    await expect(grid.listItem('Checked Alice')).toBeFocused();
+    await expect(grid.listItem('Alice')).toBeFocused();
     await page.keyboard.press('Shift+Tab');
     await expect(grid.clearLink).toBeFocused();
     await expect(grid.focusedListItems()).toHaveCount(0);
@@ -288,13 +290,13 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
     expect(await grid.listItemFullyInView('Name 11'), 'the target starts outside the list\'s view').toBe(false);
 
     await page.keyboard.press('ArrowDown');
-    await expect(grid.listItem('Checked Name 01')).toBeFocused();
+    await expect(grid.listItem('Name 01')).toBeFocused();
 
     for (let step = 0; step < 10; step++) {
       await page.keyboard.press('ArrowDown');
     }
 
-    await expect(grid.listItem('Checked Name 11')).toBeFocused();
+    await expect(grid.listItem('Name 11')).toBeFocused();
     await expect.poll(() => grid.listItemFullyInView('Name 11')).toBe(true);
   });
 

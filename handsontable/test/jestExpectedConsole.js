@@ -118,7 +118,8 @@ function isLicenseTestFile(testPath) {
   return LICENSE_TEST_FILES.some(fragment => path.includes(fragment));
 }
 
-// The license key messages logged since the last check, by a file that is not a license test.
+// What a file that is not a license test showed since the last check: the license key messages it
+// logged, and the license locks its grids mounted.
 const unexpectedLicenseMessages = [];
 
 ['warn', 'error', 'log', 'info'].forEach((level) => {
@@ -127,7 +128,7 @@ const unexpectedLicenseMessages = [];
   console[level] = (...args) => {
     if (LICENSE_KEY_MESSAGE.test(String(args[0]))) {
       if (!isLicenseTestFile(expect.getState().testPath)) {
-        unexpectedLicenseMessages.push(String(args[0]));
+        unexpectedLicenseMessages.push(`logged "${String(args[0])}"`);
       }
 
       return;
@@ -140,21 +141,47 @@ const unexpectedLicenseMessages = [];
 });
 
 /**
- * Throws when a test that is not a license test logged a license key message since the last call,
- * and forgets the messages either way.
+ * The class of the lock a grid without a valid key mounts (`src/utils/licenseBranding/lockScreen.ts`).
+ */
+const LICENSE_LOCK_SELECTOR = '.ht-license-lock';
+
+/**
+ * Records a grid that mounted the license lock. A global `afterInit` hook, so it sees every grid of the
+ * file's module registry, whatever a spec does to `console`.
+ *
+ * The console message alone is not enough. The core prints the legacy message once per test file, and a
+ * spec that spies `console.warn` with `mockImplementation()`, or replaces it, takes that one message, so
+ * every later grid built without a key in the file passed. The lock mounts for every such grid, during
+ * `init()`, before `afterInit`.
+ *
+ * @this {Handsontable}
+ */
+function recordLicenseLock() {
+  if (this.rootOverlaysElement?.querySelector(LICENSE_LOCK_SELECTOR)
+      && !isLicenseTestFile(expect.getState().testPath)) {
+    unexpectedLicenseMessages.push('shows the license lock');
+  }
+}
+
+// The setup file runs in the test file's module registry, so this is the singleton the file's grids use.
+// A spec that calls `jest.resetModules()` gets a new one without the hook; the console path still
+// catches the first grid there.
+require('../src/core/hooks').Hooks.getSingleton().add('afterInit', recordLicenseLock);
+
+/**
+ * Throws when a grid in a test that is not a license test logged a license key message or mounted the
+ * license lock since the last call, and forgets them either way.
  */
 function assertNoUnexpectedLicenseMessage() {
   if (unexpectedLicenseMessages.length > 0) {
-    const message = unexpectedLicenseMessages.splice(0)[0];
+    const what = [...new Set(unexpectedLicenseMessages.splice(0))].join(', and ');
 
-    throw new Error(`A grid in this test was built without the test license key and logged "${message}" `
+    throw new Error(`A grid in this test was built without the test license key and ${what}. `
       + 'Pass `licenseKey: TEST_LICENSE_KEY` (import it from `test/helpers/licenseKey.js`). A test of the '
       + 'license behavior itself goes in LICENSE_TEST_FILES in `test/jestExpectedConsole.js`.');
   }
 }
 
-// The legacy message prints once per test file (the core keeps a module-level flag), so this finds the
-// first grid built without a key in a file, which is enough to fail it.
 afterEach(assertNoUnexpectedLicenseMessage);
 
 module.exports = {

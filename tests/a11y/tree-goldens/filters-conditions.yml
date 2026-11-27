@@ -71,28 +71,16 @@
         - /placeholder: Search
       - button "Select all"
       - button "Select none"
-      - treegrid:
-        - rowgroup:
-          - row "Checked 9":
-            - gridcell "Checked 9":
-              - checkbox "Checked" [checked]
-              - text: "9"
-          - row "Checked 30":
-            - gridcell "Checked 30":
-              - checkbox "Checked" [checked]
-              - text: "30"
-          - row "Checked 59":
-            - gridcell "Checked 59":
-              - checkbox "Checked" [checked]
-              - text: "59"
-          - row "Checked 130":
-            - gridcell "Checked 130":
-              - checkbox "Checked" [checked]
-              - text: "130"
-          - row "Checked 1890":
-            - gridcell "Checked 1890":
-              - checkbox "Checked" [checked]
-              - text: "1890"
+      - checkbox "9" [checked]
+      - text: "9"
+      - checkbox "30" [checked]
+      - text: "30"
+      - checkbox "59" [checked]
+      - text: "59"
+      - checkbox "130" [checked]
+      - text: "130"
+      - checkbox "1890" [checked]
+      - text: "1890"
   - menuitem "Action bar":
     - button "OK"
     - button "Cancel"

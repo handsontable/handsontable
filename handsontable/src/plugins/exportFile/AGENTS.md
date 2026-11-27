@@ -550,14 +550,14 @@ Other rules:
   draws it unchecked. Never compare the templates with `===` here again: the export would stop
   following what the grid shows.
   Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
-  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 38 of the 18.1 → 19.0
-  migration guide, together with the frozen-pane change above.
+  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in the "XLSX export no longer needs
+  ExcelJS" change of the 18.1 → 19.0 migration guide, together with the frozen-pane change above.
 - **The `_HotValidation` helper sheet is `hidden`, NOT `veryHidden`.** Apple Numbers discards a very
   hidden sheet on open together with every validation that points at it, so every dropdown of a
   native or ExcelJS export was lost there (18.1 wrote it `veryHidden` too). `hidden` keeps them in
   Numbers; the cost is that Excel lists the sheet under Unhide. Inlining short lists (255 characters)
-  was the alternative and stays open. Named in the export guide's cell-type table and in section 38
-  of the migration guide.
+  was the alternative and stays open. Named in the export guide's cell-type table and in the "XLSX
+  export no longer needs ExcelJS" change of the migration guide.
 - **Every currency symbol except a lone `$` is QUOTED in the `numFmt`** (a lone `€`/`£` too: Numbers
   and Quick Look misread it bare, `#,##0.00€` showed 1235 for 1234.5 in Numbers) (`numeric-utils.ts`,
   shared by both engines): `"USD"#,##0.00`, `#,##0.00"zł"`. The raw `formatToParts` symbol used to go

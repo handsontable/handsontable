@@ -91,6 +91,11 @@ test.describe('License checks on the built bundle', { tag: BUNDLES_TAG }, () => 
 
     expect(tiers.length).toBeGreaterThan(0);
 
+    // The tiers that include both plugins the page turns on. No real tier leaves either out today, so a branch
+    // for that case would never run; the next test covers its console message and bar with a tier the build
+    // does not know. The count below fails the day a real tier leaves one out, so this test gains that case.
+    let tiersWithBoth = 0;
+
     for (const [index, tier] of tiers.entries()) {
       await grid.goto({ licenseKey: keyWithTier([tier]) });
 
@@ -103,12 +108,14 @@ test.describe('License checks on the built bundle', { tag: BUNDLES_TAG }, () => 
       await expect(grid.lock, label).toHaveCount(0);
 
       if (filtersIncluded && columnMenuIncluded) {
+        tiersWithBoth += 1;
         expect(grid.licenseMessages(), label).toEqual([]);
         await expect(grid.bar, label).toHaveCount(0);
-      } else {
-        await expect.poll(() => grid.licenseMessages().join('\n'), label).toMatch(/does not include these features/);
       }
     }
+
+    expect(tiersWithBoth, 'A tier of the manifest leaves Filters or DropdownMenu out: assert its console message '
+      + 'and its bar here.').toBe(tiers.length);
   });
 
   test('a key that names only a tier this build does not know turns the sold plugins off', async() => {

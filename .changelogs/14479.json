@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed mask icons, such as the column menu button in a header, and the highlighted or hovered item of menus and dropdown lists not being drawn in forced colors mode (Windows contrast themes).",
+  "type": "fixed",
+  "issueOrPR": 14479,
+  "breaking": false,
+  "framework": "none"
+}
