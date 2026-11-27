@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-27T10:56:47.714Z",
+  "generatedAt": "2026-11-27T11:11:02.928Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 469,
-    "needsTicket": 8,
+    "needsTicket": 4,
     "quarantined": 1,
     "entries": 2376
   },
@@ -76,150 +76,6 @@
         "leg": "e2e-webkit",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
-      "line": null,
-      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 8,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (3 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-29T03:52:18Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
-        "branch": "develop",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 78 to be 85.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
-      "line": null,
-      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 8,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (3 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-29T03:52:18Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
-        "branch": "develop",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected $[0][0] = 85 to equal 90.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
-      "line": null,
-      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 8,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (3 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-29T03:52:18Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
-        "branch": "develop",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 155 to be 170.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js|StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js",
-      "line": null,
-      "title": "StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 8,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (1 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-29T03:52:18Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
-        "branch": "develop",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 94 to be 97.",
         "source": "ci"
       },
       "needsTicket": true
@@ -1640,6 +1496,150 @@
       "needsTicket": false
     },
     {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
+      "line": null,
+      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 8,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (3 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T03:52:18Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
+        "branch": "develop",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 78 to be 85.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
+      "line": null,
+      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 8,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (3 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T03:52:18Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
+        "branch": "develop",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected $[0][0] = 85 to equal 90.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
+      "line": null,
+      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 8,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (3 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T03:52:18Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
+        "branch": "develop",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 155 to be 170.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js|StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js",
+      "line": null,
+      "title": "StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 8,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T03:52:18Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40813209950",
+        "branch": "develop",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 94 to be 97.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "jasmine|handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js|Handsontable editor theme handling should have the same theme as the parent Handsontable instance (if originally passed as a container class)",
       "tier": "jasmine",
       "file": "handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js",
@@ -2161,13 +2161,13 @@
       "line": null,
       "title": "Focus Manager `getFocusMode` method should update value in editor textarea when `imeFastEdit` is enabled",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 2,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "UMD.min (theme: classic)"
       ],
