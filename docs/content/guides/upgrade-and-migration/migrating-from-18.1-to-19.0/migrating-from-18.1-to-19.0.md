@@ -175,10 +175,7 @@ one-time console warning that names `colHeaders`.
 
 - `saveManualColumnWidths()` and `loadManualColumnWidths()` ([`ManualColumnResize`](@/api/manualColumnResize.md)), and
   `saveManualRowHeights()` and `loadManualRowHeights()` ([`ManualRowResize`](@/api/manualRowResize.md)), deprecated in
-  18.0: save and restore the sizes with the `columnWidths` and `rowHeights` parts of the
-  [view state](@/guides/getting-started/view-state/view-state.md), as in the example below, or with
-  `getManualSizes()` and `setManualSizes()` of [`ManualColumnResize`](@/api/manualColumnResize.md#getmanualsizes)
-  and [`ManualRowResize`](@/api/manualRowResize.md#getmanualsizes).
+  18.0: remove the calls. To persist sizes, see the example below.
 - `Handsontable.helper.sanitize()`, deprecated in 18.0: remove the call and use its argument directly. To sanitize the
   HTML the grid renders, set the [`sanitizer`](@/api/options.md#sanitizer) option.
 - The `columnHeaders` export option of the [`ExportFile`](@/api/exportFile.md) plugin, deprecated in 17.1: rename it to
@@ -198,25 +195,28 @@ import type { ExportFileSettings } from 'handsontable/plugins/exportFile';
 import type { DataProviderFetchOptions } from 'handsontable/plugins/dataProvider';
 ```
 
-To persist sizes, save them with [`getViewState()`](@/api/viewState.md#getviewstate) and restore them with
-[`setViewState()`](@/api/viewState.md#setviewstate). Both parts hold `[physicalIndex, size]` pairs, so a size goes
-back to its row or column after a sort, a filter, or a move:
+To persist sizes, collect them in [`afterColumnResize`](@/api/hooks.md#aftercolumnresize) or
+[`afterRowResize`](@/api/hooks.md#afterrowresize), and restore them through
+[`manualColumnResize`](@/api/options.md#manualcolumnresize) or [`manualRowResize`](@/api/options.md#manualrowresize).
+The plugins read the arrays by physical index, and the hooks pass a visual index. Record each resize at its physical
+index, so a size survives a filter, trimmed rows, and hidden columns:
 
 ```js
-const viewState = hot.getPlugin('viewState');
+const colWidths = JSON.parse(localStorage.getItem('colWidths')) ?? [];
+const rowHeights = JSON.parse(localStorage.getItem('rowHeights')) ?? [];
 
-// Save
-const { columnWidths, rowHeights } = viewState.getViewState();
-
-localStorage.setItem('gridSizes', JSON.stringify({ columnWidths, rowHeights }));
-
-// Restore, for example right after you create the grid
-const stored = localStorage.getItem('gridSizes');
-
-// Nothing is stored on a first visit
-if (stored !== null) {
-  viewState.setViewState({ version: 1, ...JSON.parse(stored) });
-}
+const hot = new Handsontable(container, {
+  manualColumnResize: colWidths.length ? colWidths : true,
+  manualRowResize: rowHeights.length ? rowHeights : true,
+  afterColumnResize(newSize, column) {
+    colWidths[this.toPhysicalColumn(column)] = newSize;
+    localStorage.setItem('colWidths', JSON.stringify(colWidths));
+  },
+  afterRowResize(newSize, row) {
+    rowHeights[this.toPhysicalRow(row)] = newSize;
+    localStorage.setItem('rowHeights', JSON.stringify(rowHeights));
+  },
+});
 ```
 
 ::: details Details: Removed deprecated APIs

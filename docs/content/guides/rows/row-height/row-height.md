@@ -293,30 +293,19 @@ Try it in the demo below: drag the bottom edge of a row header to resize a row, 
 
 ### Save and restore manual row heights
 
-To keep the heights users set, for example across page reloads, use the [`ViewState`](@/api/viewState.md) plugin. Save its `rowHeights` part with [`getViewState()`](@/api/viewState.md#getviewstate), and restore it with [`setViewState()`](@/api/viewState.md#setviewstate):
+To keep the heights users set across page loads, store them yourself, for example in `localStorage`, and pass them back to the [`manualRowResize`](@/api/options.md#manualrowresize) option when you create the grid. The option reads the array by physical row index, and the [`afterRowResize`](@/api/hooks.md#afterrowresize) hook passes a visual index, so record each height at its physical index:
 
 ```js
-const viewState = hot.getPlugin('viewState');
+const rowHeights = JSON.parse(localStorage.getItem('rowHeights')) ?? [];
 
-// Save
-localStorage.setItem('rowHeights', JSON.stringify(viewState.getViewState().rowHeights ?? []));
-
-// Restore, for example right after you create the grid
-const stored = localStorage.getItem('rowHeights');
-
-// Nothing is stored on a first visit
-if (stored !== null) {
-  viewState.setViewState({ version: 1, rowHeights: JSON.parse(stored) });
-}
+const hot = new Handsontable(container, {
+  manualRowResize: rowHeights.length ? rowHeights : true,
+  afterRowResize(newSize, row) {
+    rowHeights[this.toPhysicalRow(row)] = newSize;
+    localStorage.setItem('rowHeights', JSON.stringify(rowHeights));
+  },
+});
 ```
-
-`rowHeights` holds `[physicalRow, height]` pairs for the rows users resized, so each height goes back to the same row after users sort or move rows. `getViewState()` leaves the part out while the `ManualRowResize` plugin is disabled, which is why the example saves an empty array then. `setViewState()` replaces the stored heights with the saved ones, leaves the other parts of the view alone, and repaints the grid. If you import from `handsontable/base`, [register the `ViewState` plugin](@/guides/getting-started/view-state/view-state.md#overview) first. To save the sort order, filters, or hidden rows too, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
-
-On a grid that loads its rows through [`dataProvider`](@/api/options.md#dataprovider), the view state does not save or restore `rowHeights`: a height addresses a row by its position in the loaded page, so a height saved on one page would land on another record on the next.
-
-To work with the heights without the view state, use [`ManualRowResize#getManualSize()`](@/api/manualRowResize.md#getmanualsize) for one row (by visual index), or [`getManualSizes()`](@/api/manualRowResize.md#getmanualsizes) and [`setManualSizes()`](@/api/manualRowResize.md#setmanualsizes), which use the same pairs. `setManualSizes()` writes only the rows you pass and does not repaint the grid, so call `hot.render()` after it.
-
-Both ways store a height below the theme's default row height as the default row height.
 
 ## Limit the number of lines in a cell
 
