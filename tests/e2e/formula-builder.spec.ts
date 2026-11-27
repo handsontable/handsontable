@@ -175,5 +175,17 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BR
 
     await page.keyboard.press('Escape');
   });
+
+  test('typing a reference to a column far past the grid keeps the grid responsive', async({ page }) => {
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.type('=CONCATENATEA1');
+    await expect(grid.editorInput).toHaveValue('=CONCATENATEA1');
+
+    await page.keyboard.press('Escape');
+    await expect(grid.editorInput).not.toBeVisible();
+
+    await grid.selectCell(0, 1);
+    await expect(grid.addressInput).toHaveValue('B1');
+  });
 });
 

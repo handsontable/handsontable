@@ -267,11 +267,11 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     getCellMetaTransient: () => ({}),
     rowIndexMapper: {
       getRenderableFromVisualIndex: (visualIndex: number) => visualIndex,
-      getNumberOfIndexes: () => 0,
+      getNumberOfIndexes: () => stub.countRows(),
     },
     columnIndexMapper: {
       getRenderableFromVisualIndex: (visualIndex: number) => visualIndex,
-      getNumberOfIndexes: () => 0,
+      getNumberOfIndexes: () => stub.countCols(),
     },
     addHook: () => undefined,
     removeHook: () => undefined,

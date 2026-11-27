@@ -1,7 +1,7 @@
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
-import { findHook, makePluginHotStub } from './helpers/pluginHotStub';
+import { findHook, makeIndexMapperStub, makePluginHotStub } from './helpers/pluginHotStub';
 import type { PluginHotStubBundle } from './helpers/pluginHotStub';
 
 /**
@@ -334,7 +334,12 @@ describe('FormulaBuilder adapter end of the formula bar contract', () => {
   });
 
   it('adapter.setActiveCell and adapter.setSelection reach the grid in visual coordinates', () => {
-    const stub = makePluginHotStub({}, { countRows: () => 5, countCols: () => 5 });
+    const stub = makePluginHotStub({}, {
+      countRows: () => 5,
+      countCols: () => 5,
+      rowIndexMapper: makeIndexMapperStub(5),
+      columnIndexMapper: makeIndexMapperStub(5),
+    });
     const plugin = enabledPlugin(stub);
 
     adapterOf(plugin).setActiveCell({ sheet: '', row: 2, col: 3 });

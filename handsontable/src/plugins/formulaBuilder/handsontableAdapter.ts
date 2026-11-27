@@ -1244,10 +1244,10 @@ export class HandsontableAdapter {
     // row 2 trimmed selects `A3:A5`. A range that holds no shown index selects nothing.
     const rowToVisual = (index: number) => this.#mapping.hfToVisualRow(index);
     const colToVisual = (index: number) => this.#mapping.hfToVisualCol(index);
-    const startRow = this.#firstVisualIn(range.start.row, range.end.row, rowToVisual);
-    const startCol = this.#firstVisualIn(range.start.col, range.end.col, colToVisual);
-    const endRow = this.#firstVisualIn(range.end.row, range.start.row, rowToVisual);
-    const endCol = this.#firstVisualIn(range.end.col, range.start.col, colToVisual);
+    const startRow = this.#firstVisualIn(range.start.row, range.end.row, rowToVisual, 'row');
+    const startCol = this.#firstVisualIn(range.start.col, range.end.col, colToVisual, 'col');
+    const endRow = this.#firstVisualIn(range.end.row, range.start.row, rowToVisual, 'row');
+    const endCol = this.#firstVisualIn(range.end.col, range.start.col, colToVisual, 'col');
 
     // A corner on a hidden index is kept, as `selectCells()` keeps it; only a range with no shown index
     // between its corners on an axis is refused.
@@ -1463,8 +1463,7 @@ export class HandsontableAdapter {
     const hfToVisual = axis === 'row' ?
       (index: number) => this.#mapping.hfToVisualRow(index) :
       (index: number) => this.#mapping.hfToVisualCol(index);
-    const lastIndex = (axis === 'row' ? this.#hot.rowIndexMapper : this.#hot.columnIndexMapper)
-      .getNumberOfIndexes() - 1;
+    const lastIndex = this.#hfIndexCount(axis) - 1;
     const exact = hfToVisual(hfIndex);
 
     if (exact >= 0 || hfIndex < 0 || hfIndex > lastIndex) {
@@ -1490,17 +1489,27 @@ export class HandsontableAdapter {
 
   /**
    * Returns the visual index of the first HyperFormula index from `from` toward `to` (inclusive) that
-   * has one, or `-1`.
+   * has one, or `-1`. The walk covers only the part of the span inside the grid's indexes: the editor
+   * sends indexes as typed, which can lie far past the grid (past `Number.MAX_SAFE_INTEGER`, even).
    *
    * @param {number} from The HyperFormula index to start at.
    * @param {number} to The HyperFormula index to stop at.
    * @param {Function} hfToVisual The axis translation.
+   * @param {'row' | 'col'} axis The axis the span is on.
    * @returns {number}
    */
-  #firstVisualIn(from: number, to: number, hfToVisual: (index: number) => number): number {
+  #firstVisualIn(from: number, to: number, hfToVisual: (index: number) => number, axis: 'row' | 'col'): number {
     const step = from <= to ? 1 : -1;
+    const span = this.#clampToHfIndexes(Math.min(from, to), Math.max(from, to), axis);
 
-    for (let index = from; step > 0 ? index <= to : index >= to; index += step) {
+    if (span === null) {
+      return -1;
+    }
+
+    const first = step > 0 ? span.first : span.last;
+    const last = step > 0 ? span.last : span.first;
+
+    for (let index = first; step > 0 ? index <= last : index >= last; index += step) {
       const visual = hfToVisual(index);
 
       if (visual >= 0) {
@@ -2093,7 +2102,8 @@ export class HandsontableAdapter {
   /**
    * Maps an inclusive HyperFormula index span to sorted contiguous visual runs. A span that covers
    * every index of the axis (a whole-column or whole-row reference) is the whole visual axis,
-   * whatever the order. Other spans wider than `MAX_HF_INDEX_SCAN` map only their endpoints as one run.
+   * whatever the order. The rest of a span is cut to the grid's indexes first, as the editor sends
+   * indexes as typed. Spans still wider than `MAX_HF_INDEX_SCAN` map only their endpoints as one run.
    *
    * @param {number} startHf The first HyperFormula index.
    * @param {number} endHf The last HyperFormula index.
@@ -2110,8 +2120,7 @@ export class HandsontableAdapter {
     if (endHf - startHf > MAX_HF_INDEX_SCAN) {
       // Every grid index has a HyperFormula index (trimmed ones included), so a span over all of them
       // covers every visual index, in any order.
-      const hfCount = axis === 'row' ?
-        this.#hot.rowIndexMapper.getNumberOfIndexes() : this.#hot.columnIndexMapper.getNumberOfIndexes();
+      const hfCount = this.#hfIndexCount(axis);
       const visualCount = axis === 'row' ? this.#hot.countRows() : this.#hot.countCols();
 
       if (startHf <= 0 && endHf >= hfCount - 1 && visualCount > 0) {
@@ -2119,11 +2128,16 @@ export class HandsontableAdapter {
       }
     }
 
-    if (endHf - startHf > MAX_HF_INDEX_SCAN) {
+    const span = this.#clampToHfIndexes(startHf, endHf, axis);
+
+    if (span === null) {
+      return [];
+    }
+
+    if (span.last - span.first > MAX_HF_INDEX_SCAN) {
       // Walk inward past trimmed ends: a whole-column reference ends on the last sheet row,
       // which a filter may have trimmed, and dropping the whole run would highlight nothing.
-      let first = startHf;
-      let last = endHf;
+      let { first, last } = span;
 
       while (first <= last && hfToVisual(first) < 0) {
         first += 1;
@@ -2151,7 +2165,7 @@ export class HandsontableAdapter {
 
     const visuals: number[] = [];
 
-    for (let hfIndex = startHf; hfIndex <= endHf; hfIndex++) {
+    for (let hfIndex = span.first; hfIndex <= span.last; hfIndex++) {
       const visual = hfToVisual(hfIndex);
 
       if (visual >= 0) {
@@ -2174,6 +2188,33 @@ export class HandsontableAdapter {
     }
 
     return runs;
+  }
+
+  /**
+   * Returns the number of HyperFormula indexes the grid has on an axis. Every grid index has one
+   * (trimmed ones included), so a HyperFormula index at or past this count has no visual index.
+   *
+   * @param {'row' | 'col'} axis The axis.
+   * @returns {number}
+   */
+  #hfIndexCount(axis: 'row' | 'col'): number {
+    return (axis === 'row' ? this.#hot.rowIndexMapper : this.#hot.columnIndexMapper).getNumberOfIndexes();
+  }
+
+  /**
+   * Cuts an inclusive HyperFormula index span to the grid's indexes on an axis, or returns `null` when
+   * the span holds none of them.
+   *
+   * @param {number} startHf The first HyperFormula index.
+   * @param {number} endHf The last HyperFormula index.
+   * @param {'row' | 'col'} axis The axis the span is on.
+   * @returns {{ first: number, last: number } | null}
+   */
+  #clampToHfIndexes(startHf: number, endHf: number, axis: 'row' | 'col'): { first: number; last: number } | null {
+    const first = Math.max(startHf, 0);
+    const last = Math.min(endHf, this.#hfIndexCount(axis) - 1);
+
+    return first <= last ? { first, last } : null;
   }
 
   /**

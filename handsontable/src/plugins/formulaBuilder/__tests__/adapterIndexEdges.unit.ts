@@ -76,6 +76,32 @@ function fillFlags(hot: ReturnType<typeof makeHotStub>): boolean[] {
     String((selection.settings as { className?: string }).className).includes('-fill-'));
 }
 
+/**
+ * Wraps an index translation so it throws once it has answered more than `budget` indexes. A loop
+ * that walks indexes outside the grid one by one (or never ends) then fails the test instead of
+ * hanging the runner.
+ *
+ * @param {number} budget The most indexes the translation may answer.
+ * @param {Function} translate The translation to wrap.
+ * @returns {{ translate: Function, calls: Function }}
+ */
+function budgetedTranslation(budget: number, translate: (index: number) => number) {
+  let calls = 0;
+
+  return {
+    translate: (index: number) => {
+      calls += 1;
+
+      if (calls > budget) {
+        throw new Error(`The adapter translated more than ${budget} indexes`);
+      }
+
+      return translate(index);
+    },
+    calls: () => calls,
+  };
+}
+
 describe('HandsontableAdapter highlight ranges', () => {
   afterEach(() => {
     document.body.replaceChildren();
@@ -124,6 +150,69 @@ describe('HandsontableAdapter highlight ranges', () => {
 
     expect(selectedRanges(hot)).toEqual([[0, 0, 398, 0]]);
     expect(fillFlags(hot)).toEqual([false]);
+
+    adapter.destroy();
+  });
+
+  it('ignores a single-cell highlight on a column index past `Number.MAX_SAFE_INTEGER`', () => {
+    const cols = 10;
+    const colTranslation = budgetedTranslation(cols, col => (col < cols ? col : -1));
+    const { adapter, hot } = makeAdapter({
+      countRows: () => 10,
+      countCols: () => cols,
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 10 },
+      columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => cols },
+    }, {
+      hfToVisualCol: colTranslation.translate,
+    });
+    const farColumn = 13205193704424828;
+
+    expect(farColumn + 1).toBe(farColumn);
+
+    adapter.setHighlights([{ range: range(0, farColumn, 0, farColumn), color: 'red' }]);
+
+    expect(selectedRanges(hot)).toEqual([]);
+    expect(colTranslation.calls()).toBeLessThanOrEqual(cols);
+
+    adapter.destroy();
+  });
+
+  it('highlights the part inside the grid of a range that ends far past the last column', () => {
+    const cols = 30;
+    const colTranslation = budgetedTranslation(cols, col => (col < cols ? col : -1));
+    const { adapter, hot } = makeAdapter({
+      countRows: () => 10,
+      countCols: () => cols,
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 10 },
+      columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => cols },
+    }, {
+      hfToVisualCol: colTranslation.translate,
+    });
+
+    adapter.setHighlights([{ range: range(0, 26, 0, 8353082581), color: 'red' }]);
+
+    expect(selectedRanges(hot)).toEqual([[0, 26, 0, cols - 1]]);
+    expect(colTranslation.calls()).toBeLessThanOrEqual(cols);
+
+    adapter.destroy();
+  });
+
+  it('highlights nothing for a range that starts past the last column', () => {
+    const cols = 30;
+    const colTranslation = budgetedTranslation(cols, col => (col < cols ? col : -1));
+    const { adapter, hot } = makeAdapter({
+      countRows: () => 10,
+      countCols: () => cols,
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 10 },
+      columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => cols },
+    }, {
+      hfToVisualCol: colTranslation.translate,
+    });
+
+    adapter.setHighlights([{ range: range(0, 40, 0, 8353082581), color: 'red' }]);
+
+    expect(selectedRanges(hot)).toEqual([]);
+    expect(colTranslation.calls()).toBeLessThanOrEqual(cols);
 
     adapter.destroy();
   });
@@ -213,6 +302,39 @@ describe('HandsontableAdapter address-box navigation on trimmed indexes', () => 
     // `false`, not `undefined`: the address box reads it as "unavailable" and announces it.
     expect(adapter.setSelection(range(2, 0, 2, 0))).toBe(false);
     expect(selectFormulaCells).not.toHaveBeenCalled();
+  });
+
+  it('selects up to the last column for a range that ends far past it', () => {
+    const cols = 10;
+    const colTranslation = budgetedTranslation(4 * cols, col => (col < cols ? col : -1));
+    const selectFormulaCells = jest.fn();
+    const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => cols,
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
+      columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => cols },
+    }, { hfToVisualCol: colTranslation.translate }, { selectFormulaCells });
+
+    adapter.setSelection(range(0, 2, 0, 13205193704424828));
+
+    expect(selectFormulaCells).toHaveBeenCalledWith(0, 2, 0, cols - 1);
+    expect(colTranslation.calls()).toBeLessThanOrEqual(4 * cols);
+  });
+
+  it('selects nothing for a range that lies entirely past the last column', () => {
+    const cols = 10;
+    const colTranslation = budgetedTranslation(4 * cols, col => (col < cols ? col : -1));
+    const selectFormulaCells = jest.fn();
+    const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => cols,
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
+      columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => cols },
+    }, { hfToVisualCol: colTranslation.translate }, { selectFormulaCells });
+
+    expect(adapter.setSelection(range(0, 8353082581, 0, 13205193704424828))).toBe(false);
+    expect(selectFormulaCells).not.toHaveBeenCalled();
+    expect(colTranslation.calls()).toBeLessThanOrEqual(4 * cols);
   });
 
   it('reports an address past the last index as unavailable', () => {

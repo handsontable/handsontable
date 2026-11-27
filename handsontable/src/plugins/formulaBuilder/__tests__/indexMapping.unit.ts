@@ -198,7 +198,10 @@ describe('HandsontableAdapter index mapping', () => {
   });
 
   it('maps HF coordinates to visual before delegating selection to the plugin', () => {
-    const { adapter, plugin } = makeMappedAdapter();
+    const { adapter, plugin } = makeMappedAdapter({
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => ROW_OFFSET + 7 },
+      columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => COL_OFFSET + 9 },
+    });
 
     adapter.setActiveCell({ sheet: '', row: 105, col: 207 });
 

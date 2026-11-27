@@ -35,7 +35,7 @@ function makeAdapter(
   plugin: FormulaBuilderPluginLike = makePluginStub(),
   readCellText: (hfRow: number, hfCol: number) => string = () => '',
 ) {
-  const hot = makeHotStub();
+  const hot = makeHotStub({ countRows: () => 10, countCols: () => 10 });
   const overlayHost = document.createElement('div');
 
   document.body.appendChild(overlayHost);
