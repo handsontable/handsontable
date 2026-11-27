@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { auditLedgerOf, ledgerIndex, ledgerKey } from '../a11y-pr-ledger.mjs';
 import { buildReport, checkRunName, stepLines } from '../screenreader-report.mjs';
 import { matchTokenGroups } from '../screenreader-transcript.mjs';
 
@@ -135,6 +136,60 @@ test('on a change run a step whose cluster has a tracker is a warning; on an aud
 
   assert.equal(audit.conclusion, 'failure', 'an audit says the truth: tracked or not, a serious step is red');
   assert.match(audit.summary, /\*\*Audit run\*\* \(a schedule or a dispatch\): every open finding counts, tracked or not\./);
+});
+
+// tests/AGENTS.md, "A11y: the verdict of a check run": on an audit the lane reads the findings ledger as the audit before
+// left it. Every step stays listed; a known one, or one of a scenario the audit before did not read whole, is a warning
+// at most, and a new one or a regression counts.
+const readerRow = (scenario, stepId, status, extra = {}) => ({ source: 'reader', key: ledgerKey('reader', 'nvda-chromium', { scenario, step: stepId, kind: 'token-missing' }),
+  status, firstRun: '90', lastRun: '100', gaps: 0, seenSinceGap: 2, ...extra });
+const READER_LEDGER = {
+  latest: { reader: { runId: '100', seenAt: '2026-11-17T13:35:31Z' } },
+  nights: [{ source: 'reader', runId: '100', coverage: { checks: {}, axe: null, reader: ['nvda-chromium|grid-core'], golden: [] } }],
+  rows: [readerRow('grid-core', 'arrow-right', 'persisting'), readerRow('grid-core', 'open-editor', 'resolved', { lastRun: '90', gaps: 1, seenSinceGap: 0 })],
+};
+const readerAudit = () => auditLedgerOf({ index: ledgerIndex(READER_LEDGER, 'reader'), source: 'reader', runId: '200' });
+const missing = (id, extra = {}) => step(id, 'row 2', [['34']], { press: 'ArrowRight' }, extra.severity);
+
+test('on an audit a known step is a warning at most, and a regression or a new step counts, each annotated with its class', () => {
+  const known = build([transcript({ steps: [missing('arrow-right')] })], { scope: 'audit', auditLedger: readerAudit() });
+
+  assert.equal(known.conclusion, 'neutral', 'reading 1: a known missing announcement never turns the audit red');
+  assert.match(known.title, /^⚠ Warning: 0 critical, 0 serious, 0 moderate, 0 minor .* · 1 warning only · ledger: 0 new, 0 regressions, 1 known · 1 step missing a token group/);
+  assert.match(known.annotations[0].title, /^Known: Announcement missing a token group \(serious\): grid-core \/ arrow-right$/);
+  assert.equal(known.headline, '1 step missing a token group (report mode)', 'the headline stays the lane\'s own');
+
+  const counted = build([transcript({ steps: [missing('arrow-right'), missing('open-editor'), missing('reselect-cell')] })], { scope: 'audit', auditLedger: readerAudit() });
+
+  assert.equal(counted.conclusion, 'failure', 'readings 2 and 3: a new step and a regression count at their severity');
+  assert.match(counted.title, /^✖ Red: 0 critical, 2 serious, .* · ledger: 1 new, 1 regression, 1 known · /);
+  assert.match(counted.summary, /\| Regression \| serious \| grid-core \| open-editor \| token-missing \|\n\| New \| serious \| grid-core \| reselect-cell \| token-missing \|/);
+});
+
+test('on an audit a step of a scenario the audit before did not read whole is a warning, a traversal is classified, and goldens stay advisory', () => {
+  const report = build([transcript({ scenario: 'editable-headers', steps: [missing('arrow-up-to-header')],
+    traversal: { passed: false, steps: ['a'], items: [{ item: 'A1', count: 2, firstStep: 'a' }], outOfOrder: [] },
+    golden: { status: 'differs', differences: [{ id: 'arrow-up-to-header', expected: 'x', actual: 'y' }] } })],
+  { scope: 'audit', auditLedger: readerAudit(), expectedScenarios: ['editable-headers'] });
+
+  assert.equal(report.conclusion, 'neutral', 'reading 6: nothing was seen to work on a scenario the audit before did not read; reading 5: a golden never counts');
+  assert.match(report.title, /· 2 warning only, 1 advisory · ledger: 0 new, 0 regressions, 2 not measured before, 0 known · /);
+  assert.match(report.summary, /\| Not measured before \| serious \| editable-headers \| traversal \| traversal-off \|/);
+});
+
+test('on an audit a lane that could not measure stays red, and a ledger that did not load counts every step', () => {
+  const stopped = build([transcript({ steps: [missing('arrow-right')], incomplete: { step: 'open-editor', error: 'NVDA did not answer' } })],
+    { scope: 'audit', auditLedger: readerAudit() });
+
+  assert.equal(stopped.conclusion, 'failure', 'reading 4: a scenario that stopped is a tooling failure, known steps or not');
+  assert.match(stopped.title, /^✖ Tooling failure: scenario grid-core stopped at step open-editor/);
+
+  const unread = build([transcript({ steps: [missing('arrow-right')] })], { scope: 'audit', auditLedger: { problem: 'the findings ledger did not load from x (HTTP 503)' } });
+
+  assert.equal(unread.conclusion, 'failure');
+  assert.match(unread.summary, /> Known and new findings were not told apart, so every step missing a token group counts: the findings ledger did not load/);
+  assert.equal(build([transcript({ steps: [missing('arrow-right')] })], { scope: 'change', auditLedger: readerAudit() }).conclusion, 'failure',
+    'a change run never reads the audit\'s ledger');
 });
 
 test('gate mode fails the check on a missing token group', () => {

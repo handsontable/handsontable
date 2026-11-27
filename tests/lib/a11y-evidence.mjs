@@ -23,7 +23,13 @@
  */
 import { escapeMarkdownText as escape, isSafeLink } from './a11y-baseline.mjs';
 import { namedSubset } from './a11y-subset.mjs';
-import { annotationLevel, capAnnotations, renderVerdict, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import {
+  AUDIT_LEDGER_COUNTING, AUDIT_WARNING_CLASSES, LEDGER_LABELS, annotationLevel, capAnnotations, ledgerCounts, ledgerLine, renderAuditLedger, renderVerdict,
+  verdictOf, verdictTitle,
+} from './a11y-verdict.mjs';
+
+// The ledger's counts and their line live with the verdict, which every check run's builder shares.
+export { ledgerCounts, ledgerLine } from './a11y-verdict.mjs';
 
 export const EVIDENCE_SCHEMA = 1;
 /**
@@ -776,11 +782,16 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
  * `{classify, auditAt, filesRead}`, and then a finding whose ledger row is open is known and does not count, a resolved
  * row is a regression and a missing one is new, both counted, a warning at most on a page the pull request did not
  * change; or `{problem}` when the ledger did not load, and then every finding counts, as on any change run, with a note.
+ * @param {object} [input.auditLedger] On an audit, the findings ledger as the audit before left it (`auditLedgerOf()` of
+ * `lib/a11y-pr-ledger.mjs`, built by the script for the same reason): `{classify, auditAt, auditRun}`, and then every
+ * finding is listed, a known one or one on a target the audit before did not measure is a warning at most, and a
+ * regression or a new one counts; or `{problem}` when the ledger did not load, and then every open finding counts, with
+ * a note. Read on an audit only.
  * @returns {{name: string, conclusion: 'success'|'neutral'|'failure', title: string, summary: string, annotations: object[]}} The payload.
  */
 export function buildEvidenceCheckRun({
   doc, check, problems = [], pages = new Map(), runUrl, artifactUrl, scope = 'change', tracked = () => false, pagesFile = PAGES_FILE, source = 'checks',
-  prLedger,
+  prLedger, auditLedger,
 }) {
   const name = checkRunName(doc?.check ?? check ?? 'unknown');
 
@@ -805,15 +816,21 @@ export function buildEvidenceCheckRun({
     ? (doc.problems.length > 0 ? doc.problems : [`${doc.summary.errors} ${doc.summary.errors === 1 ? 'target' : 'targets'} not measured`])
     : [];
   const classified = prLedger?.classify ? doc.findings.map(finding => ({ finding, ...prLedger.classify(doc.check, finding) })) : null;
-  const considered = classified ? classified.filter(item => item.ledger !== 'known') : doc.findings.map(finding => ({ finding, untouched: false }));
+  // On an audit every finding stays listed; the ledger decides only which count (`AUDIT_WARNING_CLASSES`).
+  const audit = scope === 'audit' && auditLedger?.classify ? auditLedger : null;
+  const considered = classified
+    ? classified.filter(item => item.ledger !== 'known')
+    : doc.findings.map(finding => ({ finding, untouched: false, ledger: audit && finding.severity !== 'advisory' ? audit.classify(doc.check, finding).ledger : undefined }));
   const findings = considered.map(({ finding, ledger, untouched }) => ({
     finding,
     ledger,
     untouched,
     severity: finding.severity,
     warningOnly: finding.severity !== 'advisory'
-      && (!atTargetLevel(finding) || (scope === 'change' && Boolean(tracked(source, doc.check, finding))) || untouched),
+      && (!atTargetLevel(finding) || (scope === 'change' && Boolean(tracked(source, doc.check, finding))) || untouched
+        || AUDIT_WARNING_CLASSES.includes(ledger)),
   }));
+  const auditClassified = audit ? findings.filter(item => item.ledger !== undefined) : null;
   const verdict = verdictOf({ findings, tooling });
   const { annotations, omitted } = capAnnotations(findings.map(({ finding, ledger, untouched, severity, warningOnly }) => {
     const path = finding.file ?? pagesFile;
@@ -829,17 +846,24 @@ export function buildEvidenceCheckRun({
         + `${untouched ? ` (${UNTOUCHED})` : ''}`,
     };
   }), ANNOTATIONS);
+  const ledgerProblem = prLedger?.problem ?? (scope === 'audit' ? auditLedger?.problem : undefined);
   const lead = [
     renderVerdict(verdict, {
       scope,
       listTooling: doc.problems.length === 0,
       ...(classified ? { counting: 'only a finding the findings ledger does not hold as open counts (a new one, or a regression)' } : {}),
+      ...(audit ? { auditCounting: AUDIT_LEDGER_COUNTING } : {}),
     }),
-    prLedger?.problem ? `> Known and new findings were not told apart, so every finding counts: ${escape(prLedger.problem)}.` : '',
+    ledgerProblem ? `> Known and new findings were not told apart, so every finding counts: ${escape(ledgerProblem)}.` : '',
     classified ? renderLedgerSection(doc, prLedger, classified) : '',
+    audit ? auditEvidenceSection(audit, auditClassified) : '',
     omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more are in the summary below and the JSON.` : '',
   ].filter(Boolean).join('\n\n');
-  const headline = classified ? `${ledgerLine(ledgerCounts(classified))} · ${evidenceHeadline(doc)}` : evidenceHeadline(doc);
+  let headline = evidenceHeadline(doc);
+
+  if (classified || audit) {
+    headline = `${ledgerLine(ledgerCounts(classified ?? auditClassified))} · ${headline}`;
+  }
 
   return {
     name,
@@ -850,8 +874,6 @@ export function buildEvidenceCheckRun({
   };
 }
 
-const LEDGER_LABELS = { new: 'New', regression: 'Regression', known: 'Known' };
-const LEDGER_CLASSES = ['regression', 'new', 'known'];
 const UNTOUCHED = 'on a page you did not change';
 // How many new and regressed findings the ledger section spells out; the rest are in the annotations and the JSON.
 const LEDGER_ROWS = 30;
@@ -873,23 +895,38 @@ export function ledgerSectionOf(doc, prLedger) {
 }
 
 /**
- * How many findings of each ledger class.
+ * The ledger section of a document on an audit (`auditEvidenceSection()`), for the job summary; empty without the
+ * audit's ledger.
  *
- * @param {Array<{ledger: string}>} classified The findings, each with its class.
- * @returns {{regression: number, new: number, known: number}} The counts.
+ * @param {object} doc The evidence document.
+ * @param {object} [auditLedger] The audit's ledger input (`buildEvidenceCheckRun()`).
+ * @returns {string} Markdown, or an empty string.
  */
-export function ledgerCounts(classified) {
-  return Object.fromEntries(LEDGER_CLASSES.map(name => [name, classified.filter(item => item.ledger === name).length]));
+export function auditLedgerSectionOf(doc, auditLedger) {
+  if (!auditLedger?.classify) {
+    return '';
+  }
+
+  return auditEvidenceSection(auditLedger, doc.findings.filter(finding => finding.severity !== 'advisory')
+    .map(finding => ({ finding, severity: finding.severity, ...auditLedger.classify(doc.check, finding) })));
 }
 
 /**
- * The counts of a pull request's findings by ledger class, as the title and the job summary say them.
+ * An audit's ledger section of a check beyond axe (`renderAuditLedger()` of `lib/a11y-verdict.mjs`), each listed finding
+ * by its page, theme, element or step, and kind.
  *
- * @param {{regression: number, new: number, known: number}} counts The counts (`ledgerCounts()`).
- * @returns {string} The line.
+ * @param {object} auditLedger The audit's ledger input.
+ * @param {Array<{finding: object, ledger: string}>} classified The findings that can count, each with its class.
+ * @returns {string} Markdown.
  */
-export function ledgerLine(counts) {
-  return `ledger: ${counts.new} new, ${counts.regression} ${counts.regression === 1 ? 'regression' : 'regressions'}, ${counts.known} known`;
+function auditEvidenceSection(auditLedger, classified) {
+  return renderAuditLedger({
+    auditLedger,
+    classified,
+    columns: ['Severity', 'Page', 'Theme', 'Where', 'Kind'],
+    cellsOf: ({ finding }) => [escape(finding.severity), escape(finding.variant ? `${finding.page} (${finding.variant})` : finding.page),
+      escape(finding.theme), where(finding), escape(finding.kind)],
+  });
 }
 
 /**

@@ -36,6 +36,12 @@
  * logins) limits who may approve; empty, anyone who can label the pull request may. A dry run judges from files:
  * `--base <file>` (the baseline at the merge base), `--base-pages <file>` (`tests/a11y/pages.mjs` there) and
  * `--approval <file>` (`{"by", "at", "baseline"}`, standing in for the label; `guardFromFiles()`).
+ *
+ * On an audit (a schedule or a dispatch) every scan reads the findings ledger as the audit before left it
+ * (`auditLedgerInput()` of `lib/a11y-verdict-inputs.mjs`: `A11Y_LEDGER_FILE`, or `A11Y_LEDGER_URL`, the published
+ * `a11y.json` by default): every open finding stays listed, known debt is a warning at most, and a regression or a new
+ * finding counts, so the run turns red on what changed since that audit. A ledger that does not load leaves every open
+ * finding counted, with a note.
  */
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -43,7 +49,7 @@ import { fileURLToPath } from 'node:url';
 import { approverList, baselineGuard, guardFromFiles } from '../lib/a11y-baseline-guard.mjs';
 import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, pageLines, pageLinesOf } from '../lib/a11y-check-run.mjs';
 import { LEDGER_URL, auditStaleness, driftNotes, driftOf, siteAudit } from '../lib/a11y-docs-drift.mjs';
-import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
+import { auditLedgerInput, verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 import { restClient } from '../lib/github-rest.mjs';
 
@@ -110,6 +116,8 @@ if (guard?.error) {
   process.stderr.write(`a11y-check-run: the baseline growth was not judged: ${guard.error}\n`);
 }
 
+// On an audit, the ledger as the audit before left it tells what changed since from the debt that stands.
+const auditLedger = await auditLedgerInput({ env, scope, source: scan.source });
 const payload = buildCheckRun({
   comparison: comparison && { ...comparison, notes: [...(comparison.notes ?? []), ...notes, ...driftLines] },
   pages,
@@ -120,6 +128,7 @@ const payload = buildCheckRun({
   tracked,
   scan,
   drift,
+  auditLedger,
   guard,
 });
 

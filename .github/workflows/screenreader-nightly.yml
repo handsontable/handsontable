@@ -28,8 +28,9 @@ name: Screen reader nightly
 # load), never a finding, and it shows on that job's `failure` check run, titled as a tooling failure, and summary:
 # the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
 # Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). A
-# run that ends red on its `verdict` job alone is the audit's answer, never a broken build: it stays
-# red while a critical or serious finding is open, on the schedule as on a dispatch. The
+# run that ends red on its `verdict` job alone found a step the findings ledger, as the audit before left
+# it, does not hold as open (a new one, a regression), or a lane that could not measure; known debt is a
+# warning at most, on the schedule as on a dispatch. The
 # VoiceOver setup recovers from its known flake on the same runner (screenreader.yml); a VoiceOver job
 # still red in its setup step is the runner, not the lane: re-run that job from its page.
 on:
@@ -235,8 +236,8 @@ jobs:
   # `failure()` here fires only when the UMD build failed, the called workflow could not start, or the
   # check-inputs job ended red (a refused input, a scheduled run that waited out its bound). A red lane
   # job never reaches Slack, and neither does the `verdict` job's red, on the schedule as on a dispatch:
-  # their verdict is the `Screen reader / <project> <group> report` check runs, and an audit with an
-  # open critical or serious finding is red by design, not a broken build.
+  # their verdict is the `Screen reader / <project> <group> report` check runs, and an audit that found
+  # something new since the audit before is red on them, not a broken build.
   notify:
     name: Notify Slack
     needs: [ screenreader ]

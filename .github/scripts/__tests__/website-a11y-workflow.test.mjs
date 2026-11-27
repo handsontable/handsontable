@@ -43,7 +43,7 @@ test('website-a11y.yml is the Website a11y workflow the ledger records, started 
     ['.github/workflows/website-a11y.yml', 'tests/a11y/website/**', 'tests/a11y/axe-scan.ts', 'tests/a11y/issues.json',
       'tests/playwright.a11y-website.config.ts', 'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*',
       'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-baseline-guard.*', 'tests/lib/a11y-pr-comment.*', 'tests/lib/a11y-docs-drift.*',
-      'tests/lib/a11y-issues.*', 'tests/lib/a11y-evidence.*', 'tests/lib/a11y-site-checks.*', 'tests/lib/a11y-subset.*',
+      'tests/lib/a11y-issues.*', 'tests/lib/a11y-evidence.*', 'tests/lib/a11y-pr-ledger.*', 'tests/lib/a11y-site-checks.*', 'tests/lib/a11y-subset.*',
       'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/lib/github-rest.*', 'tests/lib/website-pages.*',
       'tests/scripts/a11y-check-run.mjs'],
     `${WEBSITE}: a pull request runs the scan only when it changes the scan's own code. ${DOC}`);

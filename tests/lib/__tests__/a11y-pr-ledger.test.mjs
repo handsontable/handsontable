@@ -1,9 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, buildEvidenceCheckRun, ledgerSectionOf } from '../a11y-evidence.mjs';
+import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, auditLedgerSectionOf, buildEvidenceCheckRun, ledgerSectionOf } from '../a11y-evidence.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ledgerClass, ledgerIndex, ledgerKey, pagesTouched, prLedgerOf, sharedSourceFolders } from '../a11y-pr-ledger.mjs';
+import {
+  auditClass, auditLedgerOf, ledgerClass, ledgerIndex, ledgerKey, pagesTouched, prLedgerOf, sharedSourceFolders,
+} from '../a11y-pr-ledger.mjs';
 
 // tests/AGENTS.md, "A11y: the checks beyond axe": a pull request runs the short suite, and the findings ledger tells its
 // new findings from the known ones. Known findings do not count, so the pages' standing debt never turns a pull
@@ -189,4 +191,129 @@ test('without a pull request\'s ledger the check run is what it was, and the job
   assert.equal(buildEvidenceCheckRun({ doc, scope: 'change' }).conclusion, 'failure');
   assert.equal(ledgerSectionOf(doc, undefined), '');
   assert.match(ledgerSectionOf(doc, prLedgerOf({ index: ledgerIndex(LEDGER), touched: 'all' })), /^#### New and known, by the findings ledger/);
+});
+
+// tests/AGENTS.md, "A11y: the verdict of a check run": on an audit every check run reads the findings ledger as the audit
+// before left it, and turns red on what changed since, never on the debt that stands. The six readings of that rule:
+// 1. a finding with an open row is known debt, a warning at most; 2. one with no row is new and counts at its severity;
+// 3. one whose row was resolved is a regression and counts; 4. a run that could not measure stays red; 5. an advisory row
+// never counts; 6. a finding with no row on a target the audit before did not measure is a warning at most.
+
+const auditRowOf = (item, status, extra = {}) => ({ ...rowOf(item, status), firstRun: '90', lastRun: '100', gaps: 0, seenSinceGap: 3, ...extra });
+const AUDIT_LEDGER = {
+  latest: { a11y: { runId: '100', seenAt: '2026-11-17T12:09:26Z' } },
+  nights: [{ source: 'a11y', runId: '100', coverage: { checks: { 'keyboard-walker': ['grid|main|', 'dialog|main|', 'pagination|main|', 'complex-demo|main|'] },
+    axe: true, reader: [], golden: [] } }],
+  rows: [
+    auditRowOf(finding({ page: 'grid' }), 'persisting'),
+    auditRowOf(finding({ page: 'complex-demo' }), 'flapping', { gaps: 1, seenSinceGap: 2 }),
+    auditRowOf(finding({ page: 'dialog' }), 'resolved', { lastRun: '90', seenSinceGap: 0, gaps: 1 }),
+  ],
+};
+const auditClassOf = (page, ledger = AUDIT_LEDGER, runId = '200') => auditClass(ledgerIndex(ledger), 'checks', 'keyboard-walker', finding({ page }), runId);
+
+test('on an audit a finding with an open row is known, a resolved row a regression, no row new, and no row on a target not measured before unmeasured', () => {
+  assert.equal(auditClassOf('grid'), 'known', 'reading 1: an open row is known debt');
+  assert.equal(auditClassOf('complex-demo'), 'known', 'a flapping row is open, so known');
+  assert.equal(auditClassOf('pagination'), 'new', 'reading 2: no row, on a target the audit before measured, is new');
+  assert.equal(auditClassOf('dialog'), 'regression', 'reading 3: a resolved row that came back is a regression');
+  assert.equal(auditClassOf('editable-headers'), 'unmeasured', 'reading 6: no row, on a target the audit before did not measure');
+  assert.equal(auditClassOf('editable-headers', { ...AUDIT_LEDGER, nights: [] }), 'new',
+    'a ledger that keeps no coverage for the night does not say, so the finding counts: nothing is hidden');
+});
+
+test('a re-run reads the rows its own earlier attempt left as they were before the run, so it never reads its findings as known', () => {
+  const ledger = {
+    ...AUDIT_LEDGER,
+    latest: { a11y: { runId: '200', seenAt: '2026-11-23T01:33:51Z' } },
+    nights: [{ source: 'a11y', runId: '200', coverage: { checks: { 'keyboard-walker': ['grid|main|'] }, axe: true, reader: [], golden: [] } }],
+    rows: [
+      auditRowOf(finding({ page: 'grid' }), 'persisting', { lastRun: '200', seenSinceGap: 4 }),
+      auditRowOf(finding({ page: 'pagination' }), 'new', { firstRun: '200', lastRun: '200', seenSinceGap: 1 }),
+      auditRowOf(finding({ page: 'dialog' }), 'flapping', { lastRun: '200', gaps: 1, seenSinceGap: 1 }),
+      auditRowOf(finding({ page: 'complex-demo' }), 'resolved', { gaps: 1, seenSinceGap: 0, resolvedAt: '2026-11-23T01:33:51Z' }),
+      auditRowOf(finding({ page: 'nested-headers' }), 'resolved', { gaps: 1, seenSinceGap: 0, resolvedAt: '2026-11-17T12:09:26Z' }),
+    ],
+  };
+
+  assert.equal(auditClassOf('pagination', ledger), 'new', 'a row this run first saw was no row before it');
+  assert.equal(auditClassOf('dialog', ledger), 'regression', 'a row that came back on this run was resolved before it');
+  assert.equal(auditClassOf('grid', ledger), 'known', 'a row open before this run stays known');
+  assert.equal(auditClassOf('complex-demo', ledger), 'known',
+    'a row this run\'s earlier attempt resolved (a flaky finding it missed) was open before the run: known debt');
+  assert.equal(auditClassOf('nested-headers', ledger), 'regression', 'a row resolved before this run that came back is a regression');
+  assert.equal(auditClassOf('complex-demo', ledger, '300'), 'regression', 'the next audit reads it as resolved, so back');
+  assert.equal(auditClassOf('editable-headers', ledger), 'new', 'the latest night is this run\'s own, so its coverage says nothing about the audit before');
+  assert.equal(auditClassOf('pagination', ledger, null), 'known', 'without the run id the rows read as they stand');
+});
+
+const auditRunOf = (findings, extra = {}) => buildEvidenceCheckRun({
+  doc: walkerDoc(findings), pages: new Map([['grid', 3], ['dialog', 9], ['pagination', 12]]), scope: 'audit',
+  auditLedger: auditLedgerOf({ index: ledgerIndex(AUDIT_LEDGER), source: 'checks', runId: '200' }), ...extra,
+});
+
+test('reading 1: on an audit known debt never turns the check run red; it is listed, a warning at most', () => {
+  const payload = auditRunOf([finding({ page: 'grid' }), finding({ page: 'complex-demo' })]);
+
+  assert.equal(payload.conclusion, 'neutral');
+  assert.match(payload.title, /^⚠ Warning: 0 critical, 0 serious, 0 moderate, 0 minor .* · 2 warning only · ledger: 0 new, 0 regressions, 2 known · 2 findings/);
+  assert.deepEqual(payload.annotations.map(item => [item.annotation_level, item.title]), [['warning', 'Known: 2.4.3 focus-lost'], ['warning', 'Known: 2.4.3 focus-lost']]);
+  assert.match(payload.summary, /\*\*Audit run\*\* \(a schedule or a dispatch\): every finding is listed, and one the findings ledger does not hold as open counts/);
+  assert.match(payload.summary, /known debt, or a finding on a target the audit before did not measure, on an audit/);
+  assert.match(payload.summary, /as the audit of 2026-11-17 \(run 100\) left it/);
+});
+
+test('readings 2 and 3: on an audit a new finding and a regression count at their severity, listed regressions first', () => {
+  const payload = auditRunOf([finding({ page: 'pagination' }), finding({ page: 'dialog' }), finding({ page: 'grid' })]);
+
+  assert.equal(payload.conclusion, 'failure');
+  assert.match(payload.title, /^✖ Red: 0 critical, 2 serious, .* · 1 warning only · ledger: 1 new, 1 regression, 1 known · /);
+  assert.match(payload.summary, /\| 1 \| 1 \| 0 \| 1 \|/);
+  assert.match(payload.summary, /\| Regression \| serious \| dialog \| main \|[^\n]*\n\| New \| serious \| pagination \| main \|/);
+  assert.equal(auditRunOf([finding({ page: 'pagination', severity: 'moderate' })]).conclusion, 'neutral', 'a new moderate finding is a warning, as ever');
+});
+
+test('reading 4: a check that could not measure stays red on an audit, known debt or not', () => {
+  const doc = walkerDoc([finding({ page: 'grid' })]);
+  const payload = auditRunOf([], { doc: { ...doc, problems: ['grid on main: the test failed before it measured'] } });
+
+  assert.equal(payload.conclusion, 'failure');
+  assert.match(payload.title, /^✖ Tooling failure: grid on main: the test failed before it measured/);
+  assert.equal(auditRunOf([], { doc: null }).conclusion, 'failure', 'a check that left no document is red');
+});
+
+test('reading 5: an advisory row never counts on an audit, new or not, and is left out of the ledger counts', () => {
+  const payload = auditRunOf([finding({ page: 'pagination', kind: 'tab-order-changed', severity: 'advisory' }), finding({ page: 'grid' })]);
+
+  assert.equal(payload.conclusion, 'neutral', 'the known finding is the warning; the new advisory row raises nothing');
+  assert.match(payload.title, /ledger: 0 new, 0 regressions, 1 known · /);
+  assert.equal(payload.annotations.find(item => item.annotation_level === 'notice').title, '2.4.3 tab-order-changed', 'an advisory row is a notice, with no class');
+});
+
+test('reading 6: on an audit a new finding on a target the audit before did not measure is a warning at most, and says so', () => {
+  const payload = auditRunOf([finding({ page: 'editable-headers' })]);
+
+  assert.equal(payload.conclusion, 'neutral');
+  assert.match(payload.title, /ledger: 0 new, 0 regressions, 1 not measured before, 0 known · /);
+  assert.equal(payload.annotations[0].title, 'Not measured before: 2.4.3 focus-lost');
+  assert.match(payload.summary, /\| Not measured before \| serious \| editable-headers \| main \|/);
+});
+
+test('on an audit a ledger that did not load leaves every open finding counted, with a note, never a green run', () => {
+  const payload = auditRunOf([finding({ page: 'grid' })], { auditLedger: { problem: 'the findings ledger did not load from https://example.test (HTTP 503)' } });
+
+  assert.equal(payload.conclusion, 'failure');
+  assert.match(payload.summary, /> Known and new findings were not told apart, so every finding counts: the findings ledger did not load/);
+  assert.match(payload.summary, /\*\*Audit run\*\* \(a schedule or a dispatch\): every open finding counts, tracked or not\./);
+  assert.doesNotMatch(payload.title, /ledger:/);
+});
+
+test('the audit\'s ledger is read on an audit only: a change run, the pull request\'s ledger and the job summary are what they were', () => {
+  const auditLedger = auditLedgerOf({ index: ledgerIndex(AUDIT_LEDGER), source: 'checks' });
+  const doc = walkerDoc([finding({ page: 'grid' })]);
+
+  assert.equal(buildEvidenceCheckRun({ doc, scope: 'change', auditLedger }).conclusion, 'failure', 'a change run never reads the audit\'s ledger');
+  assert.equal(runOf([finding({ page: 'grid' })], 'all', { auditLedger }).conclusion, 'success', 'a pull request keeps leaving known debt out entirely');
+  assert.equal(auditLedgerSectionOf(doc, undefined), '');
+  assert.match(auditLedgerSectionOf(doc, auditLedger), /^#### New and known, by the findings ledger\n\nOn an audit the findings ledger/);
 });

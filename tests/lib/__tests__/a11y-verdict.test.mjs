@@ -9,6 +9,8 @@ import {
   annotationLevel,
   capAnnotations,
   countingScope,
+  renderAuditLedger,
+  ledgerLine,
   renderRunVerdict,
   renderVerdict,
   runVerdict,
@@ -224,4 +226,46 @@ test('the run verdict renders a table a reader can scan, escaped', () => {
   assert.match(markdown, /^## Run verdict: red/m);
   assert.match(markdown, /\| ✖ red \| \[A11y \/ axe report\]\(https:\/\/github\.com\/o\/r\/runs\/1\) \| failure title \|/);
   assert.doesNotMatch(markdown, /<b>/);
+});
+
+test('the ledger line names a finding not measured before only when there is one, so a pull request\'s title is what it was', () => {
+  assert.equal(ledgerLine({ new: 1, regression: 1, unmeasured: 0, known: 3 }), 'ledger: 1 new, 1 regression, 3 known');
+  assert.equal(ledgerLine({ new: 0, regression: 2, known: 0 }), 'ledger: 0 new, 2 regressions, 0 known');
+  assert.equal(ledgerLine({ new: 0, regression: 0, unmeasured: 4, known: 9 }), 'ledger: 0 new, 0 regressions, 4 not measured before, 9 known');
+});
+
+test('an audit\'s ledger section lists what is not known debt, regressions first, and cuts the list at thirty', () => {
+  const classified = [
+    ...Array.from({ length: 31 }, (_, index) => ({ ledger: 'new', id: `n${index}` })),
+    { ledger: 'unmeasured', id: 'u' }, { ledger: 'known', id: 'k' }, { ledger: 'regression', id: 'r' },
+  ];
+  const markdown = renderAuditLedger({ auditLedger: { auditAt: '2026-11-17T12:09:26Z', auditRun: '44077688383' }, classified, columns: ['Id'], cellsOf: item => [item.id] });
+  const rows = markdown.split('\n').filter(line => /^\| (New|Regression|Known|Not measured before) \| [a-z]\d* \|$/.test(line));
+
+  assert.match(markdown, /as the audit of 2026-11-17 \(run 44077688383\) left it/);
+  assert.match(markdown, /\| 31 \| 1 \| 1 \| 1 \|/);
+  assert.equal(rows.length, 30);
+  assert.deepEqual([rows[0], rows[1], rows[29]], ['| Regression | r |', '| New | n0 |', '| New | n28 |'], 'regressions, then new, then not measured before');
+  assert.match(markdown, /…and 3 more in the annotations and the run's artifacts\.$/);
+  assert.doesNotMatch(markdown, /\| Known \| k \|/, 'known debt is counted, not listed');
+  assert.match(renderAuditLedger({ auditLedger: {}, classified: [], columns: ['Id'], cellsOf: () => [] }), /as the latest audit left it/);
+});
+
+test('an audit\'s run verdict says the run turns red on what changed since the audit before; a change run\'s says nothing of it', () => {
+  const titled = (name, conclusion, title, id) => ({ ...posted(name, conclusion, { id }), output: { title } });
+  const read = titled('A11y / axe report', 'neutral', `⚠ Warning: 0 critical · ${ledgerLine({ new: 0, regression: 0, known: 4 })} · 4 known`, 1);
+  const unread = titled('A11y / reflow report', 'failure', '✖ Red: 0 critical, 3 serious, 0 moderate, 0 minor · 3 findings', 2);
+  const regressed = titled('A11y / pointer report', 'failure', `✖ Red: 1 serious · ${ledgerLine({ new: 0, regression: 1, known: 2 })}`, 3);
+  const all = runVerdict({ checkRuns: [read, regressed], runId: RUN, prefixes: ['A11y / '] });
+  const some = runVerdict({ checkRuns: [read, unread, regressed], runId: RUN, prefixes: ['A11y / '] });
+  const none = runVerdict({ checkRuns: [unread], runId: RUN, prefixes: ['A11y / '] });
+
+  assert.match(renderRunVerdict(all, { scope: 'audit' }), /On an audit a check run that read the findings ledger \(its title carries the ledger counts\) counts what the ledger does not hold as open/);
+  assert.doesNotMatch(renderRunVerdict(all, { scope: 'audit' }), /no ledger counts|carries ledger counts/, 'every check run read the ledger');
+  assert.match(renderRunVerdict(some, { scope: 'audit' }),
+    /1 of the 3 check runs carries no ledger counts: such a check run could not read the ledger and counted every open finding, debt included, or is a tooling failure/);
+  assert.match(renderRunVerdict(none, { scope: 'audit' }), /The check run carries no ledger counts: such a check run could not read the ledger/);
+  assert.match(renderRunVerdict(runVerdict({ checkRuns: [unread, { ...unread, id: 4, name: 'A11y / pointer report' }], runId: RUN, prefixes: ['A11y / '] }),
+    { scope: 'audit' }), /None of the 2 check runs carries ledger counts/);
+  assert.doesNotMatch(renderRunVerdict(some), /findings ledger/);
 });

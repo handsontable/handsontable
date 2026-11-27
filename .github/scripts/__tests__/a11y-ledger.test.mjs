@@ -2033,7 +2033,7 @@ test('the collector records a develop nightly into a11y.json and the page, and a
     assert.match(again.stdout, /already recorded/);
 
     // The docs site scan's weekly schedule is collected like the nightlies': with no dispatch, and whatever its
-    // verdict job concluded (red by design while a critical or serious finding is open).
+    // verdict job concluded (red when it found something new since the audit before).
     const docs = sandbox.collect({ ...DOCS_RUN, event: 'schedule', conclusion: 'failure' }, sandbox.artifacts('docs', docsFiles()), '2026-11-03T07:30:00Z');
 
     assert.equal(docs.status, 0, docs.stderr);

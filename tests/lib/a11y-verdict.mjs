@@ -10,10 +10,13 @@
  * - **A tooling failure** (a check that measured nothing or not everything, a reader that did not start, a lost
  *   step) is red for a reason of its own, and the title says so.
  *
- * What counts depends on the run (`countingScope()`): an audit (a schedule or a dispatch) counts every open
- * finding; a change (a pull request or a push) counts what the change can act on, and a finding whose cluster
- * in `tests/a11y/issues.json` has a tracker is a warning at most there. The callers decide which findings are
- * warning-only and pass them here. A check run reports; it never fails the job or stops the run, and only
+ * What counts depends on the run (`countingScope()`): an audit (a schedule or a dispatch) lists every open
+ * finding and counts the ones the findings ledger, as the audit before left it, does not hold as open (a new
+ * finding, or a regression); known debt, and a finding on a target the audit before did not measure, is a warning
+ * at most there (`AUDIT_WARNING_CLASSES`). A change (a pull request or a push) counts what the change can act on,
+ * and a finding whose cluster in `tests/a11y/issues.json` has a tracker is a warning at most there. The callers
+ * classify the findings (`lib/a11y-pr-ledger.mjs` reads the ledger; this module reads nothing) and pass which are
+ * warning-only here. A check run reports; it never fails the job or stops the run, and only
  * `CI Gate` is required, so a red check run blocks no merge by itself. The run-level verdict
  * (`runVerdict()`) reads the check runs a workflow run posted and follows the worst.
  *
@@ -38,6 +41,28 @@ export const VERDICT_RULE = '(critical/serious = red, moderate/minor = warning)'
  * as a pass by the run verdict.
  */
 export const POSTED_CONCLUSIONS = ['success', 'neutral', 'failure'];
+/**
+ * How a finding reads against the findings ledger (`test-health/a11y.json` on `gh-pages`), in the order a report lists
+ * them: a **regression** has a resolved row (a fix came undone), a **new** finding has no row, one **not measured
+ * before** has no row on a target the latest audit did not measure (a page, check, variant or scenario added since),
+ * and a **known** one has an open row (new, persisting or flapping). A pull request uses three of them
+ * (`lib/a11y-pr-ledger.mjs`, `ledgerClass()`); an audit all four (`auditClass()`).
+ */
+export const LEDGER_CLASSES = ['regression', 'new', 'unmeasured', 'known'];
+export const LEDGER_LABELS = Object.freeze({ regression: 'Regression', new: 'New', unmeasured: 'Not measured before', known: 'Known' });
+/**
+ * The ledger classes that are a warning at most on an audit: known debt never turns the weekly audit red, and nor
+ * does a finding on a target the audit before did not measure, because nothing was seen to work there. A regression
+ * and a new finding count at their severity.
+ */
+export const AUDIT_WARNING_CLASSES = Object.freeze(['known', 'unmeasured']);
+/**
+ * What an audit counts when the findings ledger was read, as `renderVerdict()` says it.
+ */
+export const AUDIT_LEDGER_COUNTING = 'every finding is listed, and one the findings ledger does not hold as open counts (a new one, or a regression), '
+  + 'tracked or not; known debt, and a finding on a target the audit before did not measure, is a warning at most';
+// How many regressions, new findings and findings not measured before an audit's ledger section spells out.
+const AUDIT_LEDGER_ROWS = 30;
 
 const COUNTED = [...RED_SEVERITIES, ...WARNING_SEVERITIES];
 const LEVEL_ORDER = ['failure', 'warning', 'notice'];
@@ -149,11 +174,15 @@ export function verdictTitle(verdict, headline) {
  * @param {object} [options] The options.
  * @param {'audit'|'change'} [options.scope] What the run counted (`countingScope()`).
  * @param {string} [options.counting] What a change run of this check counts, as a clause.
+ * @param {string} [options.auditCounting] What an audit run of this check counts, as a clause: every open finding
+ * without the findings ledger, `AUDIT_LEDGER_COUNTING` with it.
  * @param {boolean} [options.listTooling] Whether to list the tooling problems; a caller that lists them itself
  * passes `false`.
  * @returns {string} Markdown.
  */
-export function renderVerdict(verdict, { scope = 'change', counting = 'every finding counts', listTooling = true } = {}) {
+export function renderVerdict(verdict, {
+  scope = 'change', counting = 'every finding counts', auditCounting = 'every open finding counts, tracked or not', listTooling = true,
+} = {}) {
   const lines = [];
 
   if (verdict.reason === 'tooling') {
@@ -171,7 +200,7 @@ export function renderVerdict(verdict, { scope = 'change', counting = 'every fin
   }
 
   lines.push(scope === 'audit'
-    ? '**Audit run** (a schedule or a dispatch): every open finding counts, tracked or not.'
+    ? `**Audit run** (a schedule or a dispatch): ${auditCounting}.`
     : `**Change run** (a pull request or a push): ${counting}; a finding whose cluster in \`tests/a11y/issues.json\` has a tracker is a warning at most.`, '');
 
   const listed = COUNTED.some(severity => verdict.counted[severity] + verdict.warningOnly[severity] > 0);
@@ -180,7 +209,10 @@ export function renderVerdict(verdict, { scope = 'change', counting = 'every fin
     lines.push('| Severity | Counted | Warning only |', '| --- | --: | --: |',
       ...COUNTED.map(severity => `| ${severity} | ${verdict.counted[severity]} | ${verdict.warningOnly[severity]} |`), '');
     if (COUNTED.some(severity => verdict.warningOnly[severity] > 0)) {
-      lines.push('A warning-only finding is a warning whatever its severity: tracked debt on a change run, or a finding that names no WCAG 2.2 A or AA criterion.', '');
+      lines.push(scope === 'audit'
+        ? 'A warning-only finding is a warning whatever its severity: known debt, or a finding on a target the audit before did not measure, on an audit, '
+          + 'or a finding that names no WCAG 2.2 A or AA criterion.'
+        : 'A warning-only finding is a warning whatever its severity: tracked debt on a change run, or a finding that names no WCAG 2.2 A or AA criterion.', '');
     }
   }
   if (verdict.advisory > 0) {
@@ -188,6 +220,83 @@ export function renderVerdict(verdict, { scope = 'change', counting = 'every fin
   }
 
   return lines.join('\n').trimEnd();
+}
+
+/**
+ * How many findings of each ledger class.
+ *
+ * @param {Array<{ledger?: string}>} classified The findings, each with its class (`LEDGER_CLASSES`).
+ * @returns {{regression: number, new: number, unmeasured: number, known: number}} The counts.
+ */
+export function ledgerCounts(classified) {
+  return Object.fromEntries(LEDGER_CLASSES.map(name => [name, classified.filter(item => item.ledger === name).length]));
+}
+
+/**
+ * The counts of the findings by ledger class, as a check run's title and the job summary say them. A pull request
+ * never reads a finding as not measured before, so its line names three classes.
+ *
+ * @param {{regression: number, new: number, unmeasured?: number, known: number}} counts The counts (`ledgerCounts()`).
+ * @returns {string} The line.
+ */
+export function ledgerLine(counts) {
+  const unmeasured = counts.unmeasured > 0 ? `, ${counts.unmeasured} not measured before` : '';
+
+  return `ledger: ${counts.new} new, ${counts.regression} ${counts.regression === 1 ? 'regression' : 'regressions'}${unmeasured}, ${counts.known} known`;
+}
+
+// The ledger line in a check run's title (`ledgerLine()`): an audit's check run that read the findings ledger carries
+// it, and one that could not (or a tooling failure) does not, which is all the run verdict sees of the ledger.
+const LEDGER_LINE = /\bledger: \d+ new, \d+ regressions?\b/;
+
+/**
+ * The section of an audit's check run that says how its findings read against the findings ledger as the audit before
+ * left it: the rule, the counts, the two limits of the ledger as a baseline, and the findings that are not known debt
+ * (regressions, then new findings, then the ones not measured before), at most `AUDIT_LEDGER_ROWS`.
+ *
+ * @param {object} input The input.
+ * @param {{auditAt?: string|null, auditRun?: string|null}} input.auditLedger The audit's ledger input (`auditLedgerOf()` of
+ * `lib/a11y-pr-ledger.mjs`): when and by which run the ledger was last written for this source.
+ * @param {Array<{ledger: string}>} input.classified Every finding that can count (advisory rows left out), with its class.
+ * @param {string[]} input.columns The headers of the columns after the class (`Severity`, `Page`, …).
+ * @param {(item: object) => string[]} input.cellsOf A listed finding's cells, escaped for the table.
+ * @returns {string} Markdown.
+ */
+export function renderAuditLedger({ auditLedger, classified, columns, cellsOf }) {
+  const counts = ledgerCounts(classified);
+  const date = auditLedger.auditAt ? escape(String(auditLedger.auditAt).slice(0, 10)) : null;
+  const run = /^\d+$/.test(String(auditLedger.auditRun ?? '')) ? ` (run ${auditLedger.auditRun})` : '';
+  const audit = date ? `the audit of ${date}${run}` : 'the latest audit';
+  const listed = ['regression', 'new', 'unmeasured'].flatMap(name => classified.filter(item => item.ledger === name));
+  const lines = [
+    '#### New and known, by the findings ledger',
+    '',
+    `On an audit the findings ledger (\`test-health/a11y.json\` on \`gh-pages\`, as ${audit} left it) is the verdict's baseline. `
+      + 'A finding whose ledger row is open is **known** debt: listed, and a warning at most. A **regression** has a resolved row: a fix came '
+      + 'undone. A **new** finding has no row. Both count by the severity rule. A finding with no row on a target that audit did not measure '
+      + '(a page, a check, a variant or a scenario added since) is **not measured before**: a warning at most, because nothing was seen to work '
+      + 'there. Advisory rows never count and are left out.',
+    '',
+    '| New | Regressions | Not measured before | Known |',
+    '| --: | --: | --: | --: |',
+    `| ${counts.new} | ${counts.regression} | ${counts.unmeasured} | ${counts.known} |`,
+    '',
+    'Two limits. A row is keyed by the element\'s selector or the step, so a class or step renamed since that audit makes a known finding '
+      + 'read as new. And an axe scan\'s coverage is one flag per night, not a list of pages, so a page added to a scan since reads as new, '
+      + 'not as not measured before.',
+  ];
+
+  if (listed.length > 0) {
+    lines.push('', `| | ${columns.join(' | ')} |`, `| --- |${columns.map(() => ' --- |').join('')}`);
+    for (const item of listed.slice(0, AUDIT_LEDGER_ROWS)) {
+      lines.push(`| ${LEDGER_LABELS[item.ledger]} | ${cellsOf(item).join(' | ')} |`);
+    }
+    if (listed.length > AUDIT_LEDGER_ROWS) {
+      lines.push('', `…and ${listed.length - AUDIT_LEDGER_ROWS} more in the annotations and the run's artifacts.`);
+    }
+  }
+
+  return lines.join('\n');
 }
 
 /**
@@ -272,18 +381,49 @@ export function runVerdict({ checkRuns, runId, prefixes, expected = [] }) {
 }
 
 /**
+ * What an audit's check runs counted, said from their titles: one that read the findings ledger carries its counts
+ * (`ledgerLine()`) and treats known debt as a warning at most; one that carries none counted every open finding, or is a
+ * tooling failure, so the summary never says the debt was a warning when a check run could not tell it apart.
+ *
+ * @param {Array<{title: string}>} rows The check runs.
+ * @returns {string} The sentences, each with a leading space.
+ */
+function auditSentence(rows) {
+  const unread = rows.filter(row => !LEDGER_LINE.test(String(row.title ?? ''))).length;
+  const read = ' On an audit a check run that read the findings ledger (its title carries the ledger counts) counts what the ledger does '
+    + 'not hold as open (a new finding, or a regression) and a tooling failure: known debt is a warning at most, so it turns red on what '
+    + 'changed since the audit before, not on the debt that stands.';
+
+  if (unread === 0) {
+    return read;
+  }
+
+  let which = `${unread} of the ${rows.length} check runs ${unread === 1 ? 'carries' : 'carry'} no ledger counts`;
+
+  if (unread === rows.length) {
+    which = rows.length === 1 ? 'The check run carries no ledger counts' : `None of the ${rows.length} check runs carries ledger counts`;
+  }
+
+  return `${read} ${which}: such a check run could not read the ledger and counted every open finding, debt included, or is a `
+    + 'tooling failure, and its summary says which.';
+}
+
+/**
  * The run verdict as a job summary: a table of the check runs, red first in the reader's eye by its icon.
  *
  * @param {object} result What `runVerdict()` returned.
+ * @param {object} [options] The options.
+ * @param {'audit'|'change'} [options.scope] What the run's check runs counted (`countingScope()`).
  * @returns {string} Markdown.
  */
-export function renderRunVerdict(result) {
+export function renderRunVerdict(result, { scope = 'change' } = {}) {
   const word = { success: 'green', neutral: 'a warning', failure: 'red' }[result.conclusion];
   const lines = [
     `## Run verdict: ${word}`,
     '',
     'The run follows its worst check run: red when any is red, a warning when the worst is one, green otherwise. '
-      + `Each check run follows the severity rule ${VERDICT_RULE}; every scan and lane ran to the end before this was decided.`,
+      + `Each check run follows the severity rule ${VERDICT_RULE}; every scan and lane ran to the end before this was decided.`
+      + (scope === 'audit' ? auditSentence(result.rows) : ''),
     '',
   ];
 

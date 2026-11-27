@@ -28,8 +28,9 @@ name: Website a11y
 # recorded. The schedule is the weekly audit: while the accessibility debt is being fixed, the ledger
 # needs an audit a week to show what each fix cleared, and when (tests/AGENTS.md, "A11y: the audit and
 # the proof runs"). It ends when the debt epic closes, and the tiers then decide the cadence. A run that
-# ends red on its `verdict` job alone is the audit's answer, never a broken build, and nothing here posts
-# to Slack. The guard above holds on every event: a scheduled run reads production through the same
+# ends red on its `verdict` job alone found something the findings ledger, as the audit before left it,
+# does not hold as open (a new finding, a regression), or could not measure: known debt is a warning at
+# most. Nothing here posts to Slack. The guard above holds on every event: a scheduled run reads production through the same
 # `guardSite()`, so it sends no form and books no call either. Another workflow that runs every
 # accessibility scan at once calls this one (`workflow_call`), and lists the `website` source for its own
 # name in `SOURCES_OF_WORKFLOW` (.github/scripts/lib/a11y-ledger.mjs).
@@ -73,6 +74,7 @@ on:
       - 'tests/lib/a11y-docs-drift.*'
       - 'tests/lib/a11y-issues.*'
       - 'tests/lib/a11y-evidence.*'
+      - 'tests/lib/a11y-pr-ledger.*'
       - 'tests/lib/a11y-site-checks.*'
       - 'tests/lib/a11y-subset.*'
       - 'tests/lib/a11y-verdict.*'
@@ -188,7 +190,8 @@ jobs:
           REPORT_URL: ${{ steps.report.outputs.artifact-url }}
         run: printf '\n📊 [Open the HTML report](%s)\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
       # `A11y / website-axe report` on the run's head commit, by the severity rule: on an audit every open finding
-      # counts, on a change a new or grown one, a warning at most when the latest website audit saw it too (baseline
+      # is listed and one the findings ledger does not hold as open counts, on a change a new or grown one, a
+      # warning at most when the latest website audit saw it too (baseline
       # drift: the website changes apart from this repository, tests/lib/a11y-docs-drift.mjs). A fork's or
       # Dependabot's token cannot write checks, so the canonical guard skips it there; the summary and the report
       # still carry everything.

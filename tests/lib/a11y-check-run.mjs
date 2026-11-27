@@ -7,7 +7,8 @@
  * moderate or minor one, green on none, and red for a tooling failure, titled as one. What counts depends on
  * the run: a change run (a pull request, a push) counts what is new or grown against the baseline, and a
  * finding whose cluster in `tests/a11y/issues.json` has a tracker is a warning at most; an audit run (a
- * schedule, a dispatch) counts every open finding, the known ones too. An improved or stale entry is
+ * schedule, a dispatch) lists every open finding, the known ones too, and counts the ones the findings ledger does
+ * not hold as open (a new finding, or a regression): known debt is a warning at most. An improved or stale entry is
  * advisory. Block mode, when it comes, fails the check on any finding that needs action. Its page carries the
  * job summary and the link to the HTML report, and its annotations sit on the line of the file to change: a
  * new or grown finding on the page's entry in `tests/a11y/pages.mjs`, a known, improved or fixed one on its
@@ -23,7 +24,10 @@
  * builds the payload here, and posts it. No I/O in here.
  */
 import { BASELINE_FILE, entryKey, escapeMarkdownText, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
-import { annotationLevel, capAnnotations, renderVerdict, severityOfImpact, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import {
+  AUDIT_LEDGER_COUNTING, AUDIT_WARNING_CLASSES, LEDGER_LABELS, annotationLevel, capAnnotations, ledgerCounts, ledgerLine, renderAuditLedger, renderVerdict,
+  severityOfImpact, verdictOf, verdictTitle,
+} from './a11y-verdict.mjs';
 import { kindCounts } from './a11y-baseline-guard.mjs';
 import { KIND_LABELS, neutralizeTaskIds } from './a11y-pr-comment.mjs';
 import { pageIdOf } from './website-pages.mjs';
@@ -176,12 +180,17 @@ export function baselineLines(source) {
  * source are their own.
  * @param {(item: object) => boolean} [input.drift] Whether a counted finding is baseline drift: on a change run it
  * counts as a warning at most, like a tracked one (`driftOf()` of `lib/a11y-docs-drift.mjs`; the site scans only).
+ * @param {object} [input.auditLedger] On an audit, the findings ledger as the audit before left it (`auditLedgerOf()` of
+ * `lib/a11y-pr-ledger.mjs`, built by the script, because this module is loaded by the verdict jobs, which check out
+ * `tests/lib` alone): `{classify, auditAt, auditRun}`, and then a known finding or one on a target the audit before did
+ * not measure is a warning at most, and a regression or a new one counts; or `{problem}` when the ledger did not load,
+ * and then every open finding counts, with a note. Read on an audit only.
  * @param {object} [input.guard] What the pull request adds to the baseline, judged (`baselineGuard()` of
  * `lib/a11y-baseline-guard.mjs`); left out on a run without a pull request.
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
 export function buildCheckRun({
-  comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false, scan = PRODUCT_SCAN, drift = () => false, guard,
+  comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false, scan = PRODUCT_SCAN, drift = () => false, auditLedger, guard,
 }) {
   if (!comparison) {
     return {
@@ -196,24 +205,42 @@ export function buildCheckRun({
   const counts = verdictCounts(comparison);
   const problems = [...(comparison.problems ?? []), ...(guard?.error ? [`the baseline growth was not judged: ${guard.error}`] : [])];
   const blocking = comparison.mode === 'block' && problems.length === 0 && counts.action > 0;
-  const findings = countedFindings(comparison, scope, tracked, scan, drift);
+  // On an audit every open finding stays listed; the ledger decides only which count (`AUDIT_WARNING_CLASSES`).
+  const audit = scope === 'audit' && auditLedger?.classify ? auditLedger : null;
+  const findings = countedFindings(comparison, scope, tracked, scan, drift, audit);
   const verdict = verdictOf({ findings: findings.map(({ severity, warningOnly }) => ({ severity, warningOnly })), tooling: problems });
   const own = (guard?.judged ?? []).filter(item => item.kind === 'own');
   const ownRed = own.length > 0 && verdict.reason !== 'tooling';
   const conclusion = blocking || ownRed ? 'failure' : verdict.conclusion;
-  const scanTitle = blocking ? `✖ ${headline(comparison)}` : verdictTitle(verdict, headline(comparison));
+  const classified = audit ? findings.filter(item => item.ledger !== undefined) : null;
+  const scanHeadline = classified ? `${ledgerLine(ledgerCounts(classified))} · ${headline(comparison)}` : headline(comparison);
+  const scanTitle = blocking ? `✖ ${headline(comparison)}` : verdictTitle(verdict, scanHeadline);
   const title = ownRed ? `✖ Baseline growth: ${own.length} ${own.length === 1 ? 'entry is' : 'entries are'} this pull request's own · ${scanTitle}` : scanTitle;
-  const notes = [...(comparison.notes ?? []), ...problems.map(problem => `Tooling problem: ${problem}`)];
+  const ledgerProblem = scope === 'audit' ? auditLedger?.problem : undefined;
+  const notes = [
+    ...(comparison.notes ?? []),
+    ...(ledgerProblem ? [`Known and new findings were not told apart, so every open finding counts: ${ledgerProblem}.`] : []),
+    ...problems.map(problem => `Tooling problem: ${problem}`),
+  ];
   const { annotations, omitted } = capAnnotations([...annotationsOf(findings, comparison, pages, baseline, scan), ...guardAnnotations(guard, baseline, scan)]);
   const lead = [
     ownRed ? GUARD_RED : '',
     blocking
       ? '**Verdict: red, block mode.** A finding that needs action fails this check and the job, whatever its severity.'
-      : renderVerdict(verdict, { scope, counting: 'only a finding that is new or grown against the baseline counts', listTooling: false }),
+      : renderVerdict(verdict, {
+        scope, counting: 'only a finding that is new or grown against the baseline counts', listTooling: false, ...(audit ? { auditCounting: AUDIT_LEDGER_COUNTING } : {}),
+      }),
     comparison.mode === 'block'
       ? '**Block mode:** a finding that needs action fails this check and the job.'
       : '**Warn mode:** the job never fails on a finding; this check run\'s verdict says what the scan found, and it never blocks a merge.',
     runLink(runUrl),
+    classified ? renderAuditLedger({
+      auditLedger: audit,
+      classified,
+      columns: ['Severity', 'Page', 'Theme', 'Rule', 'Element'],
+      cellsOf: ({ item, severity }) => [escapeMarkdownText(severity), escapeMarkdownText(item.page), escapeMarkdownText(item.theme), escapeMarkdownText(item.rule),
+        `<code>${escapeMarkdownText(item.target)}</code>`],
+    }) : '',
     omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more are in the job summary and the HTML report.` : '',
     ...notes.map(note => `> ${note}`),
     ...renderGuard(guard, comparison.issues ?? [], scan),
@@ -229,7 +256,8 @@ export function buildCheckRun({
 
 /**
  * The findings the verdict counts, each with its comparison item and set: on a change run the new and grown
- * ones, a tracked one a warning at most; on an audit run the known ones too, tracked or not. An improved or a
+ * ones, a tracked one a warning at most; on an audit run the known ones too, tracked or not, and with the findings
+ * ledger each with its ledger class, known debt and a target not measured before a warning at most. An improved or a
  * stale entry is advisory: the scan found less than recorded, which needs a baseline edit and no fix.
  *
  * @param {object} comparison The comparison.
@@ -237,15 +265,21 @@ export function buildCheckRun({
  * @param {Function} tracked The tracker predicate.
  * @param {object} scan The scan.
  * @param {Function} drift The drift predicate.
- * @returns {Array<{set: string, item: object, severity: string, warningOnly: boolean}>} The findings.
+ * @param {{classify: Function}|null} audit The audit's ledger input, or `null`.
+ * @returns {Array<{set: string, item: object, severity: string, warningOnly: boolean, ledger?: string}>} The findings.
  */
-function countedFindings(comparison, scope, tracked, scan, drift) {
-  const counted = set => comparison[set].map(item => ({
-    set,
-    item,
-    severity: severityOfImpact(item.impact),
-    warningOnly: scope === 'change' && (Boolean(tracked(scan.source, scan.check, item)) || Boolean(drift(item))),
-  }));
+function countedFindings(comparison, scope, tracked, scan, drift, audit) {
+  const counted = set => comparison[set].map((item) => {
+    const ledger = audit ? audit.classify(scan.check, item).ledger : undefined;
+
+    return {
+      set,
+      item,
+      ledger,
+      severity: severityOfImpact(item.impact),
+      warningOnly: (scope === 'change' && (Boolean(tracked(scan.source, scan.check, item)) || Boolean(drift(item)))) || AUDIT_WARNING_CLASSES.includes(ledger),
+    };
+  });
   const advisory = set => comparison[set].map(item => ({ set, item, severity: 'advisory', warningOnly: false }));
 
   return [
@@ -278,7 +312,7 @@ function annotationsOf(findings, comparison, pages, baseline, scan) {
     stale: () => 'Fixed: delete the baseline entry',
   };
 
-  return findings.map(({ set, item, severity, warningOnly }) => {
+  return findings.map(({ set, item, severity, warningOnly, ledger }) => {
     const onPage = set === 'newViolations' || set === 'grown';
     const path = onPage ? scan.pagesFile : scan.baselineFile;
     const line = (onPage ? pages.get(item.page) : baseline.get(entryKey(item))) ?? 1;
@@ -288,7 +322,7 @@ function annotationsOf(findings, comparison, pages, baseline, scan) {
       start_line: line,
       end_line: line,
       annotation_level: comparison.mode === 'block' ? 'failure' : annotationLevel({ severity, warningOnly }),
-      title: titles[set](item, severity),
+      title: `${titles[set](item, severity)}${ledger ? ` · ledger: ${LEDGER_LABELS[ledger].toLowerCase()}` : ''}`,
       message: `${where(item)}. ${item.remedy}`,
     };
   }).sort((a, b) => a.path.localeCompare(b.path) || a.start_line - b.start_line);

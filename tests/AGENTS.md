@@ -1393,7 +1393,8 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   `scripts/a11y-check-run.mjs` on the pull request's head commit, never the merge commit). It is
   the visible verdict while the job stays green, by the severity rule ("A11y: the verdict of a
   check run"): on a pull request or a push a new or grown finding counts at its impact (a tracked
-  one as a warning at most), on the nightly every open finding counts; `failure` on a critical or
+  one as a warning at most), on an audit every open finding is listed and one the findings ledger does
+  not hold as open counts (known debt is a warning at most); `failure` on a critical or
   serious one or a tooling failure, `neutral` on a moderate or minor one, `success` otherwise, and
   `failure` on any finding that needs action in block mode, and on a pull request `failure` on a
   baseline entry the pull request added as its own (the baseline guard above). The counts are in its
@@ -1603,9 +1604,12 @@ left no document gets a red tooling check run instead of none.
   from `.github/scripts/lib/a11y-ledger.mjs`, so `tests/` does not depend on `.github/scripts/`.
   `a11y-pr-ledger.mjs` reaches `tests/a11y` through `a11y-issues.mjs`, and the verdict and input-guard
   jobs load `a11y-evidence.mjs` from a sparse checkout of `tests/lib` and `tests/scripts`, so
-  `a11y-evidence.mjs` must never import it: it takes the classifier as an input (`prLedgerOf()`), which
-  the report script builds. `.github/scripts/__tests__/a11y-pr-ledger.test.mjs` holds `ledgerKey()` to
-  the ledger's `findingKey()`. Gating on a pull request waits for two clean weeks of report-only runs.
+  `a11y-evidence.mjs` and `a11y-check-run.mjs` must never import it: they take the classifier as an input
+  (`prLedgerOf()`, and `auditLedgerOf()` on an audit), which the report scripts build.
+  `.github/scripts/__tests__/a11y-pr-ledger.test.mjs` holds `ledgerKey()` to the ledger's `findingKey()` for
+  every row source, through the collector and on a frozen sample of a real audit's rows
+  (`fixtures/a11y-audit-keys.json`), and `ledgerMeasured()` to `nightMeasured()`. Gating on a pull
+  request waits for two clean weeks of report-only runs.
   Locally: `A11Y_LEDGER_FILE=<saved a11y.json> A11Y_CHANGED_FILES=<paths file>
   node scripts/a11y-evidence-report.mjs --dry-run`.
 
@@ -2180,7 +2184,8 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   code added), and the summary says so and names the dispatch that measures it (`gh workflow run docs-a11y.yml --ref
   develop`). The summary's grown line names the findings that count, so it never reads as if every new row were red.
   A ledger that cannot be read, or holds no docs night that read the scan, leaves
-  every finding at its severity and says why. An audit run (a dispatch) counts every open finding, drift or not.
+  every finding at its severity and says why. An audit run (a schedule or a dispatch) lists every open finding, drift
+  or not, and counts the ones the findings ledger does not hold as open ("A11y: the verdict of a check run").
 - **A pull request does not scan the pages it adds.** The staging deploy has no page the pull request adds to
   `docs/tests/paths.js`, so a scan of it would fail on every head until the merge. The `scan` job names those
   pages before the run (`tests/scripts/a11y-docs-new-pages.mjs --base <base sha>`: `newGuidePageIds()` in
@@ -2480,9 +2485,10 @@ follows its worst check run.
   `**Verdict: red, a tooling failure.**`, apart from any finding. A run that proved nothing is never
   green.
 - **What counts follows the run** (`countingScope()`, from `GITHUB_EVENT_NAME`, which a called workflow
-  reads as its caller's). An **audit** (a schedule or a dispatch: the two nightlies) counts every open
+  reads as its caller's). An **audit** (a schedule or a dispatch: the four audit workflows) lists every open
   finding, tracked or not, the axe scan's known baseline findings too, which it annotates on their
-  baseline entry: an audit says the truth about the product. A **change** (a pull request, a push, a local
+  baseline entry: an audit says the truth about the product. What turns it red is what changed since the
+  audit before (the next bullet). A **change** (a pull request, a push, a local
   run) counts what the change can act on. The axe scan counts only a finding new or grown against the
   baseline, and every check counts a finding whose cluster in `a11y/issues.json` (`clusterOf()`) has a
   tracker as a warning at most (`trackedBy()`, which reads a finding the way the ledger does, through
@@ -2491,6 +2497,36 @@ follows its worst check run.
   as the baseline), so the pages' standing debt does not count either. A finding in `needs-triage`, or
   in a cluster without a tracker, counts at its severity. A catalog that does not load tracks nothing and
   says so (`lib/a11y-verdict-inputs.mjs`): it can make a check red, never green.
+- **An audit turns red on what changed since the audit before, never on the debt that stands.** Every
+  poster reads the findings ledger as the audit before left it (`auditLedgerInput()` in
+  `lib/a11y-verdict-inputs.mjs`, the published `a11y.json`; `test-health.yml` writes it after a run ends,
+  so while the run posts it still holds the state before) and gives each finding a class by the key the
+  ledger gives its row (`ledgerKey()`, `auditClass()` in `lib/a11y-pr-ledger.mjs`, every row source):
+  **known** (an open row: listed, a warning at most), **regression** (a resolved row: counts at its
+  severity), **new** (no row: counts), and **not measured before** (no row, on a target the latest audit
+  of its source did not measure: a page, a check, a variant or a scenario added since, read from the night's
+  coverage by `ledgerMeasured()`, the ledger's own `nightMeasured()`; a warning at most, because nothing was
+  seen to work there). A tooling failure stays red, so a run that could not measure never reads green, and
+  an advisory row never counts. The title keeps the counted findings per severity and adds
+  `ledger: <n> new, <n> regressions, [<n> not measured before, ]<n> known` before the check's own headline,
+  which counts every finding; the summary lists the regressions, then the new findings, then those not
+  measured before. A ledger that does not load leaves every open finding counted, with a note, and the
+  title without the ledger counts, which is how the run verdict tells such a check run apart and says so: a
+  broken ledger can make an audit red, never green. A re-run of an audit whose earlier attempt the ledger
+  already recorded reads that attempt's rows as they were before the run (a row the run first saw is new, one
+  that came back on it a regression, one it resolved known, since the ledger resolves only an open row and an
+  attempt can miss a flaky finding), so a re-run never reads its own findings as known, nor known debt as
+  back. Two limits, stated in
+  the summary: a row is keyed by the element's selector or the step, so a class or step renamed since reads
+  as new; and an axe scan's coverage is one flag per night, not a list of pages, so a page added to a scan
+  since reads as new, not as not measured before. The rule lives in each check run's conclusion, not in the
+  run verdict alone, for three reasons. The run verdict is the only reader of a check run's conclusion on
+  the audited commit: the ledger, the digest, the test-health page and the conformance report read the
+  documents, and `test-health.yml` collects a run whatever its conclusion. The posters hold every finding
+  and its severity, while the `verdict` job has a sparse checkout and the check runs' titles alone. And red
+  then means one thing on every check run, a pull request's included: a finding the ledger does not hold as
+  open, or a run that did not measure, so the run verdict's table never shows a red check run under a run
+  that passed.
 - **Below the target level is a warning at most.** A finding of a check beyond axe that names no WCAG 2.2
   A or AA criterion (an AAA criterion alone, a best-practice record of the discovery run) is a warning
   whatever its severity, because the target is A and AA (root `AGENTS.md`). One that also names an A or AA
@@ -2519,13 +2555,17 @@ follows its worst check run.
   nightly one per lane, and a subset dispatch the checks or lanes it named: `checks`, `projects`, `groups`,
   read with the ref the way the `check-inputs` job read them, so what that job refused is one line here;
   "A11y: the audit and the proof runs"), when the run posted none, or when one ended a way no poster writes. So the run's
-  conclusion says what its checks found, and a nightly stays red while its open critical and serious
-  findings stand, on the weekly schedule as on a dispatch: a red scheduled audit is the audit's answer,
-  never a broken build. Slack still hears only of a run that never reached its checks.
+  conclusion says what its checks found: on an audit, red on a new finding, a regression or a run that did
+  not measure, and a warning (which ends the run green) while only the debt the audit before knew stands.
+  Slack still hears only of a run that never reached its checks.
 
 Locally, every poster prints its payload with `--dry-run` (set `GITHUB_EVENT_NAME=schedule` to count as an
-audit), and `node scripts/a11y-run-verdict.mjs --prefix "A11y / " --dry-run <check-runs.json>` (with
-`GITHUB_RUN_ID` set to the runs' `external_id`) reads a saved list of check runs. The rule, the counting
+audit, and `A11Y_LEDGER_FILE` to a saved `a11y.json` to read that ledger instead of the published one), and
+`node scripts/a11y-run-verdict.mjs --prefix "A11y / " --dry-run <check-runs.json>` (with
+`GITHUB_RUN_ID` set to the runs' `external_id`) reads a saved list of check runs. To replay an audit without
+dispatching one, download its artifacts into the folders the posters read, save the ledger as the audit before
+left it (`git show <gh-pages commit>:test-health/a11y.json`), and run each poster with `--dry-run` under the
+audit's run id; never dispatch an audit or `test-health.yml` to try a change to the rule. The rule, the counting
 scope, the run verdict and the posters' inputs are pure or near it and tested in
 `lib/__tests__/a11y-verdict.test.mjs` and `lib/__tests__/a11y-verdict-inputs.test.mjs`, each builder's
 use of them in its own test, and both `verdict` jobs in the workflow tests.
@@ -2864,12 +2904,14 @@ workflows as nightlies. The CI mechanics are in `.ai/CI.md`; this section is the
   group shared by every ref is not the answer: GitHub keeps one pending run per group and cancels the
   others, so a third dispatch would drop the waiting audit. The other three workflows have no such limit
   and wait for nothing.
-- **A red scheduled audit is not a broken build.** Each run ends on its `verdict` job, red while a
-  critical or serious finding is open ("A11y: the verdict of a check run"), on the schedule as on a
-  dispatch. Slack hears only of a nightly that never reached its lanes or checks (a failed build, a
-  refused input, a wait that ran out), and the site workflows post to no channel. GitHub's own email for a
-  failed scheduled run goes to whoever last changed the cron line, and no workflow setting stops it: read
-  the `verdict` job before treating one as a failure.
+- **A red scheduled audit means something changed.** Each run ends on its `verdict` job, red on a finding
+  the findings ledger, as the audit before left it, does not hold as open (a new finding or a regression)
+  and on a run that did not measure; known debt is a warning at most, and a run with nothing else ends green
+  ("A11y: the verdict of a check run"), on the schedule as on a dispatch. Slack hears only of a nightly that
+  never reached its lanes or checks (a failed build, a refused input, a wait that ran out), and the site
+  workflows post to no channel. GitHub's own email for a failed scheduled run goes to whoever last changed the
+  cron line, and no workflow setting stops it: open the red check runs, whose ledger section lists what is new
+  since the audit before, before treating one as a broken build.
 - **An audit between two schedules is a dispatch on develop with no inputs, and only on develop.** Dispatch the screen reader
   workflow, then the checks (`gh workflow run screenreader-nightly.yml --ref develop`, then
   `gh workflow run a11y-nightly.yml --ref develop`), and the docs site scan when the audit covers the docs
