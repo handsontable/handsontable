@@ -1,7 +1,7 @@
 import { type Page } from '@playwright/test';
 import { DOCS_STATES, openDocsPage, settle as settleDocs } from '../docs/docs-site';
 import { DOCS_PAGES, DOCS_THEMES, docsBaseUrl, type DocsPage, type DocsState } from '../docs/pages.mjs';
-import { WEBSITE_PAGES, websiteBaseUrl } from '../website/pages.mjs';
+import { COLLECTIONS, WEBSITE_PAGES, websiteBaseUrl } from '../website/pages.mjs';
 import { WEBSITE_STATES, openWebsitePage, requestsOf, settleWebsite, type WebsiteState } from '../website/website-site';
 
 /**
@@ -69,6 +69,15 @@ export interface Site {
    * site with no search.
    */
   search: { page: SitePage; control: string } | null;
+  /**
+   * The site map page, read once a run (2.4.5): a page that lists every page of the site; `null` for a site with none.
+   */
+  siteMap: { page: SitePage } | null;
+  /**
+   * The collections whose pages are reached through their index (2.4.5), as path prefixes: the index is the prefix's
+   * own page and its numbered listing pages (`/blog/2/`).
+   */
+  collections: readonly string[];
   /**
    * The names of the help controls in the header and the footer (3.2.6).
    */
@@ -145,6 +154,8 @@ export const DOCS_SITE: Site = {
     search: { trigger: '.DocSearch-Button', container: '.DocSearch-Modal' },
   },
   search: { page: { ...byId('js-introduction'), baseUrl: DOCS_PRODUCTION_URL }, control: '.DocSearch-Button, button[data-open-modal]' },
+  siteMap: null,
+  collections: [],
   help: /\b(support|help|contact|ask ai|assistant|forum|discussions?)\b/i,
   shortcutPages: ['js-introduction', 'production-introduction'],
   grid: '.ht-root-wrapper, .handsontable',
@@ -215,6 +226,8 @@ export const WEBSITE_SITE: Site = {
     'ask-ai': { trigger: 'button[aria-controls="ask-ai-panel"]', container: '#ask-ai-panel' },
   },
   search: null,
+  siteMap: { page: websiteById('sitemap') },
+  collections: COLLECTIONS,
   help: /\b(support|contact us|forum|ask ai|ai docs assistant|slack community|get in touch)\b/i,
   shortcutPages: ['home'],
   grid: '.ht-root-wrapper, .handsontable',
