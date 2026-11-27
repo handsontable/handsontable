@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-27T09:19:39.080Z",
+  "generatedAt": "2026-11-27T09:39:36.419Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1507,7 +1507,7 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 263,
       "title": "side layout slots › the `width` option sizes the whole component, side panels included › hugs the start edge with an end panel only under RTL",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
