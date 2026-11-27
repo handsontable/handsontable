@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-27T10:14:26.970Z",
+  "generatedAt": "2026-11-27T10:29:35.096Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1680,7 +1680,7 @@
       "file": "handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js",
       "line": null,
       "title": "Handsontable editor theme handling should have the same theme as the parent Handsontable instance (if originally passed as a container class)",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
