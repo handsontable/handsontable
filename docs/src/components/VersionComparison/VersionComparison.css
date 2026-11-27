@@ -288,20 +288,6 @@ body.vc-page h2 {
   border-bottom: 1px solid var(--sl-color-gray-5);
   margin-top: 0;
   color: inherit;
-  text-decoration: none;
-  transition: background-color 0.15s;
-}
-.version-comparison a.vc-featured-card,
-.version-comparison a.vc-featured-card *,
-.version-comparison a.vc-featured-card:hover,
-.version-comparison a.vc-featured-card:hover *,
-.version-comparison a.vc-featured-card:focus,
-.version-comparison a.vc-featured-card:focus * {
-  text-decoration: none !important;
-  color: inherit;
-}
-.version-comparison a.vc-featured-card:hover {
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
 }
 .vc-featured-card-header {
   display: flex;
@@ -314,9 +300,6 @@ body.vc-page h2 {
   font-size: 0.8125rem;
   color: var(--sl-color-text-accent);
   text-decoration: none;
-}
-.vc-featured-card-pr:hover {
-  text-decoration: underline;
 }
 .vc-featured-card-title {
   margin: 0 0 0.375rem;
@@ -357,25 +340,31 @@ body.vc-page h2 {
   border-bottom: 1px solid var(--sl-color-gray-6);
   font-size: 0.875rem;
   color: inherit;
-  text-decoration: none;
-  transition: background-color 0.15s;
-}
-.version-comparison a.vc-entry-compact,
-.version-comparison a.vc-entry-compact *,
-.version-comparison a.vc-entry-compact:hover,
-.version-comparison a.vc-entry-compact:hover *,
-.version-comparison a.vc-entry-compact:focus,
-.version-comparison a.vc-entry-compact:focus * {
-  text-decoration: none !important;
-  color: inherit;
-}
-.version-comparison a.vc-entry-compact:hover {
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
 }
 .vc-entry-title { flex: 1; }
 .vc-entry-pr {
   font-size: 0.8125rem;
   color: var(--sl-color-text-accent);
+}
+
+/*
+ * The PR number is the only link in an entry. Starlight's content link rule
+ * (`.sl-markdown-content a:not(...)`) is more specific than these selectors, so `!important` keeps
+ * the accent color and drops the underline until hover.
+ */
+.version-comparison a.vc-entry-pr,
+.version-comparison a.vc-featured-card-pr {
+  color: var(--sl-color-text-accent) !important;
+  text-decoration: none !important;
+}
+.version-comparison a.vc-entry-pr:hover,
+.version-comparison a.vc-featured-card-pr:hover {
+  text-decoration: underline !important;
+}
+.version-comparison a.vc-entry-pr:focus-visible,
+.version-comparison a.vc-featured-card-pr:focus-visible {
+  outline: 2px solid var(--sl-color-focus-ring);
+  outline-offset: 2px;
 }
 
 .vc-pill {

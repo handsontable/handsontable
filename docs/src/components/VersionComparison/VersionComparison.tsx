@@ -200,15 +200,33 @@ function prHref(prNumber: number | null, prKind: 'issues' | 'pull' | null) {
   return `https://github.com/handsontable/handsontable/${prKind}/${prNumber}`;
 }
 
-function FeaturedEntry({ entry }: { entry: VersionEntry }) {
+/**
+ * The PR (or issue) number is the only part of an entry that links to GitHub, so the entry text
+ * stays free of links.
+ */
+function PrNumber({ entry, className }: { entry: VersionEntry; className: string }) {
+  if (entry.prNumber === null) return null;
+
   const href = prHref(entry.prNumber, entry.prKind);
-  const content = (
-    <>
+  const label = `#${entry.prNumber}`;
+
+  if (href === null) return <span className={className}>{label}</span>;
+
+  const kindLabel = entry.prKind === 'issues' ? 'Issue' : 'Pull request';
+
+  return (
+    <a className={className} href={href} target="_blank" rel="noreferrer" aria-label={`${kindLabel} ${label}`}>
+      {label}
+    </a>
+  );
+}
+
+function FeaturedEntry({ entry }: { entry: VersionEntry }) {
+  return (
+    <article className="vc-featured-card">
       <header className="vc-featured-card-header">
         <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
-        {entry.prNumber !== null && (
-          <span className="vc-featured-card-pr">#{entry.prNumber}</span>
-        )}
+        <PrNumber entry={entry} className="vc-featured-card-pr" />
       </header>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -228,41 +246,25 @@ function FeaturedEntry({ entry }: { entry: VersionEntry }) {
           {entry.whyItMatters}
         </ReactMarkdown>
       )}
-    </>
-  );
-  if (href === null) {
-    return <article className="vc-featured-card">{content}</article>;
-  }
-  return (
-    <a className="vc-featured-card" href={href} target="_blank" rel="noreferrer">
-      {content}
-    </a>
+    </article>
   );
 }
 
 function CompactEntry({ entry }: { entry: VersionEntry }) {
-  const href = prHref(entry.prNumber, entry.prKind);
-  const content = (
-    <>
-      <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        disallowedElements={['a']}
-        unwrapDisallowed
-        components={{ p: ({ children }) => <span className="vc-entry-title">{children}</span> }}
-      >
-        {entry.title}
-      </ReactMarkdown>
-      {entry.prNumber !== null && <span className="vc-entry-pr">#{entry.prNumber}</span>}
-    </>
-  );
   return (
     <li className="vc-entry">
-      {href === null ? (
-        <span className="vc-entry-compact">{content}</span>
-      ) : (
-        <a className="vc-entry-compact" href={href} target="_blank" rel="noreferrer">{content}</a>
-      )}
+      <span className="vc-entry-compact">
+        <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          disallowedElements={['a']}
+          unwrapDisallowed
+          components={{ p: ({ children }) => <span className="vc-entry-title">{children}</span> }}
+        >
+          {entry.title}
+        </ReactMarkdown>
+        <PrNumber entry={entry} className="vc-entry-pr" />
+      </span>
     </li>
   );
 }
