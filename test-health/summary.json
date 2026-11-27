@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-27T15:06:41.804Z",
+  "generatedAt": "2026-11-27T15:59:36.572Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 476,
+    "tests": 477,
     "needsTicket": 4,
     "quarantined": 1,
-    "entries": 2384
+    "entries": 2386
   },
   "rows": [
     {
@@ -155,11 +155,11 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 521,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 12,
-      "count30": 24,
-      "countAll": 24,
-      "runs30": 17,
-      "flakyRuns30": 17,
+      "count7": 13,
+      "count30": 25,
+      "countAll": 25,
+      "runs30": 18,
+      "flakyRuns30": 18,
       "branches30": 14,
       "nightlyRuns30": 0,
       "openBranches30": 14,
@@ -172,9 +172,9 @@
       "isolation": [],
       "quarantine": "DEV-4110 until 2026-12-18 — read before the scroll settles",
       "lastSeen": {
-        "seenAt": "2026-11-27T14:32:05Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46010172504",
-        "branch": "feature/DEV-4003_Forced-colors-menu-highlight-header-icons",
+        "seenAt": "2026-11-27T15:58:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46023910584",
+        "branch": "develop",
         "leg": "e2e-webkit",
         "status": "flaky",
         "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
@@ -1635,6 +1635,39 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 94 to be 97.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/filters-value-list-semantics.spec.ts|filters value list – a named group of checkboxes › a scroll that redraws the list keeps the focus in it",
+      "tier": "playwright",
+      "file": "e2e/filters-value-list-semantics.spec.ts",
+      "line": 97,
+      "title": "filters value list – a named group of checkboxes › a scroll that redraws the list keeps the focus in it",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-27T15:58:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/46023910584",
+        "branch": "develop",
+        "leg": "e2e-firefox",
+        "status": "flaky",
+        "error": "Error: expect(locator).toBeFocused() failed",
         "source": "ci"
       },
       "needsTicket": false
