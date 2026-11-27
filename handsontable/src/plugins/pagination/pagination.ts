@@ -544,12 +544,22 @@ export class Pagination extends BasePlugin {
    * Restores the page size after a failed external load.
    *
    * @param {number | 'auto'} previousPageSize Previous page size.
+   * @param {number} [previousPage] The page to restore (1-based). The attempted page size may have moved the
+   * current page to the last page it allowed; this page is put back without firing {@link Hooks#afterPageChange},
+   * as that move fired none either.
    * @category Pagination
    */
-  revertPageSizeTo(previousPageSize: number | 'auto') {
+  revertPageSizeTo(previousPageSize: number | 'auto', previousPage?: number) {
     const attemptedPageSize = this.#pageSize;
 
     this.#setPageSizeValue(previousPageSize);
+
+    if (typeof previousPage === 'number' && previousPage >= 1) {
+      // Set directly, not through `#setCurrentPage()`: this undoes the clamp of the attempted page size, which
+      // counted no page choice either.
+      this.#currentPage = previousPage;
+    }
+
     this.#refreshUI();
     this.hot.runHooks('afterPageSizeChange', attemptedPageSize, previousPageSize);
   }

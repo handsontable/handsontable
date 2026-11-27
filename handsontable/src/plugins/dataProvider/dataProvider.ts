@@ -411,6 +411,14 @@ export class DataProvider extends BasePlugin {
    */
   #isApplyingResponse = false;
   /**
+   * `true` while Pagination puts the pager back after a failed page-size fetch. The revert fires
+   * {@link Hooks#afterPageSizeChange} again, and a fetch started from it would fail too and revert to the size that
+   * failed, without end.
+   *
+   * @type {boolean}
+   */
+  #isRevertingPager = false;
+  /**
    * Serializes create/update/remove mutations so they run one after another.
    *
    * @type {{ tail: Promise<void> }}
@@ -2014,6 +2022,24 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
+   * Runs Pagination's revert after a failed page-size fetch with `#isRevertingPager` set, so the page-size change the
+   * revert fires starts no fetch.
+   *
+   * @param {function(): void} revert Puts the pager back on the query the shown rows answer.
+   */
+  readonly #revertPager = (revert: () => void) => {
+    const wasReverting = this.#isRevertingPager;
+
+    this.#isRevertingPager = true;
+
+    try {
+      revert();
+    } finally {
+      this.#isRevertingPager = wasReverting;
+    }
+  };
+
+  /**
    * Loads page 1 with the new page size when Pagination runs in external paged mode. Skips when the new size
    * matches `#queryParameters` on page 1, and, while a response is applied, when Pagination only takes that
    * response's page and page size (see `handleAfterPageSizeChangeExternalPagination`).
@@ -2029,6 +2055,8 @@ export class DataProvider extends BasePlugin {
         getQueryPage: () => this.#queryParameters.page,
         getQueryPageSize: () => this.#queryParameters.pageSize,
         isApplyingResponse: () => this.#isApplyingResponse,
+        isRevertingPager: () => this.#isRevertingPager,
+        revertPager: this.#revertPager,
         setPageSize: async(pageSize) => {
           await this.fetchData({ pageSize, page: 1 });
         },
