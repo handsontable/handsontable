@@ -2114,27 +2114,6 @@ jobs:
             --source https://api.nuget.org/v3/index.json
 
   # ============================================================
-  # Scenario D.2b — Delete release branch (only when all publish steps succeeded)
-  # ============================================================
-  stable-cleanup:
-    name: Delete release branch
-    runs-on: ubuntu-26.04
-    needs: [stable-build, stable-publish, stable-publish-nuget]
-    if: always() && needs.stable-build.result == 'success' && needs.stable-publish.result == 'success' && needs.stable-publish-nuget.result == 'success' && needs.stable-publish.outputs.docs-result == 'success'
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Delete release branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
-          git push origin --delete "${RELEASE_BRANCH}"
-          echo "Deleted release branch ${RELEASE_BRANCH}"
-
-  # ============================================================
   # Scenario D.3 — Stable release notification
   # ============================================================
   stable-notify:
