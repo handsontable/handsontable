@@ -1,5 +1,12 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass, eventTargetEl, getScrollbarWidth } from '../../../helpers/dom/element';
+import {
+  addClass,
+  eventTargetEl,
+  getDeepActiveElement,
+  getScrollbarWidth,
+  setAttribute,
+} from '../../../helpers/dom/element';
+import { A11Y_PRESENTATION } from '../../../helpers/a11y';
 import { clone, extend } from '../../../helpers/object';
 import { isKey } from '../../../helpers/unicode';
 import { dataRowToChangesArray } from '../../../helpers/data';
@@ -11,6 +18,7 @@ import GhostTable from '../../../utils/ghostTable';
 import SamplesGenerator from '../../../utils/samplesGenerator';
 import { DEFAULT_COLUMN_WIDTH } from '../../../3rdparty/walkontable/src';
 import { getCheckboxLabelPropertySeed } from '../../../renderers/checkboxRenderer/checkboxRenderer';
+import { GRID_GROUP } from '../../../shortcuts/contexts/constants';
 import type { BaseUIOptions } from './_base';
 import { BaseUI } from './_base';
 import { InputUI } from './input';
@@ -99,6 +107,10 @@ export class MultipleSelectUI extends BaseUI {
    * next render of the list measures it again.
    */
   #contentWidthStale = true;
+  /**
+   * Whether the browser focus was on a value of the list when the current draw started.
+   */
+  #focusInListBeforeRender = false;
 
   /**
    * Initializes the multiple select UI component, creates child input and link components, and registers event hooks.
@@ -381,6 +393,11 @@ export class MultipleSelectUI extends BaseUI {
       afterListen: () => {
         this.runLocalHooks('focus', this);
       },
+      // The focus goes to the item's checkbox, not to its cell: the list is a group of checkboxes, and
+      // the cell has no role a screen reader could announce.
+      modifyFocusedElement: (row: number, column: number, cell: HTMLElement) => (
+        cell?.querySelector<HTMLInputElement>('input[type="checkbox"]') ?? cell
+      ),
       beforeOnCellMouseUp: () => {
         this.#itemsBox?.listen();
       },
@@ -395,13 +412,21 @@ export class MultipleSelectUI extends BaseUI {
       afterUnhideRows: this.#onListRowsVisibilityChange,
       afterFontsLoad: this.#markContentWidthStale,
       beforeRender: this.#onListBeforeRender,
+      afterRender: this.#onListAfterRender,
+      afterScroll: this.#onListAfterScroll,
       // AutoColumnSize would visit every listed value to pick the labels it measures, on every data
       // change. The list picks the same labels from its own items instead (`#measureContentWidth()`).
       autoColumnSize: false,
       autoRowSize: false,
       hiddenRows: true,
       maxCols: 1,
-      autoWrapCol: true,
+      // The list is a group of native checkboxes inside the menu's "Filter by value" group, not a grid:
+      // the grid roles would make a screen reader enter a table it cannot leave for the other menu
+      // controls, and the checkbox renderer would name every box by its state instead of its value.
+      ariaTags: false,
+      // ArrowUp on the first value goes back to the search input (see the shortcut below), and
+      // ArrowDown stops on the last one.
+      autoWrapCol: false,
       height: 110,
       copyPaste: false,
       disableVisualSelection: 'area',
@@ -416,6 +441,14 @@ export class MultipleSelectUI extends BaseUI {
     // ticks follow the grid's class-list or renderer mapping instead of the plain-glyph fallback.
     linkIconSource(this.#itemsBox, hot);
     this.#itemsBox.init();
+
+    // With `ariaTags: false` the list writes no roles, and a bare `<table>` reads as a data table, so its
+    // values would be announced as rows and cells. The tables only lay the checkboxes out.
+    if (hot.getSettings().ariaTags) {
+      this.#itemsBox.rootElement.querySelectorAll('table').forEach((table) => {
+        setAttribute(table, [A11Y_PRESENTATION()]);
+      });
+    }
 
     const shortcutManager = this.#itemsBox.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -432,6 +465,25 @@ export class MultipleSelectUI extends BaseUI {
         this.runLocalHooks('keydown', event, this);
       },
       group: SHORTCUTS_GROUP
+    });
+    gridContext.addShortcut({
+      keys: [['ArrowUp']],
+      // The list is entered with ArrowDown from the search input, so ArrowUp on the first value is the
+      // way back. It runs before the grid's own move, which would keep the selection on the first row.
+      runOnlyIf: () => {
+        const highlightRow = this.#itemsBox?.getSelectedRangeActive()?.highlight.row;
+
+        return typeof highlightRow === 'number' && highlightRow === this.#getFirstVisibleRow();
+      },
+      callback: () => {
+        this.#itemsBox?.deselectCell();
+        this.#searchInput?.focus();
+
+        return false;
+      },
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: GRID_GROUP,
+      position: 'before',
     });
     gridContext.addShortcut({
       keys: [['Tab'], ['Shift', 'Tab']],
@@ -643,7 +695,94 @@ export class MultipleSelectUI extends BaseUI {
     if (this.#contentWidthStale) {
       this.#measureContentWidth();
     }
+
+    this.#focusInListBeforeRender = this.#isFocusInList();
   };
+
+  /**
+   * Puts the focus back on the highlighted value when the draw took it away. The checkbox renderer builds a
+   * new checkbox on every draw, so the one that held the focus (Space or Enter toggled it) leaves the
+   * document, and the focus falls to the body.
+   */
+  #onListAfterRender = () => {
+    if (this.#focusInListBeforeRender && !this.#isFocusInList()) {
+      this.#restoreFocus();
+    }
+
+    this.#focusInListBeforeRender = false;
+  };
+
+  /**
+   * The same for a scroll of the list, whose draw fires no render hook: once it leaves the rendered rows it
+   * draws every row again and replaces the focused checkbox. A list that still holds the keyboard and finds
+   * the focus on the body lost it that way.
+   */
+  #onListAfterScroll = () => {
+    const itemsBox = this.#itemsBox;
+
+    if (!itemsBox?.isListening()) {
+      return;
+    }
+
+    const activeElement = getDeepActiveElement(itemsBox.rootDocument);
+
+    if (activeElement === null || activeElement === itemsBox.rootDocument.body) {
+      this.#restoreFocus();
+    }
+  };
+
+  /**
+   * Focuses the highlighted value's checkbox. When the scroll took that value out of the drawn rows, the
+   * focus waits on the list's scroll container, and the grid moves it to the checkbox once the value is
+   * drawn again.
+   */
+  #restoreFocus() {
+    const itemsBox = this.#itemsBox;
+    const highlight = itemsBox?.getSelectedRangeActive()?.highlight;
+
+    if (!itemsBox || !highlight || highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    if (!itemsBox.getCell(highlight.row, highlight.col)) {
+      itemsBox.rootElement.querySelector<HTMLElement>('.ht_master .wtHolder')?.focus({ preventScroll: true });
+    }
+
+    itemsBox.getFocusManager().focusOnHighlightedCell();
+  }
+
+  /**
+   * Gets the first value of the list the user can see. The search in the `'apply'` mode hides rows instead
+   * of reloading the list, so it is not always the row at visual index 0.
+   *
+   * @returns {number|null} The visual row index, or `null` when the list shows no value.
+   */
+  #getFirstVisibleRow(): number | null {
+    const itemsBox = this.#itemsBox;
+
+    if (!itemsBox || itemsBox.countRows() === 0) {
+      return null;
+    }
+
+    return itemsBox.rowIndexMapper.getNearestNotHiddenIndex(0, 1);
+  }
+
+  /**
+   * Checks whether the browser focus is on an element of the list.
+   *
+   * @returns {boolean}
+   */
+  #isFocusInList(): boolean {
+    const itemsBox = this.#itemsBox;
+
+    if (!itemsBox) {
+      return false;
+    }
+
+    const activeElement = getDeepActiveElement(itemsBox.rootDocument);
+
+    return activeElement !== null && itemsBox.rootElement.contains(activeElement);
+  }
 
   /**
    * 'input' event listener for input element.
@@ -708,7 +847,7 @@ export class MultipleSelectUI extends BaseUI {
       event.preventDefault();
       stopImmediatePropagation(event);
       this.#itemsBox?.listen();
-      this.#itemsBox?.selectCell(0, 0);
+      this.#itemsBox?.selectCell(this.#getFirstVisibleRow() ?? 0, 0);
     }
   }
 

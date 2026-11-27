@@ -59,20 +59,12 @@
         - /placeholder: Search
       - button "Select all"
       - button "Select none"
-      - treegrid:
-        - rowgroup:
-          - row "Checked Blue":
-            - gridcell "Checked Blue":
-              - checkbox "Checked" [checked]
-              - text: Blue
-          - row "Checked Green":
-            - gridcell "Checked Green":
-              - checkbox "Checked" [checked]
-              - text: Green
-          - row "Checked Red":
-            - gridcell "Checked Red":
-              - checkbox "Checked" [checked]
-              - text: Red
+      - checkbox "Blue" [checked]
+      - text: Blue
+      - checkbox "Green" [checked]
+      - text: Green
+      - checkbox "Red" [checked]
+      - text: Red
   - menuitem "Action bar":
     - button "OK"
     - button "Cancel"
