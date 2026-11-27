@@ -430,3 +430,27 @@ parent opens its submenu from the tap's `mouseover`. Ending every tap broke both
 the filter search took no focus, checkboxes and OK did nothing, and no submenu opened. A tap on a link or a form control that an item renderer puts in a row (`TAP_ACTIVATED_CONTROLS`: `a[href]`, `button`, `input`, `select`, `textarea`, `label`) is left alone too: the browser follows the link or toggles the control from the tap's `click`. A test that counts
 `click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
 pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`, which also taps the Filters controls and a submenu parent.
+
+## Forced colors: the highlighted and the hovered item are an outline (DEV-4003)
+
+Forced colors (a Windows contrast theme) repaints every `background-color` with a system color and
+drops `box-shadow`. A menu marked its highlighted item with an inset `box-shadow` and its hovered item
+with a background, so in forced colors both looked like every other item.
+
+- **The mark is the `forced-colors-item-mark` mixin** (`src/styles/utils/_mixins.scss`): `outline: 2px
+  solid Highlight; outline-offset: -2px` inside `@media (forced-colors: active)`. An outline survives
+  there. Do not move the mark to a background: the browser repaints it with the canvas color.
+- **Every list of items uses it, on the hover and the highlight rule alike:** the menus
+  (`_dropdown-menu.scss`), the dropdown and autocomplete editor's list (`_dropdown-editor.scss`), and the
+  sheets bar's menus, whose rows are custom-rendered (`_sheets-bar.scss`). A new list that marks an item
+  with a shadow or a background includes the mixin next to that rule.
+- **An item whose submenu is open stays unmarked**, as outside forced colors, where the inset shadow
+  skips `[aria-expanded="true"]` too. The parent row under the pointer is marked by the hover rule; a
+  hovered plain item takes the highlight class anyway, so only the submenu parent shows the hover rule
+  on its own.
+
+Mask icons in forced colors (the header menu button, the submenu arrow, a checked box's mark) are a
+core rule, not a menu one: `handsontable/AGENTS.md`, Accessibility. Both apply in forced colors only, so
+the three themes look as before outside it. Pinned by `tests/e2e/forced-colors-icons-menu.spec.ts`,
+which compares captures: the computed style keeps the author's value in forced colors and cannot show
+the defect.

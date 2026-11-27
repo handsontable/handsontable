@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Handsontable e2e fixture - forced colors</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from query params, each mapped through a fixed allowlist to LITERALS so a
+    // crafted param can never be reflected into the document. An absent param keeps the default; an
+    // unknown value THROWS, so a typo in a spec is one red test, never a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+    // `external` maps the checkbox and radio marks to an external (class) icon through the theme
+    // engine, as an icon webfont does, so the marks are text, not masks.
+    window.htIcons = htPick('icons', { mask: 'mask', external: 'external' }, 'mask');
+  </script>
+  <style>
+    /* Stub of an icon webfont: the class draws a text glyph through ::before. */
+    .fc-glyph-check::before { content: "v"; font-family: monospace; }
+    .fc-glyph-dot::before { content: "o"; font-family: monospace; }
+  </style>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    #grid { width: 600px; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    E2E fixture for forced colors (Windows contrast themes): one grid that draws every surface the
+    forced-colors rules of the stylesheet reach. A column menu button in each header, a checkbox column
+    (column 1) whose header checkbox starts mixed, a dropdown column (column 2), the context and dropdown menus with Filters (whose
+    condition operators are radio buttons), Pagination at five rows a page (so its first and previous
+    buttons start disabled), and a sheets bar of two sheets (its all-sheets menu). `?icons=external`
+    draws the checkbox and radio marks as external (class) icons instead of masks. Every cell carries
+    `data-testid="cell-<visualRow>-<visualColumn>"` and every column header
+    `data-testid="col-header-<visualColumn>"`.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+
+    if (window.htIcons === 'external') {
+      // The theme engine's config of a base theme comes from its own self-registering script.
+      document.write('<scr' + 'ipt src="/handsontable/dist/themes/' + window.htTheme + '.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    const sheetData = sheet => Array.from({ length: 12 }, (_, row) => [
+      `S${sheet}-${row}`,
+      row % 2 === 0,
+      ['Red', 'Green', 'Blue'][row % 3],
+    ]);
+
+    try {
+      const container = document.querySelector('[data-testid="grid"]');
+
+      let theme;
+
+      if (window.htIcons === 'external') {
+        // The theme engine builds a ThemeManager only for a container with no `ht-theme-*` class
+        // and a theme passed as a config object.
+        const base = Handsontable.themes.getTheme(window.htTheme);
+
+        theme = Handsontable.themes.registerTheme('forced-colors-external-icons', {
+          ...base.getThemeConfig(),
+          icons: {
+            ...base.getThemeConfig().icons,
+            checkbox: 'fc-glyph-check',
+            radio: 'fc-glyph-dot',
+          },
+        });
+      } else {
+        container.className = `ht-theme-${window.htTheme}`;
+      }
+
+      window.hot = new Handsontable(container, {
+        ...(theme ? { theme } : {}),
+        colHeaders: ['Name', 'Done', 'Color'],
+        rowHeaders: true,
+        columns: [
+          { type: 'text' },
+          // Half the rows start checked, so the header checkbox starts mixed (indeterminate).
+          { type: 'checkbox', headerCheckbox: true },
+          { type: 'dropdown', source: ['Red', 'Green', 'Blue'] },
+        ],
+        height: 'auto',
+        contextMenu: true,
+        dropdownMenu: true,
+        filters: true,
+        pagination: { pageSize: 5 },
+        sheetsBar: {
+          sheets: [
+            { name: 'Sheet 1', data: sheetData(1) },
+            { name: 'Sheet 2', data: sheetData(2) },
+          ],
+        },
+        afterRenderer(td, row, column) {
+          td.setAttribute('data-testid', `cell-${row}-${column}`);
+        },
+        afterGetColHeader(column, th) {
+          if (column >= 0) {
+            th.setAttribute('data-testid', `col-header-${column}`);
+          }
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.message ? error.message : error);
+      document.querySelector('[data-testid="grid"]').setAttribute('data-init-error', window.htBuildError);
+    }
+  </script>
+</body>
+</html>

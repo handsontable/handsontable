@@ -203,6 +203,14 @@
           &.current:not([aria-expanded="true"]) {
             box-shadow: inset 0 0 0 1px var(--ht-accent-color);
           }
+
+          // In forced colors the two marks above become one outline: the hover background and the
+          // inset shadow are both dropped there. An item whose submenu is open is left unmarked, as
+          // outside forced colors.
+          &:hover,
+          &.current:not([aria-expanded="true"]) {
+            @include mixins.forced-colors-item-mark;
+          }
         }
 
         &.htSubmenu {

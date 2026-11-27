@@ -77,6 +77,17 @@ $font-family-stack: var(--ht-font-family), -apple-system, BlinkMacSystemFont, "S
   box-shadow: box-shadow-value();
 }
 
+// The mark of a menu or list item the pointer is over or the keyboard moved to, in forced colors
+// (Windows contrast themes). Forced colors drops `box-shadow` and repaints every background with the
+// canvas color, so the inset shadow and the hover background that mark the item outside it vanish
+// there. An outline survives, in the system highlight color.
+@mixin forced-colors-item-mark {
+  @media (forced-colors: active) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
 $text-metrics-properties: font-size, line-height, font-weight, letter-spacing, font-family;
 
 @mixin inherit-text-metrics($except: ()) {
