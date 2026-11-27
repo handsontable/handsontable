@@ -3125,8 +3125,8 @@ screen.
 Before you upgrade, get a license key and pass it instead:
 
 - To evaluate Handsontable, get a trial key at [handsontable.com/pricing](https://handsontable.com/pricing/).
-- For non-commercial use (education, research, study, and personal projects), apply for a sponsored
-  license: a regular license key that we issue free of charge, at our discretion.
+- For non-commercial projects, such as teaching or academic research, you may qualify for a free license. To apply,
+  [contact our sales team](https://handsontable.com/contact/) and tell us about your project.
 - For commercial use, buy a commercial license.
 
 See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
