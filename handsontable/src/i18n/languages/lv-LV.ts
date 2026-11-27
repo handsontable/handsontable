@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Iesaldēt kolonnu',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Atsaldēt kolonnu',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Pārvietot kolonnu pa kreisi',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Pārvietot kolonnu pa labi',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Pārvietot rindu uz augšu',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Pārvietot rindu uz leju',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Robežas',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Augšā',
@@ -192,6 +196,14 @@ const dictionary = {
     'Komentāra lodziņa izmēra maiņa. Izmēru maina ar bultiņu taustiņiem, Enter to lieto, Escape atceļ.',
   [C.MANUAL_RESIZE_WIDTH]: 'Platums: [size] pikseļi',
   [C.MANUAL_RESIZE_HEIGHT]: 'Augstums: [size] pikseļi',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Kolonnas pārvietošana. Kolonnu pārvieto ar kreiso un labo bultiņu taustiņiem, Enter pabeidz, Escape atceļ.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Rindas pārvietošana. Rindu pārvieto ar augšupvērsto un lejupvērsto bultiņu taustiņiem, Enter pabeidz, Escape ' +
+    'atceļ.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Pārvietots uz kolonnu [position] no [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Pārvietots uz rindu [position] no [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Šajā virzienā tālāk pārvietot nevar.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Līmenis [level], [position] no [setSize]',

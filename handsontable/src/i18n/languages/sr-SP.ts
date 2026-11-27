@@ -46,6 +46,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Zamrzni kolonu',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Odmrzni kolonu',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Pomeri kolonu levo',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Pomeri kolonu desno',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Pomeri red gore',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Pomeri red dole',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Ivica',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Gore',
@@ -199,6 +203,13 @@ const dictionary = {
     'Promena veličine polja za komentar. Strelicama menjate veličinu, Enter primenjuje, Escape otkazuje.',
   [C.MANUAL_RESIZE_WIDTH]: 'Širina: [size] piksela',
   [C.MANUAL_RESIZE_HEIGHT]: 'Visina: [size] piksela',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Pomeranje kolone. Strelicama levo i desno pomerate kolonu, Enter završava, Escape otkazuje.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Pomeranje reda. Strelicama gore i dole pomerate red, Enter završava, Escape otkazuje.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Pomereno na kolonu [position] od [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Pomereno na red [position] od [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Nije moguće pomeriti dalje u ovom smeru.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivo [level], [position] od [setSize]',

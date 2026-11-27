@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: '열 고정',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: '열 고정 해제',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: '열을 왼쪽으로 이동',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: '열을 오른쪽으로 이동',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: '행을 위로 이동',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: '행을 아래로 이동',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: '테두리',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: '위쪽',
@@ -188,6 +192,11 @@ const dictionary = {
   [C.MANUAL_RESIZE_COMMENT_STARTED]: '댓글 상자 크기를 조절하는 중입니다. 화살표 키로 크기를 변경하고, Enter 키로 적용하고, Esc 키로 취소하세요.',
   [C.MANUAL_RESIZE_WIDTH]: '너비: [size]픽셀',
   [C.MANUAL_RESIZE_HEIGHT]: '높이: [size]픽셀',
+  [C.MANUAL_MOVE_COLUMN_STARTED]: '열을 이동하는 중입니다. 왼쪽 및 오른쪽 화살표 키로 이동하고, Enter 키로 완료하고, Esc 키로 취소하세요.',
+  [C.MANUAL_MOVE_ROW_STARTED]: '행을 이동하는 중입니다. 위쪽 및 아래쪽 화살표 키로 이동하고, Enter 키로 완료하고, Esc 키로 취소하세요.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: '[count]개 중 [position]번째 열로 이동했습니다',
+  [C.MANUAL_MOVE_ROW_POSITION]: '[count]개 중 [position]번째 행으로 이동했습니다',
+  [C.MANUAL_MOVE_BLOCKED]: '이 방향으로는 더 이상 이동할 수 없습니다.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '수준 [level], [setSize]개 중 [position]번째',

@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Zmrazit sloupec',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Zrušit zmrazení sloupce',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Přesunout sloupec doleva',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Přesunout sloupec doprava',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Přesunout řádek nahoru',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Přesunout řádek dolů',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Ohraničení',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Nahoře',
@@ -194,6 +198,13 @@ const dictionary = {
     'Změna velikosti pole komentáře. Velikost měníte šipkami, Enter ji použije, Escape ji zruší.',
   [C.MANUAL_RESIZE_WIDTH]: 'Šířka: [size] pixelů',
   [C.MANUAL_RESIZE_HEIGHT]: 'Výška: [size] pixelů',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Přesun sloupce. Sloupec přesouváte šipkami doleva a doprava, Enter přesun dokončí, Escape ho zruší.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Přesun řádku. Řádek přesouváte šipkami nahoru a dolů, Enter přesun dokončí, Escape ho zruší.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Přesunuto na sloupec [position] z [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Přesunuto na řádek [position] z [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'V tomto směru již nelze přesunout dál.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Úroveň [level], [position] z [setSize]',

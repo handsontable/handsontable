@@ -407,6 +407,22 @@ These keyboard shortcuts resize a column or a row without dragging. To activate 
 
 In a right-to-left layout, the horizontal arrows swap. A screen reader announces the size at each key press, in pixels.
 
+### Column and row move keyboard shortcuts
+
+These keyboard shortcuts move columns or rows without dragging. To activate them, enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin, the [`ManualRowMove`](@/api/manualRowMove.md) plugin, or both.
+
+<kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**G**</kbd> starts the move. Each arrow key press moves the columns or rows one place, and the selection moves with them. The arrow keys, <kbd>**Enter**</kbd>, and <kbd>**Escape**</kbd> work until you end the move. Any other key or selecting another cell ends the move and keeps the columns or rows where they are. The shortcut moves the columns of the selected cells. To move rows, select whole rows or focus a row header first. A move doesn't start while you select several ranges.
+
+| Windows                                                                           | macOS                                                                     | Action                                                                                                      |  Excel  | Sheets  |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**G**</kbd>                           | <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>**G**</kbd>                                | Start moving the columns of the selected cells, or the selected rows                                        | &cross; | &cross; |
+| <kbd>**←**</kbd> / <kbd>**→**</kbd>                                               | <kbd>**←**</kbd> / <kbd>**→**</kbd>                                       | While you move columns, move them one place to the left or to the right. The move hooks run as they do after a drag. | &cross; | &cross; |
+| <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                               | <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                       | While you move rows, move them one place up or down                                                         | &cross; | &cross; |
+| <kbd>**Enter**</kbd>                                                              | <kbd>**Enter**</kbd>                                                      | End the move. The whole move is one undo step.                                                              | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                                             | <kbd>**Escape**</kbd>                                                     | Put the columns or rows back where the move started. Nothing is recorded for undo.                          | &cross; | &cross; |
+
+A move steps over hidden columns and rows. A screen reader announces the new position at each key press, or that the columns or rows can't move further. The row move isn't available with the [`NestedRows`](@/api/nestedRows.md) plugin. You can also move columns and rows with the **Move column left**, **Move column right**, **Move row up**, and **Move row down** items of the context menu, and move columns with the column menu.
+
 ### Freeze bar keyboard shortcuts
 
 These keyboard shortcuts work when the [`FreezeBar`](@/api/freezeBar.md) plugin is enabled. The first two work in the grid. The rest work on a freeze bar that has the focus.

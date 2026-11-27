@@ -174,6 +174,15 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 :::
 
+## Move columns with the keyboard or the menu
+
+You can move columns without dragging:
+
+- With the keyboard, select a cell or whole columns, and press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Alt**</kbd>+<kbd>**G**</kbd>. Then each <kbd>**←**</kbd> or <kbd>**→**</kbd> moves the columns one place, <kbd>**Enter**</kbd> ends the move, and <kbd>**Escape**</kbd> puts the columns back where they started. A screen reader announces the new position.
+- With a pointer, right-click a cell and choose **Move column left** or **Move column right**. With the [`DropdownMenu`](@/api/dropdownMenu.md) plugin, the column menu has the same items.
+
+A keyboard move is one undo step, however many places it moved the columns, and a menu step is one undo step. Each step runs the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks, as a drag does. A step passes over hidden columns. When [`contextMenu`](@/api/options.md#contextmenu) or [`dropdownMenu`](@/api/options.md#dropdownmenu) is `true`, the items join the default menu while the plugin is enabled. To leave them out, list the menu items you want. For all the keys, see [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-and-row-move-keyboard-shortcuts).
+
 ## Set a pre-defined column order
 
 Instead of setting [`manualColumnMove`](@/api/options.md#manualcolumnmove) to `true`, you can pass an **array of physical column indexes** to define the initial visual order of columns on render.

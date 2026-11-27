@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: '冻结该列',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: '取消冻结',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: '向左移动列',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: '向右移动列',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: '向上移动行',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: '向下移动行',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: '边框',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: '上',
@@ -188,6 +192,11 @@ const dictionary = {
   [C.MANUAL_RESIZE_COMMENT_STARTED]: '正在调整批注框大小。使用方向键更改大小，按 Enter 键应用，按 Esc 键取消。',
   [C.MANUAL_RESIZE_WIDTH]: '宽度：[size] 像素',
   [C.MANUAL_RESIZE_HEIGHT]: '高度：[size] 像素',
+  [C.MANUAL_MOVE_COLUMN_STARTED]: '正在移动列。使用左右方向键移动，按 Enter 键完成，按 Esc 键取消。',
+  [C.MANUAL_MOVE_ROW_STARTED]: '正在移动行。使用上下方向键移动，按 Enter 键完成，按 Esc 键取消。',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: '已移动到第 [position] 列，共 [count] 列',
+  [C.MANUAL_MOVE_ROW_POSITION]: '已移动到第 [position] 行，共 [count] 行',
+  [C.MANUAL_MOVE_BLOCKED]: '无法再向此方向移动。',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展开行 [label]，显示的展开行数：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已折叠行 [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: '第 [level] 级，第 [position] 项，共 [setSize] 项',

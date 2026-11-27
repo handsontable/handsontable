@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Закрепить столбец',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Открепить столбец',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Переместить столбец влево',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Переместить столбец вправо',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Переместить строку вверх',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Переместить строку вниз',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Границы',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Сверху',
@@ -194,6 +198,13 @@ const dictionary = {
     'Изменение размера поля комментария. Стрелками меняйте размер, Enter применяет, Escape отменяет.',
   [C.MANUAL_RESIZE_WIDTH]: 'Ширина: [size] пикселей',
   [C.MANUAL_RESIZE_HEIGHT]: 'Высота: [size] пикселей',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Перемещение столбца. Стрелками влево и вправо перемещайте столбец, Enter завершает, Escape отменяет.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Перемещение строки. Стрелками вверх и вниз перемещайте строку, Enter завершает, Escape отменяет.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Перемещено в столбец [position] из [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Перемещено в строку [position] из [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Дальше в этом направлении переместить нельзя.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Уровень [level], [position] из [setSize]',

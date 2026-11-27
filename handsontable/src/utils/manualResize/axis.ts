@@ -133,7 +133,7 @@ export interface ResizeAxis {
  * @param {HotInstance} hot The Handsontable instance.
  * @returns {boolean}
  */
-function isRowSelection(hot: HotInstance): boolean {
+export function isRowSelection(hot: HotInstance): boolean {
   const highlight = hot.getSelectedRangeLast()?.highlight;
 
   if (!highlight || highlight.row === null || highlight.row < 0) {

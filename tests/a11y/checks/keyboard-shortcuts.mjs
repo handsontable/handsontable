@@ -221,6 +221,19 @@ export const SHORTCUT_PROBES = [
     notProbed: 'Stores the size, which the walker snapshot does not read; e2e/manual-resize-alternatives.spec.ts presses it' },
   { section: 'Column and row resize keyboard shortcuts', keys: 'Escape',
     notProbed: 'Puts the old size back, which the walker snapshot does not read; e2e/manual-resize-alternatives.spec.ts presses it' },
+  // The move shortcuts reorder columns and rows. The pointer check proves the start key and the arrow keys (the
+  // `column-move` and `row-move` entries of `drag-operations.mjs`: the keys move), and
+  // `e2e/manual-move-keyboard.spec.ts` presses every one of them.
+  { section: 'Column and row move keyboard shortcuts', keys: 'Ctrl+Alt+G',
+    notProbed: 'Starts a move and changes nothing until an arrow key; the pointer check\'s column-move and row-move entries and e2e/manual-move-keyboard.spec.ts press it' },
+  { section: 'Column and row move keyboard shortcuts', keys: '← / →',
+    notProbed: 'Moves columns only while a move runs; the pointer check\'s column-move entry and e2e/manual-move-keyboard.spec.ts press it' },
+  { section: 'Column and row move keyboard shortcuts', keys: '↑ / ↓',
+    notProbed: 'Moves rows only while a move runs; the pointer check\'s row-move entry and e2e/manual-move-keyboard.spec.ts press it' },
+  { section: 'Column and row move keyboard shortcuts', keys: 'Enter',
+    notProbed: 'Ends a move without changing anything; e2e/manual-move-keyboard.spec.ts presses it' },
+  { section: 'Column and row move keyboard shortcuts', keys: 'Escape',
+    notProbed: 'Puts back the order a move started from; e2e/manual-move-keyboard.spec.ts presses it' },
   // Row 2 of the row-selection fixture holds a read-only checkbox on purpose, so the probes use rows 3 and 4.
   { section: 'Row selection keyboard shortcuts', keys: 'Space', ordinal: 1,
     probe: { page: 'row-selection', setup: 'cell', at: [3, 0], press: 'Space', expect: ['value-changes', 'row-selection-changes'] } },

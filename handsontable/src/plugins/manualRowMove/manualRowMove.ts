@@ -7,6 +7,9 @@ import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 import { LICENSE } from './feature.generated';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
+import { KeyboardMove, ROW_MOVE_AXIS } from '../../utils/manualMove/keyboardMove';
+import { createRowMoveItems } from '../../utils/manualMove/menuItems';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -37,6 +40,11 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * The plugin creates additional components to make moving possibly using user interface:
  * - backlight - highlight of selected rows.
  * - guideline - line which shows where rows has been moved.
+ *
+ * Rows also move without a drag. With whole rows selected, or a row header focused, `Ctrl`/`Cmd`+`Alt`+`G` starts
+ * a keyboard move: the up and down arrow keys move the rows one place, `Enter` ends the move, and `Escape` puts
+ * the rows back. The context menu lists the `move_row_up` and `move_row_down` items while the plugin is enabled.
+ * Neither is available while the [`NestedRows`](@/api/nestedRows.md) plugin is enabled.
  *
  * @class ManualRowMove
  * @plugin ManualRowMove
@@ -83,6 +91,23 @@ export class ManualRowMove extends BasePlugin {
    * @type {object}
    */
   readonly #guideline = new GuidelineUI(this.hot);
+  /**
+   * Moves the selected rows without a drag: the keyboard move and the menu items.
+   */
+  readonly #mover = new KeyboardMove(this.hot, ROW_MOVE_AXIS, {
+    // NestedRows moves the rows by its own path and refuses the drag's result, so the keyboard move and the menu
+    // items are off while it is on.
+    canMove: () => this.enabled && this.hot.getPlugin('nestedRows')?.enabled !== true,
+    drag: (rows, dropIndex) => this.dragRows(rows, dropIndex),
+    countFinalIndex: (rows, dropIndex) => this.countFinalIndex(rows, dropIndex),
+    isMovePossible: (rows, finalIndex) => this.isMovePossible(rows, finalIndex),
+    dropIndexAfter: row => this.getLowerHalfDropIndex(row),
+  });
+  /**
+   * Whether `updatePlugin()` is restarting the plugin. A restart keeps a keyboard move: the framework wrappers
+   * send the settings again on every render.
+   */
+  #restarting = false;
   /**
    * @type {number[]}
    */
@@ -144,6 +169,11 @@ export class ManualRowMove extends BasePlugin {
     this.addHook('afterScrollHorizontally', this.#onAfterScrollHorizontally);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
+    this.addHook('afterSelection', this.#mover.onSelectionChange);
+    this.addHook('beforeKeyDown', this.#mover.onBeforeKeyDown);
+
+    registerMenuEntries(this, () => createRowMoveItems(this.#mover), { contextMenu: {} });
+    this.#mover.registerShortcuts();
 
     this.buildPluginUI();
     this.registerEvents();
@@ -161,7 +191,9 @@ export class ManualRowMove extends BasePlugin {
    *  - [`manualRowMove`](@/api/options.md#manualrowmove)
    */
   updatePlugin() {
+    this.#restarting = true;
     this.disablePlugin();
+    this.#restarting = false;
     this.enablePlugin();
 
     this.moveBySettingsOrLoad();
@@ -173,6 +205,11 @@ export class ManualRowMove extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (!this.#restarting) {
+      this.#mover.cancel();
+    }
+
+    this.#mover.unregisterShortcuts();
     removeClass(this.hot.rootElement, CSS_PLUGIN);
 
     this.unregisterEvents();
@@ -811,6 +848,9 @@ export class ManualRowMove extends BasePlugin {
    * rows of the data that replaced it.
    */
   #onBeforeDataReplace = () => {
+    // A keyboard move holds visual indexes of the data it started on, as a drag does.
+    this.#mover.cancel();
+
     if (!this.#pressed) {
       return;
     }
@@ -832,6 +872,8 @@ export class ManualRowMove extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#mover.dispose();
+    this.#mover.unregisterShortcuts();
     this.#backlight.destroy();
     this.#guideline.destroy();
 

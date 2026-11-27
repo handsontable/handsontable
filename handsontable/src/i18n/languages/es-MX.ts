@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Congelar columna',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Descongelar columna',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Mover columna a la izquierda',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Mover columna a la derecha',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Mover fila hacia arriba',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Mover fila hacia abajo',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Bordes',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Superior',
@@ -197,6 +201,14 @@ const dictionary = {
     'para cancelar.',
   [C.MANUAL_RESIZE_WIDTH]: 'Ancho: [size] píxeles',
   [C.MANUAL_RESIZE_HEIGHT]: 'Alto: [size] píxeles',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Moviendo la columna. Use las flechas izquierda y derecha para moverla, Enter para terminar, Escape para ' +
+    'cancelar.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Moviendo la fila. Use las flechas arriba y abajo para moverla, Enter para terminar, Escape para cancelar.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Movida a la columna [position] de [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Movida a la fila [position] de [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'No se puede mover más en esta dirección.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivel [level], [position] de [setSize]',

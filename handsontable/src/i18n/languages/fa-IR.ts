@@ -39,6 +39,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'انجماد ستون',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'باز کردن ستون',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'انتقال ستون به چپ',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'انتقال ستون به راست',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'انتقال ردیف به بالا',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'انتقال ردیف به پایین',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'مرز ها',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'بالا',
@@ -192,6 +196,13 @@ const dictionary = {
     'تغییر اندازه کادر نظر. با کلیدهای جهت اندازه را تغییر دهید، با Enter اعمال کنید و با Escape لغو کنید.',
   [C.MANUAL_RESIZE_WIDTH]: 'عرض: [size] پیکسل',
   [C.MANUAL_RESIZE_HEIGHT]: 'ارتفاع: [size] پیکسل',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'جابه‌جایی ستون. با کلیدهای جهت چپ و راست آن را جابه‌جا کنید، با Enter پایان دهید و با Escape لغو کنید.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'جابه‌جایی ردیف. با کلیدهای جهت بالا و پایین آن را جابه‌جا کنید، با Enter پایان دهید و با Escape لغو کنید.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'به ستون [position] از [count] منتقل شد',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'به ردیف [position] از [count] منتقل شد',
+  [C.MANUAL_MOVE_BLOCKED]: 'در این جهت نمی‌توان بیشتر جابه‌جا کرد.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'سطح [level]، [position] از [setSize]',

@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Figer la colonne',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Libérer la colonne',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Déplacer la colonne vers la gauche',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Déplacer la colonne vers la droite',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Déplacer la ligne vers le haut',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Déplacer la ligne vers le bas',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Bordures',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Supérieure',
@@ -198,6 +202,15 @@ const dictionary = {
     'Échap pour annuler.',
   [C.MANUAL_RESIZE_WIDTH]: 'Largeur : [size] pixels',
   [C.MANUAL_RESIZE_HEIGHT]: 'Hauteur : [size] pixels',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Déplacement de la colonne. Utilisez les flèches gauche et droite pour la déplacer, Entrée pour terminer, Échap ' +
+    'pour annuler.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Déplacement de la ligne. Utilisez les flèches haut et bas pour la déplacer, Entrée pour terminer, Échap pour ' +
+    'annuler.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Déplacée à la colonne [position] sur [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Déplacée à la ligne [position] sur [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Impossible de déplacer davantage dans cette direction.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] sur [setSize]',

@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Freeze column',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Unfreeze column',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Move column left',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Move column right',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Move row up',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Move row down',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Borders',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Top',
@@ -191,6 +195,13 @@ const dictionary = {
     'Resizing the comment box. Use the arrow keys to change the size, Enter to apply, Escape to cancel.',
   [C.MANUAL_RESIZE_WIDTH]: 'Width: [size] pixels',
   [C.MANUAL_RESIZE_HEIGHT]: 'Height: [size] pixels',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Moving the column. Use the Left and Right Arrow keys to move it, Enter to finish, Escape to cancel.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Moving the row. Use the Up and Down Arrow keys to move it, Enter to finish, Escape to cancel.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Moved to column [position] of [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Moved to row [position] of [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Cannot move further in this direction.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Expanded row [label], expanded rows shown: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed row [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Level [level], [position] of [setSize]',

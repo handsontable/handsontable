@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Blocca colonna',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Sblocca colonna',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Sposta colonna a sinistra',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Sposta colonna a destra',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Sposta riga in alto',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Sposta riga in basso',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Bordi',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Sopra',
@@ -195,6 +199,14 @@ const dictionary = {
     'per annullare.',
   [C.MANUAL_RESIZE_WIDTH]: 'Larghezza: [size] pixel',
   [C.MANUAL_RESIZE_HEIGHT]: 'Altezza: [size] pixel',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Spostamento della colonna. Usa le frecce sinistra e destra per spostarla, Invio per terminare, Esc per ' +
+    'annullare.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Spostamento della riga. Usa le frecce su e giù per spostarla, Invio per terminare, Esc per annullare.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Spostata alla colonna [position] di [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Spostata alla riga [position] di [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Impossibile spostare oltre in questa direzione.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Livello [level], [position] di [setSize]',

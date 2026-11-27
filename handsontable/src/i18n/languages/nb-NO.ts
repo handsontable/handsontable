@@ -38,6 +38,10 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Frys kolonne',
   [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Frigi kolonne',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_LEFT]: 'Flytt kolonne til venstre',
+  [C.CONTEXTMENU_ITEMS_MOVE_COLUMN_RIGHT]: 'Flytt kolonne til høyre',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_UP]: 'Flytt rad opp',
+  [C.CONTEXTMENU_ITEMS_MOVE_ROW_DOWN]: 'Flytt rad ned',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Kantlinjer',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Over',
@@ -198,6 +202,14 @@ const dictionary = {
     'avbryte.',
   [C.MANUAL_RESIZE_WIDTH]: 'Bredde: [size] piksler',
   [C.MANUAL_RESIZE_HEIGHT]: 'Høyde: [size] piksler',
+  [C.MANUAL_MOVE_COLUMN_STARTED]:
+    'Flytter kolonnen. Bruk piltastene venstre og høyre for å flytte den, Enter for å fullføre, Escape for å ' +
+    'avbryte.',
+  [C.MANUAL_MOVE_ROW_STARTED]:
+    'Flytter raden. Bruk piltastene opp og ned for å flytte den, Enter for å fullføre, Escape for å avbryte.',
+  [C.MANUAL_MOVE_COLUMN_POSITION]: 'Flyttet til kolonne [position] av [count]',
+  [C.MANUAL_MOVE_ROW_POSITION]: 'Flyttet til rad [position] av [count]',
+  [C.MANUAL_MOVE_BLOCKED]: 'Kan ikke flytte lenger i denne retningen.',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Nivå [level], [position] av [setSize]',
