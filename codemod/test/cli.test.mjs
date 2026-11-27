@@ -114,6 +114,39 @@ describe('cli', () => {
     assert.match(missing.err, /^Option "--from" needs a value\.\nUsage: /);
   });
 
+  it('says that a flag without a value takes none, and does not ask for one', async() => {
+    for (const flag of ['--json', '--dry-run', '--list', '--include-draft', '--fail-on-manual']) {
+      const result = await cli(['migrate', `${flag}=1`]);
+
+      assert.equal(result.code, 2, flag);
+      assert.ok(result.err.startsWith(`Option "${flag}" takes no value, so "${flag}=1" is not valid.\nUsage: `),
+        result.err);
+      assert.doesNotMatch(result.err, /needs a value/);
+    }
+
+    assert.match((await cli(['migrate', '--from'])).err, /^Option "--from" needs a value\./);
+  });
+
+  it('gives an error document the shape of --list when --list is among the arguments', async() => {
+    for (const args of [['--list', '--json', '--bogus'], ['--bogus', '--list', '--json'],
+      ['--json', '--list', '--from']]) {
+      const { code, out, err } = await cli(['migrate', ...args]);
+      const document = JSON.parse(out);
+
+      assert.equal(code, 2, args.join(' '));
+      assert.equal(document.mode, 'list', args.join(' '));
+      assert.ok(Array.isArray(document.rules), args.join(' '));
+      assert.equal(typeof document.error, 'string');
+      assert.match(err, /^(Unknown option|Option)/);
+    }
+
+    const plain = JSON.parse((await cli(['migrate', '--json', '--bogus'])).out);
+
+    assert.equal(plain.mode, 'run');
+    assert.ok(!('rules' in plain));
+    assert.equal(JSON.parse((await cli(['migrate', '--list=1', '--json'])).out).mode, 'run');
+  });
+
   it('treats an empty --from or --to as a missing value, not as no value', async() => {
     for (const flag of ['--from', '--to']) {
       const empty = await cli(['migrate', flag, '', '--dry-run']);
@@ -197,7 +230,9 @@ describe('cli', () => {
 
   it('exits 2 and lists the known migrations when --from is not below --to', async() => {
     const known = (await loadManifests())
-      .map(manifest => `${manifest.version}${manifest.status === 'draft' ? ' (draft)' : ''}`).join(', ')
+      .map(manifest => (manifest.status === 'draft'
+        ? `${manifest.version} (draft${manifest.rules.length === 0 ? ', no rules yet' : ''})` : manifest.version))
+      .join(', ')
       .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     for (const args of [['--from', '18.1', '--to', '18.1'], ['--from', '18.1', '--to', '18'],
@@ -321,8 +356,8 @@ describe('cli', () => {
     try {
       await writeFile(join(dir, 'package.json'), input);
 
-      // Two drafts are in range: 19.0.0 (published, bumps the packages) and 19.1.0 (no rules yet). The run ends at
-      // 19.1.0, and the range it writes comes from the 19.0.0 rule.
+      // Two drafts exist: 19.0.0 (published, bumps the packages) and 19.1.0 (no rules yet). A default run ends at the
+      // newest one that has rules, so the empty draft is not part of it.
       const draft = await cli(['migrate', '--from', '18.1', '--include-draft', '--allow-dirty'], dir);
 
       assert.equal(draft.code, 0, draft.err);
@@ -330,7 +365,7 @@ describe('cli', () => {
       assert.doesNotMatch(draft.out, /matches no published version|@rc/);
       assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^19\.0\.0"/);
       assert.doesNotMatch(await readFile(join(dir, 'package.json'), 'utf8'), /19\.1/);
-      assert.match(draft.err, /The draft migration 19\.1\.0 has no rules yet/);
+      assert.doesNotMatch(draft.err, /19\.1\.0/);
 
       await writeFile(join(dir, 'package.json'), '{ "dependencies": { "handsontable": "^17.1.0" } }\n');
 
@@ -384,7 +419,6 @@ describe('cli', () => {
 
           const result = await run({ cwd: dir, from: '18.1', includeDraft: true, versionsDir: root, allowDirty: true });
 
-          assert.equal(result.usedDraft, true);
           assert.equal(result.draftRangeVersion, expected, JSON.stringify({ published, rules }));
         } finally {
           await rm(root, { recursive: true, force: true });
@@ -531,6 +565,73 @@ describe('a crash that is not a usage error', () => {
 
     assert.equal(code, 1);
     assert.match(err, /Error: boom: the output is closed\n\s+at /);
+  });
+
+  it('puts the files a run had written in the JSON document of a crash, with the message of what was thrown', async() => {
+    const dir = await makeProject(true);
+
+    try {
+      for (const thrown of [new Error('boom: the output is closed'), 'a plain string', null]) {
+        await writeFile(join(dir, 'a.css'), CSS);
+
+        let out = '';
+        let err = '';
+        let calls = 0;
+        // The first write is the document of the finished run. Throwing there is a crash after the files are written.
+        const code = await main(['migrate', '--from', '17', '--to', '18', '--allow-dirty', '--json'], {
+          cwd: dir,
+          stdout: (text) => {
+            calls += 1;
+
+            if (calls === 1) {
+              throw thrown;
+            }
+
+            out += text;
+          },
+          stderr: (text) => {
+            err += text;
+          },
+        });
+        const document = JSON.parse(out);
+
+        assert.equal(code, 1);
+        assert.equal(document.exitCode, 1);
+        assert.equal(document.error, String(thrown?.message ?? thrown));
+        assert.equal(document.changedFiles.length, 1);
+        assert.equal(document.counts.filesChanged, 1);
+        assert.equal(document.counts.changed, 1);
+        assert.doesNotMatch(err, /undefined/);
+        assert.match(err, thrown instanceof Error ? /Error: boom/ : /\S/);
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('hands the files written so far to the caller when a crash comes while files are visited', async() => {
+    const dir = await makeProject(false);
+
+    try {
+      await writeFile(join(dir, 'b.css'), CSS);
+
+      const crash = await run({
+        cwd: dir,
+        from: '17',
+        to: '18',
+        allowDirty: true,
+        progressIntervalMs: 0,
+        onProgress: () => {
+          throw new Error('progress failed');
+        },
+      }).catch(error => error);
+
+      assert.equal(crash.message, 'progress failed');
+      assert.deepEqual(crash.partial.changedFiles, ['a.css']);
+      assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS.replace('wrapper-', ''));
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it('exits 2, and not 1, for a usage error', async() => {

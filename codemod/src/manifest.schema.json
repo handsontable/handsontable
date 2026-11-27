@@ -103,11 +103,12 @@
           "description": "Ids of the rules of earlier migrations that report the same spot. When one of them already marked a node, this rule leaves no second marker, and in a run that holds both it reports the spot once, under the earliest."
         },
         "severity": {
-          "enum": ["manual", "review"],
-          "description": "The class of the entries a rule that only reports produces. manual (the default): code that stops working, throws, is removed, or is deprecated, so the user must change it. review: the behavior changed and the code may already be right, so the user must look and may change nothing. Not allowed with safe: true. A detect rule may also say warning."
+          "enum": ["manual", "review", "warning"],
+          "description": "The class of the entries a rule that only reports produces. manual (the default): code that stops working, throws, is removed, or is deprecated, so the user must change it. review: the behavior changed and the code may already be right, so the user must look and may change nothing. Not allowed with safe: true. Only a detect rule may say warning (see the not clause of the rule)."
         }
       },
       "additionalProperties": true,
+      "not": { "properties": { "kind": { "not": { "const": "detect" } }, "severity": { "const": "warning" } }, "required": ["kind", "severity"] },
       "if": { "properties": { "kind": { "enum": ["detect", "exportRemoved"] } }, "required": ["kind"] },
       "then": { "properties": { "safe": { "const": false } } },
       "else": { "required": ["safe"] },

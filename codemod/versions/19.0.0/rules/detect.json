@@ -286,10 +286,26 @@
       "guide": "the-sr-sp-language-code-is-deprecated",
       "files": ["template"],
       "match": {
-        "regex": "(?:^|[/@])handsontable(?:@[^/\"']*)?/(?:i18n/|dist/)?languages/sr-SP(?:\\.min)?(?:\\.m?js)?$",
-        "in": "strings"
+        "anyOf": [
+          { "regex": "(?:^|[/@])handsontable(?:@[^/\"']*)?/(?:i18n/|dist/)?languages/sr-SP(?:\\.min)?(?:\\.m?js)?(?:[?#][^\"']*)?$", "in": "strings", "code": true },
+          { "regex": "(?<![\\w-])src\\s*=\\s*(?![\"'])(?:[^\\s\"'>]*[/@])?handsontable(?:@[^/\\s\"'>]*)?/(?:i18n/|dist/)?languages/sr-SP(?:\\.min)?(?:\\.m?js)?(?:[?#][^\\s\"'>]*)?(?=[\\s>]|/>|$)", "code": true }
+        ]
       },
       "message": "Replace this sr-SP language file with the sr-Latn-RS one. Handsontable 19.0 deprecates the sr-SP language code, because IANA deprecated the SP region subtag, and 20.0 removes it. The file languages/sr-Latn-RS (or dist/languages/sr-Latn-RS.js) ships from 19.0, so load it once the page loads Handsontable 19.0, and select the language with sr-Latn-RS."
+    },
+    {
+      "id": "19.0.0/sr-sp-language-attribute",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "guide": "the-sr-sp-language-code-is-deprecated",
+      "files": ["template"],
+      "match": {
+        "property": "language",
+        "valueMatches": "^\\s*['\"`]?sr-SP['\"`]?\\s*$",
+        "flags": "i"
+      },
+      "message": "Replace the sr-SP language code with sr-Latn-RS. Handsontable 19.0 deprecates sr-SP, because IANA deprecated the SP region subtag, and 20.0 removes it. The phrases are the same. Register the sr-Latn-RS language file, and select it with the language attribute like any other language."
     },
     {
       "id": "19.0.0/checked-menu-item-property",

@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { VERSIONS_DIR, buildPlan, loadManifests } from '../src/manifest.mjs';
+import { COMMON_NAME_PRECHECK } from '../src/adapters/css.mjs';
 import { transformFile } from '../src/runner.mjs';
+import { inPlainProject, migrate } from './helpers/plain-project.mjs';
 
 const manifests = await loadManifests(VERSIONS_DIR);
 const TODO = 'TODO(handsontable-codemod';
@@ -656,5 +658,133 @@ describe('19.0.0/sr-sp-language-code and the files of the language', () => {
       'https://example.com/handsontable/dist/handsontable.js']) {
       assert.deepEqual(await report(src), [], src);
     }
+  });
+});
+
+describe('19.0.0/icon-pseudo-element-selectors reads a nested selector as resolved', () => {
+  const RULE = '19.0.0/icon-pseudo-element-selectors';
+  const HOT_SCSS = '.htAutocompleteArrow { color: red; }\n';
+
+  /**
+   * Report lines and classes of the rule for a file.
+   *
+   * @param {string} filePath File name.
+   * @param {string} source File text.
+   * @returns {Promise<string[]>} `line:severity` for each entry.
+   */
+  async function reported(filePath, source) {
+    const result = await transformFile({ filePath, source, plan: buildPlan(manifests, [RULE]) });
+
+    return result.entries.filter(entry => entry.ruleId === RULE).map(entry => `${entry.line}:${entry.severity}`);
+  }
+
+  it('keeps the precheck of the Vue adapter equal to the precheck of the rule', () => {
+    const rule = manifests.flatMap(manifest => manifest.rules).find(item => item.id === RULE);
+
+    assert.equal(COMMON_NAME_PRECHECK.source, rule.precheck);
+    assert.equal(COMMON_NAME_PRECHECK.flags, 'i');
+  });
+
+  it('resolves & against every parent, through comma lists and at-rules, and a nested descendant', async() => {
+    const cases = [
+      ['.changeType { &::before {} }\n', ['1:review']],
+      ['.changeType {\n  &:after {}\n}\n', ['2:review']],
+      ['.a, .changeType {\n  &::before {}\n}\n', ['2:review']],
+      ['.changeType {\n  @media print {\n    &::before {}\n  }\n}\n', ['3:review']],
+      ['.page {\n  .changeType {\n    &::before {}\n    &:hover {}\n  }\n}\n', ['3:review']],
+      ['.changeType {\n  .inner::before {}\n}\n', ['2:review']],
+      ['.changeType {\n  &.active {}\n}\n', []],
+      ['.my-card {\n  &::before {}\n}\n', []],
+      ['.changeType::before {\n  &:hover {}\n}\n', ['1:review']],
+    ];
+
+    for (const [source, expected] of cases) {
+      assert.deepEqual(await reported('a.scss', source), expected, source);
+    }
+
+    assert.deepEqual(await reported('a.css', '.changeType {\n  &::before {}\n}\n'), ['2:review']);
+  });
+
+  it('reports a nested selector as manual when the stylesheet names the grid anywhere', async() => {
+    assert.deepEqual(await reported('a.scss', `${HOT_SCSS}.changeType {\n  &::before {}\n}\n`), ['3:manual']);
+    assert.deepEqual(await reported('a.scss', '.htAutocompleteArrow {\n  &::after {}\n}\n'), ['2:manual']);
+  });
+
+  it('does not repeat a match inside a rule that matched on its own', async() => {
+    const source = '.changeType::before {\n  a: b;\n  &:hover { c: d; }\n  .x { e: f; }\n}\n';
+
+    assert.deepEqual(await reported('a.scss', source), ['1:review']);
+  });
+
+  it('counts a Vue file as a grid file when its template or script uses the wrapper, for every style block', async() => {
+    const style = '<style lang="scss">\n.changeType {\n  &::before {}\n}\n</style>\n';
+    const hot = '<template><hot-table :data="rows" /></template>\n';
+    const imported = '<script setup>\nimport { HotTable } from \'@handsontable/vue3\';\n</script>\n';
+    const plain = '<template><div /></template>\n<script setup>\nconst a = 1;\n</script>\n';
+
+    assert.deepEqual(await reported('a.vue', hot + style), ['4:manual']);
+    assert.deepEqual(await reported('a.vue', imported + style), ['6:manual']);
+    assert.deepEqual(await reported('a.vue', plain + style), ['7:review']);
+    assert.deepEqual(await reported('a.vue', style), ['3:review']);
+  });
+
+  it('reads each rule of a page style element at its own line, and judges a page by its marks', async() => {
+    const page = (marks, head = '') => `<!doctype html>\n<html>\n<head>${head}\n<style>\n.changeType::before {}\n\n`
+      + `.collapsibleIndicator::after {}\n</style>\n</head>\n<body>${marks}</body>\n</html>\n`;
+
+    assert.deepEqual(await reported('a.html', page('')), ['5:review', '7:review']);
+    assert.deepEqual(await reported('a.html', page('<hot-table></hot-table>')), ['5:manual', '7:manual']);
+    assert.deepEqual(await reported('a.html', page('', '<link href="handsontable.min.css">')),
+      ['5:manual', '7:manual']);
+  });
+});
+
+describe('an HTML page with no mark of Handsontable is judged only in a project that depends on it', () => {
+  const PAGE = '<!doctype html>\n<style>\n.changeType::before {}\n</style>\n';
+  const ARGS = ['--from', '18.1', '--include-draft', '--only', '19.0.0/icon-pseudo-element-selectors', '--dry-run',
+    '--json'];
+
+  /**
+   * The `severity:file:line` of every entry of a run over the files.
+   *
+   * @param {Record<string, string>} files The project files.
+   * @returns {Promise<string[]>} The entries.
+   */
+  async function entriesOf(files) {
+    let found;
+
+    await inPlainProject(files, async(dir) => {
+      found = JSON.parse((await migrate(dir, ARGS)).stdout).entries
+        .map(entry => `${entry.severity}:${entry.file}:${entry.line}`);
+    });
+
+    return found;
+  }
+
+  it('reports it for review when a package.json above it declares handsontable or a wrapper', async() => {
+    const declares = name => `{ "dependencies": { "${name}": "^18.1.0" } }\n`;
+
+    for (const name of ['handsontable', '@handsontable/react-wrapper', '@handsontable/vue3']) {
+      assert.deepEqual(await entriesOf({ 'package.json': declares(name), 'pages/a.html': PAGE }),
+        ['review:pages/a.html:3'], name);
+    }
+
+    assert.deepEqual(await entriesOf({ 'package.json': '{ "devDependencies": { "handsontable": "^18.1.0" } }\n',
+      'a.html': PAGE }), ['review:a.html:3']);
+  });
+
+  it('says nothing for a page of a project that declares no Handsontable', async() => {
+    assert.deepEqual(await entriesOf({ 'package.json': '{ "dependencies": { "react": "^18" } }\n', 'a.html': PAGE }),
+      []);
+    // A stylesheet has no such check: the run itself says the project uses Handsontable.
+    assert.deepEqual(await entriesOf({ 'package.json': '{ "dependencies": { "react": "^18" } }\n',
+      'a.css': '.changeType::before {}\n' }), ['review:a.css:1']);
+  });
+
+  it('judges a page with a mark of its own whatever the project declares', async() => {
+    const page = `${PAGE}<hot-table></hot-table>\n`;
+
+    assert.deepEqual(await entriesOf({ 'package.json': '{ "dependencies": { "react": "^18" } }\n', 'a.html': page }),
+      ['manual:a.html:3']);
   });
 });

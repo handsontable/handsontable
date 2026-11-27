@@ -45,7 +45,8 @@ describe('Report', () => {
 
     assert.equal(report.entries.at(-1).line, null);
     assert.equal(report.entries.at(-1).guideUrl, null);
-    assert.deepEqual(report.counts(), { changed: 2, manual: 1, review: 0, warning: 1, marked: 0, markedReview: 0 });
+    assert.deepEqual(report.counts(),
+      { changed: 2, manual: 1, review: 0, warning: 1, notes: 0, marked: 0, markedReview: 0 });
     assert.ok(report.has('parse-error'));
     assert.ok(!report.has('nope'));
   });
@@ -78,7 +79,9 @@ describe('Report', () => {
 
     assert.equal(report.entries.length, 1);
     assert.deepEqual(report.entries[0].files, ['src/b.ts', 'src/a.ts']);
-    assert.deepEqual(report.counts(), { changed: 0, manual: 1, review: 0, warning: 0, marked: 0, markedReview: 0 });
+    // A note for the whole run is counted apart, whatever severity it carries.
+    assert.deepEqual(report.counts(),
+      { changed: 0, manual: 0, review: 0, warning: 0, notes: 1, marked: 0, markedReview: 0 });
     assert.deepEqual(report.byRule(), []);
     assert.equal(report.once().length, 1);
   });
@@ -203,8 +206,8 @@ describe('Read once and Skipped files sections', () => {
     const report = fill();
     const line = summaryLine(report, { filesChanged: 2, dryRun: true });
 
-    assert.equal(line, 'Summary: 2 files would change, 0 rewrites would be applied, 1 manual step, 0 to review, '
-      + '1 warning.');
+    assert.equal(line, 'Summary: 2 files would change, 0 rewrites would be applied, 0 manual steps, 0 to review, '
+      + '1 warning, 1 note to read once.');
     assert.ok(renderConsole(report, { filesChanged: 2, dryRun: true }).endsWith(`${line}\n`));
     assert.ok(renderMarkdown(report, { filesChanged: 2, dryRun: true }).includes(`\n${line}\n`));
   });
@@ -276,7 +279,7 @@ describe('entries to review', () => {
 
   it('counts them apart from the manual steps, and the ones with a marker apart', () => {
     assert.deepEqual(reviewReport().counts(),
-      { changed: 0, manual: 1, review: 2, warning: 0, marked: 0, markedReview: 1 });
+      { changed: 0, manual: 1, review: 2, warning: 0, notes: 0, marked: 0, markedReview: 1 });
   });
 
   it('names them in the summary line', () => {

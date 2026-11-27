@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import postcss from 'postcss';
 import {
   attributeName,
   calleeName,
@@ -21,14 +22,15 @@ import {
   findRequires,
   getImportedBindings,
 } from '../lib/imports.mjs';
-import { createLineCounter, hasAttribute, scanScripts } from '../lib/inline-script.mjs';
+import { createLineCounter, hasAttribute, scanScripts, scanStyles } from '../lib/inline-script.mjs';
 import { GENERIC_OPTIONS, KNOWN_OPTIONS, analyzeOptionObjects, isClaimed } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
 import { lookup } from '../lib/scope.mjs';
-import { blankCodeComments, blankToolComments } from '../lib/tool-comments.mjs';
+import { blankCodeComments, blankHtmlComments, blankToolComments } from '../lib/tool-comments.mjs';
 import { CSS_PRECHECK } from '../adapters/css.mjs';
+import { TEMPLATE_PRECHECK } from '../adapters/template.mjs';
 
 /**
  * A rule reports its matches one by one up to this number per part. A part with more matches gets one entry, at
@@ -637,6 +639,8 @@ function receiverText(node) {
  * @property {() => ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the part.
  * @property {() => string} clean The text of the part without the comments the tool wrote.
  * @property {() => string} code The text of a js part without any comment.
+ * @property {() => string} markup The text of a template or a page without the HTML comments (and the comments of the
+ * tool).
  */
 
 /**
@@ -673,6 +677,7 @@ function createEnv(ctx) {
     resolver,
     clean: memo(() => blankToolComments(ctx.source)),
     code: memo(() => blankCodeComments(ctx.parser, ctx.source)),
+    markup: memo(() => blankHtmlComments(blankToolComments(ctx.source))),
   };
 }
 
@@ -721,8 +726,15 @@ function matchImport(env, node) {
   // Every rule with an `import` matcher asks the same four questions, so the tree is read once for each node type.
   const root = rootFrom(env.find);
 
-  return [findImports, findReExports, findDynamicImports, findRequires]
-    .flatMap(find => find(j, root, isMatch))
+  // `import x = require('m')` (TypeScript) is an import of the module as much as a call of `require()`.
+  const importEquals = env.find(j.TSImportEqualsDeclaration).filter((path) => {
+    const reference = path.node.moduleReference;
+
+    return reference.type === 'TSExternalModuleReference' && isMatch(stringValue(reference.expression) ?? '\u0000');
+  }).paths();
+
+  return [...[findImports, findReExports, findDynamicImports, findRequires]
+    .flatMap(find => find(j, root, isMatch)), ...importEquals]
     .map(path => ({ line: lineOfNode(path.node) }));
 }
 
@@ -1240,7 +1252,7 @@ function matchTemplateProperty(env, node) {
   const paths = propertyPaths(spec);
   const named = word => new RegExp(`(?<![\\w$])${word}(?![\\w$])`);
 
-  return templateOptionSites(env.source, paths.map(segments => segments[0]))
+  return templateOptionSites(env.markup(), paths.map(segments => segments[0]))
     .filter((site) => {
       const needs = [...paths.filter(segments => segments[0] === site.name && segments.length > 1)
         .map(segments => segments[1]), ...(spec.withKey === undefined ? [] : [spec.withKey])];
@@ -1663,10 +1675,10 @@ function matchRaw(env, pattern, text = env.clean()) {
  *
  * @param {Env} env Part state.
  * @param {RegExp} pattern A non-global expression, tested against the text between two quotes.
+ * @param {string} [text] The text to read. Defaults to the part without the comments of the tool.
  * @returns {Match[]} One match per quoted value that passes.
  */
-function matchQuotedValues(env, pattern) {
-  const text = env.clean();
+function matchQuotedValues(env, pattern, text = env.clean()) {
   const matches = [];
 
   for (let start = 0; start < text.length; start += 1) {
@@ -1740,8 +1752,147 @@ export function normalizeSelector(selector) {
 }
 
 /**
+ * Split a selector list at its top-level commas. A comma inside parentheses, brackets, braces (a Sass interpolation),
+ * or a string is part of one selector.
+ *
+ * @param {string} selector A selector list.
+ * @returns {string[]} The trimmed selectors.
+ */
+function splitSelectorList(selector) {
+  const parts = [];
+  let depth = 0;
+  let quote = null;
+  let from = 0;
+
+  for (let index = 0; index < selector.length; index += 1) {
+    const char = selector[index];
+
+    if (quote !== null) {
+      quote = char === quote ? null : quote;
+    } else if (char === '"' || char === '\'') {
+      quote = char;
+    } else if (char === '(' || char === '[' || char === '{') {
+      depth += 1;
+    } else if (char === ')' || char === ']' || char === '}') {
+      depth -= 1;
+    } else if (char === ',' && depth === 0) {
+      parts.push(selector.slice(from, index).trim());
+      from = index + 1;
+    }
+  }
+
+  parts.push(selector.slice(from).trim());
+
+  return parts.filter(part => part !== '');
+}
+
+/**
+ * The most selectors a nested rule resolves to. A deeper list of lists is cut here, so a stylesheet cannot make the
+ * product of its comma lists grow without bound.
+ */
+const MAX_RESOLVED = 64;
+
+/**
+ * The selectors a rule has once its parents are applied, as Sass and native CSS nesting read them: a nested selector
+ * with `&` takes the parent's selector in its place, one without it is a descendant of the parent (a leading
+ * combinator stays: `> .b` is `.a > .b`), and every comma-separated parent gives its own selector. An at-rule between
+ * two rules (`@media`) adds nothing. Only a rule with a rule above it gets a list; any other rule has none, because
+ * its own selector is already the whole one.
+ *
+ * @param {object} rule A postcss rule.
+ * @returns {string[]} The resolved selectors, empty when the rule is not nested in another rule.
+ */
+function resolvedSelectors(rule) {
+  const chain = [];
+
+  for (let node = rule; node; node = node.parent) {
+    if (node.type === 'rule') {
+      chain.unshift(node);
+    }
+  }
+
+  if (chain.length < 2) {
+    return [];
+  }
+
+  let resolved = [''];
+
+  for (const item of chain) {
+    const next = [];
+
+    for (const parent of resolved) {
+      for (const own of splitSelectorList(item.selector)) {
+        next.push(own.includes('&') ? own.replaceAll('&', parent) : `${parent} ${own}`.trim());
+      }
+    }
+
+    resolved = next.slice(0, MAX_RESOLVED);
+  }
+
+  return resolved;
+}
+
+/**
+ * The rules of a stylesheet whose selector matches. The selector is tested as written, and a nested rule is also tested
+ * as resolved against its parents (`.a { &::before {} }` is `.a::before`), unless a rule above it already matched, so
+ * a match is not repeated for every rule inside it.
+ *
+ * @param {object} root A postcss root.
+ * @param {RegExp} pattern A non-global expression.
+ * @param {number} [lineOffset] Lines before the text of the root inside its file.
+ * @returns {Match[]} One match per rule, at the line of the rule.
+ */
+function matchStylesheetRules(root, pattern, lineOffset = 0) {
+  const matches = [];
+  const matched = new Set();
+
+  root.walkRules((rule) => {
+    const own = pattern.test(normalizeSelector(rule.selector));
+    let found = own;
+
+    if (!found) {
+      let above = rule.parent;
+
+      while (above && !(above.type === 'rule' && matched.has(above))) {
+        above = above.parent;
+      }
+
+      found = above ? false : resolvedSelectors(rule).some(selector => pattern.test(normalizeSelector(selector)));
+    }
+
+    if (found) {
+      matched.add(rule);
+      matches.push({ line: rule.source?.start?.line === undefined ? undefined : rule.source.start.line + lineOffset });
+    }
+  });
+
+  return matches;
+}
+
+/**
+ * The text of a page with the content of its `<style>` elements blanked (every character but a line break becomes a
+ * space), so a raw search of the rest cannot read a stylesheet that was read as one.
+ *
+ * @param {string} text The page.
+ * @param {Array<{index: number, body: string}>} styles The elements.
+ * @returns {string} The text, as long as the page.
+ */
+function withoutStyleBodies(text, styles) {
+  let output = '';
+  let from = 0;
+
+  for (const style of styles) {
+    output += text.slice(from, style.index) + style.body.replace(/[^\r\n]/g, ' ');
+    from = style.index + style.body.length;
+  }
+
+  return output + text.slice(from);
+}
+
+/**
  * Find the matches of a `selector` matcher. In a stylesheet it tests the selector of every rule, in js it tests
- * string literals and template text, and in a template it tests the raw text.
+ * string literals and template text, and in a template it tests each rule of every `<style>` element, read as a
+ * stylesheet, and the raw text of the rest.
  *
  * @param {Env} env Part state.
  * @param {Compiled} node The compiled matcher.
@@ -1755,18 +1906,31 @@ function matchSelector(env, node) {
   }
 
   if (env.ctx.fileKind === 'css') {
-    const matches = [];
-
-    env.root.walkRules((rule) => {
-      if (pattern.test(normalizeSelector(rule.selector))) {
-        matches.push({ line: rule.source?.start?.line });
-      }
-    });
-
-    return matches;
+    return matchStylesheetRules(env.root, pattern);
   }
 
-  return matchRaw(env, new RegExp(pattern.source, `${pattern.flags.replace('g', '')}g`));
+  const text = env.clean();
+  const lineOf = createLineCounter(text);
+  const read = [];
+  const matches = [];
+
+  for (const style of scanStyles(text)) {
+    let root = null;
+
+    try {
+      root = postcss.parse(style.body);
+    } catch {
+      // A block that is not a stylesheet (a template expression in it) stays in the raw text.
+    }
+
+    if (root !== null) {
+      read.push(style);
+      matches.push(...matchStylesheetRules(root, pattern, lineOf(style.index) - 1));
+    }
+  }
+
+  return [...matches, ...matchRaw(env, new RegExp(pattern.source, `${pattern.flags.replace('g', '')}g`),
+    withoutStyleBodies(text, read))];
 }
 
 /**
@@ -2084,15 +2248,32 @@ function evaluate(env, node) {
     case 'selector':
       return matchSelector(env, node);
     case 'regex':
+      // `code: true` reads a js part without its comments, and a template without its HTML comments.
       if (node.spec.in === 'strings') {
-        return env.ctx.fileKind === 'js' ? matchStrings(env, node.re.primary) : matchQuotedValues(env, node.re.primary);
+        return env.ctx.fileKind === 'js' ? matchStrings(env, node.re.primary)
+          : matchQuotedValues(env, node.re.primary, node.spec.code === true ? env.markup() : env.clean());
       }
 
-      return matchRaw(env, node.re.raw,
-        node.spec.code === true && env.ctx.fileKind === 'js' ? env.code() : env.clean());
+      return matchRaw(env, node.re.raw, readableText(env, node.spec.code === true));
     default:
       return matchMissingOption(env, node);
   }
+}
+
+/**
+ * The text a `regex` matcher reads: the part without the comments of the tool, and with `code: true` also without the
+ * comments of the language (js comments, or HTML comments in a template). A stylesheet keeps its comments.
+ *
+ * @param {Env} env Part state.
+ * @param {boolean} code Whether the matcher says `code: true`.
+ * @returns {string} The text.
+ */
+function readableText(env, code) {
+  if (code && env.ctx.fileKind === 'js') {
+    return env.code();
+  }
+
+  return code && env.ctx.fileKind === 'template' ? env.markup() : env.clean();
 }
 
 /**
@@ -2142,6 +2323,21 @@ function messageOf(rule, match) {
 }
 
 /**
+ * Whether a stylesheet, or a page, names Handsontable: a component of the grid (`ctx.hotComponent`, a Vue file whose
+ * template or script uses it, which makes every `<style>` block of it marked), or a mark in the text. The comments of
+ * the tool are not read, or the marker of a first run would turn a `review` entry into a `manual` one in the second.
+ *
+ * @param {Env} env Part state.
+ * @returns {boolean} `true` when the part is marked.
+ */
+function isMarked(env) {
+  const text = env.clean();
+
+  return env.ctx.hotComponent === true || CSS_PRECHECK.test(text)
+    || (env.ctx.fileKind === 'template' && TEMPLATE_PRECHECK.test(text));
+}
+
+/**
  * Apply one rule to a part: evaluate it, report the matches, and record the rule's fact.
  *
  * @param {Env} env Part state.
@@ -2172,9 +2368,14 @@ function applyRule(env, rule) {
     return;
   }
 
-  // A stylesheet with no Handsontable marker of its own: the rule reports what a reader has to check.
-  const unmarked = ctx.fileKind === 'css' && compiled.unmarked !== null && !CSS_PRECHECK.test(env.clean())
-    ? compiled.unmarked : null;
+  // A stylesheet (or a page with `<style>` elements) with no Handsontable marker of its own: the rule reports what a
+  // reader has to check. A page in a project that declares no Handsontable is no business of the rule at all.
+  const unmarked = (ctx.fileKind === 'css' || ctx.fileKind === 'template') && compiled.unmarked !== null
+    && !isMarked(env) ? compiled.unmarked : null;
+
+  if (unmarked !== null && ctx.fileKind === 'template' && ctx.projectUsesHandsontable === false) {
+    return;
+  }
   const shown = unmarked
     ? { ...rule, message: unmarked.message, variableMessage: undefined, unresolvedMessage: undefined } : rule;
   const severity = unmarked ? unmarked.severity : compiled.severity;
@@ -2273,7 +2474,7 @@ const detect = {
   /**
    * The rules that may still run on a file the adapter's precheck rejected (it never says Handsontable): the ones with
    * a `precheck` of their own that the file matches and `requires: "none"`, or `unmarked` when the adapter reads a
-   * stylesheet. Every other rule keeps the guard.
+   * stylesheet or a template. Every other rule keeps the guard.
    *
    * @param {import('../types.mjs').Rule[]} rules `detect` rules.
    * @param {string} source Text of the file.
@@ -2284,7 +2485,8 @@ const detect = {
     const text = blankToolComments(source);
 
     return rules.filter(rule => typeof rule.precheck === 'string'
-      && (rule.requires === 'none' || (rule.unmarked !== undefined && fileKinds.includes('css')))
+      && (rule.requires === 'none' || (rule.unmarked !== undefined
+        && (fileKinds.includes('css') || fileKinds.includes('template'))))
       && compileRule(rule).precheck.test(text));
   },
 

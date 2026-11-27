@@ -15,6 +15,13 @@ export const CSS_PRECHECK = new RegExp('--ht-|\\bht-|\\bht[A-Z]|\\bht_|\\b(?:bef
   + '|[Hh]andsontable|\\.pika-');
 
 /**
+ * The class names that a rule with `unmarked` looks for and that are common words (`19.0.0/icon-pseudo-element-selectors`):
+ * they are no mark of Handsontable, but a style block of a Vue file that holds one is read, so the rule can say that
+ * the selector needs a look. It is the `precheck` of that rule, and `draft19-rules.test.mjs` pins the two together.
+ */
+export const COMMON_NAME_PRECHECK = /\.(?:changeType|collapsibleIndicator|columnSorting\.sortAction)(?![\w-])/i;
+
+/**
  * Parse stylesheet text into a `css` part.
  *
  * @param {string} source Text to parse.

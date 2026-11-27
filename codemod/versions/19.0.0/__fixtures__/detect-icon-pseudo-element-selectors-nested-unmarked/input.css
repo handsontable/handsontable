@@ -1,0 +1,24 @@
+/* A stylesheet of the project with native nesting. Nothing in it is a name of the grid. */
+.changeType {
+  &::before {
+    background-color: blue;
+  }
+
+  &:hover {
+    color: red;
+  }
+}
+
+.page {
+  .collapsibleIndicator {
+    &::after {
+      content: '+';
+    }
+  }
+}
+
+.my-card {
+  &::before {
+    content: '';
+  }
+}

@@ -93,3 +93,32 @@ export function blankCodeComments(parser, source) {
     return text;
   }
 }
+
+/**
+ * Replace every HTML comment (`<!-- ... -->`, to the first `-->`, or to the end of the text when it never closes) with
+ * spaces, and keep the line breaks, so a markup rule cannot read a tag that a page has commented out.
+ *
+ * @param {string} source Text of a template or a page.
+ * @returns {string} The text without the HTML comments, as long as the original and with the same lines.
+ */
+export function blankHtmlComments(source) {
+  let from = source.indexOf('<!--');
+
+  if (from === -1) {
+    return source;
+  }
+
+  let output = '';
+  let cursor = 0;
+
+  while (from !== -1) {
+    const close = source.indexOf('-->', from + 4);
+    const end = close === -1 ? source.length : close + 3;
+
+    output += source.slice(cursor, from) + blank(source.slice(from, end));
+    cursor = end;
+    from = source.indexOf('<!--', end);
+  }
+
+  return output + source.slice(cursor);
+}

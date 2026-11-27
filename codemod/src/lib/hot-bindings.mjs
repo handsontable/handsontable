@@ -384,6 +384,18 @@ export function collectHotBindings(j, root) {
     });
   });
 
+  // A module that only re-exports a module of the package (`export * from 'handsontable/languages/sr-SP'`) uses it as
+  // much as an import does. It adds no binding, so only what the reference says about the file counts.
+  [j.ExportNamedDeclaration, j.ExportAllDeclaration].forEach(type => root.find(type).forEach((path) => {
+    const source = path.node.source ? String(path.node.source.value) : null;
+
+    if (source !== null && path.parent.node.type === 'Program') {
+      flags.hotImport = flags.hotImport || isHotSource(source);
+      flags.angular = flags.angular || ANGULAR_SOURCES.has(source);
+      flags.vue = flags.vue || VUE_SOURCES.has(source);
+    }
+  }));
+
   root.find(j.TSImportEqualsDeclaration).forEach((path) => {
     const reference = path.node.moduleReference;
     const source = reference.type === 'TSExternalModuleReference' ? stringValue(reference.expression) : null;

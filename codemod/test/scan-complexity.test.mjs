@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { describe, it } from 'node:test';
 import templateAdapter from '../src/adapters/template.mjs';
 import { addFact, factSite } from '../src/lib/facts.mjs';
-import { createLineCounter, scanScripts } from '../src/lib/inline-script.mjs';
+import { createLineCounter, scanScripts, scanStyles } from '../src/lib/inline-script.mjs';
 import { templateOptionSites } from '../src/lib/option-sites.mjs';
 import { blankToolComments } from '../src/lib/tool-comments.mjs';
 import { buildPlan, VERSIONS_DIR, loadManifests } from '../src/manifest.mjs';
@@ -530,4 +530,28 @@ describe('a js part is walked a fixed number of times, whatever the number of ru
 
     assert.ok(many <= few + 2, `${few} walks for 10 grids, ${many} for 80`);
   });
+});
+
+describe('scanStyles() reads the style elements of a page once', () => {
+  it('returns the body, the attributes, and the offset of each element, and skips look-alikes', () => {
+    const source = '<STYLE media="a>b">.a {}</style ><styled>x</styled><style>.b {}';
+    const styles = scanStyles(source);
+
+    assert.deepEqual(styles.map(({ body }) => body), ['.a {}', '.b {}']);
+    assert.equal(styles[0].attributes, ' media="a>b"');
+    assert.equal(source.slice(styles[0].index, styles[0].index + 5), '.a {}');
+    assert.deepEqual(scanStyles('<style class="open>.a {}'), []);
+    assert.deepEqual(scanStyles('no styles here'), []);
+  });
+
+  for (const [name, input] of Object.entries({
+    'many elements': bytes => '<style>.a{}</style>\n'.repeat(Math.ceil(bytes / 21)),
+    'many unclosed tags': bytes => '<style'.repeat(Math.ceil(bytes / 6)),
+    'one long body': bytes => `<style>${'.a{}'.repeat(Math.ceil(bytes / 4))}</style>`,
+    'many look-alikes': bytes => '<styled>'.repeat(Math.ceil(bytes / 8)),
+  })) {
+    it(`${name}: four times the text is four times the work`, async() => {
+      await measureGrowth({ input, run: scanStyles, size: MIB / 128 });
+    });
+  }
 });

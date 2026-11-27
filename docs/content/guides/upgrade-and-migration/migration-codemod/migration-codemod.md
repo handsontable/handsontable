@@ -104,9 +104,9 @@ Keep the report file out of the git tree, or delete it when you are done.
 
 ### Read the report
 
-The console report groups the entries by rule and lists each location as `file:line`. The manual steps come first. The group "To review" follows, with a line that says the code may already be right. The last line sums up the run: files changed, rewrites applied, manual steps, spots to review, and warnings. The report also contains these sections:
+The console report groups the entries by rule and lists each location as `file:line`. The manual steps come first. The group "To review" follows, with a line that says the code may already be right. The last line sums up the run: files changed, rewrites applied, manual steps, spots to review, warnings, and the notes to read once. The report also contains these sections:
 
-- **Read once.** Notes that hold for every file appear one time, with the files they apply to.
+- **Read once.** Notes that hold for every file appear one time, with the files they apply to. A note says what a rewrite changed. It is counted apart from the spots to review and never causes exit code `3`.
 - **Skipped files.** Files and blocks the codemod did not analyze, such as Less, Stylus, Sass, PostCSS, Svelte, Astro, and MDX files, and files with a very long line. Check them by hand.
 
 The file from `--report` is a Markdown checklist with one checkbox per entry. The spots to review are in their own section, "To review".
@@ -119,7 +119,7 @@ Pass `--json` to print one JSON document on standard output and nothing else. It
 npx @handsontable/codemod migrate --from 17.1 --to 18.1 --dry-run --json > codemod.json
 ```
 
-To fail a CI job when manual steps are left, add `--fail-on-manual`. The run then exits with code 3 when at least one manual step remains. A spot to review and a warning never cause it. The [codemod README](https://github.com/handsontable/handsontable/tree/develop/codemod) lists every field of the document.
+To fail a CI job when manual steps are left, add `--fail-on-manual`. The run then exits with code 3 when at least one manual step remains. A spot to review, a warning, and a note to read once never cause it. The [codemod README](https://github.com/handsontable/handsontable/tree/develop/codemod) lists every field of the document.
 
 ## What the codemod rewrites
 
@@ -203,7 +203,7 @@ Pass `--help` to see the full list.
 - It reports template code, the inline `template` of an Angular component, and the inline scripts of an HTML page, and does not rewrite them.
 - It does not edit `catalog:` specs, `overrides`, `resolutions`, `pnpm.overrides`, or CDN URLs. It reports the ones that hold Handsontable or a wrapper below the target version.
 - It does not edit `peerDependencies`. Raising a peer range drops the older versions for every consumer of your package, so the codemod reports the range and you widen it by hand.
-- A file that does not parse is skipped and reported, and the run exits with code 1.
+- A file that does not parse is skipped and reported, and the run exits with code 1. So does a file that cannot be written.
 - When a rewrite adds or removes a key, the codemod reprints that object. A one-line object can spread over several lines, and a trailing comma can go. Run your formatter afterward.
 
 ## Exit codes
@@ -211,6 +211,7 @@ Pass `--help` to see the full list.
 | Code | Meaning |
 | --- | --- |
 | `0` | Done. |
-| `1` | A file could not be read, parsed, or transformed. The codemod still migrates the other files. |
+| `1` | A file could not be read, parsed, transformed, or written. The codemod still migrates the other files. |
 | `2` | Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to migrate, or unknown rule id. |
-| `3` | Only with `--fail-on-manual`: the run finished and at least one manual step is left. Code `1` wins over it. |
+| `3` | Only with `--fail-on-manual`: the run finished and at least one manual step is left. Codes `1`, `2`, and `130` win over it. |
+| `130` | You stopped the run with Ctrl-C. The codemod finishes the file it is on, writes no report, and says on standard error how many files it had written and how to undo them. |

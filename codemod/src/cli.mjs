@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { posix, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
-import { errorDocument, listDocument, runDocument, serialize, wantsJson } from './json-output.mjs';
+import { errorDocument, listDocument, runDocument, serialize, wantsJson, wantsList } from './json-output.mjs';
 import { plainText } from './lib/markdown.mjs';
 import { redact } from './lib/redact.mjs';
 import { BELOW_FROM_RULE_ID, plural, renderConsole, renderMarkdown } from './report.mjs';
@@ -11,8 +11,6 @@ import { describeRules, resolvePlan, run } from './runner.mjs';
 /**
  * Rule ids of the warnings that make a run exit with code 1: a file the tool could not read, parse, or transform.
  */
-const READ_FAILURES = ['parse-error', 'transform-error', 'read-error'];
-
 const USAGE_LINE = 'Usage: handsontable-codemod migrate [paths...] [options]';
 
 export const HELP = `${USAGE_LINE}
@@ -29,7 +27,8 @@ Options:
                         node_modules/handsontable, then the handsontable range in the nearest package.json,
                         up to the current directory. Paths that differ need --from.
   --to <version>        Version to migrate to. A partial version means the highest known release of that line.
-                        Defaults to the latest released migration, or to the latest draft with --include-draft.
+                        Defaults to the latest released migration, or to the latest draft that has rules
+                        with --include-draft.
   --dry-run             Print a unified diff and write no project files. A file named by --report is still
                         written.
   --allow-dirty         Run even when the git tree has uncommitted changes.
@@ -49,7 +48,8 @@ Options:
   --aggressive          Also rewrite settings objects found with medium confidence.
   --no-todo             Leave no TODO comments in the code. By default a manual step gets a TODO(handsontable-codemod
                         <rule>) comment at its line. With this flag the report is the only record of them.
-  --include-draft       Run migrations that are still drafts. Without --to, the run goes up to the newest draft.
+  --include-draft       Run migrations that are still drafts. Without --to, the run goes up to the newest
+                        draft that has rules.
   --allow-uncovered     Run although the project is older than the oldest version the tool migrates from. The
                         report starts with the guides of the steps the tool does not cover.
   --max-file-size <n>   Skip files larger than <n> bytes and list them in the report. Default: 1048576.
@@ -88,9 +88,10 @@ const OPTIONS = {
  * Say what is wrong with the arguments in one sentence, without the extra advice of `parseArgs`.
  *
  * @param {Error & {code?: string}} error The error `parseArgs` threw.
+ * @param {string[]} argv The arguments, to quote the value a flag was wrongly given.
  * @returns {string} For example `Unknown option "--bogus".`.
  */
-function describeUsageError(error) {
+function describeUsageError(error, argv) {
   const named = /'(-[^']*?)(?: <value>)?'/.exec(error.message)?.[1];
 
   if (error.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION' && named) {
@@ -98,7 +99,12 @@ function describeUsageError(error) {
   }
 
   if (error.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE' && named) {
-    return `Option "${named}" needs a value.`;
+    // A flag that takes no value was given one (`--json=1`), or an option that takes a value was left without it.
+    const given = /does not take an argument/.test(error.message)
+      ? argv.find(argument => argument.startsWith(`${named}=`)) : undefined;
+
+    return given === undefined ? `Option "${named}" needs a value.`
+      : `Option "${named}" takes no value, so "${given}" is not valid.`;
   }
 
   return error.message.split('. ')[0].replace(/'/g, '"').replace(/\.?$/, '.');
@@ -169,7 +175,7 @@ function renderList(rows, notAutomated = []) {
  * @returns {void}
  */
 export function nextSteps(result, stdout) {
-  const { manual, marked, review, markedReview } = result.report.counts();
+  const { manual, marked, review, markedReview, notes } = result.report.counts();
 
   if (result.changedFiles.some(file => posix.basename(file) === 'package.json')) {
     stdout('Next: install the new package ranges with your package manager. The tool does not install anything.\n');
@@ -210,6 +216,11 @@ export function nextSteps(result, stdout) {
   if (review > 0) {
     stdout(`Next: look at the ${plural(review, 'spot')} to review in the report. The behavior changed there, and `
       + `your code may already be right. ${whereOf(review, markedReview)}\n`);
+  }
+
+  if (notes > 0) {
+    stdout(`Next: read the ${plural(notes, 'note')} under "Read once" in the report. `
+      + `${notes === 1 ? 'It says' : 'They say'} what a rewrite changed. No spot needs a decision.\n`);
   }
 
   if (marked + markedReview > 0) {
@@ -298,7 +309,7 @@ export async function main(argv, {
 
     return code;
   };
-  const failure = (code, error, mode = 'run', notes = []) => emit(code, () => errorDocument({
+  const failure = (code, error, mode = wantsList(argv) ? 'list' : 'run', notes = []) => emit(code, () => errorDocument({
     tool,
     mode,
     exitCode: code,
@@ -310,7 +321,7 @@ export async function main(argv, {
   try {
     parsed = parseArgs({ args: argv, options: OPTIONS, allowPositionals: true, strict: true });
   } catch (error) {
-    const problem = describeUsageError(error);
+    const problem = describeUsageError(error, argv);
 
     stderr(`${problem}\n${USAGE_LINE}\nRun with --help for all options.\n`);
 
@@ -373,9 +384,12 @@ export async function main(argv, {
   };
   const dryRun = Boolean(values['dry-run']);
 
+  // The result of `run()`, for the document of a crash that comes after it.
+  let outcome = null;
+
   try {
     if (values.list) {
-      const { plan, notes, selected, fromText } = await resolvePlan({ ...range, lenientFrom: true });
+      const { plan, notes, endsAt, fromText } = await resolvePlan({ ...range, lenientFrom: true });
       const rows = describeRules(plan);
 
       notes.forEach(note => stderr(`${note}\n`));
@@ -386,7 +400,7 @@ export async function main(argv, {
           notAutomated: plan.notAutomated,
           notes,
           from: fromText,
-          to: selected[selected.length - 1]?.version }));
+          to: endsAt }));
       }
 
       stdout(renderList(rows, plan.notAutomated));
@@ -409,6 +423,8 @@ export async function main(argv, {
         ? ({ done, total }) => stderr(`Checked ${done} of ${plural(total, 'file')}...\n`)
         : undefined,
     });
+
+    outcome = result;
 
     result.notes.forEach(note => stderr(`${note}\n`));
 
@@ -461,11 +477,18 @@ export async function main(argv, {
     result.report.entries.filter(entry => entry.ruleId === BELOW_FROM_RULE_ID)
       .forEach(entry => stderr(`Warning: ${entry.message}\n`));
 
-    const unread = new Set(result.report.entries.filter(entry => READ_FAILURES.includes(entry.ruleId))
-      .map(entry => entry.file));
+    const { read, written } = result.report.failedFiles();
 
-    if (result.exitCode === 1 && unread.size > 0) {
-      stderr(`${plural(unread.size, 'file')} could not be read. See the warnings above.\n`);
+    if (result.exitCode === 1 && read.size > 0) {
+      stderr(`${plural(read.size, 'file')} could not be read. See the warnings above.\n`);
+    }
+
+    if (written.size > 0) {
+      // The entry is in the report too, but a run that prints nothing else on standard error must still say why it
+      // exits with 1.
+      result.report.entries.filter(entry => entry.ruleId === 'write-error')
+        .forEach(entry => stderr(`Warning: ${entry.file}: ${entry.message}\n`));
+      stderr(`${plural(written.size, 'file')} could not be written. See the warnings above.\n`);
     }
 
     // The code of a run that could not finish its work (1) stays what it is. Only a run that would exit 0 can exit 3,
@@ -485,8 +508,19 @@ export async function main(argv, {
       return failure(2, error.message, mode);
     }
 
-    stderr(`${error.stack ?? error.message}\n`);
+    // Anything can be thrown, and a throw that is not an Error has no message.
+    const message = String(error?.message ?? error);
 
-    return failure(1, error.message, mode);
+    stderr(`${error?.stack ?? message}\n`);
+
+    // Files may be written already: the document says which, from the result of the run, or from what a throw inside the
+    // run carries.
+    const partial = outcome ?? error?.partial ?? null;
+
+    if (partial !== null && mode === 'run') {
+      return emit(1, () => ({ ...runDocument({ tool, result: partial, dryRun, exitCode: 1 }), error: message }));
+    }
+
+    return failure(1, message, mode);
   }
 }

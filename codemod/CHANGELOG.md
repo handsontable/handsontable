@@ -17,7 +17,22 @@ How versions are chosen:
 ### Added
 
 - `19.0.0/sr-sp-language-script` reports the `<script src>` of a page that loads a published `sr-SP` language file (the
-  `dist` file from a CDN or `node_modules`, with or without `.min`).
+  `dist` file from a CDN or `node_modules`, with or without `.min`, with a query string or a fragment, and with an
+  unquoted `src=`). A `<script>` inside an HTML comment is not reported.
+- `19.0.0/sr-sp-language-attribute` reports `language="sr-SP"` on a `<hot-table>` or `<HotTable>` element of a Vue, an
+  Angular, or an HTML template, also the bound forms `:language="'sr-SP'"` and `[language]="'sr-SP'"`.
+- `19.0.0/sr-sp-language-code` also reads `export * from`, `export { default } from`, and `export { x } from` of a module
+  of the package (a file that only re-exports the language file is a Handsontable file now), and a TypeScript
+  `import x = require('handsontable/languages/sr-SP')`.
+- The `counts` of `--json` has `notes`, the number of notes for the whole run, and the summary line adds `N notes to read
+  once` when there are any. The `Next:` lines point at them.
+- A `.browserslistrc` that the tool cannot use (a link, a directory, a file above `--max-file-size`, a file that is not
+  UTF-8, a file with no permission to read) is a `skipped-file` warning that names the file and the reason, as for any
+  other file the tool skips.
+- A file that could not be written prints its warning and `N files could not be written` on standard error, and the
+  `error` of the `--json` document says so. A crash after files were written still prints a document, with the files
+  written and the message of what was thrown, also when it was not an `Error`.
+- A `detect` `regex` with `code: true` also reads a template or a page without its HTML comments.
 - `unmarked` on a `detect` rule: what the rule reports, and with which severity, in a stylesheet that has no mark of
   Handsontable. The manifest loader checks it.
 
@@ -50,8 +65,9 @@ How versions are chosen:
   cannot name a guide anchor (the loader says so). `--list` and a run say "has no rules yet" for a selected migration
   with no rule.
 - `versions/19.1.0/`, a draft migration from 19.0 with no rules and no guide. It is the place for the rules of changes
-  that ship after 19.0 and holds the name `19.1.0` until the version of that release is decided. A default run ignores
-  it. `--include-draft` runs it, and it changes and reports nothing.
+  that ship after 19.0 and holds the name `19.1.0` until the version of that release is decided. A manifest with no
+  rules is never the end of a run: a default run ignores it, `--include-draft` stops at the newest migration with rules,
+  and only an explicit `--to 19.1 --include-draft` selects it, when it changes and reports nothing.
 - A draft manifest may set `published: true` when its packages are on npm. The 19.0 draft does.
 - The package carries the repository's `LICENSE.txt`, and its `license` field points at it.
 - `detect` `call` matchers take `receiver: "grid"`: a confirmed grid instance, or a receiver the file does not show,
@@ -90,6 +106,31 @@ How versions are chosen:
 
 ### Changed
 
+- A note for the whole run (`scope: "run"`, the note of a type rename) is counted as a note, not as a spot to review, in
+  the summary line, the `Next:` lines, the Markdown report, and the `--json` counts. It stays under "Read once" and never
+  causes exit code 3 with `--fail-on-manual`.
+- `--include-draft` without `--to` stops at the newest migration that has rules. The empty draft `19.1.0` is not the end
+  of a run any more: the report title and the `to` of the document say `19.0.0`, "Migrated up to" names it, and "Nothing to
+  migrate" lists the draft as `(draft, no rules yet)`.
+- `--only '19.0.0/*'` from 18.1, with no `--include-draft`, names the draft and the flag, as it did from 18.0.
+- A nested rule (`.a { &::before {} }`, in SCSS or in native CSS nesting) is read as its resolved selector by every
+  `selector` matcher, at the line of the nested rule. `19.0.0/icon-pseudo-element-selectors` reports it.
+- The `<style>` elements of an HTML page are read as stylesheets, so each rule of a page gets its own line, and a page
+  with no mark of Handsontable and a `.changeType::before` rule gets a `review` entry, as a stylesheet does, when a
+  `package.json` in its directory or above it declares `handsontable` or a wrapper.
+- A Vue file that uses `<hot-table>` or `<HotTable>`, or imports Handsontable, counts every `<style>` block as marked. Any
+  other Vue file judges each block by itself, and reads a block with only a common class name.
+- `18.0.0/wrapper-dom-selectors` also reports `?.`, `!.`, and a parenthesized `as` cast after the selector call.
+- A Browserslist query is judged with whole numbers: `safari > 18` and `ios_saf > 18` are below the minimum (they select
+  18.1), and `chrome > 129.5` is not. A query that can only name a browser with no minimum (`op_mini all`, `dead`,
+  `maintained node versions`, `current node`) is not listed. A message names each query once, and at most 10.
+- The Markdown report quotes the query you wrote, not the same letters inside the minimums (`Safari 18` inside
+  `Safari 18.2`).
+- The `manifest.schema.json` accepts `severity: "warning"` for a `detect` rule only, as the loader does.
+- A file name is spelled the same way in every output: a line break in it is `\x0a` in the console, the Markdown report, and
+  the `--json` document.
+- `--json=1` (a flag that takes no value) is a usage error that says the flag takes no value. A usage error of a command
+  that has `--list` gets the document of `--list`.
 - The note of a type rename that changes the shape of the type (`SummaryEndpoint`, `CellValue`, and the others that
   say it in a `note`) is a `review` entry now. The rename is applied, and the note asks you to look at the shape. With
   `--fail-on-manual` it does not cause exit code 3.

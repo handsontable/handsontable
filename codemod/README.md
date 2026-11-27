@@ -67,7 +67,7 @@ asks for `--from`. Paths that resolve to different versions need `--from`. At a 
 version and names the files, and when they differ it asks for `--from` and lists the packages. A spec that points at
 a source is not a version: `file:`, `link:`, `workspace:`, `portal:`, a git or `github:` spec, a URL, a path, and
 `catalog:` are skipped, so the digits in a file name never count. When no package names a version, the tool asks for
-`--from`. An `npm:handsontable@^17.1.0` alias still counts. `--to` defaults to the newest released migration, or to the newest draft with `--include-draft`.
+`--from`. An `npm:handsontable@^17.1.0` alias still counts. `--to` defaults to the newest released migration, or to the newest draft that has rules with `--include-draft`.
 
 ### Which versions it covers
 
@@ -81,7 +81,11 @@ the newest one, prints "No migration for 19 is known. Migrated up to 18.1.0.", a
 the report. The `handsontable` ranges in `package.json` go to that newest known version, never beyond it. When the
 line `--to` names holds only a draft migration and you did not pass `--include-draft`, the line says so instead
 ("19.0 is a draft migration (19.0.0) and was skipped. The run stops at 18.1.0."). `--only '19.0.0/*'` without the flag
-is a usage error that names the draft and `--include-draft`.
+is a usage error that names the draft and `--include-draft`, from 18.0 and from 18.1 alike. A draft with no rules (the
+release after 19.0) changes and reports nothing, so a run never ends at it: with `--include-draft` and no `--to` the run
+goes up to the newest migration that has rules, the report and the JSON `to` say that version, and "Nothing to migrate"
+lists the empty draft as `(draft, no rules yet)`. Only an explicit `--to 19.1 --include-draft` selects it, and the run
+says that it has no rules.
 
 ### Install from the repository
 
@@ -146,7 +150,7 @@ at the top of the report.
 | Flag | Meaning |
 |---|---|
 | `--from <version>` | Version your project is on: `17`, `17.1`, or `18.0.0`. A partial version means any version of that line. Detected for each path argument from the nearest `node_modules/handsontable`, then the nearest `package.json` range, up to the current directory, when omitted. Paths that differ need `--from`. |
-| `--to <version>` | Version to migrate to. A partial version means the highest known release of that line. Defaults to the newest released migration, or to the newest draft with `--include-draft`. |
+| `--to <version>` | Version to migrate to. A partial version means the highest known release of that line. Defaults to the newest released migration, or to the newest draft that has rules with `--include-draft`. |
 | `--dry-run` | Print a unified diff and write no project files. The git check does not apply. A file named by `--report` is still written, because you asked for it. |
 | `--allow-dirty` | Run even when the git tree has uncommitted changes. |
 | `--report <file>` | Also write the full report to `<file>` as a Markdown checklist. The git check ignores an untracked file at this path and no other. File names, source lines, and the tags the tool names (`<style lang="less">`) are written as code, so they render as text. |
@@ -156,7 +160,7 @@ at the top of the report.
 | `--fail-on-manual` | Exit with code 3 when the run leaves at least one manual step. A spot to review and a warning never cause it. Without the flag the exit codes are the ones in "Exit codes". See "Exit codes". |
 | `--aggressive` | Also rewrite settings objects found with medium confidence. |
 | `--no-todo` | Leave no `TODO(handsontable-codemod ...)` comments in the code, not for a manual step and not where an option was deleted. The report is then the only record of the manual steps. |
-| `--include-draft` | Run migrations that are still drafts. Without `--to`, the run goes up to the newest draft. |
+| `--include-draft` | Run migrations that are still drafts. Without `--to`, the run goes up to the newest draft that has rules. |
 | `--allow-uncovered` | Run although the project is older than the oldest version the tool migrates from (see "Which versions it covers"). The report starts with the guides of the steps the tool does not cover. |
 | `--max-file-size <bytes>` | Skip files larger than this and list them under "Skipped files". The default is 1048576 (1 MB). |
 | `--version` | Print the version of the tool. |
@@ -180,7 +184,7 @@ rank as follows: 2 and 130 end the run before the check, and 1 (a file that coul
 written, or a report file that could not be written) wins over 3. Only a run that would exit with 0 can exit with 3. A
 dry run counts, so a CI job can ask the question without writing a file. A manual step is an entry the report lists
 under a rule and not under "To review", and it counts once whether or not it has a marker in the code. A spot to review,
-a warning, and a note that holds for the whole run never cause code 3. `--list` does not run a migration, so the flag
+a warning, and a note that holds for the whole run (a "Read once" note) never cause code 3. `--list` does not run a migration, so the flag
 has no effect on it.
 
 ### Stopping a run
@@ -206,8 +210,9 @@ may already be right." and lists the rules whose entries you look at and may lea
 the rules:
 
 - **Read once.** A note that holds for every file, such as "CellValue is now `unknown`", appears one time with the
-  files it applies to, not once per file. The note of a type rename that changes the shape of the type is one of them,
-  and it is a spot to review: the rename is applied.
+  files it applies to, not once per file. The note of a type rename that changes the shape of the type is one of them.
+  It says what the rename changed and the rename is applied, so it is a note and not a spot to review: it is counted
+  apart (`1 note to read once` in the summary line), a `Next:` line points at it, and it never causes code 3.
 - **Skipped files.** Files and blocks the tool did not analyze: Less, Stylus, Sass, and PostCSS (`.pcss`, `.postcss`)
   files, Svelte, Astro, and MDX files, Vue `<style>` blocks in those languages or with `src=`, HTML pages with inline
   scripts that use Handsontable, files that are not valid UTF-8 (the tool reads and writes UTF-8 only, so it leaves
@@ -218,7 +223,8 @@ A package whose `handsontable` range is below `--from` is not raised, because th
 selected. The tool warns once for that `package.json` (also on standard error, with exit code 0) and names the `--from`
 to use on the package. Source files under it still get the selected rules.
 
-The last line sums up the run: files changed, rewrites applied, manual steps, spots to review, and warnings. The file
+The last line sums up the run: files changed, rewrites applied, manual steps, spots to review, warnings, and, when there
+are any, the notes to read once. The file
 from `--report` has a title with the versions and the date, then the same line, every location, one checkbox per entry,
 and a link to the migration guide section of each rule. The entries to review are in their own section, "To review",
 after the manual steps. The report file and the `TODO(handsontable-codemod <rule>)` markers in the code do not tell the
@@ -232,7 +238,7 @@ project or outside it), or a file in a directory that does not exist or cannot b
 project directory does not matter (`/tmp` is a link on macOS), and a refusal names the link as you typed it. It checks
 the path before it changes any file.
 A control character in a file name or a source line (an escape sequence) is printed as `\x1b`, in the console, the
-report file, and the diff, so a project cannot rewrite your terminal. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
+report file, and the diff (a name in a diff header keeps the quoting of git, which `git apply` reads), so a project cannot rewrite your terminal. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
 the console, the report file, and the `--dry-run` diff, so a dependency spec with a credential never reaches a log.
 A diff line that holds such a URL is therefore for reading, not for `git apply`. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
 and how many are in the report only. On a terminal, a long run prints a progress line to the
@@ -248,9 +254,10 @@ The flag works with a run, with `--dry-run`, with `--list`, and with `--report <
 written). A usage error or a refusal prints a document too, with the `error` and the `exitCode`, and with every other
 field empty, so a reader can always look up `counts`. The tool reads `--json` from the raw arguments, so a mistake that
 stops it before it has read the other flags (an unknown flag, a flag with no value, a missing command) still gets a
-document. The exact word `--json` counts, in any position before `--`: `--json=1` is an unknown flag. `--help` and
+document. The exact word `--json` counts, in any position before `--`, and so does `--list`, so a mistake in a `--list` command gets the document of `--list`. A flag that takes no value refuses one: `--json=1` is a usage error that says `--json` takes no value. `--help` and
 `--version` print their own text and ignore the flag. A string in the document is safe to print: the user information
-of a URL is hidden and a control character is written as `\x1b`, as in every other output of the tool.
+of a URL is hidden and a control character is written as `\x1b`, as in every other output of the tool: a file name is spelled the same way in the console, the report, and every field of the document that holds one, so a line break in a name reads `\x0a`, a tab `\x09`, and a bidirectional override `\u202e`.
+A file the run could not write prints its warning and `N files could not be written` on standard error and exits with 1, and the `error` field says so, as for a file it could not read. A crash that comes after files were written still prints a document, with the files written and the message.
 
 A run (`mode: "run"`) prints these fields. A field never changes its meaning inside `schemaVersion` 1, and a new field
 is not a new version.
@@ -264,14 +271,14 @@ is not a new version.
 | `dryRun` | `true` when the run wrote no project file. |
 | `exitCode` | The exit code of the command, `--fail-on-manual` included. |
 | `interrupted` | `true` when Ctrl-C stopped the run. The entries then describe a part of the project. |
-| `counts` | `changed`, `manual`, `review`, and `warning`: the number of entries of each severity, as the summary line counts them (a skipped file is a warning, a note for the whole run counts once). `marked` and `markedReview`: how many manual entries and how many entries to review have a marker in the code (in a dry run, a marker that the diff shows). `filesChanged`: the number of files the run changed, or would change. |
+| `counts` | `changed`, `manual`, `review`, and `warning`: the number of entries of each severity, as the summary line counts them (a skipped file is a warning). `notes`: the notes for the whole run (`scope: "run"`), each counted once and in none of the other numbers. `marked` and `markedReview`: how many manual entries and how many entries to review have a marker in the code (in a dry run, a marker that the diff shows). `filesChanged`: the number of files the run changed, or would change. |
 | `changedFiles` | The files the run changed, or would change, relative to the project, with forward slashes, sorted. |
-| `entries` | Every report entry, ordered by rule, file, and line. Fields: `ruleId`; `severity` (`changed`, `manual`, `review`, or `warning`); `file` (`null` for a note for the whole run); `line` (`null` when the entry has none); `lines` (every line of an entry that stands for several matches, else `[]`); `message`; `guideUrl` (`null` when the rule has no guide link); `marker` (`true` when the code has, or after this run would have, a `TODO(handsontable-codemod ...)` comment for the entry). A note for the whole run has `scope: "run"` and `files`, the files it applies to. |
+| `entries` | Every report entry, ordered by rule, file, and line. Fields: `ruleId`; `severity` (`changed`, `manual`, `review`, or `warning`); `file` (`null` for a note for the whole run); `line` (`null` when the entry has none); `lines` (every line of an entry that stands for several matches, else `[]`); `message`; `guideUrl` (`null` when the rule has no guide link); `marker` (`true` when the code has, or after this run would have, a `TODO(handsontable-codemod ...)` comment for the entry). A note for the whole run has `scope: "run"` and `files`, the files it applies to. Its `severity` is the one its rule gives (`review` for a type rename), and `counts` counts it in `notes` whatever the severity, never in `review`. |
 | `notAutomated` | The changes of the guides in the range that no rule covers: `version`, `guide` (the anchor, or `null`), `title` (for a change with no section, else `null`), `guideUrl`, `reason`. |
 | `skipped` | The files the run did not analyze: `file` and `reason`. They are warnings in `entries` too. |
 | `notes` | The notes about the run, the same lines the tool prints on standard error. |
 | `changes` | With `--dry-run`: `{ file, diff }` for each changed file, the unified diff as text. Empty otherwise. |
-| `error` | The message of the refusal or the error, or `null`. |
+| `error` | The message of the refusal or the error, or `null`. A run that exits with 1 because files could not be read, parsed, transformed, or written says how many, in this field. A crash after files were written has the message of what was thrown, and `changedFiles` lists what was written. |
 
 `--list --json` (`mode: "list"`) prints `schemaVersion`, `tool`, `mode`, `from`, `to`, `exitCode`, `notes`, `error`, and
 `notAutomated` as above, and:
@@ -314,7 +321,7 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 ### Draft migrations
 
 A draft migration is one that is not final yet. It is not in the table above, a normal run never selects it, and
-`--to` defaults to the newest released migration, or to the newest draft with `--include-draft`. To run it, or to list
+`--to` defaults to the newest released migration, or to the newest draft that has rules with `--include-draft`. To run it, or to list
 its rules, pass `--include-draft`. The rules and messages of a draft can change before its release.
 
 Two migrations are drafts:
@@ -331,7 +338,7 @@ handsontable-codemod migrate --list --from 18.1 --to 19.0 --include-draft
   reason, under `notAutomated`. `--list` prints how many there are on the line before the counts. A run writes `^19.0.0`
   for `handsontable` and the three wrappers, which is a published range.
 - **The release after 19.0.** Its migration is a draft too, held under `19.1.0` until the version number of that release
-  is decided. It has no rules yet, so a run that includes it changes and reports nothing, and `--list` says so.
+  is decided. It has no rules yet, so a run never ends at it, even with `--include-draft`: that run stops at the newest migration with rules. Only `--to 19.1 --include-draft` selects it, changes and reports nothing, and `--list` says so.
 
 A run that includes a draft whose packages are not on npm yet, and that rewrites a `package.json`, prints a note under its
 "Next:" lines: a range without a prerelease tag never matches a release candidate, so install the candidate with
@@ -403,15 +410,19 @@ The minimums are data in the manifest of the migration, not code. The tool reads
 
 - the `browserslist` key of every `package.json` the run reads that declares `handsontable` or a wrapper, as a string, a
   list, or an object of environments, and
-- the `.browserslistrc` next to it (a link is not followed). The file takes a comment after `#`, a `[section]` line,
+- the `.browserslistrc` next to it (a link is not followed, and a file the tool cannot use is listed under "Skipped files":
+  a link, a directory, a file above `--max-file-size`, a file that is not UTF-8, a file you cannot read). The file takes a comment after `#`, a `[section]` line,
   one query per line, and several queries on a line separated by `,` or `or`. The queries of every section count.
 
 It judges the queries that name a browser and a version: `chrome >= 110`, `Safari 14.1`, `ios_saf 15`, `firefox > 100`,
 `chrome 109`, `chrome 100-110` (from its low end), and `ios_saf 15.2-15.3`. The names `ios`, `ff`, and `fx` count as
-`ios_saf` and `firefox`. A version at or above the minimum is fine. `> n` counts as the first release above `n`, so
-`chrome > 129` is fine and `chrome > 128` is not. `<` and `<=` always take in older versions. A query for a browser the
-guide gives no minimum for (`ie 11`, `samsung 12`, `node 18`) and a query with `not`, which only removes browsers, are
-not checked and not listed.
+`ios_saf` and `firefox`. A version at or above the minimum is fine. Versions are compared as whole numbers. Chrome, Edge,
+and Firefox have whole versions, so `> n` starts at the next whole version (`chrome > 129` and `chrome > 129.5` are fine,
+`chrome > 128` is not). Safari and iOS Safari have minor versions, so `> n` is below the minimum when `n` is lower than
+the last minor before it: `safari > 18` and `safari > 18.0` select 18.1 and are reported, `safari > 18.1` is fine. `<` and
+`<=` always take in older versions. A query that can only name a browser the guide gives no minimum for (`ie 11`,
+`samsung 12`, `node 18`, `op_mini all`, `dead`, `maintained node versions`, `current node`) and a query with `not`, which
+only removes browsers, are not checked and not listed.
 
 For each configuration file the tool reports:
 
@@ -420,7 +431,7 @@ For each configuration file the tool reports:
   `> 0.5%`, `cover 99.5%`, `since 2020`, `extends <config>`, and a query with `and`. The entry lists them and says to
   run `npx browserslist` to see which browsers they select.
 
-A project with no Browserslist configuration gets no entry. The tool never edits a configuration, and it does not read
+A message names each query once, and at most 10 of them, then "and N more". A project with no Browserslist configuration gets no entry. The tool never edits a configuration, and it does not read
 a bundler target (`target` in a Vite or webpack configuration). A `package.json` of a monorepo root that names neither
 `handsontable` nor a wrapper is not checked, and a file the run does not read is not either.
 

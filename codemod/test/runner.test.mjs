@@ -334,8 +334,8 @@ describe('transformFile and the transform contract', () => {
 
     assert.deepEqual(Object.keys(seen).sort(), [
       'ancestors', 'browserslistrc', 'catalog', 'comment', 'css', 'cssScope', 'derived', 'facts', 'fileKind',
-      'filePath', 'fromText', 'j', 'json', 'lineOffset', 'markChanged', 'options', 'parser', 'removeStatement',
-      'report', 'root', 'source', 'todo',
+      'filePath', 'fromText', 'hotComponent', 'j', 'json', 'lineOffset', 'markChanged', 'options', 'parser',
+      'projectUsesHandsontable', 'removeStatement', 'report', 'root', 'source', 'todo',
     ]);
     assert.equal(seen.parser, null);
     assert.equal(seen.catalog, null);

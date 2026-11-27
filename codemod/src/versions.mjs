@@ -223,15 +223,16 @@ export function selectManifests(manifests, { from, to, includeDraft = false }) {
 
 /**
  * Pick the default `--to`: the latest released manifest, or the latest manifest of any status when drafts
- * are allowed.
+ * are allowed. A manifest with no rules never counts, so an empty draft is never the end of a default run.
  *
- * @param {Array<{version: string, status: string}>} manifests All loaded manifests.
+ * @param {Array<{version: string, status: string, rules?: unknown[]}>} manifests All loaded manifests.
  * @param {boolean} includeDraft Whether draft manifests count.
  * @returns {string|null} The version text, or `null` when no manifest qualifies.
  */
 export function defaultTo(manifests, includeDraft) {
   const candidates = manifests
     .filter(manifest => includeDraft || manifest.status === 'released')
+    .filter(manifest => (manifest.rules?.length ?? 1) > 0)
     .sort((a, b) => compareVersions(parseVersion(a.version), parseVersion(b.version)));
 
   return candidates.length > 0 ? candidates[candidates.length - 1].version : null;

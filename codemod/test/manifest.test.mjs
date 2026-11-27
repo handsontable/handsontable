@@ -156,6 +156,44 @@ describe('validator and schema parity', () => {
     assert.equal(schema.$defs.rule.allOf.length, schemaKinds.length);
   });
 
+  it('accepts the same "severity" values for a rule as the loader does', () => {
+    const ruleSchema = schema.$defs.rule;
+    const bases = {
+      detect: { id: '18.0.0/x', kind: 'detect', match: { import: 'a' }, files: ['js'], message: 'Check it.' },
+      methodRemove: { id: '18.0.0/x', kind: 'methodRemove', methods: ['a'], receiver: 'any', safe: false },
+      exportRemoved: { id: '18.0.0/x', kind: 'exportRemoved', source: 'a', name: 'B', advice: 'Use C.' },
+    };
+
+    /**
+     * Whether the schema lets a rule of the kind carry the severity: the common property, the branch of the kind,
+     * and the `not` clause that keeps `warning` for `detect`.
+     *
+     * @param {string} kind Rule kind.
+     * @param {string} severity The value.
+     * @returns {boolean} `true` when the schema accepts it.
+     */
+    const schemaAccepts = (kind, severity) => {
+      const branch = ruleSchema.allOf.find(item => item.if.properties.kind.const === kind);
+      const own = branch?.then.properties?.severity?.enum;
+      const clause = ruleSchema.not;
+      const excluded = clause && clause.properties.kind.not.const !== kind
+        && severity === clause.properties.severity.const;
+
+      return ruleSchema.properties.severity.enum.includes(severity) && (!own || own.includes(severity)) && !excluded;
+    };
+
+    for (const [kind, base] of Object.entries(bases)) {
+      for (const severity of ['manual', 'review', 'warning', 'high']) {
+        const rule = { ...base, severity };
+        const loader = [...validateRule(rule, '18.0.0'), ...registry.validate(rule)].length === 0;
+
+        assert.equal(schemaAccepts(kind, severity), loader, `${kind} with severity ${severity}`);
+      }
+    }
+
+    assert.equal(schemaAccepts('detect', 'warning'), true);
+  });
+
   it('matches the kind order and the registry', () => {
     assert.deepEqual([...KIND_ORDER].sort(), [...schemaKinds].sort());
 

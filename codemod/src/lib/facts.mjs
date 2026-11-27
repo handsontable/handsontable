@@ -168,13 +168,16 @@ export function registerPackageDir(facts, filePath) {
  *
  * @param {Set<string>} facts The shared facts.
  * @param {string} filePath Project-relative path of a `package.json`.
+ * @param {object} [options] Options.
+ * @param {boolean} [options.includeOwn] Also list the `package.json` in the directory of the file, for a file that is
+ * not a `package.json` itself (an HTML page).
  * @returns {string[]} Project-relative paths with forward slashes.
  */
-export function packageFilesAbove(facts, filePath) {
+export function packageFilesAbove(facts, filePath, { includeOwn = false } = {}) {
   const own = dirOf(filePath);
 
   return directoriesOf(facts, PACKAGE_FACT)
-    .filter(dir => dir !== own && isInside(own, dir))
+    .filter(dir => (includeOwn || dir !== own) && isInside(own, dir))
     .sort((a, b) => (b === '.' ? 0 : b.length) - (a === '.' ? 0 : a.length))
     .map(dir => (dir === '.' ? 'package.json' : `${dir}/package.json`));
 }

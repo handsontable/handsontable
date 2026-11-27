@@ -94,6 +94,36 @@ function escapeProse(prose) {
 }
 
 /**
+ * Where a quoted fragment stands in a message: the first occurrence that is a whole word at each end that is a word
+ * character, and does not run into a version (`Safari 18` is not the start of `Safari 18.2`, `Chrome 13` is not the
+ * start of `Chrome 130`). The tool's own text can hold a prefix of what the user wrote, so the first plain match
+ * is not always the quote. When no occurrence stands alone, the first plain one is used.
+ *
+ * @param {string} text The message.
+ * @param {string} fragment The fragment, as `plainText()` spells it.
+ * @returns {number} The index, or -1.
+ */
+function quotedAt(text, fragment) {
+  let first = -1;
+
+  for (let at = text.indexOf(fragment); at !== -1; at = text.indexOf(fragment, at + 1)) {
+    first = first === -1 ? at : first;
+
+    const before = text[at - 1];
+    const after = text[at + fragment.length];
+    const runsOn = after !== undefined && /\w$/.test(fragment) && (/\w/.test(after)
+      || (after === '.' && /\d/.test(text[at + fragment.length + 1] ?? '') && /\d$/.test(fragment)));
+    const startsInside = before !== undefined && /^\w/.test(fragment) && /\w/.test(before);
+
+    if (!startsInside && !runsOn) {
+      return at;
+    }
+  }
+
+  return first;
+}
+
+/**
  * Turn the text of a report entry into Markdown that renders as the text it says, whatever it quotes from the user's
  * project:
  *
@@ -115,7 +145,7 @@ export function markdownText(text, quoted = []) {
   let work = plainText(text);
 
   for (const fragment of [...quoted].filter(Boolean).sort((a, b) => b.length - a.length)) {
-    const at = work.indexOf(plainText(fragment));
+    const at = quotedAt(work, plainText(fragment));
 
     if (at !== -1) {
       const held = plainText(fragment).replace(/\s+/g, ' ');

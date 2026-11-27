@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { chmod, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { main } from '../src/cli.mjs';
-import { SCHEMA_VERSION, cleanDeep, serialize, wantsJson } from '../src/json-output.mjs';
+import { SCHEMA_VERSION, cleanDeep, serialize, wantsJson, wantsList } from '../src/json-output.mjs';
 import { inPlainProject, migrate, migrateBin } from './helpers/plain-project.mjs';
 
 const TOKEN = 'ghp_SECRETTOKEN0123456789';
@@ -62,6 +62,16 @@ describe('wantsJson()', () => {
     assert.equal(wantsJson(['migrate', '--json=1']), false);
     assert.equal(wantsJson(['migrate', '--', '--json']), false);
     assert.equal(wantsJson(['migrate']), false);
+  });
+});
+
+describe('wantsList()', () => {
+  it('reads the exact token before a -- terminator, as wantsJson() does', () => {
+    assert.equal(wantsList(['migrate', '--list']), true);
+    assert.equal(wantsList(['--bogus', '--list']), true);
+    assert.equal(wantsList(['migrate', '--list=1']), false);
+    assert.equal(wantsList(['migrate', '--', '--list']), false);
+    assert.equal(wantsList(['migrate']), false);
   });
 });
 
@@ -194,6 +204,69 @@ describe('--json on a run', () => {
         assert.ok(document.entries.some(entry => entry.ruleId === 'parse-error' && entry.file === 'src/bad.js'));
         assert.equal(text.status, 1);
       });
+  });
+
+  it('says on standard error and in the document which file could not be written, and exits 1', {
+    skip: process.platform === 'win32',
+  }, async() => {
+    await inPlainProject({ ...PROJECT, 'src/ro.js': GRID }, async(dir) => {
+      await chmod(join(dir, 'src/ro.js'), 0o444);
+
+      const json = await migrate(dir, [...RANGE, '--json']);
+      const text = await migrate(dir, [...RANGE]);
+      const document = documentOf(json.stdout);
+
+      assert.equal(json.status, 1);
+      assert.equal(text.status, 1);
+      assert.match(text.stderr, /^Warning: src\/(?:ro|grid)\.js: The file could not be written: /m);
+      assert.match(text.stderr, /^1 file could not be written\. See the warnings above\.$/m);
+      assert.match(json.stderr, /^1 file could not be written\. See the warnings above\.$/m);
+      assert.equal(document.exitCode, 1);
+      assert.match(document.error, /^1 file could not be written\./);
+      assert.ok(document.entries.some(entry => entry.ruleId === 'write-error' && entry.file === 'src/ro.js'));
+      assert.equal(document.counts.warning >= 1, true);
+    });
+  });
+
+  it('says in the document that a file could not be read or parsed, and leaves error null for a clean run', async() => {
+    await inPlainProject({ ...PROJECT, 'src/bad.js': 'import Handsontable from \'handsontable\';\nconst = ;\n' },
+      async(dir) => {
+        const failed = documentOf((await migrate(dir, [...RANGE, '--json', '--dry-run'])).stdout);
+
+        assert.match(failed.error, /^1 file could not be read\./);
+      });
+    await inPlainProject(PROJECT, async(dir) => {
+      assert.equal(documentOf((await migrate(dir, [...RANGE, '--json', '--dry-run'])).stdout).error, null);
+    });
+  });
+
+  it('spells a control character of a file name the same way in the console, the report, and the document', async() => {
+    // NTFS refuses a control character in a name, so Windows keeps the bidirectional override only.
+    const names = ['a\nb.js', 'e\u001bc.js', 'r\u202etl.js', 'tab\tname.js']
+      .filter(name => process.platform !== 'win32' || name === 'r\u202etl.js');
+    const spelling = ['a\\x0ab.js', 'e\\x1bc.js', 'r\\u202etl.js', 'tab\\x09name.js']
+      .filter(name => process.platform !== 'win32' || name === 'r\\u202etl.js');
+    const files = { 'package.json': PACKAGE, ...Object.fromEntries(names.map(name => [`src/${name}`, GRID])) };
+
+    await inPlainProject(files, async(dir) => {
+      const args = [...RANGE, '--dry-run', '--only', '18.0.0/numbro-pattern'];
+      const text = await migrate(dir, [...args, '--report', 'r.md']);
+      const markdown = await readFile(join(dir, 'r.md'), 'utf8');
+      const document = documentOf((await migrate(dir, [...args, '--json'])).stdout);
+      const fileFields = [...document.changedFiles, ...document.entries.map(entry => entry.file),
+        ...document.changes.map(change => change.file)].filter(Boolean);
+
+      for (const name of spelling) {
+        assert.ok(text.stdout.includes(`src/${name}`), `console: ${name}`);
+        assert.ok(markdown.includes(`src/${name}`), `report: ${name}`);
+        assert.ok(document.changedFiles.includes(`src/${name}`), `changedFiles: ${name}`);
+      }
+
+      // eslint-disable-next-line no-control-regex -- the point of the check is that no such character is left
+      const unsafe = /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/;
+
+      assert.ok(fileFields.every(file => !unsafe.test(file)), fileFields.join());
+    });
   });
 
   it('lists the files that were skipped, with the reason, and counts them as warnings', async() => {

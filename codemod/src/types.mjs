@@ -182,6 +182,9 @@
  * root. `null` for every other kind.
  * @property {'scoped'|'module'|null} cssScope For a `css` part of a Vue `<style scoped>` or `<style module>` block,
  * which one it is. `null` for every other part. A rule about a selector that the framework creates at runtime reads it.
+ * @property {boolean} hotComponent `true` for a part of a Vue file whose template or script uses Handsontable (a
+ * `<hot-table>` or `<HotTable>` element, or a mention of the package). Every `<style>` block of such a file is a
+ * Handsontable stylesheet for the rules that read the difference (`unmarked`). `false` for every other part.
  * @property {number} lineOffset Zero-based line of the part inside the file. `report()` adds it to its lines itself;
  * code that records a line elsewhere (a fact) adds it by hand.
  * @property {string} fromText The `--from` of the run as text, or an empty string when the context has no range. A
@@ -191,9 +194,15 @@
  * @property {CatalogInfo|null} catalog The pnpm catalogs that apply to this `package.json`, read in phase 2 for a file
  * that holds a `catalog:` spec. `null` for any other part and when no `pnpm-workspace.yaml` lies between the file and
  * the project directory.
- * @property {{file: string, text: string}|null} browserslistrc The `.browserslistrc` next to this `package.json`
- * (`file` is project-relative with forward slashes), read in phase 2 for a run with a rule that checks the browsers.
- * `null` for any other part, when the file is absent, a link, too large, or not UTF-8, and in a fixture without one.
+ * @property {boolean|null} projectUsesHandsontable For an HTML page: `true` when a `package.json` above it declares
+ * Handsontable or a wrapper, `false` when the ones the run knows do not, `null` when that is not known (no `package.json`
+ * above it in the run, one that cannot be read, a part that is not an HTML page, or a plan with no rule that asks). A rule
+ * with `unmarked` skips a page that names nothing of Handsontable only when it is `false`.
+ * @property {{file: string, text?: string, skipped?: string}|null} browserslistrc The `.browserslistrc` next to this
+ * `package.json` (`file` is project-relative with forward slashes), read in phase 2 for a run with a rule that checks
+ * the browsers. A file the tool cannot use (a link, a directory, too large, not UTF-8, unreadable) has `skipped`, the
+ * reason, and no `text`: the transform reports it as a skipped file. `null` for any other part, when the file is
+ * absent, and in a fixture without one.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally
  * `name:value`. Use `addFact()` and `hasFactFor()` from `src/lib/facts.mjs`: they also record the directory

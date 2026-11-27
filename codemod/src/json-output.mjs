@@ -1,4 +1,4 @@
-import { plainText } from './lib/markdown.mjs';
+import { plainName, plainText } from './lib/markdown.mjs';
 import { redact } from './lib/redact.mjs';
 import { compareRuleIds } from './report.mjs';
 
@@ -22,9 +22,31 @@ const FLAG = '--json';
  * @returns {boolean} `true` when `--json` is among them.
  */
 export function wantsJson(argv) {
+  return hasToken(argv, FLAG);
+}
+
+/**
+ * Whether the arguments hold the exact token, anywhere before a `--` terminator.
+ *
+ * @param {string[]} argv The arguments after the script path.
+ * @param {string} token The flag, for example `--json`.
+ * @returns {boolean} `true` when it is among them.
+ */
+function hasToken(argv, token) {
   const end = argv.indexOf('--');
 
-  return (end === -1 ? argv : argv.slice(0, end)).includes(FLAG);
+  return (end === -1 ? argv : argv.slice(0, end)).includes(token);
+}
+
+/**
+ * Whether the arguments ask for the list of rules. Like `wantsJson()` it reads the raw arguments, so an error that
+ * `parseArgs` throws before it returns any value still gets the document of the mode the command was about to run.
+ *
+ * @param {string[]} argv The arguments after the script path.
+ * @returns {boolean} `true` when the exact token `--list` is among them.
+ */
+export function wantsList(argv) {
+  return hasToken(argv, '--list');
 }
 
 /**
@@ -78,7 +100,19 @@ function head(tool, mode) {
  * @returns {object} Every count 0.
  */
 function noCounts() {
-  return { changed: 0, manual: 0, review: 0, warning: 0, marked: 0, markedReview: 0, filesChanged: 0 };
+  return { changed: 0, manual: 0, review: 0, warning: 0, notes: 0, marked: 0, markedReview: 0, filesChanged: 0 };
+}
+
+/**
+ * A file name as every other output of the tool spells it: each control character, the line break and the tab
+ * included, as `\xNN`, and a bidirectional override as `\uNNNN`. A name with a line break reads the same in the
+ * console, in the Markdown report, and here, and JSON needs no escape of its own for it.
+ *
+ * @param {string|null|undefined} file A file name, or nothing.
+ * @returns {string|null|undefined} The spelled name, or the nothing it was given.
+ */
+function spelled(file) {
+  return typeof file === 'string' ? plainName(file) : file;
 }
 
 /**
@@ -110,13 +144,13 @@ function entryOf(entry) {
   return {
     ruleId: entry.ruleId,
     severity: entry.severity,
-    file: run ? null : entry.file,
+    file: run ? null : spelled(entry.file),
     line: entry.line ?? null,
     lines: entry.lines ?? [],
     message: entry.message,
     guideUrl: entry.guideUrl ?? null,
     marker: entry.marked === true,
-    ...(run ? { scope: 'run', files: [...(entry.files ?? [])].sort() } : {}),
+    ...(run ? { scope: 'run', files: [...(entry.files ?? [])].sort().map(spelled) } : {}),
   };
 }
 
@@ -155,15 +189,38 @@ export function runDocument({ tool, result, dryRun, exitCode }) {
     exitCode,
     interrupted: result.interrupted === true,
     counts,
-    changedFiles: [...result.changedFiles],
+    changedFiles: result.changedFiles.map(spelled),
     entries: sortedEntries(report.entries).map(entryOf),
     notAutomated: (result.notAutomated ?? []).map(notAutomatedOf),
-    skipped: report.skipped().map(entry => ({ file: entry.file, reason: entry.message })),
+    skipped: report.skipped().map(entry => ({ file: spelled(entry.file), reason: entry.message })),
     notes: [...result.notes],
-    changes: dryRun ? result.diffs.map(({ file, diff }) => ({ file, diff }))
+    changes: dryRun ? result.diffs.map(({ file, diff }) => ({ file: spelled(file), diff }))
       .sort((a, b) => a.file.localeCompare(b.file)) : [],
-    error: result.error ?? null,
+    error: result.error ?? failureText(report),
   };
+}
+
+/**
+ * What a run says about its files that failed: how many it could not read, and how many it could not write. `null` when
+ * every file was handled.
+ *
+ * @param {import('./report.mjs').Report} report The report.
+ * @returns {string|null} The text.
+ */
+function failureText(report) {
+  const { read, written } = report.failedFiles();
+  const parts = [];
+
+  if (read.size > 0) {
+    parts.push(`${read.size === 1 ? '1 file' : `${read.size} files`} could not be read.`);
+  }
+
+  if (written.size > 0) {
+    parts.push(`${written.size === 1 ? '1 file' : `${written.size} files`} could not be written.`);
+  }
+
+  return parts.length > 0 ? `${parts.join(' ')} See the entries with the rule ids parse-error, transform-error, `
+    + 'read-error, and write-error.' : null;
 }
 
 /**

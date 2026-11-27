@@ -1,5 +1,5 @@
 import { parse as parseSfc } from '@vue/compiler-sfc';
-import { CSS_PRECHECK, createCssPart, printCssPart } from './css.mjs';
+import { COMMON_NAME_PRECHECK, CSS_PRECHECK, createCssPart, printCssPart } from './css.mjs';
 import { JS_PRECHECK, createJsPart, printJsPart } from './js.mjs';
 
 const SCRIPT_PARSERS = new Map([
@@ -22,6 +22,13 @@ const NO_SCRIPT_OR_TEMPLATE = /^At least one <template> or <script> is required/
  * adds the wrapper tags, so a template-only component that uses a globally registered `<hot-table>` is still read.
  */
 const MENTIONS = /--ht-|\bht-|handsontable|\.pika-/i;
+
+/**
+ * What makes the template of a component a use of Handsontable: a wrapper element. For a script it is the package, or a
+ * wrapper package, by name. A component like that has a Handsontable stylesheet in every `<style>` block.
+ */
+const HOT_TEMPLATE = /<hot-?(?:table|column)\b|<HotTable|<HotColumn/;
+const HOT_SCRIPT = /handsontable/i;
 const STYLE_LANGS = new Set([undefined, 'css', 'postcss', 'scss']);
 const TEMPLATE_LANGS = new Set([undefined, 'html']);
 
@@ -81,13 +88,14 @@ function inFileCoordinates(error, block) {
  * @param {'script'|'style'|'template'} type Block type.
  * @param {string} filePath File path, for parser error messages.
  * @param {boolean} fileMentions Whether the whole file mentions Handsontable or a theme variable.
+ * @param {boolean} [hotComponent] Whether the template or a script of the file uses Handsontable.
  * @returns {{part: object|null, skipped: {type: string, lang: string|null, line: number, src: boolean,
  * relevant: boolean}|null}} The part, or the description of a block the adapter does not handle. `relevant` is
  * `true` when the block's own text mentions Handsontable or a theme variable, or, for a `src=` block whose text
  * is not in the file, when the file does. Both are `null` for a block that cannot matter (empty, or without any
  * text a rule could match).
  */
-function blockToPart(block, type, filePath, fileMentions) {
+function blockToPart(block, type, filePath, fileMentions, hotComponent = false) {
   const { lang, src, loc } = block;
   const skipped = {
     type,
@@ -130,7 +138,9 @@ function blockToPart(block, type, filePath, fileMentions) {
       return { part: null, skipped };
     }
 
-    if (!CSS_PRECHECK.test(block.content)) {
+    // A block of a Handsontable component is read whatever it names. Another block is read when it names Handsontable,
+    // or a class name that is a common word and a rule judges by the rest of the stylesheet (`unmarked`).
+    if (!hotComponent && !CSS_PRECHECK.test(block.content) && !COMMON_NAME_PRECHECK.test(block.content)) {
       return { part: null, skipped: null };
     }
 
@@ -139,6 +149,7 @@ function blockToPart(block, type, filePath, fileMentions) {
         ...createCssPart(block.content, filePath, lang === 'scss', lineOffset),
         scoped: Boolean(block.scoped),
         module: Boolean(block.module),
+        hotComponent,
       });
     } catch (error) {
       throw inFileCoordinates(error, block);
@@ -156,6 +167,7 @@ function blockToPart(block, type, filePath, fileMentions) {
     j: null,
     lineOffset,
     changed: false,
+    hotComponent,
   });
 }
 
@@ -214,9 +226,11 @@ const vueAdapter = {
     ];
     const parts = [];
     const skippedBlocks = [];
+    const hotComponent = blocks.some(([block, type]) => (type === 'template' && HOT_TEMPLATE.test(block.content))
+      || (type === 'script' && HOT_SCRIPT.test(block.content)));
 
     for (const [block, type] of blocks) {
-      const { part, skipped } = blockToPart(block, type, filePath, MENTIONS.test(source));
+      const { part, skipped } = blockToPart(block, type, filePath, MENTIONS.test(source), hotComponent);
 
       if (part) {
         parts.push(part);

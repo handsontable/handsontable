@@ -12,7 +12,7 @@ import { GitError, GitNotFoundError, dirtyPaths, hiddenPaths, isGitRepo, isTrack
 import { findBrowserslistrc } from './lib/browserslist.mjs';
 import { packageFilesAbove, registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
-import { NotUtf8Error, readUtf8, stripBom } from './lib/text-file.mjs';
+import { NotUtf8Error, formatSize, readUtf8, stripBom } from './lib/text-file.mjs';
 import { unreachedPackageNotes } from './lib/unreached-package.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
 import { MarkerCarriers } from './lib/carrier.mjs';
@@ -79,19 +79,23 @@ function hasVeryLongLine(text) {
 }
 
 /**
+ * Whether a parsed `package.json` declares Handsontable or one of its wrappers, in any dependency section.
+ *
+ * @param {object} manifest The parsed file.
+ * @returns {boolean} `true` when a dependency is `handsontable` or starts with `@handsontable/`.
+ */
+function declaresHandsontable(manifest) {
+  return ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'].some(section => (
+    manifest[section] !== null && typeof manifest[section] === 'object'
+    && Object.keys(manifest[section]).some(name => name === 'handsontable' || name.startsWith('@handsontable/'))));
+}
+
+/**
  * Milliseconds between progress reports while a run visits files.
  */
 export const PROGRESS_INTERVAL_MS = 2000;
 
-/**
- * A size for a message: bytes below 1 KB, kilobytes with one decimal above.
- *
- * @param {number} bytes The size in bytes.
- * @returns {string} For example `300 bytes`, `1 byte`, or `1.5 KB`.
- */
-export function formatSize(bytes) {
-  return bytes < 1024 ? `${bytes} ${bytes === 1 ? 'byte' : 'bytes'}` : `${(bytes / 1024).toFixed(1)} KB`;
-}
+export { formatSize };
 
 /**
  * The report entry that says a file, or a block of it, was not analyzed.
@@ -375,10 +379,14 @@ function wantsMarker(entry, owner) {
  * @param {import('./types.mjs').CatalogInfo|null} args.catalog The pnpm catalogs of a `package.json`, or `null`.
  * @param {import('./types.mjs').AncestorManifest[]} args.ancestors The `package.json` files above this one.
  * @param {{file: string, text: string}|null} args.browserslistrc The `.browserslistrc` next to a `package.json`, or `null`.
+ * @param {boolean|null} args.projectUsesHandsontable Whether the `package.json` files above an HTML page declare
+ * Handsontable, or `null` when that is not known.
  * @returns {{ctx: import('./types.mjs').Ctx, marks: Mark[]}} The context, and the markers its `manual` entries ask
  * for. `applyMarkers()` places them once every transform has run.
  */
-function createContext({ filePath, part, plan, entries, facts, options, catalog, ancestors, browserslistrc }) {
+function createContext({
+  filePath, part, plan, entries, facts, options, catalog, ancestors, browserslistrc, projectUsesHandsontable,
+}) {
   const merged = new Map();
   const marks = [];
   const twinTargets = new Set([...plan.rulesById.values()].flatMap(rule => rule.twins ?? []));
@@ -615,6 +623,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     removeStatement,
     derived,
     cssScope: cssScopeOf(part),
+    hotComponent: part.hotComponent === true,
     lineOffset: part.lineOffset,
     fromText: plan.fromText ?? '',
     facts,
@@ -622,6 +631,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     catalog,
     ancestors,
     browserslistrc,
+    projectUsesHandsontable,
     markChanged,
   };
 
@@ -729,6 +739,9 @@ function applyMarkers(part, marks, plan) {
  * first, parsed. A fixture has none.
  * @param {{file: string, text: string}|null} [args.browserslistrc] The `.browserslistrc` next to a `package.json`, read by
  * the caller, for the rule that checks the browsers a project targets.
+ * @param {boolean|null} [args.projectUsesHandsontable] For an HTML page: whether a `package.json` above it declares
+ * Handsontable or a wrapper (`true`), none does (`false`), or the caller does not know (`null`, the default). A rule with
+ * `unmarked` reports a page that names nothing of Handsontable only when this is not `false`.
  * @param {object} [args.hooks] Injection point for tests. `afterCommit(part)` runs for each part once its carriers
  * committed and before it is printed, so a test can break a sentinel and watch the file stay as it was. It exists for
  * nothing else.
@@ -747,6 +760,7 @@ export async function transformFile({
   catalog = null,
   ancestors = [],
   browserslistrc = null,
+  projectUsesHandsontable = null,
   hooks = {},
 }) {
   const unchanged = skipped => ({ output: source, changed: false, entries: [], skipped });
@@ -816,7 +830,16 @@ export async function transformFile({
   try {
     for (const part of handle.parts) {
       const { ctx, marks } = createContext({
-        filePath, part, plan, entries, facts, options: fullOptions, catalog, ancestors, browserslistrc,
+        filePath,
+        part,
+        plan,
+        entries,
+        facts,
+        options: fullOptions,
+        catalog,
+        ancestors,
+        browserslistrc,
+        projectUsesHandsontable,
       });
 
       for (const step of steps) {
@@ -1128,8 +1151,8 @@ async function scanPackageVersions(cwd, paths) {
  * @param {boolean} [args.lenientFrom] When `true`, a missing `--from` that cannot be detected means "from the
  * beginning" instead of an error.
  * @returns {Promise<{plan: import('./types.mjs').Plan, selected: import('./types.mjs').Manifest[],
- * notes: string[], reportNotes: string[], fromText: string, toText: string}>} The plan and the facts about the
- * range. `reportNotes` are the notes that also go at the top of the report.
+ * notes: string[], reportNotes: string[], fromText: string, toText: string, endsAt: string}>} The plan and the
+ * facts about the range. `endsAt` is the newest selected migration that has rules. `reportNotes` are the notes that also go at the top of the report.
  * @throws {UsageError} For an unusable range, an unknown rule id, or an undetectable `--from`.
  */
 export async function resolvePlan({
@@ -1225,18 +1248,26 @@ export async function resolvePlan({
   ));
 
   if (selected.length === 0) {
+    const leftOut = draftsOfOnly(manifests, only, includeDraft);
+
+    if (leftOut.length > 0) {
+      throw new UsageError(draftOnlyMessage(only, leftOut));
+    }
+
     throw new UsageError(nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts }));
   }
 
   const newest = selected[selected.length - 1];
+  // A migration with no rules (an empty draft) changes and reports nothing, so it is never the stated end of a run.
+  const endsAt = (selected.filter(manifest => manifest.rules.length > 0).pop() ?? newest).version;
 
   if (isNewerLine(parseVersion(toText), parseVersion(newest.version))) {
     const draft = skippedDrafts.find(manifest => !isNewerLine(parseVersion(toText), parseVersion(manifest.version)));
     const note = draft
       ? `${toText} is a draft migration${toText === draft.version ? '' : ` (${draft.version})`} and was skipped. `
-        + `The run stops at ${newest.version}. `
+        + `The run stops at ${endsAt}. `
         + 'Add --include-draft to run it.'
-      : `No migration for ${toText} is known. Migrated up to ${newest.version}.`;
+      : `No migration for ${toText} is known. Migrated up to ${endsAt}.`;
 
     notes.push(note);
     reportNotes.push(note);
@@ -1246,13 +1277,10 @@ export async function resolvePlan({
   const unknown = only.filter(pattern => !ids.some(id => matchesOnly(pattern, id)));
 
   if (unknown.length > 0) {
-    const drafts = includeDraft ? [] : manifests.filter(manifest => manifest.status === 'draft'
-      && manifest.rules.some(rule => unknown.some(pattern => matchesOnly(pattern, rule.id))));
+    const drafts = draftsOfOnly(manifests, unknown, includeDraft);
 
     if (drafts.length > 0) {
-      throw new UsageError(`Unknown rule id: ${unknown.join(', ')}. That rule belongs to the draft migration `
-        + `${drafts.map(manifest => manifest.version).join(', ')}, which a run leaves out. Add --include-draft to `
-        + 'run it.');
+      throw new UsageError(draftOnlyMessage(unknown, drafts));
     }
 
     throw new UsageError(`Unknown rule id: ${unknown.join(', ')}. Run with --list to see the ids in range. `
@@ -1266,7 +1294,37 @@ export async function resolvePlan({
     reportNotes,
     fromText: fromText ?? '',
     toText,
+    endsAt,
   };
+}
+
+/**
+ * The draft manifests that a run leaves out and whose rules a `--only` pattern names.
+ *
+ * @param {import('./types.mjs').Manifest[]} manifests All loaded migrations.
+ * @param {string[]} patterns The `--only` patterns to look for.
+ * @param {boolean} includeDraft Whether drafts run.
+ * @returns {import('./types.mjs').Manifest[]} The drafts.
+ */
+function draftsOfOnly(manifests, patterns, includeDraft) {
+  if (includeDraft || patterns.length === 0) {
+    return [];
+  }
+
+  return manifests.filter(manifest => manifest.status === 'draft'
+    && manifest.rules.some(rule => patterns.some(pattern => matchesOnly(pattern, rule.id))));
+}
+
+/**
+ * The usage error for a `--only` that names a rule of a draft the run leaves out.
+ *
+ * @param {string[]} patterns The patterns that found no rule in range.
+ * @param {import('./types.mjs').Manifest[]} drafts The drafts they name.
+ * @returns {string} The message.
+ */
+function draftOnlyMessage(patterns, drafts) {
+  return `Unknown rule id: ${patterns.join(', ')}. That rule belongs to the draft migration `
+    + `${drafts.map(manifest => manifest.version).join(', ')}, which a run leaves out. Add --include-draft to run it.`;
 }
 
 /**
@@ -1298,7 +1356,13 @@ function isNewerLine(wanted, known) {
  * @returns {string} The message.
  */
 function nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts }) {
-  const known = manifests.map(manifest => `${manifest.version}${manifest.status === 'draft' ? ' (draft)' : ''}`);
+  const known = manifests.map((manifest) => {
+    if (manifest.status !== 'draft') {
+      return manifest.version;
+    }
+
+    return `${manifest.version} (draft${manifest.rules.length === 0 ? ', no rules yet' : ''})`;
+  });
   const parts = [];
 
   if (detected?.version) {
@@ -1412,10 +1476,10 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {object} [options.hooks] Injection points for tests. `discover` replaces the file search, and
  * `beforeRename(file)` runs after the temporary file of a write is complete, before it replaces the original.
  * @returns {Promise<{changedFiles: string[], report: Report, diffs: Array<{file: string, diff: string}>,
- * exitCode: number, notes: string[], error: string|null, from: string, to: string, usedDraft: boolean,
+ * exitCode: number, notes: string[], error: string|null, from: string, to: string,
  * draftRangeVersion: string|null, interrupted: boolean, inGit: boolean, notAutomated: object[]}>} The outcome.
  * `exitCode` is 0 on success, 1 when a file could not be parsed, read, or transformed, and 2 for a usage error or a
- * refused dirty tree. `usedDraft` is `true` when a draft migration was in the run. `draftRangeVersion` is the newest
+ * refused dirty tree. `draftRangeVersion` is the newest
  * unpublished draft version in the run whose `dependency` rules bump or add a package, so it writes a range that no
  * published version satisfies, or `null`. `interrupted` is `true` when
  * `signal` stopped the run before every file was visited, and `inGit` says whether the project is in a git repository,
@@ -1455,7 +1519,6 @@ export async function run({
     error: null,
     from: '',
     to: '',
-    usedDraft: false,
     draftRangeVersion: null,
     interrupted: false,
     inGit: false,
@@ -1469,8 +1532,7 @@ export async function run({
     result.notes = resolved.notes;
     result.notAutomated = resolved.plan.notAutomated;
     result.from = resolved.fromText;
-    result.to = resolved.selected[resolved.selected.length - 1].version;
-    result.usedDraft = resolved.selected.some(manifest => manifest.status === 'draft');
+    result.to = resolved.endsAt;
     // Only a draft that bumps or adds a package, and whose packages are not on npm yet (`published`), can write a range
     // that no published version satisfies.
     const writesRange = rule => rule.kind === 'dependency'
@@ -1588,13 +1650,14 @@ export async function run({
    * One that cannot be read or parsed stays in the list with `manifest: null`, so a rule that depends on what the
    * files above declare can tell that it does not know.
    *
-   * @param {string} file Project-relative path of a `package.json`.
+   * @param {string} file Project-relative path of a `package.json`, or of a page when `includeOwn` is set.
+   * @param {{includeOwn?: boolean}} [listing] `includeOwn` also reads the `package.json` of the file's own directory.
    * @returns {Promise<import('./types.mjs').AncestorManifest[]>} The manifests.
    */
-  const ancestorsOf = async(file) => {
+  const ancestorsOf = async(file, listing) => {
     const found = [];
 
-    for (const above of packageFilesAbove(facts, file)) {
+    for (const above of packageFilesAbove(facts, file, listing)) {
       if (!manifests.has(above)) {
         manifests.set(above, await readUtf8(join(cwd, above)).then(text => JSON.parse(stripBom(text)))
           .catch(() => null));
@@ -1609,6 +1672,24 @@ export async function run({
     }
 
     return found;
+  };
+
+  // Whether a `package.json` above an HTML page declares Handsontable or a wrapper: `null` when no `package.json` is
+  // known above it or one cannot be read and none says yes. Only an HTML page asks, and only a plan with a rule that
+  // judges a page with no mark of its own (`unmarked`).
+  const asksProject = resolved.plan.versions.some(({ rules }) => rules.some(rule => rule.unmarked !== undefined));
+  const projectUsesHandsontable = async(file) => {
+    if (!asksProject || !/\.html?$/i.test(file)) {
+      return null;
+    }
+
+    const above = await ancestorsOf(file, { includeOwn: true });
+
+    if (above.some(({ manifest }) => manifest !== null && declaresHandsontable(manifest))) {
+      return true;
+    }
+
+    return above.length === 0 || above.some(({ manifest }) => manifest === null) ? null : false;
   };
 
   // A `.browserslistrc` is no file the run discovers, so it is read only for a rule that checks the browsers.
@@ -1674,6 +1755,7 @@ export async function run({
       catalog: phase === 2 && source.includes('catalog:') ? await findCatalog(cwd, file) : null,
       ancestors: phase === 2 ? await ancestorsOf(file) : [],
       browserslistrc: phase === 2 && checksBrowsers ? await findBrowserslistrc(cwd, file, maxFileSize) : null,
+      projectUsesHandsontable: phase === 1 ? await projectUsesHandsontable(file) : null,
     });
 
     if (!outcome.changed) {
@@ -1739,30 +1821,40 @@ export async function run({
 
   let lastProgress = Date.now();
 
-  // The signal is read between files only, so the file in progress is written or left as it was, never half done.
-  for (const [index, file] of files.entries()) {
-    if (signal?.aborted) {
-      result.interrupted = true;
-      break;
-    }
-
-    await visit(file, 1);
-
-    if (onProgress && Date.now() - lastProgress >= progressIntervalMs) {
-      lastProgress = Date.now();
-      onProgress({ done: index + 1, total: files.length });
-    }
-  }
-
-  if (!result.interrupted && orderSteps(resolved.plan, registry, 2).length > 0) {
-    for (const file of packageFiles) {
+  try {
+    // The signal is read between files only, so the file in progress is written or left as it was, never half done.
+    for (const [index, file] of files.entries()) {
       if (signal?.aborted) {
         result.interrupted = true;
         break;
       }
 
-      await visit(file, 2);
+      await visit(file, 1);
+
+      if (onProgress && Date.now() - lastProgress >= progressIntervalMs) {
+        lastProgress = Date.now();
+        onProgress({ done: index + 1, total: files.length });
+      }
     }
+
+    if (!result.interrupted && orderSteps(resolved.plan, registry, 2).length > 0) {
+      for (const file of packageFiles) {
+        if (signal?.aborted) {
+          result.interrupted = true;
+          break;
+        }
+
+        await visit(file, 2);
+      }
+    }
+  } catch (error) {
+    // A crash while files are being visited leaves some of them written. The caller reports which, from `partial`.
+    if (error !== null && typeof error === 'object') {
+      result.changedFiles = [...new Set(result.changedFiles)].sort();
+      error.partial = result;
+    }
+
+    throw error;
   }
 
   result.changedFiles = [...new Set(result.changedFiles)].sort();

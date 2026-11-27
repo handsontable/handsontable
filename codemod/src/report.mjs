@@ -19,6 +19,16 @@ export const SKIPPED_RULE_ID = 'skipped-file';
  */
 export const BELOW_FROM_RULE_ID = 'below-from';
 
+/**
+ * Rule ids of the entries for a file the run could not read, parse, or transform. The exit code of such a run is 1.
+ */
+const READ_FAILURES = ['parse-error', 'transform-error', 'read-error'];
+
+/**
+ * Rule id of the entry for a file the run could not write. The exit code of such a run is 1.
+ */
+const WRITE_FAILURE = 'write-error';
+
 const VERSIONED_ID = /^(\d+)\.(\d+)\.(\d+)\//;
 
 /**
@@ -117,23 +127,50 @@ export class Report {
   }
 
   /**
-   * Count entries per severity. An entry that applies to a whole run counts once, and so does a skipped file.
-   * `marked` is how many of the `manual` entries have a TODO marker in the code, and `markedReview` how many of the
-   * `review` entries have one.
+   * Count entries per severity. A skipped file counts once. A note for a whole run (`scope: 'run'`) is counted apart,
+   * as `notes`, whatever its severity: it says what a rewrite changed, it is listed under "Read once", and it asks
+   * for nothing at a spot, so it is in none of the other counts. `marked` is how many of the `manual` entries have a
+   * TODO marker in the code, and `markedReview` how many of the `review` entries have one.
    *
-   * @returns {{changed: number, manual: number, review: number, warning: number, marked: number,
+   * @returns {{changed: number, manual: number, review: number, warning: number, notes: number, marked: number,
    * markedReview: number}} The counts.
    */
   counts() {
-    const counts = { changed: 0, manual: 0, review: 0, warning: 0, marked: 0, markedReview: 0 };
+    const counts = { changed: 0, manual: 0, review: 0, warning: 0, notes: 0, marked: 0, markedReview: 0 };
 
     this.entries.forEach((entry) => {
+      if (entry.scope === 'run') {
+        counts.notes += 1;
+
+        return;
+      }
+
       counts[entry.severity] += 1;
       counts.marked += entry.severity === 'manual' && entry.marked === true ? 1 : 0;
       counts.markedReview += entry.severity === 'review' && entry.marked === true ? 1 : 0;
     });
 
     return counts;
+  }
+
+  /**
+   * The files that a run could not read, parse, or transform (`read`) and the files it could not write (`written`),
+   * as sets of paths. A file with both kinds of failure is in each set.
+   *
+   * @returns {{read: Set<string>, written: Set<string>}} The files.
+   */
+  failedFiles() {
+    const files = { read: new Set(), written: new Set() };
+
+    this.entries.forEach((entry) => {
+      if (READ_FAILURES.includes(entry.ruleId)) {
+        files.read.add(entry.file);
+      } else if (entry.ruleId === WRITE_FAILURE) {
+        files.written.add(entry.file);
+      }
+    });
+
+    return files;
   }
 
   /**
@@ -318,7 +355,7 @@ export function clusterByMessage(entries) {
  * @param {number} [options.filesChanged] Files the run changed, or would change.
  * @param {boolean} [options.dryRun] Whether nothing was written.
  * @returns {string} For example `Summary: 3 files changed, 12 rewrites applied, 5 manual steps, 4 to review, 2
- * warnings.`
+ * warnings.` A run with notes for the whole run adds `, 1 note to read once` before the full stop.
  */
 export function summaryLine(report, { filesChanged = 0, dryRun = false } = {}) {
   const counts = report.counts();
@@ -326,7 +363,8 @@ export function summaryLine(report, { filesChanged = 0, dryRun = false } = {}) {
 
   return `Summary: ${plural(filesChanged, 'file')} ${dryRun ? 'would change' : 'changed'}, `
     + `${plural(counts.changed, 'rewrite')} ${applied}, ${plural(counts.manual, 'manual step')}, `
-    + `${counts.review} to review, ${plural(counts.warning, 'warning')}.`;
+    + `${counts.review} to review, ${plural(counts.warning, 'warning')}`
+    + `${counts.notes > 0 ? `, ${plural(counts.notes, 'note')} to read once` : ''}.`;
 }
 
 /**

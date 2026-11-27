@@ -50,3 +50,13 @@ export function stripBom(text) {
 export async function readUtf8(path) {
   return decodeUtf8(await readFile(path));
 }
+
+/**
+ * A size for a message: bytes below 1 KB, kilobytes with one decimal above.
+ *
+ * @param {number} bytes The size in bytes.
+ * @returns {string} For example `300 bytes`, `1 byte`, or `1.5 KB`.
+ */
+export function formatSize(bytes) {
+  return bytes < 1024 ? `${bytes} ${bytes === 1 ? 'byte' : 'bytes'}` : `${(bytes / 1024).toFixed(1)} KB`;
+}

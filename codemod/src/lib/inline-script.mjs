@@ -270,3 +270,52 @@ export function createLineCounter(source) {
     return line;
   };
 }
+
+/**
+ * List the `<style>` elements of a text, in order. The body of a style element is raw text up to the next `</style`,
+ * so the scan needs no index: it reads each tag once from left to right, and the next search starts after the body.
+ * A quote in the start tag must close, or the scan ends there.
+ *
+ * @param {string} source HTML text.
+ * @returns {Array<{index: number, attributes: string, body: string}>} For each element, the offset of the first
+ * character of its body, the text between the tag name and the `>` of the start tag, and the body.
+ */
+export function scanStyles(source) {
+  const lower = asciiLower(source);
+  const styles = [];
+  let from = 0;
+
+  for (let at = lower.indexOf('<style', from); at !== -1; at = lower.indexOf('<style', from)) {
+    const nameEnd = at + '<style'.length;
+
+    if (isWordAt(lower, nameEnd)) {
+      from = nameEnd;
+      continue;
+    }
+
+    let end = nameEnd;
+    let quote = null;
+
+    while (end < source.length && (quote !== null || source[end] !== '>')) {
+      if (quote !== null) {
+        quote = source[end] === quote ? null : quote;
+      } else if (source[end] === '"' || source[end] === '\'') {
+        quote = source[end];
+      }
+
+      end += 1;
+    }
+
+    if (end >= source.length) {
+      break;
+    }
+
+    const close = lower.indexOf('</style', end + 1);
+    const bodyEnd = close === -1 ? source.length : close;
+
+    styles.push({ index: end + 1, attributes: source.slice(nameEnd, end), body: source.slice(end + 1, bodyEnd) });
+    from = Math.max(bodyEnd, nameEnd);
+  }
+
+  return styles;
+}

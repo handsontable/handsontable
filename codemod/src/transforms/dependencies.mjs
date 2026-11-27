@@ -6,7 +6,7 @@ import { memberPosition, scanJson } from '../lib/json-edit.mjs';
 import { redact } from '../lib/redact.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { problemsOf } from '../lib/validate.mjs';
-import { BELOW_FROM_RULE_ID } from '../report.mjs';
+import { BELOW_FROM_RULE_ID, SKIPPED_RULE_ID } from '../report.mjs';
 import { lineBelowFrom, minimumOfRange } from '../versions.mjs';
 
 /**
@@ -857,6 +857,11 @@ function lineOfKey(ctx, key) {
 }
 
 /**
+ * The most queries one message of the Browserslist check names. The rest are counted ("and 5 more").
+ */
+const MAX_QUERIES_LISTED = 10;
+
+/**
  * Report one Browserslist configuration against the minimum browsers of a release: a `manual` entry that names the
  * queries below the minimum, and a `review` entry that names the queries the tool cannot judge. Nothing is edited.
  *
@@ -872,8 +877,14 @@ function reportConfig(ctx, rule, { file, queries, line }) {
   const spec = rule.browserslist;
   const names = spec.names ?? {};
   const minimums = listOf(Object.entries(spec.minimums).map(([key, version]) => `${names[key] ?? key} ${version}`));
-  const { below, unchecked } = judgeQueries(queries.map(item => item.query), spec);
+  const judged = judgeQueries(queries.map(item => item.query), spec);
+  // A file can repeat a query many times. Each one is said once, and a long list is cut, so the message stays short.
+  const below = [...new Set(judged.below)];
+  const unchecked = [...new Set(judged.unchecked)];
   const lineOf = list => line ?? queries.find(item => item.query === list[0])?.line;
+  const shown = list => list.slice(0, MAX_QUERIES_LISTED);
+  const named = list => `${listOf(shown(list))}${list.length > MAX_QUERIES_LISTED
+    ? ` and ${list.length - MAX_QUERIES_LISTED} more` : ''}`;
 
   if (below.length > 0) {
     ctx.report({
@@ -882,9 +893,9 @@ function reportConfig(ctx, rule, { file, queries, line }) {
       file,
       line: lineOf(below),
       todo: false,
-      quoted: below,
+      quoted: shown(below),
       message: `Raise the Browserslist targets in ${file} to the ${spec.release} minimums: ${minimums}. `
-        + `${listOf(below)} ${below.length === 1 ? 'targets' : 'target'} an older version, and ${spec.release} does `
+        + `${named(below)} ${below.length === 1 ? 'targets' : 'target'} an older version, and ${spec.release} does `
         + 'not support it. The tool never edits a Browserslist configuration.',
     });
   }
@@ -898,8 +909,8 @@ function reportConfig(ctx, rule, { file, queries, line }) {
       file,
       line: lineOf(unchecked),
       todo: false,
-      quoted: unchecked,
-      message: `Check what ${listOf(unchecked)} in ${file} select, because the tool cannot judge ${those} without the `
+      quoted: shown(unchecked),
+      message: `Check what ${named(unchecked)} in ${file} select, because the tool cannot judge ${those} without the `
         + `data of Browserslist. They are fine when no browser below the ${spec.release} minimums (${minimums}) is in `
         + 'the result: run npx browserslist in the project to see it.',
     });
@@ -930,7 +941,15 @@ function reportBrowserslist(ctx, rule) {
     });
   }
 
-  if (ctx.browserslistrc) {
+  if (ctx.browserslistrc?.skipped) {
+    // The file exists and the tool could not use it. Say so as for any other file it skipped.
+    ctx.report({
+      ruleId: SKIPPED_RULE_ID,
+      severity: 'warning',
+      file: ctx.browserslistrc.file,
+      message: ctx.browserslistrc.skipped,
+    });
+  } else if (ctx.browserslistrc) {
     reportConfig(ctx, rule, { file: ctx.browserslistrc.file, queries: queriesOfRc(ctx.browserslistrc.text) });
   }
 }

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
@@ -97,22 +97,56 @@ describe('judgeQueries()', () => {
     assert.deepEqual(judge('safari > 17').below, ['safari > 17']);
   });
 
+  it('judges every comparison with whole numbers, for a browser with whole versions and one with minors', () => {
+    // [query, below]. Chrome has whole versions only: `> 129.5` selects 130. Safari has minors: the last one below the
+    // minimum 18.2 is 18.1, so `> 18` and `> 18.0` select it and `> 18.1` does not. Numbers are compared as integers,
+    // so 18.10 is above 18.2.
+    const table = [
+      ['chrome > 129', false], ['chrome > 129.5', false], ['chrome > 128.9', true], ['chrome > 128', true],
+      ['chrome >= 129.5', false], ['chrome >= 129', true], ['chrome >= 130', false], ['chrome >= 130.0', false],
+      ['chrome 130', false], ['chrome 129', true], ['chrome < 130', true], ['chrome <= 131', true],
+      ['chrome 129-131', true], ['chrome 130-140', false], ['firefox > 131.5', false], ['fx > 130', true],
+      ['edge > 129', false], ['edge >= 131', false],
+      ['safari > 18', true], ['safari > 18.0', true], ['safari > 18.1', false], ['safari > 18.1.5', false],
+      ['safari > 17.6', true], ['safari > 17', true], ['safari > 18.2', false], ['safari >= 18.1', true],
+      ['safari >= 18.2', false], ['safari >= 18.10', false], ['safari 18.10', false], ['safari 18.1', true],
+      ['safari 18.0', true], ['safari 18', true], ['safari 18.2-18.4', false], ['safari 18.1-18.4', true],
+      ['safari 18-18.4', true], ['ios_saf > 18', true], ['ios > 18', true], ['ios_saf > 18.1', false],
+      ['ios_saf >= 18.2', false], ['ios_saf < 19', true], ['ios_saf <= 18.2', true],
+    ];
+
+    for (const [query, below] of table) {
+      assert.deepEqual(judge(query).below, below ? [query] : [], query);
+    }
+  });
+
   it('flags "<" and "<=" always, because they take in every older version', () => {
     assert.deepEqual(judge('chrome < 140', 'firefox <= 200', 'safari < 19').below,
       ['chrome < 140', 'firefox <= 200', 'safari < 19']);
   });
 
   it('leaves a query with "not" out, as it only removes browsers, and so a browser with no minimum', () => {
-    const queries = ['not dead', 'not ie 11', 'NOT chrome < 100', 'ie 11', 'samsung 12', 'node 18', 'op_mini all'];
+    const queries = ['not dead', 'not ie 11', 'NOT chrome < 100', 'ie 11', 'samsung 12', 'node 18'];
 
-    assert.deepEqual(judge(...queries), { below: [], unchecked: ['op_mini all'] });
+    assert.deepEqual(judge(...queries), { below: [], unchecked: [] });
+  });
+
+  it('leaves out a query that names only browsers with no minimum, and keeps the ones it cannot place', () => {
+    const never = ['op_mini all', 'Op_Mini all', 'maintained node versions', 'current node', 'node 18', 'node >= 18',
+      'node current', 'dead', 'and_chr 100', 'and_chr >= 100', 'last 2 node versions', 'last 1 op_mini version',
+      'last 2 ie versions', 'unreleased node versions', 'ie_mob 11', 'baidu 13.18'];
+    const unknown = ['defaults', 'last 2 versions', 'last 2 chrome versions', 'unreleased versions', 'cover 99.5%',
+      'supports es6-module', 'op_mini all and > 1%', 'not dead and defaults'];
+
+    assert.deepEqual(judge(...never), { below: [], unchecked: [] });
+    assert.deepEqual(judge(...unknown).unchecked, unknown.filter(query => !/^not /i.test(query)));
   });
 
   it('puts what needs the data of Browserslist, and a query with "and", in unchecked', () => {
     assert.deepEqual(judge('defaults', 'last 2 versions', '> 0.5%', 'extends @acme/browsers', 'cover 99.5%',
-      'chrome >= 110 and > 1%', 'unreleased versions', 'since 2020', 'maintained node versions').unchecked,
+      'chrome >= 110 and > 1%', 'unreleased versions', 'since 2020').unchecked,
     ['defaults', 'last 2 versions', '> 0.5%', 'extends @acme/browsers', 'cover 99.5%', 'chrome >= 110 and > 1%',
-      'unreleased versions', 'since 2020', 'maintained node versions']);
+      'unreleased versions', 'since 2020']);
   });
 
   it('puts a range with a comparison in unchecked, and keeps the order of the queries', () => {
@@ -151,13 +185,38 @@ describe('findBrowserslistrc()', () => {
       await writeFile(join(dir, 'real'), 'chrome 100\n');
       await symlink(join(dir, 'real'), join(dir, '.browserslistrc'));
 
-      assert.equal(await findBrowserslistrc(dir, 'package.json', 1000), null);
+      const link = await findBrowserslistrc(dir, 'package.json', 1000);
+
+      assert.equal(link.file, '.browserslistrc');
+      assert.equal(link.text, undefined);
+      assert.match(link.skipped, /symbolic link/);
 
       await rm(join(dir, '.browserslistrc'));
       await writeFile(join(dir, '.browserslistrc'), `chrome 100\n${'# x\n'.repeat(100)}`);
-      assert.equal(await findBrowserslistrc(dir, 'package.json', 50), null);
+
+      const large = await findBrowserslistrc(dir, 'package.json', 50);
+
+      assert.equal(large.text, undefined);
+      assert.match(large.skipped, /is 411 bytes, above the limit of 50 bytes/);
+      assert.match(large.skipped, /--max-file-size/);
       await writeFile(join(dir, '.browserslistrc'), Buffer.from([0xff, 0xfe, 0x41]));
+      assert.match((await findBrowserslistrc(dir, 'package.json', 1000)).skipped, /not valid UTF-8/);
+    });
+  });
+
+  it('says nothing for a missing file, and names the reason for a directory and a file it cannot open', async() => {
+    await inDir(async(dir) => {
       assert.equal(await findBrowserslistrc(dir, 'package.json', 1000), null);
+
+      await mkdir(join(dir, '.browserslistrc'));
+      assert.match((await findBrowserslistrc(dir, 'package.json', 1000)).skipped, /not a regular file/);
+      await rm(join(dir, '.browserslistrc'), { recursive: true });
+      await writeFile(join(dir, '.browserslistrc'), 'chrome 100\n', { mode: 0o000 });
+
+      const result = await findBrowserslistrc(dir, 'package.json', 1000);
+
+      // Running as root, a file with no permission is still readable.
+      assert.ok(result.text !== undefined || /could not be read: EACCES/.test(result.skipped), JSON.stringify(result));
     });
   });
 });
@@ -291,16 +350,20 @@ describe('the rule in a run', () => {
     });
   });
 
-  it('does not read a .browserslistrc that is a link, and a project with no configuration gets no entry', async() => {
+  it('does not read a .browserslistrc that is a link, says so, and a project with no configuration gets no entry', async() => {
     const files = { 'package.json': '{ "dependencies": { "handsontable": "^18.1.0" } }\n', 'real.txt': 'safari 14\n' };
 
     await inPlainProject(files,
       async(dir) => {
+        const none = JSON.parse((await migrate(dir, [...FROM, '--json'])).stdout);
+
+        assert.deepEqual(none.entries, []);
+
         await symlink(join(dir, 'real.txt'), join(dir, '.browserslistrc'));
 
-        const { stdout } = await migrate(dir, [...FROM, '--json']);
+        const { entries } = JSON.parse((await migrate(dir, [...FROM, '--json'])).stdout);
 
-        assert.deepEqual(JSON.parse(stdout).entries, []);
+        assert.deepEqual(entries.map(entry => [entry.ruleId, entry.file]), [['skipped-file', '.browserslistrc']]);
       });
   });
 
@@ -312,5 +375,141 @@ describe('the rule in a run', () => {
       assert.deepEqual(JSON.parse(old.stdout).entries.filter(entry => entry.ruleId.startsWith('19.')), []);
       assert.equal(failing.status, 3);
     });
+  });
+});
+
+describe('a .browserslistrc the tool cannot use is a skipped file, never a silent gap', () => {
+  const ARGS = ['--from', '18.1', '--include-draft', '--only', '19.0.0/browserslist-targets', '--dry-run'];
+  const PACKAGE = '{ "dependencies": { "handsontable": "^18.1.0" } }\n';
+
+  /**
+   * Run in a project with the package and the given files, and read the JSON document.
+   *
+   * @param {Record<string, string|Uint8Array>} files The project files.
+   * @param {string[]} [extra] More arguments.
+   * @param {(dir: string) => Promise<void>} [prepare] Runs before the tool, for a link or a permission.
+   * @returns {Promise<{document: object, status: number, stderr: string}>} The outcome.
+   */
+  async function runIn(files, extra = [], prepare = async() => {}) {
+    let outcome;
+
+    await inPlainProject({ 'package.json': PACKAGE, ...files }, async(dir) => {
+      await prepare(dir);
+
+      const { stdout, status, stderr } = await migrate(dir, [...ARGS, ...extra, '--json']);
+
+      outcome = { document: JSON.parse(stdout), status, stderr };
+    });
+
+    return outcome;
+  }
+
+  const skipped = document => document.entries.filter(entry => entry.ruleId === 'skipped-file');
+
+  it('names a file above --max-file-size and the way to raise the limit', async() => {
+    const { document, status } = await runIn({ '.browserslistrc': `chrome 100\n${'# padding\n'.repeat(60)}` },
+      ['--max-file-size', '500']);
+
+    assert.equal(status, 0);
+    assert.deepEqual(skipped(document).map(entry => [entry.severity, entry.file]), [['warning', '.browserslistrc']]);
+    assert.match(skipped(document)[0].message, /above the limit of 500 bytes.*--max-file-size/);
+    assert.equal(document.counts.warning, 1);
+    assert.deepEqual(document.entries.filter(entry => entry.ruleId === '19.0.0/browserslist-targets'), []);
+  });
+
+  it('names a file that is not UTF-8', async() => {
+    const { document } = await runIn({ '.browserslistrc': Buffer.from([0x63, 0xff, 0xfe, 0x0a]) });
+
+    assert.match(skipped(document)[0].message, /not valid UTF-8/);
+    assert.equal(skipped(document)[0].file, '.browserslistrc');
+  });
+
+  it('names a link and does not follow it', async() => {
+    const { document } = await runIn({ 'real.txt': 'safari 14\n' }, [],
+      dir => symlink(join(dir, 'real.txt'), join(dir, '.browserslistrc')));
+
+    assert.match(skipped(document)[0].message, /symbolic link, which the tool does not follow/);
+    assert.deepEqual(document.entries.filter(entry => entry.ruleId === '19.0.0/browserslist-targets'), []);
+  });
+
+  it('names a file it cannot read', { skip: process.platform === 'win32' || process.getuid?.() === 0 }, async() => {
+    const { document, status } = await runIn({ '.browserslistrc': 'chrome 100\n' }, [],
+      dir => chmod(join(dir, '.browserslistrc'), 0o000));
+
+    assert.equal(status, 0);
+    assert.match(skipped(document)[0].message, /could not be read: EACCES/);
+  });
+
+  it('says nothing about a package that does not use Handsontable', async() => {
+    const { document } = await runIn({ 'package.json': '{ "name": "other" }\n',
+      '.browserslistrc': Buffer.from([0xff]) });
+
+    assert.deepEqual(skipped(document), []);
+  });
+});
+
+describe('the message about a configuration stays short', () => {
+  const plan = buildPlan([manifest], ['19.0.0/browserslist-targets']);
+  const run = list => transformFile({
+    filePath: 'package.json',
+    source: JSON.stringify({ dependencies: { handsontable: '^19.0.0' }, browserslist: list }),
+    plan,
+    options: {},
+    phase: 2,
+  });
+
+  it('lists a query once, however often the file repeats it', async() => {
+    const { entries } = await run(Array.from({ length: 30000 }, () => 'last 2 versions'));
+
+    assert.equal(entries.length, 1);
+    assert.deepEqual(entries[0].quoted, ['last 2 versions']);
+    assert.ok(entries[0].message.length < 700, `${entries[0].message.length} characters`);
+  });
+
+  it('lists at most 10 different queries, and counts the rest', async() => {
+    const unjudged = Array.from({ length: 25 }, (_, index) => `last ${index + 3} versions`);
+    const old = Array.from({ length: 13 }, (_, index) => `chrome ${100 + index}`);
+    const { entries } = await run([...unjudged, ...old]);
+    const review = entries.find(entry => entry.severity === 'review');
+    const manual = entries.find(entry => entry.severity === 'manual');
+
+    assert.equal(review.quoted.length, 10);
+    assert.match(review.message, /and 15 more/);
+    assert.equal(manual.quoted.length, 10);
+    assert.match(manual.message, /and 3 more/);
+    assert.ok(review.message.length < 800 && manual.message.length < 800);
+  });
+
+  it('does not say "and N more" when everything fits', async() => {
+    const { entries } = await run(['chrome 100', 'chrome 101', 'chrome 100']);
+
+    assert.deepEqual(entries[0].quoted, ['chrome 100', 'chrome 101']);
+    assert.doesNotMatch(entries[0].message, /more/);
+  });
+});
+
+describe('the Markdown report quotes the query of the user, not a prefix of the minimums', () => {
+  const report = async(query) => {
+    let text;
+
+    await inPlainProject({
+      'package.json': `{ "dependencies": { "handsontable": "^18.1.0" }, "browserslist": ["${query}"] }\n`,
+    }, async(dir) => {
+      await migrate(dir, ['--from', '18.1', '--include-draft', '--only', '19.0.0/browserslist-targets', '--dry-run',
+        '--report', 'r.md']);
+      text = await readFile(join(dir, 'r.md'), 'utf8');
+    });
+
+    return text;
+  };
+
+  it('puts the span on the query, and leaves Safari 18.2 and Chrome 130 as plain text', async() => {
+    const safari = await report('Safari 18');
+    const chrome = await report('Chrome 13');
+
+    assert.match(safari, /minimums: .*Safari 18\.2, and iOS Safari 18\.2\. `Safari 18` targets an older version/);
+    assert.doesNotMatch(safari, /`Safari 18`\.2/);
+    assert.match(chrome, /Chrome 130, Edge 130.*`Chrome 13` targets an older version/);
+    assert.doesNotMatch(chrome, /`Chrome 13`0/);
   });
 });

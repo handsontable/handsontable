@@ -1,0 +1,26 @@
+/* A stylesheet of the project with native nesting. Nothing in it is a name of the grid. */
+.changeType {
+  /* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Check that this selector targets the Handsontable grid. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+  &::before {
+    background-color: blue;
+  }
+
+  &:hover {
+    color: red;
+  }
+}
+
+.page {
+  .collapsibleIndicator {
+    /* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Check that this selector targets the Handsontable grid. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+    &::after {
+      content: '+';
+    }
+  }
+}
+
+.my-card {
+  &::before {
+    content: '';
+  }
+}

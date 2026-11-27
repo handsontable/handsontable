@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { rewrites } from '../src/lib/safety.mjs';
 import { REPORT_CLASSES, buildPlan, loadManifests, validateRule } from '../src/manifest.mjs';
 import { describeRules, transformFile } from '../src/runner.mjs';
+import { validateDetectRule } from '../src/transforms/detect.mjs';
 import { inPlainProject, migrate } from './helpers/plain-project.mjs';
 
 const manifests = await loadManifests();
@@ -14,6 +17,8 @@ const REVIEW_ONLY = `${HEAD}new Handsontable(document.body, { columns: [{ type: 
 const NUMERIC = '{ type: \'numeric\', numericFormat: { pattern: \'0,0\' } }';
 const MANUAL = `${HEAD}new Handsontable(document.body, { columns: [${NUMERIC}] });\n`;
 const BOTH = `${HEAD}new Handsontable(document.body, { columns: [{ type: 'date' }, ${NUMERIC}] });\n`;
+const NOTE_ONLY = 'import type { Endpoint } from \'handsontable/plugins/columnSummary\';\n'
+  + 'export const e: Endpoint = null;\n';
 const BAD = `${HEAD}const = ;\n`;
 
 /**
@@ -130,7 +135,13 @@ describe('the "severity" field of a rule', () => {
   it('is checked by the detect rule on its own, which also takes warning', () => {
     const detect = { id: '18.0.0/x', kind: 'detect', match: { import: 'a' }, files: ['js'], message: 'Check it.' };
 
-    assert.deepEqual(validateRule({ ...detect, severity: 'review' }, '18.0.0'), []);
+    for (const severity of ['manual', 'review', 'warning']) {
+      assert.deepEqual(validateDetectRule({ ...detect, severity }), [], severity);
+    }
+
+    assert.match(validateDetectRule({ ...detect, severity: 'high' })[0], /"severity" must be one of/);
+    // The shared check leaves a detect rule to the detect validation, so `warning` is not refused there.
+    assert.deepEqual(validateRule({ ...detect, severity: 'warning' }, '18.0.0'), []);
   });
 });
 
@@ -251,10 +262,70 @@ describe('--fail-on-manual', () => {
     });
   });
 
+  it('exits 0 when the only thing left is a note that says what a rewrite changed (scope run)', async() => {
+    const files = { 'package.json': PACKAGE, 'a.ts': NOTE_ONLY };
+    const only = ['--only', '18.0.0/type-columnsummary-endpoint'];
+
+    await inPlainProject(files, async(dir) => {
+      const flag = await migrate(dir, [...RANGE, ...only, '--dry-run', '--fail-on-manual', '--report', 'r.md']);
+      const json = await migrate(dir, [...RANGE, ...only, '--dry-run', '--fail-on-manual', '--json']);
+
+      assert.equal(flag.status, 0, flag.stderr);
+      assert.equal(json.status, 0, json.stderr);
+      assert.deepEqual(JSON.parse(json.stdout).counts.notes, 1);
+      assert.equal(JSON.parse(json.stdout).counts.review, 0);
+      assert.equal(JSON.parse(json.stdout).counts.manual, 0);
+    });
+  });
+
   it('has no effect on --list', async() => {
     const { status } = await migrate(process.cwd(), ['--list', '--from', '17.1', '--fail-on-manual']);
 
     assert.equal(status, 0);
+  });
+});
+
+describe('a note for the whole run (scope run) is counted apart from the entries to review', () => {
+  const only = ['--only', '18.0.0/type-columnsummary-endpoint'];
+
+  it('shows in the summary line, in the Next lines, in the report, and in the JSON counts', async() => {
+    await inPlainProject({ 'package.json': PACKAGE, 'a.ts': NOTE_ONLY }, async(dir) => {
+      const { stdout } = await migrate(dir, [...RANGE, ...only]);
+
+      assert.match(stdout, /^Read once \(1\)$/m);
+      assert.doesNotMatch(stdout, /To review/);
+      assert.match(stdout, /0 manual steps, 0 to review, 0 warnings, 1 note to read once\.$/m);
+      assert.doesNotMatch(stdout, /spot to review/);
+      assert.match(stdout, /^Next: read the 1 note under "Read once" in the report\./m);
+    });
+  });
+
+  it('keeps the group count, the summary, and the JSON counts of the entries to review in step', async() => {
+    await inPlainProject({ 'package.json': PACKAGE, 'a.ts': NOTE_ONLY, 'b.js': REVIEW_ONLY }, async(dir) => {
+      const args = [...RANGE, '--only', '18.0.0/type-columnsummary-endpoint', '--only', '18.0.0/date-default-format'];
+      const json = JSON.parse((await migrate(dir, [...args, '--dry-run', '--json'])).stdout);
+      const text = await migrate(dir, args);
+      const group = /^To review \((\d+)\)\./m.exec(text.stdout);
+      const summary = /(\d+) to review, .*?(?:, (\d+) notes? to read once)?\.$/m.exec(text.stdout);
+
+      assert.equal(Number(group[1]), 1);
+      assert.equal(Number(summary[1]), 1);
+      assert.equal(json.counts.review, 1);
+      assert.equal(json.counts.notes, 1);
+      assert.match(text.stdout, /^Next: look at the 1 spot to review/m);
+    });
+  });
+
+  it('is a separate section with its own count in the Markdown report', async() => {
+    await inPlainProject({ 'package.json': PACKAGE, 'a.ts': NOTE_ONLY }, async(dir) => {
+      await migrate(dir, [...RANGE, ...only, '--report', 'r.md']);
+
+      const markdown = await readFile(join(dir, 'r.md'), 'utf8');
+
+      assert.match(markdown, /0 manual steps, 0 to review, 0 warnings, 1 note to read once\./);
+      assert.match(markdown, /^## Read once$/m);
+      assert.doesNotMatch(markdown, /## To review/);
+    });
   });
 });
 
