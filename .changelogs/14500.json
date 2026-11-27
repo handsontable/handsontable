@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a page that stopped responding when a `dataProvider` grid failed to load a new page size or page.",
+  "type": "fixed",
+  "issueOrPR": 14500,
+  "breaking": false,
+  "framework": "none"
+}
