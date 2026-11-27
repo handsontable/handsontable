@@ -2822,6 +2822,76 @@ queue, what is outstanding per surface, and the page's headline numbers. The pur
   in it, merge one more night into a copy of `after.json` (`mergeA11yLedger()`), as
   `a11y-digest.test.mjs` does.
 
+## A11y: the learning routine
+
+The digest says what changed in the ledger; the learning routine asks what the change says about the code
+merged that week, and writes the answer back into the accessibility skill. It is a script and a skill, and
+nothing in the repository starts it: no workflow, no schedule, no key in CI. A scheduled agent or a person
+runs `node .github/scripts/a11y-learn.mjs` after the weekly audit, then follows
+`.claude/skills/handsontable-a11y-learn/SKILL.md`. The pure half is `.github/scripts/lib/a11y-learn.mjs`.
+
+- **A run ends in one of three results:** a draft pull request, nothing attributable, or refused with the
+  reasons. The script's first line says which (`result: packet`, `nothing-attributable` or `refused`), and
+  a refused run exits 3 and writes no packet.
+- **It refuses unless every audit source has a night in the last 24 hours with no problem recorded**
+  (`refusalsOf()`). A missed audit teaches nothing, and a target that was not measured makes its findings
+  new the next time it is. It also refuses when the previous audit's coverage or the commits between the
+  two audited commits cannot be read: it never guesses. `--dry-run` reports all the same, and a dry-run
+  packet never becomes a pull request.
+- **The script sorts every new finding; the agent sorts only what is left.** New means first seen in the
+  latest night of its source, or seen again there after it was resolved. A finding that comes back keeps
+  its first night in the ledger, so the script reads its return (`backAt`, or the gap count of a row
+  written before that field), sorts it like a new one, and the packet counts it apart: a pull request that
+  brings a fixed defect back is what the routine is for. Dropped and counted: **newly measured** (the source's first audit, or a page,
+  check, target, scenario or step the previous audit had not measured, or a re-keyed selector) and
+  **inherited** (newly measured, and the same defect was already open on another page). Set aside and
+  counted: what the catalog calls no defect, what awaits triage, and findings on code no pull request
+  changed. The rest is **attributable**, grouped by cluster and page, and the agent sorts each group into a
+  rule that existed and was broken, no rule, or not preventable.
+- **What the previous audit measured comes from that night's own coverage,** which only the state
+  published at the time keeps, so the script reads earlier commits of `test-health/a11y.json`. A scan keeps
+  no page list, so a page is known when any check of that night named a target on it.
+- **A finding is tied to code by rule, page and cause, never by its selector alone.** A new row whose twin
+  (the same check, kind, rule, cause and target, another selector) was resolved the same night is a
+  re-key: one class added to one element once made dozens of rows look new. An old defect on a new page is
+  told by its rule, cause and element; for a screen reader row, which names a step, by its cluster.
+- **A candidate is a pull request that touched the page's surface, not a verdict.** The surface is the
+  folders and style partials of the plugins and editors that list the page in `tests/a11y/coverage.mjs`
+  (`tests/screenreader/coverage.mjs` for a scenario; for a docs page the folder its guide's file is in,
+  found by the slug the page is served at where the docs list names a folder that does not exist): the
+  `page` tie.
+  With none of those changed, it is the code every page shares: the `shared` tie, with every candidate
+  listed. Another plugin's folder, a test, a type declaration and a generated manifest are no part of a
+  surface. The website's code is in another repository, so its findings are never tied to a commit here.
+  A group also names what changed in the range of what measures it (the page's fixture, the spec of every
+  check its rows come from, a scenario and its goldens): a flag for the agent to read, never a drop.
+- **No task id is in the packet.** A cluster is tracked or not, and a pull request title loses the ids it
+  carries, because the routine's pull request text comes from the packet and the ClickUp integration
+  attaches every id it finds. Anything shaped like an id counts, whatever its prefix, except a short list
+  of names that are none (`UTF-8`, `ISO-8601`, `SHA-256`): a prefix nobody listed would be attached for
+  good, and a name wrongly caught only costs a rewording.
+- **The packet's page escapes every value it writes,** like every report here ("Every value a report
+  writes is escaped for where it lands", above): a selector, a reason, a title and a path go through
+  `escapeMarkdownText()`, and code font is a `<code>` element, never a backtick span. The values come from
+  audits and commit subjects, and the page's lines reach a pull request body.
+- **The routine's pull request may touch `.claude/skills/handsontable-a11y/` and the `defectClass` and
+  `notDefect` fields of clusters that exist in `tests/a11y/issues.json`, nothing else.**
+  `node .github/scripts/a11y-learn.mjs --guard` reads the whole change against `origin/develop`, untracked
+  files included, and fails on any other path, a file that is not a plain file, any other catalog field, a
+  `rules.json` that is added, deleted, not readable as JSON or has another `budget`, a task id other than
+  the branch's in a commit message or the body, and a body that does not name a class that reached its
+  second strike. A file the guard cannot read is a problem, never a pass.
+- **A rule broken twice becomes a check.** A strike is a finding that broke a rule, recorded on the rule's
+  class in `rules.json`. Two distinct pull requests or two audits among a class's strikes are the second
+  strike: the pull request body then says which check the rule needs. The routine builds no check.
+- **Adding a source or a place where code lives means teaching the surface map** (`SURFACES` and
+  `surfaceMaps()` in the lib). A page whose code the map does not know reads as not on changed code, which
+  the packet lists, so a gap shows as a group there and never as a wrong candidate.
+
+Pinned by `.github/scripts/__tests__/a11y-learn.test.mjs`, over two cuts of the published ledger
+(`fixtures/a11y-learn/`): the selection, the attribution, both drops, the refusals, the packet's text, the
+guard on a scratch repository, and the script's three results.
+
 ## A11y: the audit and the proof runs
 
 The audit is four workflows: `Screen reader nightly` (`.github/workflows/screenreader-nightly.yml`),
