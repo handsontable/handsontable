@@ -24,8 +24,8 @@
     {
       "prNumber": 14144,
       "tagline": "The evaluation license key is gone",
-      "whyItMatters": "Handsontable 19.0 no longer accepts the `non-commercial-and-evaluation` key, or the Angular `NON_COMMERCIAL_LICENSE` constant that holds it. A grid that still uses it shows a lock screen, so get a trial, sponsored, or commercial key before you upgrade. Handsontable 18.1 and older still accept the old key.",
-      "migrationAnchor": "/migration-from-18.1-to-19.0#the-non-commercial-and-evaluation-license-key-no-longer-works"
+      "whyItMatters": "Handsontable 19.0 no longer accepts the evaluation license key, or the constant that holds it in the Angular wrapper. A grid that still uses it shows a lock screen, so get a trial, sponsored, or commercial key before you upgrade. Handsontable 18.1 and older still accept the old key.",
+      "migrationAnchor": "/migration-from-18.1-to-19.0#before-you-upgrade"
     }
   ]
 }
