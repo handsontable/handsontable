@@ -291,6 +291,25 @@ Try it in the demo below: drag the bottom edge of a row header to resize a row, 
 
 :::
 
+### Save and restore manual row heights
+
+To read the height a user set for one row, call [`ManualRowResize#getManualSize()`](@/api/manualRowResize.md#getmanualsize) with a visual row index. It returns `null` for a row nobody resized manually.
+
+To save every manual height at once, call [`getManualSizes()`](@/api/manualRowResize.md#getmanualsizes). It returns `[physicalRow, height]` pairs. To restore them, pass the pairs to [`setManualSizes()`](@/api/manualRowResize.md#setmanualsizes), and call `hot.render()`:
+
+```js
+const manualRowResize = hot.getPlugin('manualRowResize');
+const savedHeights = manualRowResize.getManualSizes();
+
+manualRowResize.clearManualSizes();
+manualRowResize.setManualSizes(savedHeights);
+hot.render();
+```
+
+The pairs use physical row indexes, so each height goes back to the same row after users sort or move rows. `setManualSizes()` writes only the rows you pass and keeps the other stored heights. To replace all of them, call `clearManualSizes()` first, as above. A height below the theme's default row height is stored as the default row height. A pair whose index is outside the grid, or whose height is not a finite number, is skipped.
+
+To keep the heights across page reloads together with the sort order, filters, and hidden rows, use the [`ViewState`](@/api/viewState.md) plugin. Its `rowHeights` part holds the same pairs. For details, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+
 ## Limit the number of lines in a cell
 
 Long text makes a row taller. To keep rows compact, set the [`textEllipsis`](@/api/options.md#textellipsis) option to a number. Handsontable shows that many lines of text and ends the last visible line with an ellipsis (`…`). The row grows only up to that number of lines.

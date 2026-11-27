@@ -3206,8 +3206,8 @@ Importing a removed type alias is a TypeScript error.
 
 | Removed | Deprecated in | Replacement |
 | ------- | ------------- | ----------- |
-| `saveManualColumnWidths()` and `loadManualColumnWidths()` ([`ManualColumnResize`](@/api/manualColumnResize.md)) | 18.0 | None. Both do nothing and log a deprecation warning. |
-| `saveManualRowHeights()` and `loadManualRowHeights()` ([`ManualRowResize`](@/api/manualRowResize.md)) | 18.0 | None. Both do nothing and log a deprecation warning. |
+| `saveManualColumnWidths()` and `loadManualColumnWidths()` ([`ManualColumnResize`](@/api/manualColumnResize.md)) | 18.0 | The `columnWidths` part of the [view state](@/guides/getting-started/view-state/view-state.md), or [`getManualSizes()`](@/api/manualColumnResize.md#getmanualsizes) and [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). |
+| `saveManualRowHeights()` and `loadManualRowHeights()` ([`ManualRowResize`](@/api/manualRowResize.md)) | 18.0 | The `rowHeights` part of the [view state](@/guides/getting-started/view-state/view-state.md), or [`getManualSizes()`](@/api/manualRowResize.md#getmanualsizes) and [`setManualSizes()`](@/api/manualRowResize.md#setmanualsizes). |
 | `Handsontable.helper.sanitize()` | 18.0 | The [`sanitizer`](@/api/options.md#sanitizer) option. |
 | `columnHeaders` (export options of the [`ExportFile`](@/api/exportFile.md) plugin) | 17.1 | `colHeaders` |
 | `Settings` type (`handsontable/plugins/exportFile`) | 18.0 | `ExportFileSettings` |

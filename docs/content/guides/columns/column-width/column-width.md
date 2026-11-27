@@ -356,6 +356,25 @@ Try it in the demo below: drag a column header to resize it, then select **Clear
 
 :::
 
+### Save and restore manual column widths
+
+To read the width a user set for one column, call [`ManualColumnResize#getManualSize()`](@/api/manualColumnResize.md#getmanualsize) with a visual column index. It returns `null` for a column nobody resized manually.
+
+To save every manual width at once, call [`getManualSizes()`](@/api/manualColumnResize.md#getmanualsizes). It returns `[physicalColumn, width]` pairs. To restore them, pass the pairs to [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes), and call `hot.render()`:
+
+```js
+const manualColumnResize = hot.getPlugin('manualColumnResize');
+const savedWidths = manualColumnResize.getManualSizes();
+
+manualColumnResize.clearManualSizes();
+manualColumnResize.setManualSizes(savedWidths);
+hot.render();
+```
+
+The pairs use physical column indexes, so each width goes back to the same column after users move columns. `setManualSizes()` writes only the columns you pass and keeps the other stored widths. To replace all of them, call `clearManualSizes()` first, as above. A width below the [minimum column width](#minimum-column-width) is stored as the minimum. A pair whose index is outside the grid, or whose width is not a finite number, is skipped.
+
+To keep the widths across page reloads together with the sort order, filters, and hidden columns, use the [`ViewState`](@/api/viewState.md) plugin. Its `columnWidths` part holds the same pairs. For details, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+
 ## Column stretching
 
 You can adjust the width of the columns to make them fit the table's width automatically. The width of a particular column will be calculated based on the size and number of other columns in the grid. This option only makes sense when you have at least one column in your data set and fewer columns than needed to enable the horizontal scrollbar.
