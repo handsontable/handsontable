@@ -133,11 +133,19 @@ export async function watchLicenseLocks(
     // otherwise, when the page closes right after the lock mounted. Bounded, because `evaluate()` takes no
     // timeout and a page held by an unanswered dialog never answers: the close must not wait on it.
     page.close = async(...args: Parameters<Page['close']>) => {
-      await Promise.race([
-        page.evaluate(() => 0).catch(() => {}),
-        // eslint-disable-next-line no-restricted-syntax -- DEV-4187: a ceiling on the flush, not a wait.
-        new Promise(resolve => setTimeout(resolve, CLOSE_FLUSH_LIMIT_MS)),
-      ]);
+      let limit: ReturnType<typeof setTimeout> | undefined;
+
+      try {
+        await Promise.race([
+          page.evaluate(() => 0).catch(() => {}),
+          new Promise((resolve) => {
+            // eslint-disable-next-line no-restricted-syntax -- DEV-4187: a ceiling on the flush, not a wait.
+            limit = setTimeout(resolve, CLOSE_FLUSH_LIMIT_MS);
+          }),
+        ]);
+      } finally {
+        clearTimeout(limit);
+      }
 
       return close(...args);
     };
