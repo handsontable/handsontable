@@ -293,22 +293,22 @@ Try it in the demo below: drag the bottom edge of a row header to resize a row, 
 
 ### Save and restore manual row heights
 
-To read the height a user set for one row, call [`ManualRowResize#getManualSize()`](@/api/manualRowResize.md#getmanualsize) with a visual row index. It returns `null` for a row nobody resized manually.
-
-To save every manual height at once, call [`getManualSizes()`](@/api/manualRowResize.md#getmanualsizes). It returns `[physicalRow, height]` pairs. To restore them, pass the pairs to [`setManualSizes()`](@/api/manualRowResize.md#setmanualsizes), and call `hot.render()`:
+To keep the heights users set, for example across page reloads, use the [`ViewState`](@/api/viewState.md) plugin. Save its `rowHeights` part with [`getViewState()`](@/api/viewState.md#getviewstate), and restore it with [`setViewState()`](@/api/viewState.md#setviewstate):
 
 ```js
-const manualRowResize = hot.getPlugin('manualRowResize');
-const savedHeights = manualRowResize.getManualSizes();
+const viewState = hot.getPlugin('viewState');
 
-manualRowResize.clearManualSizes();
-manualRowResize.setManualSizes(savedHeights);
-hot.render();
+localStorage.setItem('rowHeights', JSON.stringify(viewState.getViewState().rowHeights));
+
+viewState.setViewState({
+  version: 1,
+  rowHeights: JSON.parse(localStorage.getItem('rowHeights')),
+});
 ```
 
-The pairs use physical row indexes, so each height goes back to the same row after users sort or move rows. `setManualSizes()` writes only the rows you pass and keeps the other stored heights. To replace all of them, call `clearManualSizes()` first, as above. A height below the theme's default row height is stored as the default row height. A pair whose index is outside the grid, or whose height is not a finite number, is skipped.
+`rowHeights` holds `[physicalRow, height]` pairs for the rows users resized, so each height goes back to the same row after users sort or move rows. `setViewState()` replaces the stored heights with the saved ones, leaves the other parts of the view alone, and repaints the grid. To save the sort order, filters, or hidden rows too, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
 
-To keep the heights across page reloads together with the sort order, filters, and hidden rows, use the [`ViewState`](@/api/viewState.md) plugin. Its `rowHeights` part holds the same pairs. For details, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+To work with the heights without the view state, use [`ManualRowResize#getManualSize()`](@/api/manualRowResize.md#getmanualsize) for one row (by visual index), or [`getManualSizes()`](@/api/manualRowResize.md#getmanualsizes) and [`setManualSizes()`](@/api/manualRowResize.md#setmanualsizes), which use the same pairs. `setManualSizes()` writes only the rows you pass and does not repaint the grid, so call `hot.render()` after it. A height below the theme's default row height is stored as the default row height.
 
 ## Limit the number of lines in a cell
 

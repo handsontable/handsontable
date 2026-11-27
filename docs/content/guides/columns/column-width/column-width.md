@@ -358,22 +358,22 @@ Try it in the demo below: drag a column header to resize it, then select **Clear
 
 ### Save and restore manual column widths
 
-To read the width a user set for one column, call [`ManualColumnResize#getManualSize()`](@/api/manualColumnResize.md#getmanualsize) with a visual column index. It returns `null` for a column nobody resized manually.
-
-To save every manual width at once, call [`getManualSizes()`](@/api/manualColumnResize.md#getmanualsizes). It returns `[physicalColumn, width]` pairs. To restore them, pass the pairs to [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes), and call `hot.render()`:
+To keep the widths users set, for example across page reloads, use the [`ViewState`](@/api/viewState.md) plugin. Save its `columnWidths` part with [`getViewState()`](@/api/viewState.md#getviewstate), and restore it with [`setViewState()`](@/api/viewState.md#setviewstate):
 
 ```js
-const manualColumnResize = hot.getPlugin('manualColumnResize');
-const savedWidths = manualColumnResize.getManualSizes();
+const viewState = hot.getPlugin('viewState');
 
-manualColumnResize.clearManualSizes();
-manualColumnResize.setManualSizes(savedWidths);
-hot.render();
+localStorage.setItem('columnWidths', JSON.stringify(viewState.getViewState().columnWidths));
+
+viewState.setViewState({
+  version: 1,
+  columnWidths: JSON.parse(localStorage.getItem('columnWidths')),
+});
 ```
 
-The pairs use physical column indexes, so each width goes back to the same column after users move columns. `setManualSizes()` writes only the columns you pass and keeps the other stored widths. To replace all of them, call `clearManualSizes()` first, as above. A width below the [minimum column width](#minimum-column-width) is stored as the minimum. A pair whose index is outside the grid, or whose width is not a finite number, is skipped.
+`columnWidths` holds `[physicalColumn, width]` pairs for the columns users resized, so each width goes back to the same column after users move columns. `setViewState()` replaces the stored widths with the saved ones, leaves the other parts of the view alone, and repaints the grid. To save the sort order, filters, or hidden columns too, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
 
-To keep the widths across page reloads together with the sort order, filters, and hidden columns, use the [`ViewState`](@/api/viewState.md) plugin. Its `columnWidths` part holds the same pairs. For details, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+To work with the widths without the view state, use [`ManualColumnResize#getManualSize()`](@/api/manualColumnResize.md#getmanualsize) for one column (by visual index), or [`getManualSizes()`](@/api/manualColumnResize.md#getmanualsizes) and [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes), which use the same pairs. `setManualSizes()` writes only the columns you pass and does not repaint the grid, so call `hot.render()` after it. A width below the [minimum column width](#minimum-column-width) is stored as the minimum.
 
 ## Column stretching
 
