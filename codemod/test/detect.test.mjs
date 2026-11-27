@@ -328,8 +328,15 @@ const h = { opt: 'text' };
     const inTemplate = value => validateDetectRule(rule({ files: ['js', 'template'],
       match: { property: 'opt', valueIs: value } }));
 
-    assert.match(inTemplate('array')[0], /in a template, valueIs reads true, false, and null only/);
+    assert.match(inTemplate('object')[0],
+      /in a template, valueIs reads true, false, null, "array", and "function" only/);
+    assert.deepEqual(inTemplate('array'), []);
+    assert.deepEqual(inTemplate('function'), []);
     assert.deepEqual(inTemplate(false), []);
+    assert.match(validateDetectRule(rule({ match: { property: 'opt', valueIs: true, viaReference: true } }))[0],
+      /viaReference must be true, and goes with valueMatches, or with valueIs "array" or "function"/);
+    assert.deepEqual(
+      validateDetectRule(rule({ match: { property: 'opt', valueIs: 'array', viaReference: true } })), []);
   });
 
   it('matches without valueMatches whatever the value is', async() => {

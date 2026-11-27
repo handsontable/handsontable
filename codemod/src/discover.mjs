@@ -3,6 +3,7 @@ import { join, relative, resolve, sep } from 'node:path';
 import { isCandidate } from './adapters/index.mjs';
 import { UsageError } from './errors.mjs';
 import { GitError, isGitRepo, isIgnored, listFiles } from './git.mjs';
+import { plainName } from './lib/markdown.mjs';
 import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 
 export { leavesDirectory };
@@ -408,9 +409,11 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
   for (const root of roots) {
     const absolute = resolve(cwd, root);
     const raw = relative(cwd, absolute);
+    // The path as the user typed it, spelled like a file name: a line break or an escape in it never reaches a message raw.
+    const typed = plainName(root);
 
     if (leavesDirectory(raw)) {
-      throw new UsageError(`"${root}" is outside the project directory.`);
+      throw new UsageError(`"${typed}" is outside the project directory.`);
     }
 
     const link = await firstLinkOn(cwd, raw);
@@ -426,15 +429,15 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
     try {
       info = await stat(absolute);
     } catch {
-      throw new UsageError(`"${root}" does not exist.`);
+      throw new UsageError(`"${typed}" does not exist.`);
     }
 
     const spelled = raw === '' ? raw : await storedSpelling(cwd, absolute, raw);
     const rel = toPosix(spelled);
-    const label = rel === '' ? 'The project directory' : `"${root}"`;
+    const label = rel === '' ? 'The project directory' : `"${typed}"`;
 
     if (spelled !== raw) {
-      notes.push(`"${root}" is spelled "${rel}" on disk, so the tool read it as "${rel}".`);
+      notes.push(`"${typed}" is spelled "${plainName(rel)}" on disk, so the tool read it as "${plainName(rel)}".`);
     }
 
     if (info.isFile()) {

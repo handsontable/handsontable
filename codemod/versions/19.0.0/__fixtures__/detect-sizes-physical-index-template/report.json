@@ -1,0 +1,25 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/sizes-physical-index",
+      "severity": "review",
+      "line": 2
+    },
+    {
+      "ruleId": "19.0.0/sizes-physical-index",
+      "severity": "review",
+      "line": 3
+    },
+    {
+      "ruleId": "19.0.0/sizes-physical-index",
+      "severity": "review",
+      "line": 4
+    },
+    {
+      "ruleId": "19.0.0/sizes-physical-index",
+      "severity": "review",
+      "line": 5
+    }
+  ]
+}

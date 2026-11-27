@@ -129,8 +129,9 @@ How versions are chosen:
 - The `manifest.schema.json` accepts `severity: "warning"` for a `detect` rule only, as the loader does.
 - A file name is spelled the same way in every output: a line break in it is `\x0a` in the console, the Markdown report, and
   the `--json` document.
-- `--json=1` (a flag that takes no value) is a usage error that says the flag takes no value. A usage error of a command
-  that has `--list` gets the document of `--list`.
+- `--json=1` (a flag that takes no value) is a usage error that says the flag takes no value, and the error comes as the
+  `--json` document, as does the one of `--list=1`: a token that starts with `--json=` or `--list=` counts as the flag.
+  A usage error of a command that has `--list` gets the document of `--list`.
 - The note of a type rename that changes the shape of the type (`SummaryEndpoint`, `CellValue`, and the others that
   say it in a `note`) is a `review` entry now. The rename is applied, and the note asks you to look at the shape. With
   `--fail-on-manual` it does not cause exit code 3.
@@ -170,6 +171,31 @@ How versions are chosen:
   the options in it are reported and not rewritten. A grid cast or declared as a type of the project is not an instance.
 
 ### Fixed
+
+- Every character of the Unicode categories Cc, Cf, Zl, and Zp is spelled as an escape in a file name, a path you typed,
+  and a source line, in every output (the console, the report file, the diff, the error text, and every string of the
+  `--json` document): `U+2028` and `U+2029` (`\u2028`), the zero width space, the direction marks, and the byte order mark
+  stay out of the output, with the controls and the bidirectional overrides that were spelled before. One function does it.
+- A path argument, an unknown option, a command, and a `--report` path that holds a line break or an escape is spelled
+  `\x0a` and `\x1b` in the usage error text and in the `error` of the document.
+- `18.0.0/wrapper-dom-selectors` also reports a template literal selector without an expression
+  (``querySelector(`.ht-grid`)``), a bracket access (`['firstElementChild']`, `?.['children']`), an angle-bracket cast
+  (`(<HTMLElement>document.querySelector('.ht-grid')).firstChild`), and `.childNodes`, `.lastElementChild`, and
+  `.lastChild`, and reads `.ht-root-wrapper` like `.ht-grid`. A walk up (`.parentElement`) stays unreported.
+- `19.0.0/height-auto` reads Vue `:height="'auto'"` and Angular `[height]="'auto'"` (a bound string literal), and the
+  option in the object literal of a `:settings` or `[settings]` binding. `19.0.0/sizes-physical-index` reads an array
+  literal or a function in `:col-widths`, `[colWidths]`, and the like, and in a script it follows a name to a `const`
+  array or function (or a function declaration) of the same file. A name it cannot follow is reported with a message that
+  says so. A bound name in a template is not followed.
+- The line a message names (the `(line N)` of "This object is also passed to `computed()`", the spread, and "It is on line
+  N" of a custom reader) is a line of the file, as the line of the entry is. In a Vue file it counted from the `<script>` tag.
+- "Check what a query selects" is singular for one query, a list of more than 10 reads "a, b, and 5 more", and the
+  `--report` error names the directory of a path outside the project as you typed it, not as `../../..`. "1 of 8 is
+  marked in the code" has the right verb.
+- The README says which entries have no marker (`18.1.0/license-key-missing`, `18.1.0/synthetic-header-mousedown`, and
+  `18.1.0/column-move-hooks`, on purpose) and how to see it (`marker` in the JSON entry). It also says that a comment
+  counts as a mark of Handsontable in a stylesheet, and that `--aggressive` reports an options object that a factory such
+  as `computed()` also takes.
 
 - `19.0.0/icon-pseudo-element-selectors` reads a stylesheet that names nothing else of Handsontable. A `::before` or
   `::after` rule on a common class name (`.changeType`, `.collapsibleIndicator`, `.columnSorting.sortAction`) was never

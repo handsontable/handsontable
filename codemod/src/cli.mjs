@@ -3,7 +3,7 @@ import { posix, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
 import { errorDocument, listDocument, runDocument, serialize, wantsJson, wantsList } from './json-output.mjs';
-import { plainText } from './lib/markdown.mjs';
+import { plainName, plainText } from './lib/markdown.mjs';
 import { redact } from './lib/redact.mjs';
 import { BELOW_FROM_RULE_ID, plural, renderConsole, renderMarkdown } from './report.mjs';
 import { describeRules, resolvePlan, run } from './runner.mjs';
@@ -92,10 +92,11 @@ const OPTIONS = {
  * @returns {string} For example `Unknown option "--bogus".`.
  */
 function describeUsageError(error, argv) {
+  // What the user typed goes into the sentence spelled like a file name, so a line break in it stays on the line.
   const named = /'(-[^']*?)(?: <value>)?'/.exec(error.message)?.[1];
 
   if (error.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION' && named) {
-    return `Unknown option "${named}".`;
+    return `Unknown option "${plainName(named)}".`;
   }
 
   if (error.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE' && named) {
@@ -103,11 +104,11 @@ function describeUsageError(error, argv) {
     const given = /does not take an argument/.test(error.message)
       ? argv.find(argument => argument.startsWith(`${named}=`)) : undefined;
 
-    return given === undefined ? `Option "${named}" needs a value.`
-      : `Option "${named}" takes no value, so "${given}" is not valid.`;
+    return given === undefined ? `Option "${plainName(named)}" needs a value.`
+      : `Option "${plainName(named)}" takes no value, so "${plainName(given)}" is not valid.`;
   }
 
-  return error.message.split('. ')[0].replace(/'/g, '"').replace(/\.?$/, '.');
+  return plainName(error.message.split('. ')[0].replace(/'/g, '"').replace(/\.?$/, '.'));
 }
 
 /**
@@ -206,7 +207,8 @@ export function nextSteps(result, stdout) {
     }
 
     return inCode === count ? 'All of them are marked in the code.'
-      : `${inCode} of ${count} are marked in the code; the rest are listed in the report only.`;
+      : `${inCode} of ${count} ${inCode === 1 ? 'is' : 'are'} marked in the code; the rest are listed in the report `
+        + 'only.';
   };
 
   if (manual > 0) {
@@ -346,7 +348,7 @@ export async function main(argv, {
   const mode = values.list ? 'list' : 'run';
 
   if (command !== 'migrate') {
-    const problem = command ? `Unknown command "${command}".` : 'Missing command.';
+    const problem = command ? `Unknown command "${plainName(command)}".` : 'Missing command.';
 
     stderr(`${problem} Use: handsontable-codemod migrate\n${USAGE_LINE}\nRun with --help for all options.\n`);
 
@@ -356,7 +358,8 @@ export async function main(argv, {
   const maxFileSize = values['max-file-size'] === undefined ? undefined : Number(values['max-file-size']);
 
   if (maxFileSize !== undefined && (!Number.isInteger(maxFileSize) || maxFileSize <= 0)) {
-    const problem = `--max-file-size needs a whole number of bytes above 0, not "${values['max-file-size']}".`;
+    const given = plainName(values['max-file-size']);
+    const problem = `--max-file-size needs a whole number of bytes above 0, not "${given}".`;
 
     stderr(`${problem}\n`);
 

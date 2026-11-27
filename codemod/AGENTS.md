@@ -259,13 +259,13 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
 | `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
 | `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportMissing`, `reportPresent`, `replaced`, and `facts` (item fields in "Rule fields by kind"). `matchesWhen(j, root, when)` is the fact matcher. |
-| `src/json-output.mjs` | `--json`: `wantsJson()` and `wantsList()` (the exact token in the raw arguments, so a `parseArgs` error honors it and gets the document of its mode), `runDocument()` (its `error` says how many files could not be read or written), `listDocument()`, `errorDocument()` (one shape per mode, nothing found for an error), `cleanDeep()` and `serialize()` (every string through `redact()` and `plainText()`, then `JSON.stringify`). File names in the document (`file`, `files`, `changedFiles`, `skipped[].file`, `changes[].file`) go through `plainName()` first, so a name reads `a\x0ab.js` in every output (the console, the Markdown report, JSON). The diff keeps the quoting of git, which `git apply` reads. Fields are documented in the README. |
+| `src/json-output.mjs` | `--json`: `wantsJson()` and `wantsList()` (the token `--json` or `--list`, bare or with a value (`--json=1`), before a `--`, in the raw arguments, so a `parseArgs` error honors it and gets the document of its mode: `--json=1` is a usage error that says the flag takes no value, and it comes as the document), `runDocument()` (its `error` says how many files could not be read or written), `listDocument()`, `errorDocument()` (one shape per mode, nothing found for an error), `cleanDeep()` and `serialize()` (every string through `redact()` and `plainText()`, then `JSON.stringify`). File names in the document (`file`, `files`, `changedFiles`, `skipped[].file`, `changes[].file`) go through `plainName()` first, so a name reads `a\x0ab.js` in every output (the console, the Markdown report, JSON). The diff keeps the quoting of git, which `git apply` reads. Fields are documented in the README. |
 | `src/lib/browserslist.mjs` | The `browserslist` check of `dependencies.mjs`: `queriesOfRc()`, `queriesOfPackage()`, `splitQueries()`, `judgeQueries()`, and `findBrowserslistrc()` (the runner's read of the file next to a `package.json`, no link followed; a file it cannot use comes back with `skipped`, the reason, and the transform reports it as a `skipped-file` warning). |
 | `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`, `BELOW_FROM_RULE_ID`, `REVIEW_NOTE`, `compareRuleIds()`, and `counts()` (`changed`, `manual`, `review`, `warning`, `notes`, `marked`, `markedReview`: an entry with `scope: 'run'` is a note and is counted as one, whatever its severity, in none of the others). `byRule(select)` makes the groups of the console and Markdown reports: the entries that are not `review` first, then a group "To review"; the notes are not in a group, they stand under "Read once". `failedFiles()` names the files with a read, parse, or transform failure and the files with a `write-error`. |
 | `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. `git.mjs` resolves git once per `PATH` through `gitExecutable()`, lists the dirty paths with `--untracked-files=all`, and answers `isIgnored()`. |
 | `src/lib/find-executable.mjs` | `findExecutable(name, { env, platform, isFile })`: the first match in the absolute entries of `PATH` (an empty or relative entry and the current directory are never searched; on Windows only `.exe` and `.com`, `Path` in any case). |
 | `src/lib/safe-write.mjs` | `writeFileSafely(path, expected, output)`: temporary file, a last read of the target against `expected`, `rename`, the mode kept. `StaleFileError`. |
-| `src/lib/markdown.mjs` | `codeSpan()` (a fence that fits the text), `markdownText(text, quoted)` (the message of an entry as Markdown that renders as text), and `plainText()` / `plainName()` (control characters and bidirectional overrides as `\x1b`). |
+| `src/lib/markdown.mjs` | `codeSpan()` (a fence that fits the text), `markdownText(text, quoted)` (the message of an entry as Markdown that renders as text), and `plainText()` / `plainName()` (every Cc, Cf, Zl, and Zp character, and a lone CR, as `\x1b`, `\u202e`, or `\u{e0041}`: one rule for every output; `plainName()` also spells the line feed and the tab). A user-typed value that a message quotes (a path argument, an option, a command, a `--report` path, an unknown rule id, a version) goes through `plainName()` first, so a line break in it never reaches a message raw. |
 | `src/lib/line-endings.mjs` | `restoreLineEndings(source, printed, working)`, `dominantBreak()`, `splitLines()`: the line endings of a printed js part (see Traps). |
 | `src/lib/leading-trivia.mjs` | `splitBom()`, `maskShebang()` and `unmaskShebang()`, and `assertLeadingTrivia()`: what stands before the first statement of a printed js part (see Traps). |
 | `src/lib/unreached-package.mjs` | `unreachedPackageNotes()`: the note for the `package.json` above a folder of the run, which phase 2 never reads. |
@@ -468,7 +468,10 @@ of its earliest kind in `KIND_ORDER`.
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
 
 Report line numbers are one-based and relative to the part's own source. The `todo` entry is reported on every
-run, while the comment is inserted only once: idempotency means zero changed files, not zero entries.
+run, while the comment is inserted only once: idempotency means zero changed files, not zero entries. A line number that a
+**message** names (`(line N)`, "It is on line N") is the line of the file: add `ctx.lineOffset`, as the runner does for
+`line` (a Vue `<script>` block starts below line 1). `test/shared-objects.test.mjs` pins it for the held object, the spread,
+and the custom reader.
 
 Rules for transforms:
 
@@ -658,7 +661,10 @@ Traps of this draft:
   `renderer`, `isCommand`). Assignments are not read. The rule keeps its file gate (a `contextMenu` or `dropdownMenu` key).
 - `valueIs` and `import` read js only, except that `valueIs` of `true`, `false`, or `null` also reads the wrapper
   attributes of a template, when the attribute is bound (`:strict`, `v-bind:`, `[strict]`, `bind-`) and its text is that
-  word. A rule that uses a js-only form lists `files: ["js"]`, never `template`. `property` with `valueMatches` and
+  word, and `valueIs` of `"array"` or `"function"` reads a bound attribute that is an array literal or an arrow or
+  `function` expression (`expressionIs()`). A bound attribute that is one string literal (`:height="'auto'"`) is tested by
+  `valueMatches` through the text of the literal too (`literalOfExpression()`), and a `settings` binding is read key by key
+  (`valueOfKey()`). A rule that uses a js-only form lists `files: ["js"]`, never `template`. `property` with `valueMatches` and
   `regex` also read templates. `19.0.0/dropdown-strict-false` gates on a quoted `dropdown` anywhere in the part, as it did
   in js, so a template with a dropdown column reports the bound `strict=false` of any column in it.
 - Every fixture of this draft has `options.json` with `only`, so a rule that matches a common input (the license
@@ -709,7 +715,10 @@ Traps of this draft:
   before the run would flag an open range (`>=17 <20`) that admits both.
 - `19.0.0/height-auto`, `19.0.0/sizes-physical-index`, and `19.0.0/get-copyable-source-data` are `review` rules: the guide
   says to do nothing for the common case, so a spot is reported for a look. `sizes-physical-index` reads an array or a
-  function written in the option (`valueIs`), never a variable that holds one.
+  function written in the option (`valueIs`), in a template too (an array literal or a function in a bound attribute, or
+  the key of the object literal of a `:settings` or `[settings]` binding), and follows a name one hop to a `const` of the
+  same file or a function declaration (`viaReference` with `valueIs`). A name it cannot follow matches with the rule's
+  `variableMessage`, which says the tool could not see what it holds. A bound name in a template is never followed.
 - `19.0.0/helper-sanitize` has no `namespaceType` rule for `Handsontable.helper.sanitize`. `type-rules.test.mjs`
   counts a `callUnwrap` rule whose `callee` equals the removed member as its cover.
 

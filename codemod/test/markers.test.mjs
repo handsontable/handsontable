@@ -368,7 +368,7 @@ describe('the closing lines of the CLI', () => {
       const result = await cli(['migrate', '--from', '17.1', '--to', '18.1'], dir);
 
       assert.match(result.out, new RegExp('^Next: work through the \\d+ manual steps in the report\\. '
-        + '\\d+ of \\d+ are marked in the code; the rest are listed in the report only\\.$', 'm'));
+        + '\\d+ of \\d+ (?:is|are) marked in the code; the rest are listed in the report only\\.$', 'm'));
       assert.match(result.out, /^Next: find the markers with: git grep "TODO\(handsontable-codemod"$/m);
     });
   });

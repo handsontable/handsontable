@@ -24,7 +24,7 @@ import {
 } from '../lib/imports.mjs';
 import { createLineCounter, hasAttribute, scanScripts, scanStyles } from '../lib/inline-script.mjs';
 import { GENERIC_OPTIONS, KNOWN_OPTIONS, analyzeOptionObjects, isClaimed } from '../lib/option-objects.mjs';
-import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
+import { dynamicOptionSites, optionOfAttribute, templateOptionSites } from '../lib/option-sites.mjs';
 import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
 import { lookup } from '../lib/scope.mjs';
@@ -261,8 +261,8 @@ function validateMatch(spec, files, where) {
       problems.push(`${where}.valueIs must be true, false, null, "array", "function", or "object"`);
     }
 
-    if (files.includes('template') && ![true, false, null].includes(spec.valueIs)) {
-      problems.push(`${where}: in a template, valueIs reads true, false, and null only, `
+    if (files.includes('template') && ![true, false, null, 'array', 'function'].includes(spec.valueIs)) {
+      problems.push(`${where}: in a template, valueIs reads true, false, null, "array", and "function" only, `
         + 'so "files" must not list template');
     }
   }
@@ -273,8 +273,10 @@ function validateMatch(spec, files, where) {
     }
   }
 
-  if (spec.viaReference !== undefined && (spec.viaReference !== true || spec.valueMatches === undefined)) {
-    problems.push(`${where}.viaReference must be true, and goes with valueMatches`);
+  if (spec.viaReference !== undefined && (spec.viaReference !== true
+    || (spec.valueMatches === undefined && !['array', 'function'].includes(spec.valueIs)))) {
+    problems.push(`${where}.viaReference must be true, and goes with valueMatches, or with valueIs "array" or `
+      + '"function"');
   }
 
   if (spec.recordEntries !== undefined && (spec.recordEntries !== true || key !== 'annotatedObject'
@@ -1153,7 +1155,35 @@ function matchProperty(env, node) {
       }
 
       if (spec.valueIs !== undefined && !isValueKind(path.node, value, spec.valueIs)) {
-        continue;
+        const target = value ? unwrapNode(value) : null;
+
+        // With `viaReference`, a name that holds an array or a function in the same file counts as one (a `const`, or a
+        // function declaration), and a name the tool cannot follow (an import, a parameter, a `let`) matches with the
+        // `variableMessage`, because it may hold one.
+        if (!(spec.viaReference && target && isReference(target))) {
+          continue;
+        }
+
+        const valuePath = valuePathOf(path);
+        const resolved = valuePath ? env.resolver().hop(valuePath) : null;
+
+        // A function declaration is a function: no `variableMessage` for it, and no match for the other kind.
+        const declaration = resolved === null && valuePath && target.type === 'Identifier'
+          && lookup(valuePath, target.name, 'value')?.kind === 'function';
+        const held = resolved?.node ?? null;
+        let verdict = 'skip';
+
+        if (declaration ? spec.valueIs === 'function' : held !== null && isValueKind(null, held, spec.valueIs)) {
+          verdict = 'match';
+        } else if (!declaration && (held === null || isReference(held) || held.type === 'CallExpression')) {
+          verdict = 'variable';
+        }
+
+        if (verdict === 'skip') {
+          continue;
+        }
+
+        variable = verdict === 'variable';
       }
 
       matches.push(matchAt(path, variable ? { variable: true } : {}));
@@ -1233,11 +1263,103 @@ function matchDynamicProperty(env, node) {
 }
 
 /**
+ * A template attribute whose value is an expression: Vue `:name` and `v-bind:name`, Angular `[name]` and `bind-name`.
+ */
+const BOUND_ATTRIBUTE = /^(?::|v-bind:|bind-|\[)/;
+
+/**
+ * The text a string literal says, when the whole expression is one: `'auto'`, `"auto"`, or a template literal with no
+ * expression in it. Any other expression (a name, a conditional, a call) gives `null`.
+ *
+ * @param {string|null|undefined} expression The text of a bound attribute.
+ * @returns {string|null} The text inside the quotes.
+ */
+function literalOfExpression(expression) {
+  const match = /^\s*(['"`])((?:(?!\1)[^\\]|\\.)*)\1\s*$/s.exec(expression ?? '');
+
+  return match && !(match[1] === '`' && /\$\{/.test(match[2])) ? match[2] : null;
+}
+
+/**
+ * The text of the value of one key in the object literal a `settings` binding holds (`{ height: 'auto', data }`): from
+ * after the colon to the comma or brace that ends it, with quotes and brackets kept whole. A key written as a shorthand,
+ * or not written, gives `null`.
+ *
+ * @param {string|null} text The text of the binding.
+ * @param {string} key The option name.
+ * @returns {string|null} The text of the value.
+ */
+function valueOfKey(text, key) {
+  const start = new RegExp(`(?<![\\w$.])(?:${key}|'${key}'|"${key}")\\s*:\\s*`).exec(text ?? '');
+
+  if (!start) {
+    return null;
+  }
+
+  const from = start.index + start[0].length;
+  let depth = 0;
+  let quote = null;
+  let end = from;
+
+  for (; end < text.length; end += 1) {
+    const char = text[end];
+
+    if (quote !== null) {
+      if (char === '\\') {
+        end += 1;
+      } else if (char === quote) {
+        quote = null;
+      }
+    } else if (char === '\'' || char === '"' || char === '`') {
+      quote = char;
+    } else if ('([{'.includes(char)) {
+      depth += 1;
+    } else if (')]}'.includes(char)) {
+      if (depth === 0) {
+        break;
+      }
+
+      depth -= 1;
+    } else if (char === ',' && depth === 0) {
+      break;
+    }
+  }
+
+  const value = text.slice(from, end).trim();
+
+  return value === '' ? null : value;
+}
+
+/**
+ * Whether a bound expression is a function or an array literal, as a `valueIs` modifier asks.
+ *
+ * @param {string|null} expression The text of the expression.
+ * @param {boolean|null|'array'|'function'} expected What the modifier wants.
+ * @returns {boolean} `true` when the text is that.
+ */
+function expressionIs(expression, expected) {
+  const text = expression?.trim() ?? '';
+
+  switch (expected) {
+    case 'array':
+      return text.startsWith('[');
+    case 'function':
+      return /^(?:async\s+)?(?:function\b|(?:\([^()]*\)|[A-Za-z_$][\w$]*)\s*=>)/.test(text);
+    default:
+      return text === String(expected);
+  }
+}
+
+/**
  * Find the matches of a `property` matcher in a template: attributes of the wrapper tags (`<hot-column>`,
  * `<HotColumn>`, ...) that bind the option, in kebab-case or camel-case, with `:`, `v-bind:`, or `[...]`, and
  * `settings` bindings that name it. The option is the first segment of the dotted path. For a longer path, an
  * attribute whose value is an object literal must name the next segment, while a value that is a reference is kept,
- * because the template cannot say what it holds. The `valueMatches` modifier tests the attribute value.
+ * because the template cannot say what it holds. The `valueMatches` modifier tests the attribute value, and a bound
+ * attribute that holds one string literal (`:height="'auto'"`) is tested by the text of the literal too. An option
+ * written in an object literal of a `settings` binding (`:settings="{ height: 'auto' }"`) is read the same way. The
+ * `valueIs` modifier reads `true`, `false`, and `null` written out, and an array literal or a function (an arrow or a
+ * `function` expression) in a bound attribute. A bound name (`:col-widths="widths"`) is never followed.
  *
  * @param {Env} env Part state.
  * @param {Compiled} node The compiled matcher.
@@ -1262,13 +1384,27 @@ function matchTemplateProperty(env, node) {
         return false;
       }
 
-      // A bound attribute holds an expression: only `false`, `true`, and `null` written out are known.
-      if (spec.valueIs !== undefined && !(/^(?::|v-bind:|bind-|\[)/.test(site.attribute)
-        && site.value?.trim() === String(spec.valueIs))) {
+      // The expression the option is set to: a bound attribute holds one, and a `settings` binding holds an object
+      // literal that may set the option. An attribute with no binding holds text, which no `valueIs` reads.
+      const direct = optionOfAttribute(site.attribute) === site.name;
+      const bound = BOUND_ATTRIBUTE.test(site.attribute);
+      let expression = valueOfKey(site.value, site.name);
+
+      if (direct) {
+        expression = bound ? site.value : null;
+      }
+
+      if (spec.valueIs !== undefined && !expressionIs(expression, spec.valueIs)) {
         return false;
       }
 
-      return !re.value || (site.value !== null && re.value.test(site.value));
+      if (!re.value) {
+        return true;
+      }
+
+      return (site.value !== null && re.value.test(site.value))
+        || (expression !== null && literalOfExpression(expression) !== null
+          && re.value.test(literalOfExpression(expression)));
     })
     .map(site => ({ line: site.line }));
 }

@@ -24,6 +24,20 @@ describe('the report target is checked before any file is migrated', () => {
     });
   });
 
+  it('names the directory of a target outside the project as the user typed it, not as a ../../.. path', async() => {
+    await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+      const outside = join(tmpdir(), 'codemod-no-such-folder', 'deeper', 'r.md');
+      const result = await migrate(dir, [...RANGE, '--report', outside, '.']);
+
+      assert.equal(result.status, 2, result.stdout + result.stderr);
+      const folder = join(tmpdir(), 'codemod-no-such-folder', 'deeper');
+
+      assert.ok(result.stderr.includes(`--report ${outside}: the directory ${folder} does not exist.`), result.stderr);
+      assert.doesNotMatch(result.stderr, /\.\.\//);
+      assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
+    });
+  });
+
   it('refuses a directory as the report file, and changes nothing', async() => {
     await inPlainProject({ 'a.js': SOURCE, 'out/keep.txt': 'x' }, async(dir) => {
       const result = await migrate(dir, [...RANGE, '--report', 'out', '.']);

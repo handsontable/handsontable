@@ -16,7 +16,8 @@ const FLAG = '--json';
 /**
  * Whether the arguments ask for JSON output. The check reads the raw arguments, so it also holds for an error that
  * `parseArgs` throws before it returns any value: the exact token `--json` counts, anywhere before a `--`
- * terminator, and `--json=x` does not.
+ * terminator, and so does `--json=x`, which can only be a usage error (the flag takes no value), and the person who
+ * typed it wants the document, so the error comes as one.
  *
  * @param {string[]} argv The arguments after the script path.
  * @returns {boolean} `true` when `--json` is among them.
@@ -26,7 +27,7 @@ export function wantsJson(argv) {
 }
 
 /**
- * Whether the arguments hold the exact token, anywhere before a `--` terminator.
+ * Whether the arguments hold the flag, bare or with a value (`--json=1`), anywhere before a `--` terminator.
  *
  * @param {string[]} argv The arguments after the script path.
  * @param {string} token The flag, for example `--json`.
@@ -35,7 +36,8 @@ export function wantsJson(argv) {
 function hasToken(argv, token) {
   const end = argv.indexOf('--');
 
-  return (end === -1 ? argv : argv.slice(0, end)).includes(token);
+  return (end === -1 ? argv : argv.slice(0, end)).some(argument => argument === token
+    || argument.startsWith(`${token}=`));
 }
 
 /**
@@ -43,7 +45,7 @@ function hasToken(argv, token) {
  * `parseArgs` throws before it returns any value still gets the document of the mode the command was about to run.
  *
  * @param {string[]} argv The arguments after the script path.
- * @returns {boolean} `true` when the exact token `--list` is among them.
+ * @returns {boolean} `true` when the token `--list` (or `--list=x`) is among them.
  */
 export function wantsList(argv) {
   return hasToken(argv, '--list');

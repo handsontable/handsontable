@@ -299,7 +299,8 @@ describe('the rule on a package.json', () => {
       + '18\\.2\\. chrome >= 110 targets an older version'));
     assert.deepEqual(packageManual.quoted, ['chrome >= 110']);
     assert.match(packageReview.message,
-      /^Check what defaults in package\.json select, because the tool cannot judge that query/);
+      /^Check what defaults in package\.json selects, because the tool cannot judge that query/);
+    assert.match(packageReview.message, / It is fine when no browser below /);
     assert.match(rcManual.message, /^Raise the Browserslist targets in sub\/\.browserslistrc /);
     assert.deepEqual(rcReview.quoted, ['defaults']);
     assert.ok(entries.every(entry => entry.guideUrl.endsWith('#the-minimum-browser-versions-are-higher')));
@@ -474,9 +475,11 @@ describe('the message about a configuration stays short', () => {
     const manual = entries.find(entry => entry.severity === 'manual');
 
     assert.equal(review.quoted.length, 10);
-    assert.match(review.message, /and 15 more/);
+    assert.match(review.message, /last 12 versions, and 15 more in package\.json select, /);
+    assert.doesNotMatch(review.message, /\d versions and \d+ more|, and last \d+ versions and/);
     assert.equal(manual.quoted.length, 10);
-    assert.match(manual.message, /and 3 more/);
+    assert.match(manual.message, /chrome 109, and 3 more target an older version/);
+    assert.doesNotMatch(manual.message, /chrome \d+ and 3 more/);
     assert.ok(review.message.length < 800 && manual.message.length < 800);
   });
 

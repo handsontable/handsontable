@@ -5,6 +5,7 @@ import { adapterFor, isCandidate } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
 import { discover, firstLinkOn, resolvesInside } from './discover.mjs';
+import { plainName } from './lib/markdown.mjs';
 import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 import { StaleFileError, writeFileSafely } from './lib/safe-write.mjs';
 import { redact } from './lib/redact.mjs';
@@ -1030,15 +1031,19 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
   const info = await lstat(target).catch(() => null);
   const folder = dirname(target);
   const folderInfo = await stat(folder).catch(() => null);
+  // The path as the user typed it, spelled like a file name, and its directory as typed (not a `../../..` path from the
+  // project directory): a line break or an escape in either never reaches a message raw.
+  const typed = plainName(reportPath);
+  const typedFolder = plainName(dirname(reportPath));
 
   // The report is written after the files are migrated, so a target that cannot be written is refused first.
   if (!folderInfo?.isDirectory()) {
-    throw new UsageError(`--report ${reportPath}: the directory ${relative(cwd, folder) || '.'} does not exist. `
+    throw new UsageError(`--report ${typed}: the directory ${typedFolder} does not exist. `
       + 'Create it, or choose a file in an existing directory.');
   }
 
   if (insideGitDirectory(cwd, target)) {
-    throw new UsageError(`--report ${reportPath} is inside the .git directory, and the report would damage the `
+    throw new UsageError(`--report ${typed} is inside the .git directory, and the report would damage the `
       + 'repository. Choose another file, for example migration-report.md.');
   }
 
@@ -1047,20 +1052,20 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
   if (link !== null) {
     // The link is named by the path the user typed: absolute when they typed an absolute path, else relative to the
     // project directory, as they wrote it.
-    const named = isAbsolute(reportPath) ? link : relative(cwd, link);
+    const named = plainName(isAbsolute(reportPath) ? link : relative(cwd, link));
 
-    throw new UsageError(`--report ${reportPath} is a symbolic link, or sits below one (${named}), and `
+    throw new UsageError(`--report ${typed} is a symbolic link, or sits below one (${named}), and `
       + 'the report would be written through it. Choose another file.');
   }
 
   if (info?.isDirectory()) {
-    throw new UsageError(`--report ${reportPath} is a directory. Choose a file name, for example `
-      + `${posix.join(reportPath.split(sep).join('/').replace(/\/+$/, ''), 'migration-report.md')}.`);
+    throw new UsageError(`--report ${typed} is a directory. Choose a file name, for example `
+      + `${plainName(posix.join(reportPath.split(sep).join('/').replace(/\/+$/, ''), 'migration-report.md'))}.`);
   }
 
   if (!info) {
     await access(folder, constants.W_OK).catch(() => {
-      throw new UsageError(`--report ${reportPath}: the directory ${relative(cwd, folder) || '.'} is not writable. `
+      throw new UsageError(`--report ${typed}: the directory ${typedFolder} is not writable. `
         + 'Choose another file.');
     });
 
@@ -1072,22 +1077,22 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
   const projectFile = sameAsProject || (repo && (await isTracked(cwd, target) || await isTracked(cwd, stored)));
 
   if (projectFile) {
-    throw new UsageError(`--report ${reportPath} would overwrite a project file. Choose another file, for example `
+    throw new UsageError(`--report ${typed} would overwrite a project file. Choose another file, for example `
       + 'migration-report.md.');
   }
 
   if (isCandidate(toPosix(relative(cwd, target)))) {
-    throw new UsageError(`--report ${reportPath} is an existing file of a type the tool migrates, so the report `
+    throw new UsageError(`--report ${typed} is an existing file of a type the tool migrates, so the report `
       + 'would overwrite source. Choose another file, for example migration-report.md.');
   }
 
   // An existing report that the user cannot write would fail after every file was migrated.
   await access(target, constants.W_OK).catch(() => {
-    throw new UsageError(`--report ${reportPath} exists and is not writable. Choose another file.`);
+    throw new UsageError(`--report ${typed} exists and is not writable. Choose another file.`);
   });
 
   if (!(await isPreviousReport(target).catch(() => false))) {
-    throw new UsageError(`--report ${reportPath} exists and is not a report of this tool (its first line is not `
+    throw new UsageError(`--report ${typed} exists and is not a report of this tool (its first line is not `
       + `"${REPORT_HEADER}"), so it would be overwritten. Choose another file, for example migration-report.md.`);
   }
 }
@@ -1283,7 +1288,9 @@ export async function resolvePlan({
       throw new UsageError(draftOnlyMessage(unknown, drafts));
     }
 
-    throw new UsageError(`Unknown rule id: ${unknown.join(', ')}. Run with --list to see the ids in range. `
+    const named = unknown.map(plainName).join(', ');
+
+    throw new UsageError(`Unknown rule id: ${named}. Run with --list to see the ids in range. `
       + 'A trailing * names every id with that prefix, for example --only "18.0.0/type-*".');
   }
 

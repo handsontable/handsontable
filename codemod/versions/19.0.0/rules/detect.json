@@ -477,15 +477,16 @@
       "kind": "detect",
       "safe": false,
       "severity": "review",
-      "files": ["js"],
+      "files": ["js", "template"],
       "requires": "option-object",
       "guide": "colwidths-rowheights-and-minrowheights-address-columns-and-rows-by-physical-index",
       "match": {
         "anyOf": [
-          { "property": ["colWidths", "rowHeights", "minRowHeights"], "valueIs": "array" },
-          { "property": ["colWidths", "rowHeights", "minRowHeights"], "valueIs": "function" }
+          { "property": ["colWidths", "rowHeights", "minRowHeights"], "valueIs": "array", "viaReference": true },
+          { "property": ["colWidths", "rowHeights", "minRowHeights"], "valueIs": "function", "viaReference": true }
         ]
       },
+      "variableMessage": "Check what this size variable holds, because the tool could not follow it to an array or a function in this file. If it holds an array or a function, Handsontable 19.0 reads it by physical index, where 18.1 read the visual index, so a size now moves with its column or row when users or code move, sort, filter, trim, collapse, insert, or remove them. List the sizes in the order of your data, remove code that rebuilds the array after such a change, and make sure a function does not read its argument as a screen position. To keep the 18.1 behavior, translate the index with toVisualColumn() or toVisualRow() inside the function. A variable that holds one number needs no change.",
       "message": "Check how this array or function sizes the columns or rows. Handsontable 19.0 reads it by physical index, where 18.1 read the visual index, so a size now moves with its column or row when users or code move, sort, filter, trim, collapse, insert, or remove them. List the sizes in the order of your data, remove code that rebuilds the array after such a change, and make sure a function does not read its argument as a screen position. To keep the 18.1 behavior, translate the index with toVisualColumn() or toVisualRow() inside the function."
     },
     {

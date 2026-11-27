@@ -543,3 +543,63 @@ describe('an object that a factory returns is edited only when every use of the 
     });
   }
 });
+
+describe('a line number inside a message is a line of the file, not of the script block', () => {
+  // The script block starts on line 5 of the file, so every line the message names must be 4 higher than in the block.
+  const VUE_HEAD = '<template>\n  <HotTable :settings="settings" />\n</template>\n\n<script setup lang="ts">\n'
+    + 'import { computed } from \'vue\';\nimport { HotTable } from \'@handsontable/vue3\';\n\n';
+  const FILE = 'A.vue';
+
+  /**
+   * @param {string} script The script block content after the imports (they end on file line 7, then a blank line).
+   * @param {string[]} ids Shipped 18.0.0 rule ids.
+   * @returns {Promise<object[]>} The entries of one run.
+   */
+  async function entriesOf(script, ids) {
+    const source = `${VUE_HEAD}${script}</script>\n`;
+    const plan = buildPlan(manifests.filter(manifest => manifest.version === '18.0.0'), ids);
+    const result = await transformFile({ filePath: FILE, source, plan, options: { aggressive: true, markers: true } });
+
+    return result.entries;
+  }
+
+  it('names the file line of the factory call that also holds the object', async() => {
+    const entries = await entriesOf(
+      'const settings = computed(() => ({\n  data: [],\n  columns: [{ type: \'time\', correctFormat: true }],\n}));\n',
+      CORRECT_FORMAT);
+    const held = entries.find(entry => /also passed to `computed\(\)`/.test(entry.message));
+
+    assert.ok(held, JSON.stringify(entries));
+    assert.equal(held.line, 11, 'the entry is on a file line');
+    assert.match(held.message, /passed to `computed\(\)` \(line 9\)/, held.message);
+  });
+
+  it('names the file line of the spread', async() => {
+    const entries = await entriesOf('const base = { numericFormat: { culture: \'de-DE\', pattern: \'0,0\' } };\n'
+      + 'const settings = { data: [], columns: [{ type: \'numeric\', ...base, locale: \'en-US\' }] };\n', CULTURE);
+    const held = entries.find(entry => /spread into another one/.test(entry.message));
+
+    assert.ok(held, JSON.stringify(entries));
+    assert.match(held.message, /spread into another one \(line 10\)/, held.message);
+  });
+
+  it('names the file line of the custom reader', async() => {
+    const entries = await entriesOf('const settings = {\n  data: [],\n'
+      + '  columns: [{ type: \'time\', correctFormat: true, renderer: draw }],\n};\nfunction draw() {}\n',
+    CORRECT_FORMAT);
+    const kept = entries.find(entry => /It is on line \d+\./.test(entry.message));
+
+    assert.ok(kept, JSON.stringify(entries));
+    assert.equal(kept.line, 11);
+    assert.match(kept.message, /It is on line 11\./, kept.message);
+  });
+
+  it('keeps the number of a script that starts on line 1', async() => {
+    const plan = buildPlan(manifests.filter(manifest => manifest.version === '18.0.0'), CORRECT_FORMAT);
+    const source = `${HEAD}const cfg = { columns: [{ correctFormat: true }] };\nnew Handsontable(el, cfg);\n`
+      + 'legacy.use(cfg);\n';
+    const result = await transformFile({ filePath: 'grid.ts', source, plan, options: { markers: true } });
+
+    assert.match(result.entries.find(entry => entry.severity === 'manual').message, /\(line 5\)/);
+  });
+});

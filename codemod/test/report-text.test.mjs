@@ -103,6 +103,32 @@ describe('markdownText()', () => {
     assert.equal(plainText('a\rb'), 'a\\x0db', 'a lone carriage return overwrites the line');
     assert.equal(plainName('a\nb\tc'), 'a\\x0ab\\x09c');
   });
+
+  it('spells out every control, format, line, and paragraph separator the same way, in a name and in a text', () => {
+    // Categories Cc, Cf, Zl, and Zp, by code point: no escape sequence in this file, so a tool cannot decode one.
+    const invisible = {
+      0x2028: '\\u2028', // Zl, line separator
+      0x2029: '\\u2029', // Zp, paragraph separator
+      0x200b: '\\u200b', // Cf, zero width space
+      0x200e: '\\u200e', // Cf, left-to-right mark
+      0x200f: '\\u200f', // Cf, right-to-left mark
+      0xfeff: '\\ufeff', // Cf, byte order mark
+      0x00ad: '\\xad', // Cf, soft hyphen
+      0x2060: '\\u2060', // Cf, word joiner
+      0x0085: '\\x85', // Cc, next line
+      0xe0041: '\\u{e0041}', // Cf outside the BMP, a tag character
+    };
+
+    for (const [code, spelled] of Object.entries(invisible)) {
+      const char = String.fromCodePoint(Number(code));
+
+      assert.equal(plainName(`a${char}b`), `a${spelled}b`, `plainName() spells U+${Number(code).toString(16)}`);
+      assert.equal(plainText(`a${char}b`), `a${spelled}b`, `plainText() spells U+${Number(code).toString(16)}`);
+    }
+
+    assert.equal(plainName('a b'), 'a b', 'an ordinary space and a letter stay');
+    assert.equal(plainText('é中\u{1f600}'), 'é中\u{1f600}', 'letters, ideographs, and emoji stay');
+  });
 });
 
 describe('renderMarkdown() renders what it did not author as text', () => {

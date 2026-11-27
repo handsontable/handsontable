@@ -593,14 +593,18 @@ function reportSharedObject(env, objectPath, node) {
   };
 
   if (held.other !== null) {
-    return say(`This object is also ${held.other}${held.otherLine ? ` (line ${held.otherLine})` : ''}, so editing it `
+    // The lines the message names are lines of the file, like the line of the entry: the part may start below line 1.
+    const otherLine = held.otherLine ? held.otherLine + (ctx.lineOffset ?? 0) : 0;
+
+    return say(`This object is also ${held.other}${otherLine ? ` (line ${otherLine})` : ''}, so editing it `
       + 'here would change that use too.');
   }
 
   const spread = held.spreads.find(item => spreadConflicts(rule, item));
 
   if (spread) {
-    const where = spread.spread.loc?.start?.line;
+    const where = spread.spread.loc?.start?.line === undefined
+      ? undefined : spread.spread.loc.start.line + (ctx.lineOffset ?? 0);
 
     return say(`This object is spread into another one${where ? ` (line ${where})` : ''}, which can set the same `
       + 'option and win.');
@@ -890,7 +894,7 @@ function removeInObject(env, objectPath, confidence) {
 
     if (reader) {
       adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOfNode(node),
-        `the ${rule.name} property`, readerReason(rule, reader));
+        `the ${rule.name} property`, readerReason(rule, reader, env.ctx.lineOffset));
 
       continue;
     }
@@ -943,7 +947,8 @@ function removeOnElement(env, openingPath) {
     ? readerOf(env, env.readers.ofElement(openingPath)) : null;
 
   if (reader) {
-    adviseRemoval(env, openingPath, lineOfNode(found[0]), `the ${rule.name} attribute`, readerReason(rule, reader));
+    adviseRemoval(env, openingPath, lineOfNode(found[0]), `the ${rule.name} attribute`,
+      readerReason(rule, reader, env.ctx.lineOffset));
 
     return;
   }
@@ -1005,10 +1010,12 @@ function readerOf(env, own) {
  *
  * @param {import('../types.mjs').Rule} rule The `optionRemove` rule.
  * @param {Reader} reader The code that may read the option.
+ * @param {number} [lineOffset] The zero-based line of the part in its file.
  * @returns {string} The text, followed by the rule's `readerAdvice`.
  */
-function readerReason(rule, reader) {
-  return `Check ${describeReader(reader, rule.name)} before you delete ${rule.name}.${describeReaderLine(reader)} ${
+function readerReason(rule, reader, lineOffset = 0) {
+  return `Check ${describeReader(reader, rule.name)} before you delete ${rule.name}.${
+    describeReaderLine(reader, lineOffset)} ${
     rule.readerAdvice}`;
 }
 
@@ -1030,7 +1037,7 @@ function reportReader(env, reader, line) {
     severity: 'manual',
     line,
     message: `${rule.readerAdvice} The tool kept ${option} because of ${describeReader(reader, option)}.${
-      describeReaderLine(reader)}`,
+      describeReaderLine(reader, ctx.lineOffset)}`,
   });
 }
 

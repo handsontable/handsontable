@@ -2,6 +2,7 @@ import { stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { UsageError } from './errors.mjs';
 import { aliasRange, isSourceSpec, rangeAdmits, rangeFloor } from './lib/dependency-range.mjs';
+import { plainName } from './lib/markdown.mjs';
 import { leavesDirectory } from './lib/paths.mjs';
 import { redact } from './lib/redact.mjs';
 import { readUtf8, stripBom } from './lib/text-file.mjs';
@@ -31,7 +32,7 @@ export function parseVersion(input) {
   const match = VERSION_PATTERN.exec(String(input).trim());
 
   if (!match) {
-    throw new UsageError(`"${redact(input)}" is not a version. Use a form like 17, 17.1, or 18.0.0.`);
+    throw new UsageError(`"${plainName(redact(input))}" is not a version. Use a form like 17, 17.1, or 18.0.0.`);
   }
 
   const [, major, minor, patch, prerelease] = match;

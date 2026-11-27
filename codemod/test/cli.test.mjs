@@ -144,7 +144,8 @@ describe('cli', () => {
 
     assert.equal(plain.mode, 'run');
     assert.ok(!('rules' in plain));
-    assert.equal(JSON.parse((await cli(['migrate', '--list=1', '--json'])).out).mode, 'run');
+    assert.equal(JSON.parse((await cli(['migrate', '--list=1', '--json'])).out).mode, 'list',
+      'a value given to --list names the mode');
   });
 
   it('treats an empty --from or --to as a missing value, not as no value', async() => {

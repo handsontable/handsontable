@@ -883,8 +883,9 @@ function reportConfig(ctx, rule, { file, queries, line }) {
   const unchecked = [...new Set(judged.unchecked)];
   const lineOf = list => line ?? queries.find(item => item.query === list[0])?.line;
   const shown = list => list.slice(0, MAX_QUERIES_LISTED);
-  const named = list => `${listOf(shown(list))}${list.length > MAX_QUERIES_LISTED
-    ? ` and ${list.length - MAX_QUERIES_LISTED} more` : ''}`;
+  // One list: "a, b, and c", or "a, b, ..., j, and 5 more" when the rest is only counted.
+  const named = list => (list.length > MAX_QUERIES_LISTED
+    ? `${shown(list).join(', ')}, and ${list.length - MAX_QUERIES_LISTED} more` : listOf(list));
 
   if (below.length > 0) {
     ctx.report({
@@ -901,7 +902,8 @@ function reportConfig(ctx, rule, { file, queries, line }) {
   }
 
   if (unchecked.length > 0) {
-    const those = unchecked.length === 1 ? 'that query' : 'those queries';
+    const one = unchecked.length === 1;
+    const those = one ? 'that query' : 'those queries';
 
     ctx.report({
       ruleId: rule.id,
@@ -910,9 +912,9 @@ function reportConfig(ctx, rule, { file, queries, line }) {
       line: lineOf(unchecked),
       todo: false,
       quoted: shown(unchecked),
-      message: `Check what ${named(unchecked)} in ${file} select, because the tool cannot judge ${those} without the `
-        + `data of Browserslist. They are fine when no browser below the ${spec.release} minimums (${minimums}) is in `
-        + 'the result: run npx browserslist in the project to see it.',
+      message: `Check what ${named(unchecked)} in ${file} ${one ? 'selects' : 'select'}, because the tool cannot judge `
+        + `${those} without the data of Browserslist. ${one ? 'It is' : 'They are'} fine when no browser below the `
+        + `${spec.release} minimums (${minimums}) is in the result: run npx browserslist in the project to see it.`,
     });
   }
 }

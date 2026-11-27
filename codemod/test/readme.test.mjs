@@ -124,3 +124,32 @@ describe('README documents the command line', () => {
     }
   });
 });
+
+describe('README says what is true about the markers and the output', () => {
+  it('names every rule that leaves no marker in the code, and the marker field that shows it', async() => {
+    const every = (await loadManifests()).flatMap(manifest => manifest.rules);
+    const silent = every.filter(rule => rule.todo === false).map(rule => rule.id);
+
+    assert.ok(silent.includes('18.1.0/column-move-hooks'), 'the rule that N48 found is still one of them');
+
+    for (const id of silent) {
+      assert.ok(readme.includes(`\`${id}\``), `${id} leaves no marker, and the README does not name it`);
+    }
+
+    assert.match(readme, /`marker` field of the JSON entry/);
+  });
+
+  it('states the rule for the characters it never prints as they are, once, with the categories', () => {
+    assert.equal(readme.match(/Unicode categories Cc, Cf, Zl, and Zp/g)?.length, 1);
+    assert.match(readme, /`\\u2028`/);
+  });
+
+  it('documents the two decisions that look like gaps: a comment marks a stylesheet, and --aggressive holds a shared object', () => {
+    const flat = readme.replace(/\s+/g, ' ');
+
+    assert.match(flat, new RegExp('and a comment counts, so a generic icon selector \\(`\\.changeType::before`\\) '
+      + 'in such a stylesheet is a manual step of `19\\.0\\.0/icon-pseudo-element-selectors`, not a spot to review'));
+    assert.match(flat, new RegExp('With `--aggressive`, an options object that is also passed to a factory such as Vue '
+      + '`computed\\(\\)` is reported, not rewritten'));
+  });
+});

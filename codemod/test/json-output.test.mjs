@@ -59,8 +59,11 @@ describe('wantsJson()', () => {
   it('reads the exact token before a -- terminator', () => {
     assert.equal(wantsJson(['migrate', '--json']), true);
     assert.equal(wantsJson(['--json', '--bogus']), true);
-    assert.equal(wantsJson(['migrate', '--json=1']), false);
+    assert.equal(wantsJson(['migrate', '--json=1']), true, 'a value given to the flag still asks for the document');
+    assert.equal(wantsJson(['migrate', '--json=false']), true);
+    assert.equal(wantsJson(['migrate', '--jsonx']), false);
     assert.equal(wantsJson(['migrate', '--', '--json']), false);
+    assert.equal(wantsJson(['migrate', '--', '--json=1']), false);
     assert.equal(wantsJson(['migrate']), false);
   });
 });
@@ -69,7 +72,8 @@ describe('wantsList()', () => {
   it('reads the exact token before a -- terminator, as wantsJson() does', () => {
     assert.equal(wantsList(['migrate', '--list']), true);
     assert.equal(wantsList(['--bogus', '--list']), true);
-    assert.equal(wantsList(['migrate', '--list=1']), false);
+    assert.equal(wantsList(['migrate', '--list=1']), true, 'a value given to the flag still names the mode');
+    assert.equal(wantsList(['migrate', '--listing']), false);
     assert.equal(wantsList(['migrate', '--', '--list']), false);
     assert.equal(wantsList(['migrate']), false);
   });
@@ -242,10 +246,12 @@ describe('--json on a run', () => {
 
   it('spells a control character of a file name the same way in the console, the report, and the document', async() => {
     // NTFS refuses a control character in a name, so Windows keeps the bidirectional override only.
-    const names = ['a\nb.js', 'e\u001bc.js', 'r\u202etl.js', 'tab\tname.js']
-      .filter(name => process.platform !== 'win32' || name === 'r\u202etl.js');
-    const spelling = ['a\\x0ab.js', 'e\\x1bc.js', 'r\\u202etl.js', 'tab\\x09name.js']
-      .filter(name => process.platform !== 'win32' || name === 'r\\u202etl.js');
+    const names = ['a\nb.js', 'e\u001bc.js', 'r\u202etl.js', 'tab\tname.js', 'ls\u2028x.js', 'ps\u2029x.js',
+      'zw\u200bx.js', 'bom\ufeffx.js', 'lrm\u200ex.js']
+      .filter(name => process.platform !== 'win32' || /[\u202e\u2028\u2029\u200b\ufeff\u200e]/.test(name));
+    const spelling = ['a\\x0ab.js', 'e\\x1bc.js', 'r\\u202etl.js', 'tab\\x09name.js', 'ls\\u2028x.js', 'ps\\u2029x.js',
+      'zw\\u200bx.js', 'bom\\ufeffx.js', 'lrm\\u200ex.js']
+      .filter(name => process.platform !== 'win32' || /u(202e|2028|2029|200b|feff|200e)/.test(name));
     const files = { 'package.json': PACKAGE, ...Object.fromEntries(names.map(name => [`src/${name}`, GRID])) };
 
     await inPlainProject(files, async(dir) => {
@@ -262,8 +268,7 @@ describe('--json on a run', () => {
         assert.ok(document.changedFiles.includes(`src/${name}`), `changedFiles: ${name}`);
       }
 
-      // eslint-disable-next-line no-control-regex -- the point of the check is that no such character is left
-      const unsafe = /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/;
+      const unsafe = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 
       assert.ok(fileFields.every(file => !unsafe.test(file)), fileFields.join());
     });
@@ -427,14 +432,66 @@ describe('--json on an error', () => {
     assert.deepEqual(document.rules, []);
   });
 
-  it('does not honor --json=1, --help, or --version, which print their own text', async() => {
-    const inline = await migrate(process.cwd(), ['--json=1']);
-    const help = await migrate(process.cwd(), ['--help', '--json']);
+  it('delivers the usage error of --json=<value> and --list=<value> as the document, with the message', async() => {
+    for (const value of ['1', 'true', 'false', '']) {
+      const result = await migrate(process.cwd(), [`--json=${value}`]);
+      const document = documentOf(result.stdout);
 
-    assert.equal(inline.status, 2);
-    assert.throws(() => JSON.parse(inline.stdout));
+      assert.equal(result.status, 2, value);
+      assert.equal(document.exitCode, 2);
+      assert.equal(document.error, `Option "--json" takes no value, so "--json=${value}" is not valid.`);
+      assert.equal(document.mode, 'run');
+      assert.match(result.stderr, /takes no value/);
+    }
+
+    const list = await migrate(process.cwd(), ['--list=1', '--json']);
+    const listDocument = documentOf(list.stdout);
+
+    assert.equal(list.status, 2);
+    assert.equal(listDocument.mode, 'list');
+    assert.deepEqual(listDocument.rules, []);
+    assert.equal(listDocument.error, 'Option "--list" takes no value, so "--list=1" is not valid.');
+
+    const listOnly = await migrate(process.cwd(), ['--list=1']);
+
+    assert.equal(listOnly.status, 2);
+    assert.equal(listOnly.stdout, '', 'without --json the text stays on standard error');
+  });
+
+  it('spells a line break or an escape of a path argument, an option, or a report path the same way as a file name', async() => {
+    await inPlainProject(PROJECT, async(dir) => {
+      const path = 'no\u001b[31mpath\nx';
+      const spelled = 'no\\x1b[31mpath\\x0ax';
+      const missing = await migrate(dir, [...RANGE, path, '--json']);
+      const option = await migrate(dir, ['--bog\nus', '--json']);
+      const report = await migrate(dir, [...RANGE, '--report', 'no\nfolder/r.md', '--json']);
+      let out = '';
+      const command = await main(['no\nverb', '--json'], {
+        cwd: dir,
+        stdout: (text) => {
+          out += text;
+        },
+        stderr: () => {},
+      });
+
+      assert.equal(documentOf(missing.stdout).error, `"${spelled}" does not exist.`);
+      assert.ok(missing.stderr.includes(`"${spelled}" does not exist.\n`), missing.stderr);
+      assert.equal(documentOf(option.stdout).error, 'Unknown option "--bog\\x0aus".');
+      assert.ok(option.stderr.startsWith('Unknown option "--bog\\x0aus".\n'), option.stderr);
+      assert.match(documentOf(report.stdout).error,
+        /^--report no\\x0afolder\/r\.md: the directory no\\x0afolder does not exist\./);
+      assert.equal(command, 2);
+      assert.equal(documentOf(out).error, 'Unknown command "no\\x0averb".');
+    });
+  });
+
+  it('does not honor --help or --version, which print their own text, and ignores a flag after --', async() => {
+    const help = await migrate(process.cwd(), ['--help', '--json']);
+    const after = await migrate(process.cwd(), ['--', '--json=1']);
+
     assert.equal(help.status, 0);
     assert.match(help.stdout, /^Usage: handsontable-codemod migrate/);
+    assert.equal(after.stdout, '', 'a token after -- is a path, not a flag');
   });
 
   it('prints the document of an interrupted run with interrupted set, and exits 130', async() => {

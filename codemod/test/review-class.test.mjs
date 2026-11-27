@@ -329,6 +329,31 @@ describe('a note for the whole run (scope run) is counted apart from the entries
   });
 });
 
+describe('the marker of an entry to review', () => {
+  const HOOKS = `${HEAD}new Handsontable(document.body, { licenseKey: 'k', beforeColumnMove() {} });\n`;
+  const ARGS = [...RANGE, '--only', '18.0.0/date-default-format', '--only', '18.1.0/column-move-hooks'];
+
+  it('says "is" for one marked spot and "are" for more, and leaves the column move hooks to the report', async() => {
+    await inPlainProject({ 'package.json': PACKAGE, 'a.js': HOOKS, 'b.js': REVIEW_ONLY }, async(dir) => {
+      const { stdout } = await migrate(dir, ARGS);
+      const json = JSON.parse((await migrate(dir, [...ARGS, '--dry-run', '--json'])).stdout);
+      const hooks = json.entries.filter(entry => entry.ruleId === '18.1.0/column-move-hooks');
+
+      assert.ok(hooks.length > 0 && hooks.every(entry => entry.marker === false), 'the rule leaves no marker');
+      assert.equal(json.entries.filter(entry => entry.marker === true).length, 1);
+      assert.match(stdout, /look at the 2 spots to review in the report\..* 1 of 2 is marked in the code; the rest /);
+      assert.doesNotMatch(stdout, /1 of 2 are marked/);
+    });
+
+    await inPlainProject({ 'package.json': PACKAGE, 'a.js': HOOKS, 'b.js': REVIEW_ONLY, 'c.js': REVIEW_ONLY },
+      async(dir) => {
+        const { stdout } = await migrate(dir, ARGS);
+
+        assert.match(stdout, /2 of 3 are marked in the code; the rest are listed in the report only\./);
+      });
+  });
+});
+
 describe('the lines after a run say what to do with the entries to review', () => {
   it('names the spots to review next to the manual steps, and the search for the markers', async() => {
     await inPlainProject({ 'package.json': PACKAGE, 'a.js': BOTH }, async(dir) => {

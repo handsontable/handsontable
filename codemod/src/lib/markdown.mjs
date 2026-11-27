@@ -1,32 +1,43 @@
 /**
- * Characters that must not reach a terminal or a Markdown file as they are: the C0 and C1 controls except the line
- * breaks and the tab (an escape sequence in a file name or a source line can rewrite the screen), a carriage return that
- * does not end a CRLF pair (it overwrites the line), and the bidirectional overrides and isolates (a file name that
- * reads backward looks like another file).
+ * The one rule for what the tool never prints as it is: every character of the Unicode categories Cc (the C0 and C1
+ * controls and DEL: an escape sequence in a file name or a source line can rewrite the screen), Cf (format characters:
+ * the bidirectional marks, overrides, and isolates make a name read backward, and the zero width space, the joiners, and
+ * the byte order mark are invisible), Zl and Zp (the line and paragraph separators U+2028 and U+2029, which end a line
+ * in JavaScript source and in several log pipelines). A carriage return that does not end a CRLF pair is one too (it
+ * overwrites the line).
  */
-// eslint-disable-next-line no-control-regex -- matching control characters is the point of this module
-const UNSAFE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]|\r(?!\n)|[‪-‮⁦-⁩]/g;
+const UNSAFE_CHARACTER = '\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}';
 
 /**
- * The same, and also the line break and the tab, for a text that must stay on one line, such as a file name.
+ * That rule for a text that keeps its layout: the line feed, the tab, and a CRLF pair stay, so a diff and a multi-line
+ * message read as they are written.
  */
-// eslint-disable-next-line no-control-regex -- matching control characters is the point of this module
-const UNSAFE_IN_NAME = /[\u0000-\u001F\u007F-\u009F]|[‪-‮⁦-⁩]/g;
+const UNSAFE = new RegExp(`\\r(?!\\n)|(?![\\r\\n\\t])[${UNSAFE_CHARACTER}]`, 'gu');
 
 /**
- * Show a character as an escape that cannot do anything: `\x1b`, or `‮` above the one-byte range.
+ * The same rule for a text that must stay on one line, such as a file name: the line feed and the tab are spelled too.
+ */
+const UNSAFE_IN_NAME = new RegExp(`[${UNSAFE_CHARACTER}]`, 'gu');
+
+/**
+ * Show a character as an escape that cannot do anything: `\x1b` in the one-byte range, `\u202e` in the rest of the
+ * basic plane, and `\u{e0041}` above it.
  *
- * @param {string} char One character.
+ * @param {string} char One character (one code point).
  * @returns {string} The escape text.
  */
 function visible(char) {
-  const code = char.charCodeAt(0);
+  const code = char.codePointAt(0);
 
-  return code < 256 ? `\\x${code.toString(16).padStart(2, '0')}` : `\\u${code.toString(16).padStart(4, '0')}`;
+  if (code < 256) {
+    return `\\x${code.toString(16).padStart(2, '0')}`;
+  }
+
+  return code < 0x10000 ? `\\u${code.toString(16).padStart(4, '0')}` : `\\u{${code.toString(16)}}`;
 }
 
 /**
- * Make a text safe to print: control characters and bidirectional overrides become visible escapes. Line breaks, tabs,
+ * Make a text safe to print: every Cc, Cf, Zl, and Zp character becomes a visible escape. Line breaks, tabs,
  * and CRLF pairs stay, so a diff and a multi-line message keep their layout.
  *
  * @param {string} text Any text, such as a diff, a message, or a whole report.

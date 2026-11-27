@@ -715,8 +715,10 @@ export function describeReader(reader, option) {
  * The sentence that says where a reader is. It is for the report entry, not for the TODO comment.
  *
  * @param {Reader} reader The reader.
+ * @param {number} [lineOffset] The zero-based line of the part in its file (a Vue `<script>` block does not start on
+ * line 1), so the sentence names a line of the file, as the entry does.
  * @returns {string} A sentence with a leading space, or an empty string when the line is unknown.
  */
-export function describeReaderLine(reader) {
-  return reader.line ? ` It is on line ${reader.line}.` : '';
+export function describeReaderLine(reader, lineOffset = 0) {
+  return reader.line ? ` It is on line ${reader.line + lineOffset}.` : '';
 }

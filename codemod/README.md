@@ -237,10 +237,15 @@ directory, an existing file you cannot write, an existing file whose first line 
 project or outside it), or a file in a directory that does not exist or cannot be written. A link on the part of the path outside the
 project directory does not matter (`/tmp` is a link on macOS), and a refusal names the link as you typed it. It checks
 the path before it changes any file.
-A control character in a file name or a source line (an escape sequence) is printed as `\x1b`, in the console, the
-report file, and the diff (a name in a diff header keeps the quoting of git, which `git apply` reads), so a project cannot rewrite your terminal. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
+Every character of the Unicode categories Cc, Cf, Zl, and Zp (the controls, the invisible format characters such as the
+zero width space, the direction marks and overrides, and the byte order mark, and the line and paragraph separators
+`U+2028` and `U+2029`) that a file name, a path you typed, or a source line holds is printed as an escape that cannot do
+anything: `\x1b` below `U+0100`, `\u202e` above it, `\u{e0041}` above `U+FFFF`. It holds in the console, the report file, the diff, the
+error messages, and every string of the JSON document (a name in a diff header keeps the quoting of git, which `git apply`
+reads), so a project cannot rewrite your terminal. A line feed, a tab, and a CRLF pair stay in a diff and in a message
+that runs over several lines, and not in a name. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
 the console, the report file, and the `--dry-run` diff, so a dependency spec with a credential never reaches a log.
-A diff line that holds such a URL is therefore for reading, not for `git apply`. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
+A diff line that holds such a URL, or one of the characters above, is therefore for reading, not for `git apply`. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
 and how many are in the report only. On a terminal, a long run prints a progress line to the
 standard error stream every two seconds.
 
@@ -254,9 +259,9 @@ The flag works with a run, with `--dry-run`, with `--list`, and with `--report <
 written). A usage error or a refusal prints a document too, with the `error` and the `exitCode`, and with every other
 field empty, so a reader can always look up `counts`. The tool reads `--json` from the raw arguments, so a mistake that
 stops it before it has read the other flags (an unknown flag, a flag with no value, a missing command) still gets a
-document. The exact word `--json` counts, in any position before `--`, and so does `--list`, so a mistake in a `--list` command gets the document of `--list`. A flag that takes no value refuses one: `--json=1` is a usage error that says `--json` takes no value. `--help` and
+document. The word `--json` counts, in any position before `--`, and so does `--list`, so a mistake in a `--list` command gets the document of `--list`. A flag that takes no value refuses one, and the person who typed `--json=1` or `--list=true` still gets the document: it is a usage error that says `--json` takes no value, with exit code 2. `--help` and
 `--version` print their own text and ignore the flag. A string in the document is safe to print: the user information
-of a URL is hidden and a control character is written as `\x1b`, as in every other output of the tool: a file name is spelled the same way in the console, the report, and every field of the document that holds one, so a line break in a name reads `\x0a`, a tab `\x09`, and a bidirectional override `\u202e`.
+of a URL is hidden and every character the paragraph above lists is written as an escape, as in every other output of the tool. A file name or a path you typed is spelled the same way in the console, the report, the error text, and every field of the document that holds one, so a line break in it reads `\x0a`, a tab `\x09`, a bidirectional override `\u202e`, and a line separator `\u2028`.
 A file the run could not write prints its warning and `N files could not be written` on standard error and exits with 1, and the `error` field says so, as for a file it could not read. A crash that comes after files were written still prints a document, with the files written and the message.
 
 A run (`mode: "run"`) prints these fields. A field never changes its meaning inside `schemaVersion` 1, and a new field
@@ -545,9 +550,12 @@ rules only, as a `.css` file does. In a JavaScript file with no other sign of Ha
 
    Every manual step and every spot to review in a script, a TypeScript file, a Vue `<script>`, or a stylesheet gets a marker at its line (for code
    in a one-line block `{ a(); hot.undo(); }` that stands among statements, before the first statement of that line),
-   except
-   the notes that hold for the whole run, a grid with no `licenseKey`, and test code that dispatches a synthetic header
-   event. Each marker names its rule and, for a rule that has a guide section, links to it. A step in an HTML page (its
+   with three exceptions: the notes that hold for the whole run, and the three rules that leave no comment in the code on
+   purpose, `18.1.0/license-key-missing` (a grid with no `licenseKey`), `18.1.0/synthetic-header-mousedown` (test code that
+   dispatches a synthetic header event), and `18.1.0/column-move-hooks` (a column move hook, which matters only to code that
+   detects a header click, and every grid that moves columns sets one). Those three are in the report only. To see
+   which entries have a marker, read the `marker` field of the JSON entry (`true` or `false`), or the "N of M are marked"
+   count the run prints. Each marker names its rule and, for a rule that has a guide section, links to it. A step in an HTML page (its
    `<style>` blocks included), in the `<template>` of a Vue file or an inline Angular template, or in `package.json`
    has no marker, because the tool leaves no comment there: the report lists it. The full text of the advice is in the
    report. Pass `--no-todo` to run without markers.
@@ -588,6 +596,25 @@ the tool reads the version from `package.json`, which the run raised, and answer
   same file, when the registry is `Handsontable.hooks` or a `const` alias of it, and when the key sits in an object
   annotated `Events` or `Partial<Events>`. A hook name that is computed in any other way, such as one read from
   `Object.entries()` of an untyped object, is not found. `Hooks` is the class of the registry and is not read as a map.
+- `18.0.0/wrapper-dom-selectors` reads a walk down from the root wrapper or the grid element: the call
+  `querySelector('.ht-grid')` or `querySelector('.ht-root-wrapper')` (also `closest()`, a template literal without a
+  `${}`, and a generic `querySelector<HTMLElement>()`), followed by `.firstElementChild`, `.firstChild`, `.lastElementChild`,
+  `.lastChild`, `.children`, or `.childNodes`, with `?.`, `!`, a bracket access (`['firstElementChild']`), a parenthesized
+  `as` cast, or an angle-bracket cast `(<HTMLElement>...)`. A walk up (`.parentElement`, `.parentNode`), a selector held
+  in a variable, a template literal with an expression, and a node that went through another function are not read.
+- `19.0.0/height-auto` and `19.0.0/sizes-physical-index` read the option written on a wrapper element or in an options
+  object. In a template they read a literal: `height="auto"`, `:height="'auto'"` (Vue), `[height]="'auto'"` (Angular), an
+  array literal or a function in `:col-widths`, `[colWidths]`, and the like, and the same options inside the object
+  literal of a `:settings` or `[settings]` binding. A template that binds a name (`:col-widths="widths"`) is not read,
+  because the template cannot say what the name holds. In script, `sizes-physical-index` follows a name one hop to a
+  `const` array or function of the same file, or to a function declaration. A name it cannot follow (an import, a
+  parameter, a `let`) is reported with a message that says the tool could not see what it holds, and a name that holds
+  a number is not reported.
+- A stylesheet that mentions Handsontable anywhere counts as a Handsontable stylesheet, and a comment counts, so a generic
+  icon selector (`.changeType::before`) in such a stylesheet is a manual step of `19.0.0/icon-pseudo-element-selectors`,
+  not a spot to review. The spots to review are the same selectors in a stylesheet with no mark of Handsontable at all.
+- With `--aggressive`, an options object that is also passed to a factory such as Vue `computed()` is reported, not
+  rewritten: the tool cannot tell that the factory's result is the grid's, and the entry names the call and its file line.
 - A selector is matched without the scoping wrappers of component styles (`:deep()`, `:global()`, `::v-deep`,
   `::ng-deep`, `/deep/`, `>>>`). A selector that a Sass mixin or a template literal builds at run time is not read.
 - A Sass map key that names a variable (`'wrapper-border-radius': 6px`) is reported in a stylesheet that builds

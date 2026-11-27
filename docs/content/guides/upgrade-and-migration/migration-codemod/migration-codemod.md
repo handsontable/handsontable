@@ -167,7 +167,7 @@ To list every rule that applies to your migration, run `migrate --list` with the
    git grep -n "TODO(handsontable-codemod"
    ```
 
-   Each marker names its rule and links to the matching guide section. A step in an HTML page, a template, or `package.json` has no marker, so the report is the only record of it.
+   Each marker names its rule and links to the matching guide section. A step in an HTML page, a template, or `package.json` has no marker, and neither do the three rules that leave none on purpose (a missing license key, a synthetic header event in test code, and a column move hook), so the report is the only record of those.
 
 4. Delete each comment when you have done what it says. The codemod does not add it again, and a second run changes nothing.
 

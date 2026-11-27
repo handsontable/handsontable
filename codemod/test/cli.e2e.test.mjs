@@ -123,7 +123,7 @@ describe('the CLI on a 17.1 project', () => {
     assert.match(result.stdout, /^Next: run your formatter and linter on the changed files\.$/m);
     assert.match(result.stdout, /^Next: run tsc and your tests\.$/m);
     assert.match(result.stdout, new RegExp('^Next: work through the \\d+ manual steps in the report\\. '
-      + '\\d+ of \\d+ are marked in the code; the rest are listed in the report only\\.$', 'm'));
+      + '\\d+ of \\d+ (?:is|are) marked in the code; the rest are listed in the report only\\.$', 'm'));
     assert.match(result.stdout, /^Next: find the markers with: git grep "TODO\(handsontable-codemod"$/m);
     assert.ok(result.stdout.includes('git grep "TODO(handsontable-codemod"'));
     assert.deepEqual(changedFiles(dir), MIGRATED);
