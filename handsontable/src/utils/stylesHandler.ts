@@ -1,5 +1,6 @@
 import type { HotInstance } from '../core/types';
 import { warn } from '../helpers/console';
+import { LAYOUT_UNIT } from '../helpers/dom/layoutUnit';
 import handsontableStyles from '../styles/handsontableStyles';
 
 /**
@@ -96,6 +97,15 @@ export class StylesHandler {
    * @type {object} - An object containing the computed styles if a nested structure of `element: { [element type]: {property: value} }`.
    */
   #computedStyles: Record<string, Record<string, string>> = {};
+
+  /**
+   * The root element's effective CSS zoom, read with the `#computedStyles` snapshot. WebKit reports the
+   * cells' border uninflated under CSS zoom, so this is what tells the row height that the border is
+   * painted wider than it reads.
+   *
+   * @type {number}
+   */
+  #cssZoom = 1;
 
   /**
    * The last measured height of a populated cell, together with the two inputs that decide it. Kept
@@ -352,10 +362,15 @@ export class StylesHandler {
     const lineHeightVarValue = this.getCSSVariableValue('line-height');
     const verticalPaddingVarValue = this.getCSSVariableValue('cell-vertical-padding');
     const renderedBottomBorderWidth = Number.parseFloat(this.getStyleForTD('border-bottom-width') ?? '');
-    // Math.round (not Math.ceil) so that fractional computed values from sub-100% browser zoom
-    // (e.g. "1.111px" at 90%) round to the correct 1px rather than overshooting to 2px, which
-    // would make the hider taller than the actual table content and leave a visible gap.
-    const bottomBorderWidth = Math.round(renderedBottomBorderWidth);
+    // The whole-pixel width the declared height counts. An inflated border (1px or wider) is counted
+    // by its whole pixels, never rounded up: 1.111px at 90% counts 1px, and 2.5px at 40% counts 2px.
+    // Rounding counted 3px there, declared every row half a pixel taller than it renders, and left a
+    // gap below the rows that the gate below could never close, because the border never read wider
+    // than what was counted. One layout unit of slack keeps a whole width reported a hair short
+    // (1.99999px) on its pixel. A border thinner than 1px (0.8px at 125%) still rounds to the 1px the
+    // cells' height rule reserves, and 0 stays 0.
+    const bottomBorderWidth = renderedBottomBorderWidth >= 1 ?
+      Math.floor(renderedBottomBorderWidth + LAYOUT_UNIT) : Math.round(renderedBottomBorderWidth);
 
     if (
       lineHeightVarValue === null ||
@@ -377,10 +392,11 @@ export class StylesHandler {
 
     // A border wider than the 1px the theme asks for is the whole defect: below 100% zoom the browser
     // cannot paint one thinner than a device pixel, so it reports 1.111px at 90%, 1.25px at 80%, and
-    // the cell outgrows its declared box on every row (issue #6280). Every other case keeps the
-    // declared height, which is what this method has always returned:
+    // the cell outgrows its declared box on every row (issue #6280). WebKit paints the same inflated
+    // border under CSS zoom but reports 1px, which `#isBorderInflated()` derives from the zoom. Every
+    // other case keeps the declared height, which is what this method has always returned:
     //
-    //   - exactly 1px — the page is at 100%, nothing to correct;
+    //   - exactly 1px, spanning at least one device pixel — nothing to correct;
     //   - below 1px — above 100% the border shrinks to a fraction, but the cell's declared height
     //     governs and the row keeps it;
     //   - a whole number of pixels (2px at 50% zoom) — already rounded correctly, and adding a
@@ -397,11 +413,65 @@ export class StylesHandler {
     // `Number.isFinite` first: a `NaN` declared height must never reach the measurement, whose cache
     // key it would defeat (`NaN !== NaN`), turning one probe per theme into a probe — a DOM mutation
     // and a forced layout — on every call, per row, inside the draw.
-    if (!Number.isFinite(declaredRowHeight) || !(renderedBottomBorderWidth > bottomBorderWidth)) {
+    if (
+      !Number.isFinite(declaredRowHeight) ||
+      !this.#isBorderInflated(renderedBottomBorderWidth, bottomBorderWidth)
+    ) {
       return declaredRowHeight;
     }
 
-    return this.#resolveRenderedRowHeight(declaredRowHeight);
+    return this.#resolveRenderedRowHeight(declaredRowHeight, bottomBorderWidth);
+  }
+
+  /**
+   * Whether the cells' bottom border is painted wider than the whole-pixel width the theme declares,
+   * because no device pixel is thin enough to paint it.
+   *
+   * Chromium reports that inflation in the computed width (1.111px at 90%), so a width above its own
+   * rounded value answers it. WebKit does not under CSS zoom: the border reads 1px at every zoom level,
+   * while the cell still renders as tall as one whose border was rounded up to a device pixel. For a
+   * border that reads a whole, non-zero width, the width it is painted at is therefore derived from the
+   * device pixels per CSS pixel (`devicePixelRatio` times the CSS zoom): a border thinner than one device
+   * pixel is painted as one, and it is inflated when that is wider than the width the declared height
+   * counts. That holds at 50% as well: the border is painted 2px wide while it reads, and is counted
+   * as, 1px. It is not inflated when:
+   *
+   *   - the border spans at least one device pixel (a high-density screen at 90%);
+   *   - the border is 0, which the probe cannot represent.
+   *
+   * An engine that does not implement `currentCSSZoom` reads a zoom of 1, so this branch then covers a
+   * device pixel ratio below 1 only.
+   *
+   * @param {number} renderedBorderWidth The border width the engine reports, unrounded.
+   * @param {number} roundedBorderWidth The width the declared row height counts.
+   * @returns {boolean}
+   */
+  #isBorderInflated(renderedBorderWidth: number, roundedBorderWidth: number): boolean {
+    if (renderedBorderWidth > roundedBorderWidth) {
+      return true;
+    }
+
+    if (!(renderedBorderWidth > 0) || renderedBorderWidth !== roundedBorderWidth) {
+      return false;
+    }
+
+    const deviceScale = this.#deviceScale();
+
+    if (!(renderedBorderWidth * deviceScale < 1)) {
+      return false;
+    }
+
+    return 1 / deviceScale > roundedBorderWidth + LAYOUT_UNIT;
+  }
+
+  /**
+   * The device pixels per CSS pixel the grid renders at: the window's device pixel ratio times the
+   * root element's CSS zoom, read with the styles snapshot.
+   *
+   * @returns {number}
+   */
+  #deviceScale(): number {
+    return this.#devicePixelRatio() * this.#cssZoom;
   }
 
   /**
@@ -412,16 +482,18 @@ export class StylesHandler {
    * sub-pixel snapping of the cell box, which no arithmetic here can reproduce: at 90% the arithmetic
    * answer is 29.111px against a rendered 29.097px, and that 0.014px lands on every row.
    *
-   * The measurement is only reached when the border resolved wider than the theme's whole-pixel value,
-   * which is what makes reading the probe's absolute height safe here. The cells' height rule is
+   * The measurement is only reached when the border is painted wider than the whole-pixel width the
+   * declared height counts (`#isBorderInflated()`), which is what makes reading the probe's absolute
+   * height safe here. The cells' height rule is
    * `calc(<vertical padding> * 2 + <line height> + 1px)` — a **literal** 1px — so a surface that
    * carries a different border renders a different height than the probe reports, and the caller keeps
    * those on the declared height instead.
    *
    * @param {number} declaredRowHeight The row height derived from the theme's CSS variables.
+   * @param {number} roundedBorderWidth The border width the declared row height counts.
    * @returns {number} The row height to size the grid from.
    */
-  #resolveRenderedRowHeight(declaredRowHeight: number): number {
+  #resolveRenderedRowHeight(declaredRowHeight: number, roundedBorderWidth: number): number {
     const renderedRowHeight = this.#measureRenderedRowHeight(declaredRowHeight);
     const overgrowth = renderedRowHeight - declaredRowHeight;
 
@@ -433,24 +505,36 @@ export class StylesHandler {
     }
 
     // What the browser adds cannot exceed the device pixel the border was rounded up to, so the bound
-    // is derived from the ratio rather than picked: 0.25px at 80%, 3px at Chrome's 25% minimum zoom.
+    // is derived from the device scale rather than picked: 0.25px at 80%, 1.5px at 40% CSS zoom.
     // Anything past it is cell styling the probe cannot represent, so the declared height stays
     // authoritative. A fixed cap would be a cliff — a theme override that pushed the cell just past it
     // would silently reopen this defect while a slightly smaller one stayed corrected.
-    return overgrowth > this.#maxCellOvergrowth() ? declaredRowHeight : renderedRowHeight;
+    //
+    // The bound is compared with one layout unit of slack. WebKit reports a ratio as a 32-bit float
+    // (0.800000011920929 at 80%), so the bound comes out at 0.24999998 while the cell renders exactly
+    // 0.25px taller, and a strict comparison rejected the very case it bounds.
+    const maxOvergrowth = this.#maxCellOvergrowth(roundedBorderWidth);
+
+    return overgrowth > maxOvergrowth + LAYOUT_UNIT ? declaredRowHeight : renderedRowHeight;
   }
 
   /**
-   * The largest overgrowth still explained by the device-pixel border inflation.
+   * The largest overgrowth still explained by the device-pixel border inflation: the width of one device
+   * pixel, in CSS pixels, less the border width the declared height already counts.
    *
+   * It uses the device scale, CSS zoom included, because under WebKit's CSS zoom the ratio stays 1
+   * while the border is inflated: a bound from the ratio alone fell back to 1px and rejected every zoom
+   * below 50%.
+   *
+   * @param {number} roundedBorderWidth The border width the declared row height counts.
    * @returns {number} The bound, in pixels.
    */
-  #maxCellOvergrowth(): number {
-    const devicePixelRatio = this.#devicePixelRatio();
+  #maxCellOvergrowth(roundedBorderWidth: number): number {
+    const deviceScale = this.#deviceScale();
 
-    // A ratio at or above 1 inflates nothing, and this is only reached when something did grow, so
+    // A scale at or above 1 inflates nothing, and this is only reached when something did grow, so
     // fall back to one whole pixel rather than to zero.
-    return devicePixelRatio > 0 && devicePixelRatio < 1 ? (1 / devicePixelRatio) - 1 : 1;
+    return deviceScale > 0 && deviceScale < 1 ? Math.max((1 / deviceScale) - roundedBorderWidth, 0) : 1;
   }
 
   /**
@@ -526,6 +610,7 @@ export class StylesHandler {
   #cacheStylesheetValues() {
     this.#cachedWithoutResolvedStyles = !this.#stylesResolve();
     this.#rootComputedStyle = getComputedStyle(this.#rootElement);
+    this.#cssZoom = this.#readCSSZoom();
 
     const stylesForTD = this.#getStylesForTD([
       'box-sizing',
@@ -686,15 +771,16 @@ export class StylesHandler {
    * taken once. A grid built at 100% and zoomed out afterwards would keep the declared height and sum
    * every row 0.25px short (GitHub #14330). The caller runs this on a window resize, which is what a
    * zoom change fires. Above 100% the border snaps the other way (0.8px at 125%), and that is a change
-   * too.
+   * too. A changed CSS zoom on the root element counts as well, because WebKit reads the border as 1px
+   * at every CSS zoom level and the row height then derives the inflation from the zoom itself.
    *
    * A border that cannot be read, now or when it was cached (an element outside the flat tree, a
    * document without styles), says nothing about the zoom, so it changes nothing. Whether the grid can
    * be seen is the caller's question: the border of a hidden grid reads as it does on screen, but its
    * rows measure nothing.
    *
-   * @returns {boolean} `true` when the border changed and the cache was cleared, so sizes derived from
-   *                    the old values have to be discarded too.
+   * @returns {boolean} `true` when the border or the CSS zoom changed and the cache was cleared, so
+   *                    sizes derived from the old values have to be discarded too.
    */
   refreshZoomDependentValues(): boolean {
     const cachedBorderWidth = Number.parseFloat(this.getStyleForTD('border-bottom-width') ?? '');
@@ -703,7 +789,7 @@ export class StylesHandler {
     if (
       !Number.isFinite(cachedBorderWidth) ||
       !Number.isFinite(renderedBorderWidth) ||
-      cachedBorderWidth === renderedBorderWidth
+      (cachedBorderWidth === renderedBorderWidth && this.#readCSSZoom() === this.#cssZoom)
     ) {
       return false;
     }
@@ -711,6 +797,17 @@ export class StylesHandler {
     this.clearCache();
 
     return true;
+  }
+
+  /**
+   * Reads the root element's effective CSS zoom.
+   *
+   * @returns {number} The zoom, or `1` when the engine does not report a usable one.
+   */
+  #readCSSZoom(): number {
+    const zoom = this.#rootElement.currentCSSZoom;
+
+    return typeof zoom === 'number' && zoom > 0 ? zoom : 1;
   }
 
   /**

@@ -715,7 +715,13 @@ constructed (`fixtures/demo/row-height-device-scale.html`). Chrome routes it thr
 effective-zoom machinery as browser page zoom, so a cell's 1px border is inflated exactly as it
 is under Ctrl+minus or Windows display scaling — `getComputedStyle` reads `1.111px` at 0.9
 either way. Assert that inflation as the test's own precondition; without it every geometry
-assertion passes on unfixed code. Above 100% the snapping goes the other way: at 1.25 the same
+assertion passes on unfixed code. **WebKit is different:** under CSS zoom it reads the border as
+`1px` at every level while the rows grow exactly as in Chromium, so a spec that runs on the engine
+legs guards on the row pitch (`RowHeightDeviceScalePage.rowPitch()`), not the border, and pins
+`deviceScaleFactor: 1` (`Desktop Safari` is 2, where a 90% border still spans a device pixel and
+nothing is inflated). WebKit does inflate the border under a context `deviceScaleFactor` below 1,
+which Chromium does not (`e2e/row-height-css-zoom-engines.spec.ts`).
+Above 100% the snapping goes the other way: at 1.25 the same
 1px border is computed as 0.8px (1.25 device pixels snapped down to one, measured on every
 theme in `overlay-alignment-css-zoom.spec.ts`), so the precondition there is a value away from
 1, not above it. `getBoundingClientRect()` is scaled by CSS zoom and `offsetWidth` is not, so
