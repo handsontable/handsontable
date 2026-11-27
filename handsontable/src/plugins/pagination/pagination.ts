@@ -479,6 +479,25 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Computes the pages again from the rows the grid holds. The DataProvider plugin calls it once it stopped backing
+   * the grid: the rows a removed `dataProvider` fetched stay, but the server's row total no longer describes them,
+   * and nothing else recomputes the pages when only `dataProvider` leaves the settings. A page past the last one
+   * is put back on the last one. Updates the pager at once and leaves the rows to the next render. While core
+   * applies settings ahead of their data it does nothing: the load that follows recomputes the pages against the
+   * new rows, as `updateSettings()` with `data` does, so the page is not clamped against the rows being replaced.
+   * Does nothing while this plugin is disabled. Internal; not public API.
+   *
+   * @private
+   */
+  _syncDataProviderRemoval(): void {
+    if (!this.enabled || this.isDataWorkDeferred()) {
+      return;
+    }
+
+    this.#computeAndApplyState();
+  }
+
+  /**
    * Puts the page and page size back to the configured `initialPage` and `pageSize` without firing the page hooks,
    * and returns the configured `initialPage`. The DataProvider plugin calls it when the grid has just changed to a
    * view that has no response yet: the page and page size the previous view left describe that view, and the new

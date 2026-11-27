@@ -5,7 +5,8 @@ import { join, relative, resolve } from 'path';
  * Released plugins that the DataProvider plugin drives when the view the grid shows changes. They must stay
  * unaware of the SheetsBar plugin: its hooks and its settings key are not theirs to depend on, and the per-view
  * state they keep is brought in line by DataProvider through their internal `_resetDataProviderTotal()`,
- * `_resetDataProviderRollback()`, and `_syncDataProviderLoading()` entry points instead.
+ * `_syncDataProviderRemoval()`, `_resetDataProviderRollback()`, and `_syncDataProviderLoading()` entry points
+ * instead.
  */
 const VIEW_AGNOSTIC_PLUGINS = ['emptyDataState', 'filters', 'pagination'];
 
@@ -45,7 +46,8 @@ const DATA_PROVIDER_FORBIDDEN_PATTERN = /sheetsBar|afterSheetTab|beforeSheetTab/
  * The per-view entry points of the released plugins. Only DataProvider calls them; the SheetsBar plugin goes
  * through DataProvider's context owner contract instead.
  */
-const DRIVEN_ENTRY_POINTS_PATTERN = /_resetDataProviderTotal|_resetDataProviderRollback|_syncDataProviderLoading/;
+const DRIVEN_ENTRY_POINTS_PATTERN =
+  /_resetDataProviderTotal|_syncDataProviderRemoval|_resetDataProviderRollback|_syncDataProviderLoading/;
 
 /**
  * Lists the source files under a plugin directory that match a pattern.

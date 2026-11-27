@@ -25,6 +25,31 @@ test.describe('Pagination follows a dataProvider enabled after init', () => {
 
     expect(await grid.totalPages()).toBe(1);
   });
+
+  test('the pager counts the fetched rows once the dataProvider is removed without new data', async() => {
+    await grid.enableProvider();
+    await expect(grid.counter).toHaveText('1 - 10 of 42');
+    await expect(grid.navigationLabel).toHaveText('Page 1 of 5');
+
+    await grid.disableProvider();
+
+    await expect(grid.counter).toHaveText('1 - 2 of 2');
+    await expect(grid.navigationLabel).toHaveText('Page 1 of 1');
+    expect(await grid.columnValues()).toEqual([101, 102]);
+  });
+
+  test('a server page past the last local page goes back to page 1 once the dataProvider is removed', async() => {
+    await grid.enableProvider();
+    await expect(grid.navigationLabel).toHaveText('Page 1 of 5');
+
+    await grid.setPage(3);
+    await expect(grid.navigationLabel).toHaveText('Page 3 of 5');
+
+    await grid.disableProvider();
+
+    await expect(grid.navigationLabel).toHaveText('Page 1 of 1');
+    expect(await grid.currentPage()).toBe(1);
+  });
 });
 
 test.describe('a dataProvider blocked by a conflicting option', () => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the pager showing the server's row total after `dataProvider` was removed through `updateSettings()`.",
+  "type": "fixed",
+  "issueOrPR": 14503,
+  "breaking": false,
+  "framework": "none"
+}
