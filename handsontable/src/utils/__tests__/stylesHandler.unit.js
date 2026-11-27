@@ -887,8 +887,8 @@ describe('StylesHandler', () => {
     });
 
     it('should count an inflated border past half a pixel by its whole pixels at a device scale below 1', () => {
-      // Chrome at 67%: the ratio reads 0.667 and the border 1.5px. Rounding counted 2px and declared 32px
-      // for a cell that renders 31.48px.
+      // A device scale of 0.6667 with a border that reads 1.5px (Chromium reads 1.4925px at 67%, so the
+      // boundary sits just below it). Rounding counted 2px and declared 32px for a 31.48px cell.
       setDevicePixelRatio(0.6667);
 
       const { handler } = setUpHandler('border-bottom-width: 1.5px; height: 31.4776px;');
