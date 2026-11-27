@@ -786,7 +786,7 @@ describe('StylesHandler', () => {
       Object.defineProperty(window, 'devicePixelRatio', { value, configurable: true });
     };
 
-    const setUpHandler = (cellStyles, mockHot = createMockHot(), cssZoom = undefined) => {
+    const setUpHandler = (cellStyles, mockHot = createMockHot(), cssZoom = undefined, box = undefined) => {
       const rootElement = document.createElement('div');
 
       rootElement.style.setProperty('--ht-line-height', '20px');
@@ -795,6 +795,13 @@ describe('StylesHandler', () => {
       // jsdom implements no `currentCSSZoom`, so the engine's effective CSS zoom is set by hand.
       if (cssZoom !== undefined) {
         Object.defineProperty(rootElement, 'currentCSSZoom', { value: cssZoom, configurable: true });
+      }
+
+      // jsdom lays nothing out, so a root box (its layout width and its zoomed on-screen width) is set by
+      // hand too.
+      if (box !== undefined) {
+        Object.defineProperty(rootElement, 'offsetWidth', { value: box.offsetWidth, configurable: true });
+        rootElement.getBoundingClientRect = () => ({ width: box.rectWidth });
       }
 
       document.body.appendChild(rootElement);
@@ -999,6 +1006,19 @@ describe('StylesHandler', () => {
         const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.0101px;', undefined, 0.99);
 
         expect(handler.getDefaultRowHeight()).toBe(31);
+      });
+
+      it('should read the zoom from the root box when the engine has no currentCSSZoom', () => {
+        // Linux WebKit exposes no `currentCSSZoom`; its on-screen box is scaled by the zoom while its layout
+        // width is not, so a 700px root drawn 630px wide is at 90%.
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.097223px;', undefined, undefined, {
+          offsetWidth: 700,
+          rectWidth: 630,
+        });
+
+        expect(handler.getDefaultRowHeight()).toBeCloseTo(31.097, 3);
       });
 
       it('should keep the declared height at 100%', () => {

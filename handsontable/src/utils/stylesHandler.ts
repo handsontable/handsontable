@@ -440,8 +440,8 @@ export class StylesHandler {
    *   - the border spans at least one device pixel (a high-density screen at 90%);
    *   - the border is 0, which the probe cannot represent.
    *
-   * An engine that does not implement `currentCSSZoom` reads a zoom of 1, so this branch then covers a
-   * device pixel ratio below 1 only.
+   * An engine that does not implement `currentCSSZoom` (Linux WebKit) gets the zoom from the root's
+   * on-screen width against its layout width instead (`#readCSSZoom()`).
    *
    * @param {number} renderedBorderWidth The border width the engine reports, unrounded.
    * @param {number} roundedBorderWidth The width the declared row height counts.
@@ -806,12 +806,24 @@ export class StylesHandler {
   /**
    * Reads the root element's effective CSS zoom.
    *
-   * @returns {number} The zoom, or `1` when the engine does not report a usable one.
+   * `currentCSSZoom` where the engine has it. Not every WebKit build exposes it (the Linux ports do not),
+   * so the fallback compares the root's on-screen width, which CSS zoom scales, with its layout width,
+   * which it does not. A transformed ancestor scales that ratio as well; it then only makes the row height
+   * consult the measurement, which finds no growth, because a transform inflates no border.
+   *
+   * @returns {number} The zoom, or `1` when neither can be read (a root that is not rendered).
    */
   #readCSSZoom(): number {
     const zoom = this.#rootElement.currentCSSZoom;
 
-    return typeof zoom === 'number' && zoom > 0 ? zoom : 1;
+    if (typeof zoom === 'number') {
+      return zoom > 0 ? zoom : 1;
+    }
+
+    const layoutWidth = this.#rootElement.offsetWidth;
+    const renderedZoom = layoutWidth > 0 ? this.#rootElement.getBoundingClientRect().width / layoutWidth : 1;
+
+    return renderedZoom > 0 ? renderedZoom : 1;
   }
 
   /**
