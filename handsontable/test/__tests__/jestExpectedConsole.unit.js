@@ -82,6 +82,16 @@ describe('Jest expected console allowlist', () => {
       grid.destroy();
     });
 
+    it('should fail every grid built without a key in a file, not only the first', () => {
+      // The core prints the legacy message once per file, and the tests above built keyless grids already.
+      const grid = new Handsontable(document.createElement('div'), {});
+
+      expect(() => assertNoUnexpectedLicenseMessage())
+        .toThrow(/built without the test license key and shows the license lock/);
+
+      grid.destroy();
+    });
+
     it('should let a grid built with the test key pass', () => {
       const grid = new Handsontable(document.createElement('div'), { licenseKey: TEST_LICENSE_KEY });
 

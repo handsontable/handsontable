@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import type { Bundle } from './bundle';
+import { watchLicenseLocks } from './licenseLockGuard';
 
 /**
  * Shared test fixture for the functional E2E suite.
@@ -69,62 +70,34 @@ export { THEMES_TAG, BUNDLES_TAG } from '../lib/leg-declarations.mjs';
  */
 export const MOTION_TAG = '@motion';
 
-/**
- * The fixture pages that show a license surface on purpose: the license specs build their keys there.
- */
-const LICENSE_PAGES = /\/(?:license-branding|license-bar|license-capabilities|xlsx-license)\.html(?:[?#]|$)/;
-
-/**
- * Whether a page in this frame asks for a license state on purpose: one of the license pages, or a page
- * opened with a `?license=` query other than `test` (`side-layout-slots.html?license=trial`,
- * `trusted-types.html?license=invalid`).
- *
- * @param {string} url The frame's URL.
- * @returns {boolean}
- */
-function asksForLicenseState(url: string): boolean {
-  if (LICENSE_PAGES.test(url)) {
-    return true;
-  }
-
-  try {
-    const license = new URL(url).searchParams.get('license');
-
-    return license !== null && license !== 'test';
-  } catch {
-    return false;
-  }
-}
-
 export const test = base.extend<TestOptions>({
   theme: ['main', { option: true }],
   bundle: ['umd', { option: true }],
   // Since 19.0 a grid built without a valid key sits behind the license lock. API calls still work, so
   // a test that only reads the grid passes, while its clicks, focus moves and screenshots meet the lock.
   // Every grid a test builds therefore takes the internal test key (`demo/test-license-key.js`), and a
-  // lock left on a page that did not ask for one fails the test, after it ran and only when it passed.
+  // lock a page showed without asking for one fails the test once it passed. It also counts when the grid,
+  // the frame, or the page is gone by then (`licenseLockGuard.ts`). A failed test gets it as an annotation.
   page: async({ page }, use, testInfo) => {
+    const watch = await watchLicenseLocks(page);
+
     await use(page);
 
-    if (page.isClosed() || testInfo.status !== testInfo.expectedStatus) {
+    if (testInfo.status !== testInfo.expectedStatus) {
+      const locked = await watch.lockedFrames({ readFrames: false });
+
+      if (locked.length > 0) {
+        testInfo.annotations.push({
+          type: 'license-lock',
+          description: `A grid showed the license lock, so clicks and focus could not reach it: ${locked.join(', ')}`,
+        });
+      }
+
       return;
     }
 
-    const locked: string[] = [];
-
-    for (const frame of page.frames()) {
-      if (!asksForLicenseState(frame.url())) {
-        const count = await frame.evaluate(() => document.querySelectorAll('.ht-license-lock').length)
-          .catch(() => 0);
-
-        if (count > 0) {
-          locked.push(frame.url());
-        }
-      }
-    }
-
-    expect(locked, 'A grid on this page shows the license lock, so it was built without the test key. '
-      + 'Load /tests/fixtures/demo/test-license-key.js before the grid and pass '
+    expect(await watch.lockedFrames(), 'A grid on this page showed the license lock, so it was built without '
+      + 'the test key. Load /tests/fixtures/demo/test-license-key.js before the grid and pass '
       + '`licenseKey: window.htTestLicenseKey`.').toEqual([]);
   },
 });
