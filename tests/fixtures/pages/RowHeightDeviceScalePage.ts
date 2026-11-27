@@ -246,6 +246,25 @@ export class RowHeightDeviceScalePage {
   }
 
   /**
+   * The distance from one row's top to the next, averaged over the body rows, in the grid's own CSS
+   * pixels (`offsetTop`, which CSS zoom does not scale).
+   *
+   * Engine-neutral evidence that the rows render taller than a whole-pixel height: Chromium shows the
+   * inflation in the cell's computed border, and WebKit under CSS zoom does not, while its rows grow
+   * all the same.
+   */
+  async rowPitch(): Promise<number> {
+    return this.page.evaluate(() => {
+      const grid = document.querySelector('[data-testid="grid"]') as HTMLElement;
+      const rows = grid.querySelectorAll('.ht_master table.htCore tbody tr');
+      const second = rows[1] as HTMLElement;
+      const last = rows[rows.length - 1] as HTMLElement;
+
+      return (last.offsetTop - second.offsetTop) / (rows.length - 2);
+    });
+  }
+
+  /**
    * The gap between the grid's last row and the element placed under the grid. Negative
    * means the grid overlaps that element.
    */

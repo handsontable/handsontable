@@ -6,6 +6,12 @@
 const LAYOUT_UNITS_PER_PIXEL = 64;
 
 /**
+ * One step of the layout grid, in CSS pixels: the smallest difference between two lengths a browser
+ * lays out.
+ */
+export const LAYOUT_UNIT = 1 / LAYOUT_UNITS_PER_PIXEL;
+
+/**
  * Snaps a measured length to the layout grid.
  *
  * A computed style serializes at most three decimals (`118.266px` for a box that is laid out at

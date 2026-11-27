@@ -786,11 +786,24 @@ describe('StylesHandler', () => {
       Object.defineProperty(window, 'devicePixelRatio', { value, configurable: true });
     };
 
-    const setUpHandler = (cellStyles, mockHot = createMockHot()) => {
+    const setUpHandler = (cellStyles, mockHot = createMockHot(), cssZoom = undefined, box = undefined) => {
       const rootElement = document.createElement('div');
 
       rootElement.style.setProperty('--ht-line-height', '20px');
       rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
+
+      // jsdom implements no `currentCSSZoom`, so the engine's effective CSS zoom is set by hand.
+      if (cssZoom !== undefined) {
+        Object.defineProperty(rootElement, 'currentCSSZoom', { value: cssZoom, configurable: true });
+      }
+
+      // jsdom lays nothing out, so a root box (its layout width and its zoomed on-screen width) is set by
+      // hand too.
+      if (box !== undefined) {
+        Object.defineProperty(rootElement, 'offsetWidth', { value: box.offsetWidth, configurable: true });
+        rootElement.getBoundingClientRect = () => ({ width: box.rectWidth });
+      }
+
       document.body.appendChild(rootElement);
 
       const style = document.createElement('style');
@@ -868,6 +881,153 @@ describe('StylesHandler', () => {
       const { handler } = setUpHandler('border-bottom-width: 2px; height: 32px;');
 
       expect(handler.getDefaultRowHeight()).toBe(32);
+    });
+
+    it('should not count an inflated border past half a pixel as the next whole pixel', () => {
+      // 40% CSS zoom in Chromium: the border reads 2.5px and the cell renders 32.47px. Rounding counted a
+      // 3px border, declared 33px, and left the grid 0.53px taller than every row - 53px over 100 rows.
+      setDevicePixelRatio(1);
+
+      const { handler } = setUpHandler('border-bottom-width: 2.5px; height: 32.46875px;', undefined, 0.4);
+
+      expect(handler.getDefaultRowHeight()).toBeCloseTo(32.469, 3);
+    });
+
+    it('should count an inflated border past half a pixel by its whole pixels at a device scale below 1', () => {
+      // A device scale of 0.6667 with a border that reads 1.5px (Chromium reads 1.4925px at 67%, so the
+      // boundary sits just below it). Rounding counted 2px and declared 32px for a 31.48px cell.
+      setDevicePixelRatio(0.6667);
+
+      const { handler } = setUpHandler('border-bottom-width: 1.5px; height: 31.4776px;');
+
+      expect(handler.getDefaultRowHeight()).toBeCloseTo(31.478, 3);
+    });
+
+    it('should keep counting a whole border reported a hair short on its pixel', () => {
+      // 50%: a 2px border reported as 1.99999px. Without the slack it counted 1px and sized rows from the
+      // probe's 31.5px instead of the declared 32px.
+      setDevicePixelRatio(0.5);
+
+      const { handler } = setUpHandler('border-bottom-width: 1.99999px; height: 31.5px;');
+
+      expect(handler.getDefaultRowHeight()).toBe(32);
+    });
+
+    it('should round a fractional custom border at or above 100% as before', () => {
+      // A theme that sets a 2px border, at 125%: it reads 1.6px and still counts 2px.
+      setDevicePixelRatio(1.25);
+
+      const { handler } = setUpHandler('border-bottom-width: 1.6px; height: 31.6px;');
+
+      expect(handler.getDefaultRowHeight()).toBe(32);
+    });
+
+    it('should keep rounding a border thinner than 1px up to the 1px the cells reserve', () => {
+      // Above 100% the border snaps down (0.8px at 125%), while the cells' height rule keeps its 1px.
+      const { handler } = setUpHandler('border-bottom-width: 0.8px; height: 31px;');
+
+      expect(handler.getDefaultRowHeight()).toBe(31);
+    });
+
+    it('should accept an overgrowth equal to the bound when the ratio is a float32 value', () => {
+      // WebKit at a device scale of 0.8: the ratio reads 0.800000011920929, so the bound is
+      // 1 / ratio - 1 = 0.24999998, while the cell renders exactly 0.25px taller. Rejecting it kept the
+      // declared height and left the grid 0.25px short per row - 25px over 100 rows.
+      setDevicePixelRatio(0.800000011920929);
+
+      const { handler } = setUpHandler('border-bottom-width: 1.25px; height: 31.25px;');
+
+      expect(handler.getDefaultRowHeight()).toBeCloseTo(31.25, 3);
+    });
+
+    describe('when the engine reports the border uninflated under CSS zoom', () => {
+      // WebKit reads the cells' border as 1px at every CSS zoom level, while the cell still renders as
+      // tall as one whose border was rounded up to a device pixel: 31.097px at 90% for a 31px row.
+
+      it('should size rows from the rendered height when no device pixel can paint the border', () => {
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.097223px;', undefined, 0.9);
+
+        expect(handler.getDefaultRowHeight()).toBeCloseTo(31.097, 3);
+      });
+
+      it('should keep the declared height for cells with no border', () => {
+        setDevicePixelRatio(1);
+
+        // 0.097px over the declared 30px is within the bound, so only the borderless check keeps it out.
+        const { handler } = setUpHandler('border-bottom-width: 0px; height: 30.097223px;', undefined, 0.9);
+
+        expect(handler.getDefaultRowHeight()).toBe(30);
+      });
+
+      it('should size rows from the rendered height when the device pixel is a whole number of CSS pixels', () => {
+        // 50%: one device pixel is 2 CSS pixels, so the border is painted 2px wide while it reads, and the
+        // declared height counts, 1px. Unlike a border that READS 2px, nothing has rounded it in yet.
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 32px;', undefined, 0.5);
+
+        expect(handler.getDefaultRowHeight()).toBe(32);
+      });
+
+      it('should size rows from the rendered height below 50%', () => {
+        // 40%: the border is painted 2.5px wide, so the cell grows 1.5px - more than the 1px a bound from
+        // the device pixel ratio alone allowed.
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 32.5px;', undefined, 0.4);
+
+        expect(handler.getDefaultRowHeight()).toBeCloseTo(32.5, 3);
+      });
+
+      it('should ignore an overgrowth beyond what the zoom can inflate', () => {
+        // At 90% the border can add 0.111px at most; 0.5px is cell styling the probe cannot represent.
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.5px;', undefined, 0.9);
+
+        expect(handler.getDefaultRowHeight()).toBe(31);
+      });
+
+      it('should keep the declared height when the zoomed border still spans a device pixel', () => {
+        // A high-density screen at 90%: 1.8 device pixels per CSS pixel, so nothing is inflated.
+        setDevicePixelRatio(2);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.097223px;', undefined, 0.9);
+
+        expect(handler.getDefaultRowHeight()).toBe(31);
+      });
+
+      it('should keep the declared height when a device pixel is within a layout unit of the border', () => {
+        // 99%: one device pixel is 1.0101 CSS pixels, less than a layout unit wider than the 1px counted.
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.0101px;', undefined, 0.99);
+
+        expect(handler.getDefaultRowHeight()).toBe(31);
+      });
+
+      it('should read the zoom from the root box when the engine has no currentCSSZoom', () => {
+        // Linux WebKit exposes no `currentCSSZoom`; its on-screen box is scaled by the zoom while its layout
+        // width is not, so a 700px root drawn 630px wide is at 90%.
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.097223px;', undefined, undefined, {
+          offsetWidth: 700,
+          rectWidth: 630,
+        });
+
+        expect(handler.getDefaultRowHeight()).toBeCloseTo(31.097, 3);
+      });
+
+      it('should keep the declared height at 100%', () => {
+        setDevicePixelRatio(1);
+
+        const { handler } = setUpHandler('border-bottom-width: 1px; height: 31.5px;', undefined, 1);
+
+        expect(handler.getDefaultRowHeight()).toBe(31);
+      });
     });
 
     it('should not probe the DOM when a required theme variable is missing', () => {
@@ -1127,8 +1287,40 @@ describe('StylesHandler', () => {
 
       handler.clearCache();
 
-      return { handler, style };
+      return { handler, style, rootElement };
     };
+
+    it('should report a change when the CSS zoom moved while the border reads the same', () => {
+      // WebKit reads the border as 1px at every CSS zoom level, so only the zoom itself shows that a grid
+      // built at 100% was zoomed out afterwards.
+      const { handler, style, rootElement } = setUpHandler('border-bottom-width: 1px; height: 31px;');
+
+      expect(handler.getDefaultRowHeight()).toBe(31);
+
+      Object.defineProperty(rootElement, 'currentCSSZoom', { value: 0.9, configurable: true });
+      style.textContent = 'td { border-bottom-width: 1px; height: 31.097223px; }';
+
+      expect(handler.refreshZoomDependentValues()).toBe(true);
+      expect(handler.getDefaultRowHeight()).toBeCloseTo(31.097, 3);
+      expect(handler.refreshZoomDependentValues()).toBe(false);
+    });
+
+    it('should report no change for a sub-pixel width change on an engine without currentCSSZoom', () => {
+      // The fallback reads the zoom as the on-screen width over the layout width, so a root whose width
+      // went from 700.4px to 700.6px reads 1.0006 and then 0.9994. Neither is a zoom change.
+      const { handler, rootElement } = setUpHandler('border-bottom-width: 1px; height: 31px;');
+
+      Object.defineProperty(rootElement, 'offsetWidth', { value: 700, configurable: true });
+      rootElement.getBoundingClientRect = () => ({ width: 700.4 });
+      handler.clearCache();
+      rootElement.getBoundingClientRect = () => ({ width: 699.6 });
+
+      expect(handler.refreshZoomDependentValues()).toBe(false);
+
+      rootElement.getBoundingClientRect = () => ({ width: 630 });
+
+      expect(handler.refreshZoomDependentValues()).toBe(true);
+    });
 
     it('should report a change and re-read the border when the browser zoom moved the cell border', () => {
       const { handler, style } = setUpHandler('border-bottom-width: 1px;');

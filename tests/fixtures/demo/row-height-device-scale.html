@@ -30,7 +30,8 @@
     // Sub-100% rendering, applied through CSS zoom on the root element. Chrome routes it
     // through the same effective-zoom machinery as browser page zoom, so the cells' 1px
     // border is inflated exactly as it is under Ctrl+minus or Windows display scaling — the
-    // computed width reads 1.111px at 0.9 either way.
+    // computed width reads 1.111px at 0.9 either way. WebKit reads it as 1px at every CSS zoom level
+    // while its rows grow by the same fraction, so a WebKit test guards on the row pitch instead.
     //
     // It has to be CSS zoom rather than a `--force-device-scale-factor` launch flag: that
     // flag needs `viewport: null`, which every project's `devices['Desktop Chrome']` forbids
