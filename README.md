@@ -49,18 +49,25 @@
 &nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/rows-sorting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/column-filter/) <br>
 &nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/formula-calculation/) <br>
+&nbsp;&nbsp;✅&nbsp; [Formula bar and builder](https://handsontable.com/docs/javascript-data-grid/formula-builder/) <br>
+&nbsp;&nbsp;✅&nbsp; [Multiple sheets](https://handsontable.com/docs/javascript-data-grid/sheets-bar/) <br>
 &nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/selection/) <br>
+&nbsp;&nbsp;✅&nbsp; [Row selection with checkboxes](https://handsontable.com/docs/javascript-data-grid/row-selection/) <br>
 &nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/cell-validator/) <br>
 &nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/conditional-formatting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/merge-cells/) <br>
-&nbsp;&nbsp;✅&nbsp; [Frozen rows and columns](https://handsontable.com/docs/column-freezing/) <br>
+&nbsp;&nbsp;✅&nbsp; [Frozen rows and columns, adjustable by drag](https://handsontable.com/docs/column-freezing/) <br>
 &nbsp;&nbsp;✅&nbsp; [Hiding rows and columns](https://handsontable.com/docs/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/context-menu/) <br>
+&nbsp;&nbsp;✅&nbsp; [Undo and redo](https://handsontable.com/docs/javascript-data-grid/undo-redo/) <br>
+&nbsp;&nbsp;✅&nbsp; [Clickable links](https://handsontable.com/docs/javascript-data-grid/clickable-links/) <br>
 &nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/javascript-data-grid/rows-pagination/) <br>
 &nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/javascript-data-grid/server-side-data/) <br>
+&nbsp;&nbsp;✅&nbsp; [Async cell values](https://handsontable.com/docs/javascript-data-grid/async-values/) <br>
 &nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/javascript-data-grid/notification/) <br>
-&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/javascript-data-grid/export-to-excel/) <br>
-&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/javascript-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Import and export Excel (XLSX)](https://handsontable.com/docs/javascript-data-grid/import-and-export/) <br>
+&nbsp;&nbsp;✅&nbsp; [Save and restore view state](https://handsontable.com/docs/javascript-data-grid/view-state/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/javascript-data-grid/date-cell-type/) <br>
 &nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/javascript-data-grid/shadow-dom/) <br>
 
 <br>
