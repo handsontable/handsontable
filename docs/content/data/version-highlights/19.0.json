@@ -1,4 +1,31 @@
 {
   "version": "19.0",
-  "highlighted": []
+  "highlighted": [
+    {
+      "prNumber": 13172,
+      "tagline": "Formula bar and inline formula editor",
+      "whyItMatters": "The new `FormulaBuilder` plugin adds a formula bar and an inline formula editor with colored references. Users can pick cell, range, and header references, get autocomplete and function help, and see formula error indicators."
+    },
+    {
+      "prNumber": 13409,
+      "tagline": "Multiple sheets in one grid",
+      "whyItMatters": "The new `SheetsBar` plugin renders a tab bar above or below the grid, so users can switch between the sheets of a multi-sheet workbook. Each sheet has its own data, settings, and view state."
+    },
+    {
+      "prNumber": 13551,
+      "tagline": "Import .xlsx files, no ExcelJS needed",
+      "whyItMatters": "The new `ImportFile` plugin loads an `.xlsx` workbook into the grid. It reads cell types and formats, formulas, merged cells, frozen panes, hidden rows and columns, and comments. A built-in XLSX engine reads and writes `.xlsx` files, so `importFile` and `exportFile` no longer need ExcelJS. A setup that passes `engines: { xlsx: ExcelJS }` keeps working."
+    },
+    {
+      "prNumber": 13735,
+      "tagline": "Row selection checkboxes",
+      "whyItMatters": "The `rowSelection` option adds a checkbox to every row and a select all checkbox in the header. The selection follows its rows when users sort, filter, move, add, or remove rows, and it works with server-side data and nested rows."
+    },
+    {
+      "prNumber": 14144,
+      "tagline": "The evaluation license key is gone",
+      "whyItMatters": "Handsontable 19.0 no longer accepts the `non-commercial-and-evaluation` key, or the Angular `NON_COMMERCIAL_LICENSE` constant that holds it. A grid that still uses it shows a lock screen, so get a trial, sponsored, or commercial key before you upgrade. Handsontable 18.1 and older still accept the old key.",
+      "migrationAnchor": "/migration-from-18.1-to-19.0#the-non-commercial-and-evaluation-license-key-no-longer-works"
+    }
+  ]
 }
