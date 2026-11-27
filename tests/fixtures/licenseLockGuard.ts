@@ -28,6 +28,11 @@ const LOCK_CLASS = 'ht-license-lock';
 export const LICENSE_LOCK_BINDING = '__htReportLicenseLock';
 
 /**
+ * How long a page's close waits for the round trip that flushes the lock reports in flight.
+ */
+const CLOSE_FLUSH_LIMIT_MS = 1000;
+
+/**
  * The errors that only say the frame went away while it was read: its lock, if any, was reported as it
  * mounted. Any other error reading a frame fails the test, because it would otherwise read as no lock.
  */
@@ -125,9 +130,14 @@ export async function watchLicenseLocks(
     const close = page.close.bind(page);
 
     // One round trip before the page closes lets a report still in flight reach Node: WebKit drops it
-    // otherwise, when the page closes right after the lock mounted.
+    // otherwise, when the page closes right after the lock mounted. Bounded, because `evaluate()` takes no
+    // timeout and a page held by an unanswered dialog never answers: the close must not wait on it.
     page.close = async(...args: Parameters<Page['close']>) => {
-      await page.evaluate(() => 0).catch(() => {});
+      await Promise.race([
+        page.evaluate(() => 0).catch(() => {}),
+        // eslint-disable-next-line no-restricted-syntax -- DEV-4187: a ceiling on the flush, not a wait.
+        new Promise(resolve => setTimeout(resolve, CLOSE_FLUSH_LIMIT_MS)),
+      ]);
 
       return close(...args);
     };
