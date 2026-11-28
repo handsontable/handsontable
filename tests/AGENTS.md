@@ -280,7 +280,7 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   the ones written in the source.
 - **The nightly is the safety net, and a nightly-only red means an undeclared axis.** `E2E nightly`
   (`.github/workflows/e2e-nightly.yml`, weeknights on develop; the rc/stable publish path and a
-  master push do the same) runs every spec on all six legs with `HOT_E2E_FULL_MATRIX=1`. A test red
+  master or `release/**` push do the same) runs every spec on all six legs with `HOT_E2E_FULL_MATRIX=1`. A test red
   there and green on pull requests runs on a leg its spec did not declare: declare the axis, never
   quarantine it. (The same run expands the frozen Jasmine suite to its six legs, through e2e.yml's
   `jasmine-full-matrix`; a pull request runs that suite on `UMD (theme: main)` alone, so its

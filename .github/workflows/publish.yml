@@ -6,19 +6,25 @@ name: Publish
 # job to another workflow — it would break OIDC for that publish until npm's
 # config is repointed, and repointing breaks the OTHER publishes instead.
 on:
-  # On-demand experimental publish of the dispatched branch (the feature-branch
-  # lever — see the pre-release-dispatch job). Two gates: the checkbox (a
-  # dispatch without it runs nothing — every job in this file skips) and the
-  # `approvers` environment sign-off on the job itself.
+  # Two on-demand levers, one checkbox each. A dispatch with neither box ticked
+  # runs nothing — every job in this file skips.
+  #   publish-experimental: publishes the dispatched branch as `experimental`
+  #     (the feature-branch lever — see the pre-release-dispatch job), behind
+  #     the `approvers` environment sign-off on the job itself.
+  #   publish-rc: cuts the next release candidate from the dispatched
+  #     release/** branch (Scenario C). A push to release/** deliberately does
+  #     NOT start this workflow: a merge is not a request for an RC, and when it
+  #     was one, 19.0.0 reached rc12. test.yml tests every release push.
   workflow_dispatch:
     inputs:
       publish-experimental:
         description: 'Build this branch and publish it to npm as `experimental` (UNTESTED — pauses for a release approver''s sign-off)'
         type: boolean
         default: false
-  push:
-    branches:
-      - 'release/**' # Must match RELEASE_BRANCH_PREFIX
+      publish-rc:
+        description: 'Cut the next release candidate from this release/x.y.z branch (bumps the version, tags rcN, then pauses for a release approver''s sign-off before npm)'
+        type: boolean
+        default: false
   release:
     types: [created]
   # Chained final stage of the develop pipeline: fires when a `Develop` run
@@ -40,6 +46,17 @@ permissions:
   id-token: write  # Required for OIDC
   contents: write
   actions: read
+
+# RC runs of one release branch run one at a time: two runs at once would both
+# pick the same next `rcN`. GitHub keeps one running and one pending run per
+# group, so a third dispatch replaces the pending one. Never cancel a running
+# RC — it may have pushed the version bump without the tag. The `rc-` prefix
+# must not be `${{ github.workflow }}`: test.yml, called as rc-test, takes
+# `Publish-<ref>` as its own group, and a match deadlocks the run. Every other
+# run gets a group of its own and never queues.
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.publish-rc && format('rc-{0}', github.ref_name) || format('publish-{0}', github.run_id) }}
+  cancel-in-progress: false
 
 jobs:
   # ============================================================
@@ -648,12 +665,12 @@ jobs:
           payload-file-path: /tmp/slack-payload.json
 
   # ============================================================
-  # Scenario C — Subsequent RC (push to release/**)
+  # Scenario C — Subsequent RC (manual dispatch on release/**, publish-rc ticked)
   # ============================================================
   rc-check:
     name: Guard RC build
     runs-on: ubuntu-26.04
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/')
+    if: github.event_name == 'workflow_dispatch' && inputs.publish-rc && startsWith(github.ref, 'refs/heads/release/')
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
     steps:
@@ -683,7 +700,7 @@ jobs:
     name: Build RC
     runs-on: ubuntu-26.04
     needs: [rc-check]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/') && needs.rc-check.outputs.allowed == 'true'
+    if: github.event_name == 'workflow_dispatch' && inputs.publish-rc && startsWith(github.ref, 'refs/heads/release/') && needs.rc-check.outputs.allowed == 'true'
     outputs:
       rc-version: ${{ steps.rc-version.outputs.rc-version }}
       changelog-synced: ${{ steps.sync-changelog.outputs.synced }}

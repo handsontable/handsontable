@@ -11,7 +11,7 @@ on:
     workflows: ['Publish']
     types: [completed]
     # DELIBERATELY UNFILTERED. A `Publish` run's `head_branch` is a BRANCH for RC
-    # pushes (`release/18.0.0`) but the TAG for release events (`18.0.0`), and the
+    # dispatches (`release/18.0.0`) but the TAG for release events (`18.0.0`), and the
     # old `branches: ['release/**']` allow-list therefore never matched a stable
     # release — the deliverable was silently skipped for every official version
     # (DEV-1968). Whether a `branches`/`branches-ignore` filter passes a
@@ -19,10 +19,11 @@ on:
     # `workflow_run` is not supported), so ANY filter here risks re-creating that
     # exact silent miss. Gating lives in the job's `if` instead, where the rules
     # are explicit and testable. Excluding develop was already redundant:
-    # publish.yml's `push` trigger covers release/** only and `release` is
-    # tag-based, so a develop `head_branch` can only arrive as `workflow_run`
-    # (the chained `experimental` publish) or `workflow_dispatch` — and neither
-    # passes either arm of that `if`. Cost is a handful of instantly-skipped
+    # `release` is tag-based, so a develop `head_branch` can only arrive as
+    # `workflow_run` (the chained `experimental` publish) or as a
+    # `workflow_dispatch` (the on-demand `experimental` publish) — and neither
+    # passes either arm of that `if`, because the dispatch arm also needs a
+    # release/ branch. Cost is a handful of instantly-skipped
     # runs; the benefit is that a release can no longer be missed by a filter
     # whose behavior on tags is unspecified.
   workflow_dispatch:
@@ -48,13 +49,14 @@ jobs:
     runs-on: ubuntu-26.04
     # A manual dispatch always runs. An automatic run needs a green `Publish`
     # run that actually pushed a customer-facing version to npm: a `release`
-    # event (stable release, or the first RC) or a push to a release branch
-    # (every later RC).
+    # event (stable release, or the first RC) or a manual dispatch on a release
+    # branch (every later RC; a dispatch that cut nothing uploads no packs and
+    # is dropped by the version step below).
     if: |
       github.event_name == 'workflow_dispatch' || (
         github.event.workflow_run.conclusion == 'success' && (
           github.event.workflow_run.event == 'release' || (
-            github.event.workflow_run.event == 'push' &&
+            github.event.workflow_run.event == 'workflow_dispatch' &&
             startsWith(github.event.workflow_run.head_branch, 'release/')
           )
         )

@@ -9,8 +9,10 @@ name: Tests
 #
 # The filename and the `workflow_call` `test-all` input are a stable contract:
 # publish.yml (rc/stable/release) calls this workflow with `test-all: true`, and
-# a master push runs it with run-all — both get the SAME jobs (nested one level
-# deeper) with only display names changed. develop is NOT handled here anymore:
+# a master or release/** push runs it with run-all — all get the SAME jobs
+# (nested one level deeper) with only display names changed. The release push is
+# the only full test run a commit on a release branch gets before someone cuts
+# an RC: publish.yml no longer runs on a push. develop is NOT handled here anymore:
 # it has its own orchestrator (develop.yml — the same modules plus the trunk-only
 # stages, ending in the experimental npm publish).
 on:
@@ -22,6 +24,7 @@ on:
   push:
     branches:
       - 'master'
+      - 'release/**'
   workflow_dispatch:
     inputs:
       test-all:
@@ -139,13 +142,13 @@ jobs:
       run-e2e-min: ${{ needs.checks.outputs.test-handsontable-e2e-min == 'true' }}
       run-playwright: ${{ needs.checks.outputs.build-handsontable-umd == 'true' }}
       # The full theme × bundle matrix (every Playwright spec on every leg) on the rc/stable path,
-      # which publish.yml reaches with test-all: true, and on a master push, which has no nightly of
-      # its own. A pull request runs the shape each spec declares (tests/AGENTS.md, "Declaring the
+      # which publish.yml reaches with test-all: true, and on a master or release/** push, which
+      # have no nightly of their own. A pull request runs the shape each spec declares (tests/AGENTS.md, "Declaring the
       # legs"); develop's push keeps that shape too, and the E2E nightly runs the matrix there.
-      full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
-      # The six frozen Jasmine legs (three themes × UMD / UMD.min) on the same two paths. A pull
+      full-matrix: ${{ inputs.test-all || github.ref_name == 'master' || startsWith(github.ref, 'refs/heads/release/') }}
+      # The six frozen Jasmine legs (three themes × UMD / UMD.min) on the same paths. A pull
       # request and develop's push run the one leg, UMD × main; the E2E nightly runs the six on develop.
-      jasmine-full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
+      jasmine-full-matrix: ${{ inputs.test-all || github.ref_name == 'master' || startsWith(github.ref, 'refs/heads/release/') }}
     secrets: inherit
 
   # The accessibility scan (axe-core over the Playwright fixture pages), one job in warn
@@ -224,8 +227,8 @@ jobs:
       # (`visual-full`: visual-tests/**, its demos) renders everything (full),
       # so a change to a spec or a demo is proven on every variant; a lockfile
       # bump does not, or every Dependabot pull request would pay for a full
-      # render. The master push and the RC path (publish.yml → test.yml,
-      # test-all) seed their branch's goldens (seed). `&&`/`||` return
+      # render. The master push, the release/** push and the RC path
+      # (publish.yml → test.yml, test-all) seed their branch's goldens (seed). `&&`/`||` return
       # operands, so this is a ternary.
       tier: ${{ github.event_name != 'pull_request' && 'seed' || (needs.checks.outputs.visual-full == 'true' && 'full' || 'pr') }}
       wrappers: ${{ needs.checks.outputs.visual-wrappers }}

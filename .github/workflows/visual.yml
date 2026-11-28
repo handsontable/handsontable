@@ -336,10 +336,10 @@ jobs:
             fi
 
             # `lts/*` is listed for correctness, but nothing triggers this
-            # workflow on an LTS push today: test.yml pushes on master,
-            # visual-seed.yml on develop (NOT develop.yml — the seed moved out of
-            # it in DEV-2797), publish.yml on release/** and explicitly excludes
-            # lts/. So an LTS baseline is seeded by the first pull request into
+            # workflow on an LTS push today: test.yml pushes on master and
+            # release/**, visual-seed.yml on develop (NOT develop.yml — the seed
+            # moved out of it in DEV-2797), and publish.yml's RC dispatch takes
+            # release/** only and explicitly excludes lts/. So an LTS baseline is seeded by the first pull request into
             # that branch and never refreshed -- see the caveat in
             # visual-tests/README.md.
             case "$REF_NAME" in
