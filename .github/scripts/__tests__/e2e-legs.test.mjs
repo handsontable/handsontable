@@ -45,7 +45,7 @@ const TEST_HEALTH = '.github/workflows/test-health.yml';
 const NIGHTLY_NAME = 'E2E nightly';
 const JASMINE_INPUT = 'jasmine-full-matrix';
 const MAIN_LEG = 'UMD (theme: main)';
-const FORWARDED = /^ {6}jasmine-full-matrix: \$\{\{ inputs\.test-all \|\| github\.ref_name == 'master' \}\}$/m;
+const FORWARDED = /^ {6}jasmine-full-matrix: \$\{\{ inputs\.test-all \|\| github\.ref_name == 'master' \|\| startsWith\(github\.ref, 'refs\/heads\/release\/'\) \}\}$/m;
 const JASMINE_DOC = 'See .ai/CI.md (the Jasmine single-leg entry) and handsontable/.ai/TESTING.md, "The Jasmine suite is frozen".';
 const FULL_MATRIX_ENV_LINE = /^ {10}HOT_E2E_FULL_MATRIX: \$\{\{ inputs\.full-matrix && '1' \|\| '' \}\}$/m;
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -274,13 +274,14 @@ test('no workflow and no test script passes --pass-with-no-tests: an empty leg m
   }
 });
 
-test('test.yml forwards the full matrix on the rc/stable path and a master push, and develop.yml does not', () => {
+test('test.yml forwards the full matrix on the rc/stable path and a master or release push, and develop.yml does not', () => {
   const tests = stripYamlComments(read(TESTS));
   const e2e = job(tests, 'e2e');
 
-  assert.match(e2e, /^ {6}full-matrix: \$\{\{ inputs\.test-all \|\| github\.ref_name == 'master' \}\}$/m,
-    `${TESTS}'s e2e job must forward full-matrix as \${{ inputs.test-all || github.ref_name == 'master' }}: publish.yml `
-    + `calls this workflow with test-all: true on the rc/stable path, and the master push has no nightly of its own. ${DOC}`);
+  assert.match(e2e, /^ {6}full-matrix: \$\{\{ inputs\.test-all \|\| github\.ref_name == 'master' \|\| startsWith\(github\.ref, 'refs\/heads\/release\/'\) \}\}$/m,
+    `${TESTS}'s e2e job must forward full-matrix as \${{ inputs.test-all || github.ref_name == 'master' || `
+    + `startsWith(github.ref, 'refs/heads/release/') }}: publish.yml calls this workflow with test-all: true on the rc/stable `
+    + `path, and a master or release push has no nightly of its own. ${DOC}`);
   assert.match(e2e, FORWARDED,
     `${TESTS}'s e2e job must forward ${JASMINE_INPUT} the same way: the six Jasmine legs run where the Playwright full matrix `
     + `runs, and a pull request runs ${MAIN_LEG} alone. ${JASMINE_DOC}`);
