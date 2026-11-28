@@ -871,12 +871,16 @@ jobs:
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
-          RC_NUMBER=$(echo "$RC_VERSION" | sed -n "s/^${VERSION}-rc\([0-9]\+\)$/\1/p")
-          PREVIOUS_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
+
+          # Read the tag the pre-release sits on; never derive it as rcN-1. A
+          # run that tags rcN and stops before this step leaves the release on
+          # rcN-1, and the next run, cutting rcN+1, would look for it on rcN.
+          CURRENT_TAG=$(gh release list --repo "${{ github.repository }}" --json tagName,isPrerelease --limit 100 \
+            | node .github/scripts/rc-prerelease-tag.mjs "${VERSION}")
 
           node .github/scripts/release-notes.mjs "${RC_VERSION}" "${RC_VERSION}" > /tmp/release-notes.md
-          gh release edit "${PREVIOUS_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
-          echo "Updated release '${PREVIOUS_TAG}' to point to tag '${RC_VERSION}'"
+          gh release edit "${CURRENT_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
+          echo "Updated release '${CURRENT_TAG}' to point to tag '${RC_VERSION}'"
 
       - name: Publication summary
         run: |
@@ -952,6 +956,15 @@ jobs:
           npm install -g npm@${{ env.NPM_PUBLISH_VERSION }} # Ensure npm 11.5.1 or later for trusted publishing
           echo "Publishing packages from _tmp_packs/ with tag: rc"
           for TARBALL in _tmp_packs/*.tgz; do
+            # Skip what a failed earlier attempt already published: npm refuses
+            # a version that exists, so without this a re-run after a partial
+            # publish fails on the first package and never reaches the rest.
+            NAME=$(tar -xzOf "$TARBALL" package/package.json | jq -r '.name')
+            VERSION=$(tar -xzOf "$TARBALL" package/package.json | jq -r '.version')
+            if curl --silent --fail --output /dev/null "https://registry.npmjs.org/${NAME/\//%2F}/${VERSION}"; then
+              echo "Skipping ${NAME}@${VERSION}: already on npm."
+              continue
+            fi
             echo "Publishing: $(basename "$TARBALL")"
             npm publish "./$TARBALL" --tag rc
           done
@@ -1037,9 +1050,12 @@ jobs:
         run: |
           NUPKG=$(ls *.nupkg)
           echo "Publishing: $NUPKG"
+          # --skip-duplicate: a re-run after a push that succeeded must not
+          # fail on the package that is already on NuGet.
           dotnet nuget push "$NUPKG" \
             --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
-            --source https://api.nuget.org/v3/index.json
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
 
   rc-notify:
     name: Notify Slack (RC)

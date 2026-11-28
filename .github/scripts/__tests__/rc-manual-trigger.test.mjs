@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
-import { job, jobIds } from '../lib/workflow-text.mjs';
+import { job, jobIds, steps } from '../lib/workflow-text.mjs';
 
 const root = repoRoot();
 const read = name => readFileSync(path.join(root, '.github/workflows', name), 'utf8');
@@ -73,6 +73,17 @@ function upstreamOf(id) {
   return seen;
 }
 
+/**
+ * The step of a publish.yml job that carries a name.
+ *
+ * @param {string} id The job id.
+ * @param {string} name The step's `name:`.
+ * @returns {string} The step's text, or an empty string when the job has no such step.
+ */
+function step(id, name) {
+  return steps(job(publishYml, id)).find(body => body.includes(`name: ${name}\n`)) ?? '';
+}
+
 test('a push to a release branch does not start the Publish workflow', () => {
   assert.equal(trigger(publishYml, 'push'), '',
     `publish.yml must have no push trigger: a merge to release/** is not a request for a release candidate. ${DOC}`);
@@ -121,6 +132,32 @@ test('RC runs of one release branch queue, and no other run shares their group',
     'the group must not start from github.workflow: test.yml, called as rc-test, takes Publish-<ref> and a match deadlocks the run');
   assert.match(block, /^ {2}cancel-in-progress: false$/m,
     'a running RC must never be cancelled by the next one: it may have pushed the version bump without the tag');
+});
+
+test('the GitHub pre-release is found by its version, not by the previous RC number', () => {
+  const body = step('rc-build', 'Update GitHub release');
+
+  assert.notEqual(body, '', 'rc-build lost its "Update GitHub release" step');
+  assert.match(body, /node \.github\/scripts\/rc-prerelease-tag\.mjs "\$\{VERSION\}"/,
+    'the step must read the current tag with rc-prerelease-tag.mjs');
+  assert.doesNotMatch(body, /RC_NUMBER - 1/,
+    'the previous RC number is not where the release sits after a run that stopped between the tag and this step');
+});
+
+test('the RC npm publish skips a package version that is already on npm', () => {
+  const body = step('rc-publish', 'Publish');
+  const check = body.indexOf('https://registry.npmjs.org/');
+  const publish = body.indexOf('npm publish "./$TARBALL" --tag rc');
+
+  assert.ok(publish > -1, 'rc-publish lost its npm publish command');
+  assert.ok(check > -1 && check < publish, 'the loop must ask the registry for each version before it publishes it');
+  assert.match(body.slice(check, publish), /^ {14}continue$/m,
+    'a version that is already on npm must be skipped, or a re-run after a partial publish fails on the first package');
+});
+
+test('the RC NuGet publish tolerates a package that is already on NuGet', () => {
+  assert.match(step('rc-publish-nuget', 'Publish NuGet package'), /^ {12}--skip-duplicate/m,
+    'dotnet nuget push needs --skip-duplicate, or a re-run after a successful push fails with a conflict');
 });
 
 test('the ComponentSource build accepts a manual RC run of Publish', () => {
